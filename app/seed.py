@@ -1,4 +1,5 @@
 from app.database import Base, SessionLocal, engine
+from app.exercise_blocks import ExerciseBlockConfig
 from app.models import UAA, BlockType, LessonBlock, Module, Subject
 from app.slugify import slugify
 
@@ -34,6 +35,18 @@ SAMPLE_BLOCKS = [
         "content": "Contenu en cours de rédaction, non publié.",
         "position": 3,
         "is_published": False,
+    },
+    {
+        "title": "Entraîne-toi",
+        "type": BlockType.GENERATED_EXERCISE,
+        "content": ExerciseBlockConfig(
+            generator="maths.equations.linear_equation",
+            difficulty=1,
+            count=2,
+            tags=["algèbre", "premier degré"],
+        ).to_json(),
+        "position": 4,
+        "is_published": True,
     },
 ]
 

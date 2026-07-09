@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 from app import models
 from app.auth import require_admin, verify_credentials
 from app.database import get_db
+from app.exercise_blocks import ExerciseBlockConfig
 from app.templating import templates
+from generators.registry import available_generators
 
 public_router = APIRouter(prefix="/admin", tags=["admin"])
 protected_router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
@@ -111,6 +113,27 @@ async def admin_uaa_blocks(
     )
 
 
+def _build_content(
+    parsed_type: models.BlockType,
+    content: str,
+    generator: str,
+    difficulty: int,
+    count: int,
+    tags: str,
+) -> str:
+    if parsed_type != models.BlockType.GENERATED_EXERCISE:
+        return content
+    if generator not in available_generators():
+        raise HTTPException(status_code=400, detail="Générateur inconnu")
+    config = ExerciseBlockConfig(
+        generator=generator,
+        difficulty=difficulty,
+        count=max(1, count),
+        tags=[tag.strip() for tag in tags.split(",") if tag.strip()],
+    )
+    return config.to_json()
+
+
 @protected_router.get("/uaa/{uaa_id}/blocks/new", response_class=HTMLResponse)
 async def admin_new_block_form(
     uaa_id: int, request: Request, db: Session = Depends(get_db)
@@ -127,6 +150,8 @@ async def admin_new_block_form(
             "block": None,
             "block_types": list(models.BlockType),
             "next_position": next_position,
+            "generators": available_generators(),
+            "exercise_config": ExerciseBlockConfig(generator=""),
         },
     )
 
@@ -139,6 +164,10 @@ async def admin_create_block(
     content: str = Form(""),
     position: int = Form(0),
     is_published: bool = Form(False),
+    generator: str = Form(""),
+    difficulty: int = Form(1),
+    count: int = Form(1),
+    tags: str = Form(""),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     uaa = db.get(models.UAA, uaa_id)
@@ -149,12 +178,14 @@ async def admin_create_block(
     except ValueError:
         raise HTTPException(status_code=400, detail="Type de bloc invalide")
 
+    stored_content = _build_content(parsed_type, content, generator, difficulty, count, tags)
+
     db.add(
         models.LessonBlock(
             uaa=uaa,
             title=title,
             type=parsed_type,
-            content=content,
+            content=stored_content,
             position=position,
             is_published=is_published,
         )
@@ -170,6 +201,11 @@ async def admin_edit_block_form(
     block = db.get(models.LessonBlock, block_id)
     if block is None:
         raise HTTPException(status_code=404, detail="Bloc introuvable")
+    exercise_config = (
+        ExerciseBlockConfig.from_json(block.content)
+        if block.type == models.BlockType.GENERATED_EXERCISE
+        else ExerciseBlockConfig(generator="")
+    )
     return templates.TemplateResponse(
         request=request,
         name="admin_block_form.html",
@@ -178,6 +214,8 @@ async def admin_edit_block_form(
             "block": block,
             "block_types": list(models.BlockType),
             "next_position": block.position,
+            "generators": available_generators(),
+            "exercise_config": exercise_config,
         },
     )
 
@@ -190,6 +228,10 @@ async def admin_update_block(
     content: str = Form(""),
     position: int = Form(0),
     is_published: bool = Form(False),
+    generator: str = Form(""),
+    difficulty: int = Form(1),
+    count: int = Form(1),
+    tags: str = Form(""),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     block = db.get(models.LessonBlock, block_id)
@@ -200,9 +242,11 @@ async def admin_update_block(
     except ValueError:
         raise HTTPException(status_code=400, detail="Type de bloc invalide")
 
+    stored_content = _build_content(parsed_type, content, generator, difficulty, count, tags)
+
     block.title = title
     block.type = parsed_type
-    block.content = content
+    block.content = stored_content
     block.position = position
     block.is_published = is_published
     db.commit()

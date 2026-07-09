@@ -33,6 +33,50 @@
             allowfullscreen></iframe>
     </div>
 
+    {% elif item.block.type.value == "generated_exercise" %}
+    {% if item.config and item.config.tags %}
+    <div class="mb-3">
+        {% for tag in item.config.tags %}
+        <span class="badge text-bg-light border me-1">{{ tag }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="d-flex flex-column gap-3">
+        {% for exercise in item.exercises %}
+        <div
+            class="border rounded p-3 exercise-widget"
+            data-generator="{{ item.config.generator }}"
+            data-difficulty="{{ item.config.difficulty }}">
+            <p class="exercise-statement mb-2">{{ exercise.statement }}</p>
+
+            <div class="input-group mb-2" style="max-width: 320px;">
+                <input type="text" class="form-control exercise-answer-input" placeholder="Ta réponse">
+                <button
+                    type="button"
+                    class="btn btn-outline-primary exercise-check-btn"
+                    data-answer="{{ exercise.answer_value }}">
+                    Vérifier
+                </button>
+            </div>
+            <div class="exercise-feedback small mb-2"></div>
+
+            <details>
+                <summary class="text-muted" style="cursor: pointer;">Afficher la correction</summary>
+                <ul class="exercise-steps mt-2 mb-0">
+                    {% for step in exercise.solution_steps %}
+                    <li>{{ step }}</li>
+                    {% endfor %}
+                </ul>
+            </details>
+
+            <button type="button" class="btn btn-dark btn-sm mt-2 exercise-new-btn">Nouvel exercice</button>
+        </div>
+        {% else %}
+        <p class="text-muted">Aucun exercice disponible (générateur introuvable).</p>
+        {% endfor %}
+    </div>
+
     {% else %}
     <p class="text-muted">
         Type de contenu « {{ item.block.type.value }} » pas encore pris en charge à l'affichage.

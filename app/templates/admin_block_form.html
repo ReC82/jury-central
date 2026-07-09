@@ -51,11 +51,70 @@
 
     <div class="mb-3">
         <label for="content" class="form-label">Contenu</label>
-        <textarea class="form-control" id="content" name="content" rows="8">{{ block.content if block else '' }}</textarea>
+        <textarea
+            class="form-control"
+            id="content"
+            name="content"
+            rows="8">{{ block.content if block and block.type.value != 'generated_exercise' else '' }}</textarea>
         <div class="form-text">
-            Markdown : texte au format Markdown. YouTube : URL ou identifiant de la vidéo.
+            Markdown : texte au format Markdown. YouTube : URL ou identifiant de la vidéo. Ignoré
+            pour le type « generated_exercise » (voir configuration ci-dessous).
         </div>
     </div>
+
+    <fieldset class="border rounded p-3 mb-3">
+        <legend class="h6">Configuration de l'exercice généré</legend>
+        <p class="form-text mt-0">Utilisé uniquement si le type de bloc est « generated_exercise ».</p>
+
+        <div class="mb-3">
+            <label for="generator" class="form-label">Générateur</label>
+            <select class="form-select" id="generator" name="generator">
+                <option value="">— Choisir un générateur —</option>
+                {% for generator_id in generators %}
+                <option value="{{ generator_id }}" {% if exercise_config.generator == generator_id %}selected{% endif %}>
+                    {{ generator_id }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-4">
+                <label for="difficulty" class="form-label">Difficulté par défaut</label>
+                <input
+                    type="number"
+                    class="form-control"
+                    id="difficulty"
+                    name="difficulty"
+                    min="1"
+                    max="3"
+                    value="{{ exercise_config.difficulty }}">
+            </div>
+            <div class="col-6 col-md-4">
+                <label for="count" class="form-label">Nombre d'exercices</label>
+                <input
+                    type="number"
+                    class="form-control"
+                    id="count"
+                    name="count"
+                    min="1"
+                    max="10"
+                    value="{{ exercise_config.count }}">
+            </div>
+        </div>
+
+        <div class="mb-0">
+            <label for="tags" class="form-label">Tags pédagogiques</label>
+            <input
+                type="text"
+                class="form-control"
+                id="tags"
+                name="tags"
+                placeholder="algèbre, premier degré"
+                value="{{ exercise_config.tags | join(', ') }}">
+            <div class="form-text">Séparés par des virgules.</div>
+        </div>
+    </fieldset>
 
     <div class="mb-3">
         <label for="position" class="form-label">Position</label>

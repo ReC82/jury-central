@@ -11,6 +11,7 @@ from app.admin import router as admin_router
 from app.config import settings
 from app.content import extract_youtube_id, render_markdown
 from app.database import Base, engine, get_db
+from app.exercise_blocks import ExerciseBlockConfig, generate_exercises
 from app.practice import router as practice_router
 from app.templating import templates
 
@@ -88,11 +89,22 @@ async def uaa_detail(
     for block in uaa.lesson_blocks:
         if not block.is_published:
             continue
-        html = render_markdown(block.content) if block.type == models.BlockType.MARKDOWN else None
-        youtube_id = (
-            extract_youtube_id(block.content) if block.type == models.BlockType.YOUTUBE else None
-        )
-        rendered_blocks.append({"block": block, "html": html, "youtube_id": youtube_id})
+
+        item = {"block": block, "html": None, "youtube_id": None, "config": None, "exercises": None}
+
+        if block.type == models.BlockType.MARKDOWN:
+            item["html"] = render_markdown(block.content)
+        elif block.type == models.BlockType.YOUTUBE:
+            item["youtube_id"] = extract_youtube_id(block.content)
+        elif block.type == models.BlockType.GENERATED_EXERCISE:
+            config = ExerciseBlockConfig.from_json(block.content)
+            item["config"] = config
+            try:
+                item["exercises"] = generate_exercises(config)
+            except KeyError:
+                item["exercises"] = []
+
+        rendered_blocks.append(item)
 
     return templates.TemplateResponse(
         request=request,

@@ -13,6 +13,7 @@ class BlockType(str, enum.Enum):
     PDF = "pdf"
     EXERCISE = "exercise"
     QUIZ = "quiz"
+    GENERATED_EXERCISE = "generated_exercise"
 
 
 class Subject(Base):
