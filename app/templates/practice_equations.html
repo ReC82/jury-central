@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Entraînement — Équations — Jury Central{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Équations du premier degré</h1>
+
+<div class="btn-group mb-4" role="group" aria-label="Niveau de difficulté">
+    {% for level in [1, 2, 3] %}
+    <a
+        href="/practice/equations?difficulty={{ level }}"
+        class="btn btn-outline-secondary {% if difficulty == level %}active{% endif %}">
+        Niveau {{ level }}
+    </a>
+    {% endfor %}
+</div>
+
+<div class="p-4 bg-white rounded shadow-sm">
+    <p class="fs-5 mb-0">{{ exercise.statement }}</p>
+
+    <details class="mt-3">
+        <summary class="text-muted" style="cursor: pointer;">Afficher la correction</summary>
+        <ul class="mt-2 mb-0">
+            {% for step in exercise.solution_steps %}
+            <li>{{ step }}</li>
+            {% endfor %}
+        </ul>
+    </details>
+</div>
+
+<a href="/practice/equations?difficulty={{ difficulty }}" class="btn btn-dark mt-4">Nouvel exercice</a>
+{% endblock %}

@@ -22,6 +22,7 @@ dependencies = [
     "markdown>=3.7",
     "itsdangerous>=2.2",
     "python-multipart>=0.0.17",
+    "sympy>=1.13",
 ]
 
 [project.optional-dependencies]
@@ -36,7 +37,7 @@ dev = [
 seed-db = "app.seed:seed"
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = ["app", "generators"]
 
 [tool.ruff]
 line-length = 100

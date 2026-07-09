@@ -11,6 +11,7 @@ from app.admin import router as admin_router
 from app.config import settings
 from app.content import extract_youtube_id, render_markdown
 from app.database import Base, engine, get_db
+from app.practice import router as practice_router
 from app.templating import templates
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -21,6 +22,7 @@ app = FastAPI(title="Jury Central")
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 app.include_router(admin_router)
+app.include_router(practice_router)
 
 
 @app.get("/health")
