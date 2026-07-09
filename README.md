@@ -108,6 +108,8 @@ pytest
 - [docs/admin.md](docs/admin.md) — accès et usage du panneau admin.
 - [docs/development.md](docs/development.md) — mise en place de l'environnement de
   développement, commandes utiles, conventions du projet.
+- [docs/git_workflow.md](docs/git_workflow.md) — branches, convention de commits, comment
+  pousser vers GitHub et récupérer le projet sur une autre machine.
 
 ## Licence
 

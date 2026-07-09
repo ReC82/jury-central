@@ -42,3 +42,8 @@ Thumbs.db
 # Base de données locale
 *.db
 *.sqlite3
+
+# Dossiers temporaires
+tmp/
+temp/
+*.tmp
