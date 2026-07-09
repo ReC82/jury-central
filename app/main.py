@@ -2,11 +2,13 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI(title="Jury Central")
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
@@ -19,6 +21,5 @@ async def health() -> dict[str, str]:
 async def index(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request=request,
-        name="index.html",
-        context={"title": "Jury Central"},
+        name="home.html",
     )
