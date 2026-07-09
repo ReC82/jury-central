@@ -13,6 +13,7 @@ from app.content import extract_youtube_id, render_markdown
 from app.database import Base, engine, get_db
 from app.exercise_blocks import ExerciseBlockConfig, generate_exercises
 from app.practice import router as practice_router
+from app.quiz import QuizConfig
 from app.templating import templates
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -90,7 +91,14 @@ async def uaa_detail(
         if not block.is_published:
             continue
 
-        item = {"block": block, "html": None, "youtube_id": None, "config": None, "exercises": None}
+        item = {
+            "block": block,
+            "html": None,
+            "youtube_id": None,
+            "config": None,
+            "exercises": None,
+            "quiz": None,
+        }
 
         if block.type == models.BlockType.MARKDOWN:
             item["html"] = render_markdown(block.content)
@@ -103,6 +111,8 @@ async def uaa_detail(
                 item["exercises"] = generate_exercises(config)
             except KeyError:
                 item["exercises"] = []
+        elif block.type == models.BlockType.QUIZ:
+            item["quiz"] = QuizConfig.from_json(block.content)
 
         rendered_blocks.append(item)
 

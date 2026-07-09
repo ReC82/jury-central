@@ -55,10 +55,10 @@
             class="form-control"
             id="content"
             name="content"
-            rows="8">{{ block.content if block and block.type.value != 'generated_exercise' else '' }}</textarea>
+            rows="8">{{ block.content if block and block.type.value not in ['generated_exercise', 'quiz'] else '' }}</textarea>
         <div class="form-text">
             Markdown : texte au format Markdown. YouTube : URL ou identifiant de la vidéo. Ignoré
-            pour le type « generated_exercise » (voir configuration ci-dessous).
+            pour les types « generated_exercise » et « quiz » (voir configurations ci-dessous).
         </div>
     </div>
 
@@ -113,6 +113,52 @@
                 placeholder="algèbre, premier degré"
                 value="{{ exercise_config.tags | join(', ') }}">
             <div class="form-text">Séparés par des virgules.</div>
+        </div>
+    </fieldset>
+
+    <fieldset class="border rounded p-3 mb-3">
+        <legend class="h6">Configuration du quiz</legend>
+        <p class="form-text mt-0">Utilisé uniquement si le type de bloc est « quiz ».</p>
+
+        <div class="mb-3">
+            <label for="question" class="form-label">Question</label>
+            <textarea class="form-control" id="question" name="question" rows="2">{{ quiz_config.question }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Réponses (cocher la bonne réponse)</label>
+            {% for i in range(4) %}
+            <div class="input-group mb-2">
+                <div class="input-group-text">
+                    <input
+                        type="radio"
+                        name="correct_choice"
+                        value="{{ i }}"
+                        aria-label="Bonne réponse"
+                        {% if quiz_config.choices and i == quiz_config.correct_index %}
+                        checked
+                        {% elif not quiz_config.choices and i == 0 %}
+                        checked
+                        {% endif %}>
+                </div>
+                <input
+                    type="text"
+                    class="form-control"
+                    name="choice_{{ i + 1 }}"
+                    placeholder="Réponse {{ i + 1 }}"
+                    value="{{ quiz_config.choices[i] if i < quiz_config.choices | length else '' }}">
+            </div>
+            {% endfor %}
+            <div class="form-text">Au moins deux réponses non vides sont nécessaires.</div>
+        </div>
+
+        <div class="mb-0">
+            <label for="explanation" class="form-label">Explication</label>
+            <textarea
+                class="form-control"
+                id="explanation"
+                name="explanation"
+                rows="3">{{ quiz_config.explanation }}</textarea>
         </div>
     </fieldset>
 

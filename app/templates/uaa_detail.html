@@ -77,6 +77,28 @@
         {% endfor %}
     </div>
 
+    {% elif item.block.type.value == "quiz" and item.quiz %}
+    <div class="quiz-widget" data-correct-index="{{ item.quiz.correct_index }}">
+        <p class="fw-semibold mb-3">{{ item.quiz.question }}</p>
+
+        <div class="list-group mb-3">
+            {% for choice in item.quiz.choices %}
+            <button
+                type="button"
+                class="list-group-item list-group-item-action quiz-choice-btn"
+                data-index="{{ loop.index0 }}">
+                {{ choice }}
+            </button>
+            {% endfor %}
+        </div>
+
+        <div class="quiz-feedback small mb-2"></div>
+
+        {% if item.quiz.explanation %}
+        <div class="quiz-explanation small text-muted d-none">{{ item.quiz.explanation }}</div>
+        {% endif %}
+    </div>
+
     {% else %}
     <p class="text-muted">
         Type de contenu « {{ item.block.type.value }} » pas encore pris en charge à l'affichage.

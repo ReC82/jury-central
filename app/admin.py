@@ -6,6 +6,7 @@ from app import models
 from app.auth import require_admin, verify_credentials
 from app.database import get_db
 from app.exercise_blocks import ExerciseBlockConfig
+from app.quiz import QuizConfig
 from app.templating import templates
 from generators.registry import available_generators
 
@@ -113,6 +114,43 @@ async def admin_uaa_blocks(
     )
 
 
+def _build_quiz_content(
+    question: str,
+    choice_1: str,
+    choice_2: str,
+    choice_3: str,
+    choice_4: str,
+    correct_choice: str,
+    explanation: str,
+) -> str:
+    if not question.strip():
+        raise HTTPException(status_code=400, detail="La question est obligatoire.")
+
+    raw_choices = [choice_1, choice_2, choice_3, choice_4]
+    choices = [c.strip() for c in raw_choices if c.strip()]
+    if len(choices) < 2:
+        raise HTTPException(status_code=400, detail="Il faut au moins deux réponses.")
+
+    try:
+        selected_raw_index = int(correct_choice)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Réponse correcte invalide.")
+
+    if not (0 <= selected_raw_index < len(raw_choices)) or not raw_choices[selected_raw_index].strip():
+        raise HTTPException(
+            status_code=400, detail="La réponse correcte doit correspondre à un choix rempli."
+        )
+
+    correct_index = sum(1 for c in raw_choices[:selected_raw_index] if c.strip())
+    config = QuizConfig(
+        question=question.strip(),
+        choices=choices,
+        correct_index=correct_index,
+        explanation=explanation.strip(),
+    )
+    return config.to_json()
+
+
 def _build_content(
     parsed_type: models.BlockType,
     content: str,
@@ -120,18 +158,31 @@ def _build_content(
     difficulty: int,
     count: int,
     tags: str,
+    question: str,
+    choice_1: str,
+    choice_2: str,
+    choice_3: str,
+    choice_4: str,
+    correct_choice: str,
+    explanation: str,
 ) -> str:
-    if parsed_type != models.BlockType.GENERATED_EXERCISE:
-        return content
-    if generator not in available_generators():
-        raise HTTPException(status_code=400, detail="Générateur inconnu")
-    config = ExerciseBlockConfig(
-        generator=generator,
-        difficulty=difficulty,
-        count=max(1, count),
-        tags=[tag.strip() for tag in tags.split(",") if tag.strip()],
-    )
-    return config.to_json()
+    if parsed_type == models.BlockType.GENERATED_EXERCISE:
+        if generator not in available_generators():
+            raise HTTPException(status_code=400, detail="Générateur inconnu")
+        config = ExerciseBlockConfig(
+            generator=generator,
+            difficulty=difficulty,
+            count=max(1, count),
+            tags=[tag.strip() for tag in tags.split(",") if tag.strip()],
+        )
+        return config.to_json()
+
+    if parsed_type == models.BlockType.QUIZ:
+        return _build_quiz_content(
+            question, choice_1, choice_2, choice_3, choice_4, correct_choice, explanation
+        )
+
+    return content
 
 
 @protected_router.get("/uaa/{uaa_id}/blocks/new", response_class=HTMLResponse)
@@ -152,6 +203,7 @@ async def admin_new_block_form(
             "next_position": next_position,
             "generators": available_generators(),
             "exercise_config": ExerciseBlockConfig(generator=""),
+            "quiz_config": QuizConfig(question=""),
         },
     )
 
@@ -168,6 +220,13 @@ async def admin_create_block(
     difficulty: int = Form(1),
     count: int = Form(1),
     tags: str = Form(""),
+    question: str = Form(""),
+    choice_1: str = Form(""),
+    choice_2: str = Form(""),
+    choice_3: str = Form(""),
+    choice_4: str = Form(""),
+    correct_choice: str = Form("0"),
+    explanation: str = Form(""),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     uaa = db.get(models.UAA, uaa_id)
@@ -178,7 +237,21 @@ async def admin_create_block(
     except ValueError:
         raise HTTPException(status_code=400, detail="Type de bloc invalide")
 
-    stored_content = _build_content(parsed_type, content, generator, difficulty, count, tags)
+    stored_content = _build_content(
+        parsed_type,
+        content,
+        generator,
+        difficulty,
+        count,
+        tags,
+        question,
+        choice_1,
+        choice_2,
+        choice_3,
+        choice_4,
+        correct_choice,
+        explanation,
+    )
 
     db.add(
         models.LessonBlock(
@@ -206,6 +279,11 @@ async def admin_edit_block_form(
         if block.type == models.BlockType.GENERATED_EXERCISE
         else ExerciseBlockConfig(generator="")
     )
+    quiz_config = (
+        QuizConfig.from_json(block.content)
+        if block.type == models.BlockType.QUIZ
+        else QuizConfig(question="")
+    )
     return templates.TemplateResponse(
         request=request,
         name="admin_block_form.html",
@@ -216,6 +294,7 @@ async def admin_edit_block_form(
             "next_position": block.position,
             "generators": available_generators(),
             "exercise_config": exercise_config,
+            "quiz_config": quiz_config,
         },
     )
 
@@ -232,6 +311,13 @@ async def admin_update_block(
     difficulty: int = Form(1),
     count: int = Form(1),
     tags: str = Form(""),
+    question: str = Form(""),
+    choice_1: str = Form(""),
+    choice_2: str = Form(""),
+    choice_3: str = Form(""),
+    choice_4: str = Form(""),
+    correct_choice: str = Form("0"),
+    explanation: str = Form(""),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     block = db.get(models.LessonBlock, block_id)
@@ -242,7 +328,21 @@ async def admin_update_block(
     except ValueError:
         raise HTTPException(status_code=400, detail="Type de bloc invalide")
 
-    stored_content = _build_content(parsed_type, content, generator, difficulty, count, tags)
+    stored_content = _build_content(
+        parsed_type,
+        content,
+        generator,
+        difficulty,
+        count,
+        tags,
+        question,
+        choice_1,
+        choice_2,
+        choice_3,
+        choice_4,
+        correct_choice,
+        explanation,
+    )
 
     block.title = title
     block.type = parsed_type

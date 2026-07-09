@@ -1,6 +1,7 @@
 from app.database import Base, SessionLocal, engine
 from app.exercise_blocks import ExerciseBlockConfig
 from app.models import UAA, BlockType, LessonBlock, Module, Subject
+from app.quiz import QuizConfig
 from app.slugify import slugify
 
 SUBJECT_NAME = "Mathématiques"
@@ -46,6 +47,23 @@ SAMPLE_BLOCKS = [
             tags=["algèbre", "premier degré"],
         ).to_json(),
         "position": 4,
+        "is_published": True,
+    },
+    {
+        "title": "Quiz de compréhension",
+        "type": BlockType.QUIZ,
+        "content": QuizConfig(
+            question="Dans f(x) = ax + b, comment appelle-t-on b ?",
+            choices=[
+                "Le coefficient angulaire",
+                "L'ordonnée à l'origine",
+                "La pente",
+                "La variable",
+            ],
+            correct_index=1,
+            explanation="b est la valeur de f(x) quand x = 0, on l'appelle l'ordonnée à l'origine.",
+        ).to_json(),
+        "position": 5,
         "is_published": True,
     },
 ]
