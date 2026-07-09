@@ -3,20 +3,24 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from starlette.middleware.sessions import SessionMiddleware
 
 from app import models
+from app.admin import router as admin_router
+from app.config import settings
 from app.content import extract_youtube_id, render_markdown
 from app.database import Base, engine, get_db
+from app.templating import templates
 
 BASE_DIR = Path(__file__).resolve().parent
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Jury Central")
+app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+app.include_router(admin_router)
 
 
 @app.get("/health")
