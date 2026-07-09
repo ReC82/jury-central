@@ -1,14 +1,21 @@
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from sqlalchemy.orm import Session
 
 from app import models
 from app.auth import require_admin, verify_credentials
 from app.database import get_db
 from app.exercise_blocks import ExerciseBlockConfig
-from app.quiz import QuizConfig
+from app.quiz import QuizConfig, build_quiz_config
+from app.quiz_import import ImportResult, ImportRowError, import_quiz_csv
 from app.templating import templates
-from generators.registry import available_generators
+from generators.registry import available_generators, get_generator
+
+QUIZ_TEMPLATE_PATH = (
+    Path(__file__).resolve().parent.parent / "docs" / "templates" / "quiz_template.csv"
+)
 
 public_router = APIRouter(prefix="/admin", tags=["admin"])
 protected_router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
@@ -123,31 +130,19 @@ def _build_quiz_content(
     correct_choice: str,
     explanation: str,
 ) -> str:
-    if not question.strip():
-        raise HTTPException(status_code=400, detail="La question est obligatoire.")
-
-    raw_choices = [choice_1, choice_2, choice_3, choice_4]
-    choices = [c.strip() for c in raw_choices if c.strip()]
-    if len(choices) < 2:
-        raise HTTPException(status_code=400, detail="Il faut au moins deux réponses.")
-
     try:
         selected_raw_index = int(correct_choice)
     except ValueError:
         raise HTTPException(status_code=400, detail="Réponse correcte invalide.")
 
-    if not (0 <= selected_raw_index < len(raw_choices)) or not raw_choices[selected_raw_index].strip():
-        raise HTTPException(
-            status_code=400, detail="La réponse correcte doit correspondre à un choix rempli."
-        )
-
-    correct_index = sum(1 for c in raw_choices[:selected_raw_index] if c.strip())
-    config = QuizConfig(
-        question=question.strip(),
-        choices=choices,
-        correct_index=correct_index,
-        explanation=explanation.strip(),
+    config, error = build_quiz_config(
+        question=question,
+        choices=[choice_1, choice_2, choice_3, choice_4],
+        correct_raw_index=selected_raw_index,
+        explanation=explanation,
     )
+    if error:
+        raise HTTPException(status_code=400, detail=error)
     return config.to_json()
 
 
@@ -362,6 +357,75 @@ async def admin_delete_block(block_id: int, db: Session = Depends(get_db)) -> Re
     db.delete(block)
     db.commit()
     return RedirectResponse(url=f"/admin/uaa/{uaa_id}", status_code=303)
+
+
+@protected_router.get("/quiz", response_class=HTMLResponse)
+async def admin_quiz_page(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_quiz.html",
+        context={"result": None},
+    )
+
+
+@protected_router.get("/quiz/template.csv")
+async def admin_quiz_template() -> Response:
+    content = QUIZ_TEMPLATE_PATH.read_text(encoding="utf-8")
+    return Response(
+        content=content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=quiz_template.csv"},
+    )
+
+
+@protected_router.post("/quiz/import", response_class=HTMLResponse)
+async def admin_quiz_import(
+    request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)
+) -> HTMLResponse:
+    raw_bytes = await file.read()
+    try:
+        csv_text = raw_bytes.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        result = ImportResult(errors=[ImportRowError(0, "Le fichier doit être encodé en UTF-8.")])
+    else:
+        result = import_quiz_csv(csv_text, db)
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_quiz.html",
+        context={"result": result},
+    )
+
+
+@protected_router.get("/generators", response_class=HTMLResponse)
+async def admin_generators(
+    request: Request,
+    generator: str = "",
+    difficulty: int = 1,
+    seed: int | None = None,
+) -> HTMLResponse:
+    exercise = None
+    error = None
+
+    if generator:
+        try:
+            generator_fn = get_generator(generator)
+        except KeyError:
+            error = f"Générateur « {generator} » introuvable."
+        else:
+            exercise = generator_fn(difficulty=difficulty, seed=seed)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_generators.html",
+        context={
+            "generators": available_generators(),
+            "selected_generator": generator,
+            "difficulty": difficulty,
+            "seed": seed,
+            "exercise": exercise,
+            "error": error,
+        },
+    )
 
 
 router = APIRouter()

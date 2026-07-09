@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — Générateurs d'exercices{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Générateurs</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">Générateurs d'exercices</h1>
+
+<div class="bg-white p-4 rounded shadow-sm mb-4">
+    <p class="text-muted">
+        Outil de debug : choisis un générateur enregistré dans <code>generators/registry.py</code>
+        pour prévisualiser un exercice généré, avant de le configurer sur un bloc
+        « generated_exercise ».
+    </p>
+
+    <form method="get" action="/admin/generators" class="row g-3 align-items-end">
+        <div class="col-12 col-md-5">
+            <label for="generator" class="form-label">Générateur</label>
+            <select class="form-select" id="generator" name="generator" required>
+                <option value="">— Choisir un générateur —</option>
+                {% for generator_id in generators %}
+                <option value="{{ generator_id }}" {% if selected_generator == generator_id %}selected{% endif %}>
+                    {{ generator_id }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <label for="difficulty" class="form-label">Difficulté</label>
+            <input
+                type="number"
+                class="form-control"
+                id="difficulty"
+                name="difficulty"
+                min="1"
+                value="{{ difficulty }}">
+        </div>
+        <div class="col-6 col-md-3">
+            <label for="seed" class="form-label">Seed (optionnel)</label>
+            <input
+                type="number"
+                class="form-control"
+                id="seed"
+                name="seed"
+                placeholder="aléatoire"
+                value="{{ seed if seed is not none else '' }}">
+        </div>
+        <div class="col-12 col-md-1">
+            <button type="submit" class="btn btn-dark w-100">Générer</button>
+        </div>
+    </form>
+</div>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if exercise %}
+<div class="bg-white p-4 rounded shadow-sm">
+    <h2 class="h5 mb-3">Résultat</h2>
+
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Énoncé</dt>
+        <dd class="col-sm-9">{{ exercise.statement }}</dd>
+
+        <dt class="col-sm-3">Réponse</dt>
+        <dd class="col-sm-9"><code>{{ exercise.answer }}</code></dd>
+
+        <dt class="col-sm-3">Difficulté</dt>
+        <dd class="col-sm-9">{{ exercise.difficulty }}</dd>
+
+        <dt class="col-sm-3">Seed utilisé</dt>
+        <dd class="col-sm-9">
+            <code>{{ exercise.seed }}</code>
+            <span class="text-muted small">
+                (réutiliser cette valeur dans le champ « Seed » ci-dessus reproduit exactement
+                le même exercice)
+            </span>
+        </dd>
+
+        {% if exercise.solution_steps %}
+        <dt class="col-sm-3">Étapes de correction</dt>
+        <dd class="col-sm-9">
+            <ul class="mb-0">
+                {% for step in exercise.solution_steps %}
+                <li>{{ step }}</li>
+                {% endfor %}
+            </ul>
+        </dd>
+        {% endif %}
+
+        {% if exercise.metadata %}
+        <dt class="col-sm-3">Métadonnées</dt>
+        <dd class="col-sm-9">
+            <code>{{ exercise.metadata }}</code>
+        </dd>
+        {% endif %}
+    </dl>
+</div>
+{% endif %}
+{% endblock %}

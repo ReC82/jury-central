@@ -110,6 +110,8 @@ pytest
   développement, commandes utiles, conventions du projet.
 - [docs/git_workflow.md](docs/git_workflow.md) — branches, convention de commits, comment
   pousser vers GitHub et récupérer le projet sur une autre machine.
+- [docs/exercise_generators.md](docs/exercise_generators.md) — architecture des générateurs
+  automatiques d'exercices, comment en ajouter un nouveau.
 
 ## Licence
 

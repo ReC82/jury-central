@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — Import de quiz{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Import de quiz</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">Import de quiz par CSV</h1>
+
+<div class="bg-white p-4 rounded shadow-sm mb-4">
+    <p>
+        Télécharge le template, remplis une ligne par question, puis importe le fichier.
+        Chaque ligne doit indiquer la matière, le module et l'UAA où la question sera
+        ajoutée (sous forme de slug — visible dans l'URL des pages publiques, ex.
+        <code>mb32-uaa1</code>).
+    </p>
+    <a href="/admin/quiz/template.csv" class="btn btn-outline-dark">
+        Télécharger le template CSV
+    </a>
+</div>
+
+<form
+    method="post"
+    action="/admin/quiz/import"
+    enctype="multipart/form-data"
+    class="bg-white p-4 rounded shadow-sm mb-4">
+    <div class="mb-3">
+        <label for="file" class="form-label">Fichier CSV</label>
+        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+    </div>
+    <button type="submit" class="btn btn-dark">Importer</button>
+</form>
+
+{% if result is not none %}
+<div class="bg-white p-4 rounded shadow-sm">
+    <h2 class="h5 mb-3">Résultat de l'import</h2>
+
+    {% if result.created %}
+    <p class="text-success">
+        {{ result.created | length }} quiz importé(s) avec succès.
+    </p>
+    {% endif %}
+
+    {% if result.errors %}
+    <p class="text-danger mb-2">
+        {{ result.errors | length }} ligne(s) rejetée(s) :
+    </p>
+    <ul class="text-danger">
+        {% for error in result.errors %}
+        <li>
+            {% if error.row_number %}Ligne {{ error.row_number }}{% else %}Fichier{% endif %}
+            — {{ error.message }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if not result.created and not result.errors %}
+    <p class="text-muted mb-0">Le fichier ne contenait aucune ligne de données.</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

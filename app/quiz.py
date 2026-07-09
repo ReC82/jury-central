@@ -32,3 +32,41 @@ class QuizConfig:
             correct_index=int(data.get("correct_index", 0)),
             explanation=data.get("explanation", ""),
         )
+
+
+def build_quiz_config(
+    question: str,
+    choices: list[str],
+    correct_raw_index: int,
+    explanation: str = "",
+) -> tuple[QuizConfig | None, str | None]:
+    """Construit un QuizConfig à partir de champs bruts (formulaire admin ou import CSV).
+
+    `choices` peut contenir des entrées vides (elles sont filtrées). `correct_raw_index`
+    est l'index (0-based) dans la liste brute `choices`, pas dans la liste filtrée.
+
+    Retourne (config, None) si valide, ou (None, message_erreur) sinon.
+    """
+    question = question.strip()
+    if not question:
+        return None, "La question est obligatoire."
+
+    filtered_choices = [c.strip() for c in choices if c.strip()]
+    if len(filtered_choices) < 2:
+        return None, "Il faut au moins deux réponses."
+
+    if not (0 <= correct_raw_index < len(choices)):
+        return None, "Le numéro de la réponse correcte est invalide."
+
+    selected_raw = choices[correct_raw_index]
+    if not selected_raw.strip():
+        return None, "La réponse correcte doit correspondre à un choix rempli."
+
+    correct_index = sum(1 for c in choices[:correct_raw_index] if c.strip())
+    config = QuizConfig(
+        question=question,
+        choices=filtered_choices,
+        correct_index=correct_index,
+        explanation=explanation.strip(),
+    )
+    return config, None

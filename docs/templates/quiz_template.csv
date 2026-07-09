@@ -1,0 +1,3 @@
+subject_slug,module_slug,uaa_slug,title,question,choice_1,choice_2,choice_3,choice_4,correct_choice,explanation,position,is_published
+mathematiques,mb32,mb32-uaa1,Quiz coefficient,"Dans f(x) = 2x + 5, quel est le coefficient angulaire ?",2,5,7,10,1,"Le coefficient angulaire est le nombre devant x, ici 2.",,oui
+mathematiques,mb32,mb32-uaa1,Quiz ordonnée,"Dans f(x) = 2x + 5, quelle est l'ordonnée à l'origine ?",2,5,7,,2,"L'ordonnée à l'origine est la valeur de f(x) quand x = 0, ici 5.",,oui

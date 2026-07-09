@@ -39,6 +39,79 @@ Depuis `/admin/dashboard` :
     libre — pas de réorganisation automatique des autres blocs) et **publié** (case à
     cocher ; seuls les blocs publiés apparaissent sur la page publique de l'UAA).
 
+## Import de quiz par CSV
+
+Page dédiée : `/admin/quiz` (lien "Importer des quiz (CSV)" depuis le tableau de bord).
+Permet de créer plusieurs blocs `quiz` en une fois, sans passer par le formulaire un par un.
+
+Il n'existe pas de table `Quiz`/`Question` dédiée en base — un quiz reste un `LessonBlock`
+de type `quiz` dont le contenu JSON (`QuizConfig`) est identique à celui produit par le
+formulaire manuel. L'import CSV et le formulaire manuel partagent la même fonction de
+validation (`app/quiz.py::build_quiz_config`), donc les mêmes règles s'appliquent aux deux.
+
+### Étapes
+
+1. Cliquer sur **"Télécharger le template CSV"** — télécharge
+   `docs/templates/quiz_template.csv`, qui contient l'en-tête attendu et deux exemples déjà
+   remplis (utilisables tels quels avec les données de démonstration du seed).
+2. Remplir une ligne par question dans un tableur (Excel, LibreOffice, Google Sheets...) et
+   exporter en CSV (UTF-8).
+3. Sur `/admin/quiz`, choisir le fichier et cliquer **"Importer"**.
+4. Le résultat s'affiche immédiatement : nombre de quiz importés, et liste détaillée des
+   lignes rejetées (numéro de ligne + raison).
+
+### Colonnes du CSV
+
+| Colonne | Obligatoire | Contenu |
+|---|---|---|
+| `subject_slug` | Oui | Slug de la matière cible (ex. `mathematiques`) |
+| `module_slug` | Oui | Slug du module cible (ex. `mb32`) |
+| `uaa_slug` | Oui | Slug de l'UAA cible (ex. `mb32-uaa1`) |
+| `title` | Oui | Titre du bloc de leçon (affiché comme titre de section sur la page UAA) |
+| `question` | Oui | Texte de la question |
+| `choice_1`, `choice_2` | Oui | Au moins 2 réponses non vides requises |
+| `choice_3`, `choice_4` | Non | Réponses supplémentaires (jusqu'à 4 au total) ; les cases vides sont ignorées |
+| `correct_choice` | Oui | Numéro (1 à 4) du champ `choice_N` contenant la bonne réponse |
+| `explanation` | Non | Texte affiché après la réponse de l'étudiant |
+| `position` | Non | Ordre d'affichage dans l'UAA ; si vide, calculé automatiquement (après le dernier bloc existant, incrémenté ligne par ligne pour une même UAA dans le même fichier) |
+| `is_published` | Non | `oui`/`true`/`1` pour publier immédiatement ; toute autre valeur (ou vide) = non publié |
+
+Les slugs se trouvent dans l'URL des pages publiques correspondantes (ex. `/uaa/mb32-uaa1`
+→ `uaa_slug = mb32-uaa1`), ou via la navigation en lecture seule de l'admin.
+
+### Règles de validation
+
+Pour chaque ligne, dans cet ordre :
+
+1. Toutes les colonnes obligatoires doivent être non vides.
+2. `subject_slug`, `module_slug`, `uaa_slug` doivent exister **et être correctement
+   imbriqués** (le module doit appartenir à la matière indiquée, l'UAA au module indiqué —
+   pas seulement exister quelque part en base).
+3. `correct_choice` doit être un nombre entre 1 et 4, pointant vers un champ `choice_N` non
+   vide.
+4. Au moins 2 réponses non vides au total.
+5. `position` (si renseigné) doit être un entier.
+
+Si l'en-tête du fichier ne contient pas toutes les colonnes obligatoires, l'import s'arrête
+immédiatement avec un message listant les colonnes manquantes (aucune ligne n'est lue).
+
+**Import partiel assumé** : les lignes valides sont importées même si d'autres lignes du même
+fichier sont invalides. Chaque ligne rejetée est signalée avec son numéro (ligne 1 = en-tête,
+donc la première ligne de données est la ligne 2) et la raison précise. Aucune ligne
+invalide n'est importée silencieusement.
+
+### Limites actuelles de l'import
+
+- CSV uniquement (encodage UTF-8, avec ou sans BOM). **Pas de support XLSX pour l'instant** —
+  prévu pour une évolution future, non codé à ce stade.
+- Une seule bonne réponse par question (pas de QCM à réponses multiples), comme pour le
+  formulaire manuel.
+- Pas d'aperçu avant import : les lignes valides sont importées directement en base dès la
+  soumission du formulaire (pas d'étape de confirmation intermédiaire).
+- Pas de mise à jour de quiz existants par CSV : chaque import crée de nouveaux blocs, il ne
+  peut pas modifier un quiz déjà importé (à faire manuellement via le formulaire d'édition si
+  besoin).
+
 ## Limites connues
 
 - **Pas de gestion des matières/modules/UAA** dans l'admin : leur création passe
