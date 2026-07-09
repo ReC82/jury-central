@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — {{ uaa.title }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item"><a href="/admin/subjects">Matières</a></li>
+        <li class="breadcrumb-item">
+            <a href="/admin/subjects/{{ uaa.module.subject.id }}">{{ uaa.module.subject.name }}</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="/admin/modules/{{ uaa.module.id }}">{{ uaa.module.code }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ uaa.code }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ uaa.title }} <small class="text-muted">({{ uaa.code }})</small></h1>
+    <a href="/admin/uaa/{{ uaa.id }}/blocks/new" class="btn btn-dark btn-sm">+ Ajouter un bloc</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table bg-white align-middle">
+        <thead>
+            <tr>
+                <th>Position</th>
+                <th>Titre</th>
+                <th>Type</th>
+                <th>Publié</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for block in uaa.lesson_blocks %}
+            <tr>
+                <td>{{ block.position }}</td>
+                <td>{{ block.title }}</td>
+                <td><span class="badge text-bg-light border">{{ block.type.value }}</span></td>
+                <td>
+                    {% if block.is_published %}
+                    <span class="badge text-bg-success">Oui</span>
+                    {% else %}
+                    <span class="badge text-bg-secondary">Non</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="/admin/blocks/{{ block.id }}/edit" class="btn btn-outline-secondary btn-sm">
+                        Modifier
+                    </a>
+                    <form
+                        method="post"
+                        action="/admin/blocks/{{ block.id }}/delete"
+                        class="d-inline"
+                        onsubmit="return confirm('Supprimer ce bloc ?');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-muted">Aucun bloc pour cette UAA.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

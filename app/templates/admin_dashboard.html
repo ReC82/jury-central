@@ -12,22 +12,32 @@
 
 <div class="row g-3">
     <div class="col-12 col-sm-4">
-        <div class="p-3 bg-white rounded shadow-sm text-center">
-            <div class="fs-3 fw-bold">{{ subject_count }}</div>
-            <div class="text-muted small">Matières</div>
-        </div>
+        <a href="/admin/subjects" class="text-decoration-none">
+            <div class="p-3 bg-white rounded shadow-sm text-center">
+                <div class="fs-3 fw-bold">{{ subject_count }}</div>
+                <div class="text-muted small">Matières</div>
+            </div>
+        </a>
     </div>
     <div class="col-12 col-sm-4">
-        <div class="p-3 bg-white rounded shadow-sm text-center">
-            <div class="fs-3 fw-bold">{{ module_count }}</div>
-            <div class="text-muted small">Modules</div>
-        </div>
+        <a href="/admin/subjects" class="text-decoration-none">
+            <div class="p-3 bg-white rounded shadow-sm text-center">
+                <div class="fs-3 fw-bold">{{ module_count }}</div>
+                <div class="text-muted small">Modules</div>
+            </div>
+        </a>
     </div>
     <div class="col-12 col-sm-4">
-        <div class="p-3 bg-white rounded shadow-sm text-center">
-            <div class="fs-3 fw-bold">{{ uaa_count }}</div>
-            <div class="text-muted small">UAA</div>
-        </div>
+        <a href="/admin/subjects" class="text-decoration-none">
+            <div class="p-3 bg-white rounded shadow-sm text-center">
+                <div class="fs-3 fw-bold">{{ uaa_count }}</div>
+                <div class="text-muted small">UAA</div>
+            </div>
+        </a>
     </div>
+</div>
+
+<div class="mt-4">
+    <a href="/admin/subjects" class="btn btn-dark">Gérer le contenu pédagogique</a>
 </div>
 {% endblock %}

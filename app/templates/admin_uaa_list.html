@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — {{ module.code }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item"><a href="/admin/subjects">Matières</a></li>
+        <li class="breadcrumb-item">
+            <a href="/admin/subjects/{{ module.subject.id }}">{{ module.subject.name }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ module.code }}</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">{{ module.code }}</h1>
+
+<div class="list-group">
+    {% for uaa in module.uaas %}
+    <a
+        href="/admin/uaa/{{ uaa.id }}"
+        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        {{ uaa.code }} — {{ uaa.title }}
+        <span class="badge text-bg-secondary">{{ uaa.lesson_blocks|length }} bloc(s)</span>
+    </a>
+    {% else %}
+    <p class="text-muted">Aucune UAA pour ce module.</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — {% if block %}Modifier{% else %}Nouveau{% endif %} bloc{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item"><a href="/admin/subjects">Matières</a></li>
+        <li class="breadcrumb-item">
+            <a href="/admin/subjects/{{ uaa.module.subject.id }}">{{ uaa.module.subject.name }}</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="/admin/modules/{{ uaa.module.id }}">{{ uaa.module.code }}</a>
+        </li>
+        <li class="breadcrumb-item"><a href="/admin/uaa/{{ uaa.id }}">{{ uaa.code }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if block %}Modifier{% else %}Nouveau{% endif %}
+        </li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">{% if block %}Modifier le bloc{% else %}Nouveau bloc{% endif %}</h1>
+
+<form
+    method="post"
+    action="{% if block %}/admin/blocks/{{ block.id }}/edit{% else %}/admin/uaa/{{ uaa.id }}/blocks/new{% endif %}"
+    class="bg-white p-4 rounded shadow-sm">
+
+    <div class="mb-3">
+        <label for="title" class="form-label">Titre</label>
+        <input
+            type="text"
+            class="form-control"
+            id="title"
+            name="title"
+            value="{{ block.title if block else '' }}"
+            required>
+    </div>
+
+    <div class="mb-3">
+        <label for="type" class="form-label">Type de bloc</label>
+        <select class="form-select" id="type" name="type" required>
+            {% for bt in block_types %}
+            <option value="{{ bt.value }}" {% if block and block.type == bt %}selected{% endif %}>
+                {{ bt.value }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="content" class="form-label">Contenu</label>
+        <textarea class="form-control" id="content" name="content" rows="8">{{ block.content if block else '' }}</textarea>
+        <div class="form-text">
+            Markdown : texte au format Markdown. YouTube : URL ou identifiant de la vidéo.
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="position" class="form-label">Position</label>
+        <input
+            type="number"
+            class="form-control"
+            id="position"
+            name="position"
+            value="{{ block.position if block else next_position }}"
+            style="max-width: 8rem;"
+            required>
+    </div>
+
+    <div class="form-check mb-4">
+        <input
+            type="checkbox"
+            class="form-check-input"
+            id="is_published"
+            name="is_published"
+            {% if block and block.is_published %}checked{% endif %}>
+        <label class="form-check-label" for="is_published">Publié</label>
+    </div>
+
+    <button type="submit" class="btn btn-dark">{% if block %}Enregistrer{% else %}Créer{% endif %}</button>
+    <a href="/admin/uaa/{{ uaa.id }}" class="btn btn-outline-secondary">Annuler</a>
+</form>
+{% endblock %}

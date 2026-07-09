@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — {{ subject.name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item"><a href="/admin/subjects">Matières</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ subject.name }}</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">{{ subject.name }}</h1>
+
+<div class="list-group">
+    {% for module in subject.modules %}
+    <a
+        href="/admin/modules/{{ module.id }}"
+        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        {{ module.code }}
+        <span class="badge text-bg-secondary">{{ module.uaas|length }} UAA</span>
+    </a>
+    {% else %}
+    <p class="text-muted">Aucun module pour cette matière.</p>
+    {% endfor %}
+</div>
+{% endblock %}
