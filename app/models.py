@@ -20,6 +20,7 @@ class Subject(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), unique=True)
+    slug: Mapped[str] = mapped_column(String(120), unique=True, index=True)
 
     modules: Mapped[list["Module"]] = relationship(
         back_populates="subject", cascade="all, delete-orphan"
@@ -31,6 +32,7 @@ class Module(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(20))
+    slug: Mapped[str] = mapped_column(String(120), unique=True, index=True)
     subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id"))
 
     subject: Mapped["Subject"] = relationship(back_populates="modules")
@@ -45,11 +47,14 @@ class UAA(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(20))
     title: Mapped[str] = mapped_column(String(150))
+    slug: Mapped[str] = mapped_column(String(120), unique=True, index=True)
     module_id: Mapped[int] = mapped_column(ForeignKey("modules.id"))
 
     module: Mapped["Module"] = relationship(back_populates="uaas")
     lesson_blocks: Mapped[list["LessonBlock"]] = relationship(
-        back_populates="uaa", cascade="all, delete-orphan"
+        back_populates="uaa",
+        cascade="all, delete-orphan",
+        order_by="LessonBlock.position",
     )
 
 

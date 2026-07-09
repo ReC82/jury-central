@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ uaa.title }} — Jury Central{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/subjects">Matières</a></li>
+        <li class="breadcrumb-item">
+            <a href="/subjects/{{ uaa.module.subject.slug }}">{{ uaa.module.subject.name }}</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="/modules/{{ uaa.module.slug }}">{{ uaa.module.code }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ uaa.code }}</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">{{ uaa.title }} <small class="text-muted">({{ uaa.code }})</small></h1>
+
+{% for item in rendered_blocks %}
+<section class="mb-4 p-3 p-md-4 bg-white rounded shadow-sm">
+    <h2 class="h5 mb-3">{{ item.block.title }}</h2>
+
+    {% if item.block.type.value == "markdown" %}
+    <div class="content-markdown">{{ item.html | safe }}</div>
+
+    {% elif item.block.type.value == "youtube" and item.youtube_id %}
+    <div class="ratio ratio-16x9">
+        <iframe
+            src="https://www.youtube.com/embed/{{ item.youtube_id }}"
+            title="{{ item.block.title }}"
+            allowfullscreen></iframe>
+    </div>
+
+    {% else %}
+    <p class="text-muted">
+        Type de contenu « {{ item.block.type.value }} » pas encore pris en charge à l'affichage.
+    </p>
+    {% endif %}
+</section>
+{% else %}
+<p class="text-muted">Aucun contenu publié pour cette UAA.</p>
+{% endfor %}
+{% endblock %}

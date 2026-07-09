@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ subject.name }} — Jury Central{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/subjects">Matières</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ subject.name }}</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">{{ subject.name }}</h1>
+
+<div class="list-group">
+    {% for module in subject.modules %}
+    <a href="/modules/{{ module.slug }}" class="list-group-item list-group-item-action">
+        {{ module.code }}
+    </a>
+    {% else %}
+    <p class="text-muted">Aucun module pour cette matière.</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Matières — Jury Central{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Matières</h1>
+<div class="list-group">
+    {% for subject in subjects %}
+    <a href="/subjects/{{ subject.slug }}" class="list-group-item list-group-item-action">
+        {{ subject.name }}
+    </a>
+    {% else %}
+    <p class="text-muted">Aucune matière disponible pour le moment.</p>
+    {% endfor %}
+</div>
+{% endblock %}
