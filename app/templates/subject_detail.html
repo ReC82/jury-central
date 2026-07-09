@@ -14,8 +14,15 @@
 
 <div class="list-group">
     {% for module in subject.modules %}
-    <a href="/modules/{{ module.slug }}" class="list-group-item list-group-item-action">
+    <a
+        href="/modules/{{ module.slug }}"
+        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
         {{ module.code }}
+        <span
+            class="badge progress-badge text-bg-secondary"
+            data-uaa-slugs="{% for uaa in module.uaas %}{{ uaa.slug }},{% endfor %}">
+            À faire
+        </span>
     </a>
     {% else %}
     <p class="text-muted">Aucun module pour cette matière.</p>

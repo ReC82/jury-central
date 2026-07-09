@@ -6,8 +6,15 @@
 <h1 class="h3 mb-4">Matières</h1>
 <div class="list-group">
     {% for subject in subjects %}
-    <a href="/subjects/{{ subject.slug }}" class="list-group-item list-group-item-action">
+    <a
+        href="/subjects/{{ subject.slug }}"
+        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
         {{ subject.name }}
+        <span
+            class="badge progress-badge text-bg-secondary"
+            data-uaa-slugs="{% for module in subject.modules %}{% for uaa in module.uaas %}{{ uaa.slug }},{% endfor %}{% endfor %}">
+            À faire
+        </span>
     </a>
     {% else %}
     <p class="text-muted">Aucune matière disponible pour le moment.</p>

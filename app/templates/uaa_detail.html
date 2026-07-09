@@ -16,7 +16,12 @@
     </ol>
 </nav>
 
-<h1 class="h3 mb-4">{{ uaa.title }} <small class="text-muted">({{ uaa.code }})</small></h1>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <h1 class="h3 mb-0">{{ uaa.title }} <small class="text-muted">({{ uaa.code }})</small></h1>
+    <button type="button" class="btn btn-dark mark-complete-btn" data-uaa-slug="{{ uaa.slug }}">
+        Marquer comme terminé
+    </button>
+</div>
 
 {% for item in rendered_blocks %}
 <section class="mb-4 p-3 p-md-4 bg-white rounded shadow-sm">
