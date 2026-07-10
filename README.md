@@ -112,6 +112,8 @@ pytest
   pousser vers GitHub et récupérer le projet sur une autre machine.
 - [docs/exercise_generators.md](docs/exercise_generators.md) — architecture des générateurs
   automatiques d'exercices, comment en ajouter un nouveau.
+- [docs/content_workflow.md](docs/content_workflow.md) — comment ajouter une nouvelle UAA
+  et structurer son contenu.
 
 ## Licence
 
