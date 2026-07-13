@@ -50,31 +50,47 @@ gère normalement depuis l'admin.
        db.flush()
    ```
 
-3. **Structurer le contenu en petites sections**, pas tout le cours d'un coup. Pattern
-   recommandé, utilisé pour UAA1 (voir `UAA1_BLOCKS` dans `app/seed.py`) :
+3. **Développer une leçon à la fois (tranche verticale), pas toute l'UAA d'un coup.** Deux
+   états possibles pour une section :
 
-   - **1 bloc "Plan de l'UAA"** (markdown, **publié**) : présente l'UAA et liste les
-     sections à venir — un sommaire visible même avant que le contenu soit écrit.
-   - **1 bloc markdown par section pédagogique** (regroupant plusieurs notions proches),
-     **non publié** tant que le contenu réel n'est pas rédigé. Contenu = liste des notions
-     couvertes + checklist de ce qui reste à faire (`- [ ] Théorie`, `- [ ] Exemples`,
-     `- [ ] Exercices`, `- [ ] Quiz`). Ce n'est pas une convention imposée par le code
-     (`LessonBlock` n'a pas de sous-type "section" ou "théorie" séparé) — c'est un choix
-     éditorial : chaque section reste un bloc `markdown` unique, complété petit à petit.
-   - **Au moins un exemple concret par type de contenu interactif disponible** (pour vérifier
-     que le mécanisme fonctionne, sans écrire tout le cours) :
-     - un bloc `generated_exercise` pointant vers un générateur déjà enregistré (voir
-       `docs/exercise_generators.md`) ;
-     - un bloc `quiz` avec une question de démonstration.
-     Les deux marqués **non publiés** tant qu'ils ne sont pas prêts pour de vrai.
-   - **1 bloc "Fiche mémo"** en fin d'UAA (markdown, non publié), réservé à la synthèse
-     finale une fois les sections complétées.
+   **a) Placeholder** (section pas encore développée) : **1 bloc markdown, non publié**,
+   listant les notions couvertes + une checklist (`- [ ] Théorie`, `- [ ] Exemples`,
+   `- [ ] Exercices`, `- [ ] Quiz`). Voir les sections 1, 3-8 d'UAA1 dans `app/seed.py` pour
+   des exemples actuels.
 
-   Chaque section obtient une **position** croissante (ordre d'affichage). Le bloc
-   `is_published: False` garde le contenu invisible sur la page publique tant qu'il n'est
-   pas prêt, sans empêcher de le préparer et de le tester dans l'admin.
+   **b) Leçon complète** (tranche verticale terminée) : une **séquence de plusieurs blocs
+   publiés**, un par type de contenu. Pattern utilisé pour "Fonction constante" (voir
+   `_CONSTANT_FUNCTION_*` dans `app/seed.py`) :
 
-4. **Lancer le seed** :
+   | Bloc | Type | Contenu |
+   |---|---|---|
+   | Présentation et objectifs | `markdown` | Définition rapide, objectifs, prérequis |
+   | Cours | `markdown` | Théorie, MathJax, "À retenir", "Erreurs fréquentes" |
+   | Graphique interactif | `markdown` | Marqueur `<div class="jc-graph-constant">` (voir `docs/admin.md`) |
+   | Exemples résolus | `markdown` | Au moins 5 exemples avec solution |
+   | Exercice guidé | `markdown` | Énoncé + correction détaillée pas à pas |
+   | Exercices automatiques | `generated_exercise` | Générateur dédié, exercices "infinis" |
+   | Quiz | `quiz` × N | Voir "Regrouper un quiz de plusieurs questions" ci-dessous |
+   | Fiche mémo | `markdown` | Synthèse imprimable (voir `docs/admin.md`) |
+
+   Il n'y a pas de sous-type "théorie" ou "exemple" dans `LessonBlock` — chaque ligne du
+   tableau ci-dessus reste un `markdown` (ou `generated_exercise`/`quiz`) ordinaire ; c'est
+   uniquement le **titre du bloc** et l'ordre des `position` qui donnent la structure.
+
+   **1 bloc "Plan de l'UAA"** en tête de l'UAA (markdown, toujours publié) sert de sommaire
+   général listant toutes les sections, complètes ou non.
+
+4. **Regrouper un quiz de plusieurs questions en un seul parcours.** Créer un bloc `quiz`
+   par question (comme d'habitude, un `LessonBlock` = une question), mais donner la **même
+   valeur non vide au champ `group`** de `QuizConfig` sur tous les blocs concernés, avec un
+   `order_in_group` croissant (1, 2, 3...). Le rendu public (`app/main.py::uaa_detail`)
+   détecte les blocs `quiz` consécutifs partageant un `group` et les fusionne en un seul
+   widget "parcours" (une question à la fois, score, recommencer) au lieu de N widgets QCM
+   isolés. Voir `_CONSTANT_FUNCTION_QUIZ_QUESTIONS` dans `app/seed.py` pour un exemple à 10
+   questions mêlant QCM, vrai/faux et réponses numériques (`answer_type="numeric"`).
+   Laisser `group` vide garde le comportement historique (un quiz autonome par bloc).
+
+5. **Lancer le seed** :
 
    ```bash
    seed-db
@@ -91,7 +107,7 @@ gère normalement depuis l'admin.
    l'exemple : les anciens blocs sont supprimés par leur titre avant l'insertion des
    nouveaux, pour ne pas mélanger ancien et nouveau contenu.
 
-5. **Compléter le contenu progressivement depuis l'admin** : une fois l'UAA et ses blocs
+6. **Compléter le contenu progressivement depuis l'admin** : une fois l'UAA et ses blocs
    squelettes créés par le seed, un enseignant/créateur de contenu peut modifier chaque
    bloc (`/admin/uaa/{id}` → Modifier), rédiger la théorie, ajouter des exemples, configurer
    les exercices générés, écrire les quiz, puis cocher "Publié" section par section quand

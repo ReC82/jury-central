@@ -31,10 +31,12 @@ déjà créé.
 pytest
 ```
 
-19 tests actuellement, tous dans `tests/` :
-- `tests/generators/` — le moteur de génération d'exercices (`generators/`), 11 tests.
-- `tests/test_exercise_blocks.py` — sérialisation JSON des blocs `generated_exercise`, 5 tests.
-- `tests/test_quiz.py` — sérialisation JSON des blocs `quiz`, 3 tests.
+70 tests actuellement, tous dans `tests/` :
+- `tests/generators/` — le moteur de génération d'exercices (`generators/`), 28 tests.
+- `tests/test_answer_checking.py` — parsing/comparaison normalisée des réponses, 11 tests.
+- `tests/test_exercise_blocks.py` — sérialisation JSON + séparation public/complet, 7 tests.
+- `tests/test_quiz.py` — sérialisation JSON, modes choix/numérique, `to_public_dict`, 8 tests.
+- `tests/test_quiz_import.py` — import CSV de quiz, 16 tests.
 
 Aucun test automatisé ne couvre encore les routes FastAPI elles-mêmes (pas de `TestClient`)
 — les routes ont été vérifiées manuellement (curl) à chaque étape de développement.
@@ -75,6 +77,16 @@ Configuration dans `pyproject.toml` (`[tool.ruff]`), ligne à 100 caractères, c
 - **Style des routes admin** : un unique routeur public (`/admin/login`) et un unique
   routeur protégé (`dependencies=[Depends(require_admin)]` posé au niveau du routeur, pas
   route par route) — voir `app/admin.py`.
+- **Validation des réponses toujours côté serveur** : depuis la leçon "Fonction constante",
+  aucune route publique n'envoie plus jamais une réponse correcte au navigateur avant que
+  l'étudiant ait répondu (voir `docs/exercise_generators.md`, section "Validation des
+  réponses"). `app/answer_checking.py` centralise le parsing (entier/décimal/fraction) et la
+  comparaison, réutilisé par les exercices générés et les quiz — jamais d'`eval()`.
+- **Graphiques interactifs via Plotly (CDN)** : pas de dépendance Python, un seul `<script>`
+  chargé uniquement sur les pages qui en ont besoin (voir `needs_plotly` dans
+  `app/main.py::uaa_detail`), suivant le même principe que MathJax/Bootstrap. Un contenu
+  Markdown active un graphique en y collant un marqueur HTML (`<div class="jc-graph-...">`) —
+  voir `docs/admin.md`.
 
 ## Commandes utiles
 

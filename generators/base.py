@@ -10,6 +10,7 @@ class GeneratedExercise:
     seed: int
     solution_steps: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
+    hint: str = ""
 
 
 class ExerciseGenerator(Protocol):

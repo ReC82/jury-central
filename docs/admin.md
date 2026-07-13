@@ -32,12 +32,34 @@ Depuis `/admin/dashboard` :
   - `generated_exercise` → fieldset dédié : générateur (liste des générateurs enregistrés
     dans `generators/registry.py`), difficulté par défaut (1-3), nombre d'exercices à
     afficher, tags pédagogiques (séparés par des virgules).
-  - `quiz` → fieldset dédié : question, 4 champs de réponse + case radio pour désigner la
-    bonne réponse, explication. Validation serveur : question obligatoire, au moins 2
-    réponses non vides, la réponse cochée doit correspondre à un champ rempli (sinon `400`).
+  - `quiz` → fieldset dédié : question, **type de réponse** (« Choix multiple / Vrai-Faux »
+    ou « Réponse numérique »), 4 champs de réponse + case radio (mode choix), champ
+    « Réponse numérique correcte » (mode numérique — accepte entier, décimal virgule/point,
+    ou fraction `a/b`), explication, **groupe de quiz** + **ordre dans le groupe** (voir
+    ci-dessous). Validation serveur : question obligatoire, au moins 2 réponses non vides en
+    mode choix, réponse numérique valide en mode numérique (sinon `400`).
   - Champs communs à tous les types : **position** (ordre d'affichage dans l'UAA, entier
     libre — pas de réorganisation automatique des autres blocs) et **publié** (case à
     cocher ; seuls les blocs publiés apparaissent sur la page publique de l'UAA).
+
+### Regrouper plusieurs quiz en un seul parcours (score + une question à la fois)
+
+Donner la **même valeur non vide** au champ « Groupe de quiz » sur plusieurs blocs `quiz`
+les affiche comme un **seul** parcours interactif côté public (une question à la fois,
+score final, bouton « Recommencer ») plutôt que comme des QCM isolés les uns sous les
+autres. Le champ « Ordre dans le groupe » détermine l'ordre des questions au sein du
+parcours (indépendamment du champ `position`, qui ne sert qu'à placer le groupe entier
+parmi les autres blocs de l'UAA). Laisser le groupe vide (par défaut) garde le
+comportement historique : un widget QCM autonome par bloc.
+
+## Tester un générateur d'exercices (debug)
+
+Page `/admin/generators` (lien "Tester un générateur" depuis le tableau de bord) :
+sélectionner un générateur enregistré, une difficulté et, optionnellement, un seed, pour
+prévisualiser l'exercice produit — énoncé, réponse, étapes de correction, indice,
+métadonnées, et le seed utilisé (réutilisable pour reproduire exactement le même exercice).
+Outil de debug uniquement : contrairement à l'affichage public, la réponse y est visible
+immédiatement (voir `docs/exercise_generators.md`).
 
 ## Import de quiz par CSV
 
@@ -131,3 +153,17 @@ invalide n'est importée silencieusement.
 - **Position en doublon possible** : rien n'empêche d'attribuer la même position à deux
   blocs (l'ordre d'affichage suit alors l'ordre d'insertion en base pour les valeurs
   égales).
+
+## Insérer un graphique interactif dans un bloc markdown
+
+Pas de type de bloc dédié : coller directement le marqueur HTML suivant dans le contenu
+Markdown d'un bloc (Python-Markdown préserve le HTML brut tel quel) :
+
+```html
+<div class="jc-graph-constant" data-p="3" data-min="-10" data-max="10"></div>
+```
+
+`app/static/js/interactive_graph.js` détecte ce marqueur au chargement de la page et y
+monte un graphique Plotly interactif (fonction constante $f(x) = p$, curseur pour faire
+varier $p$). Le script Plotly (CDN) n'est chargé que sur les pages contenant au moins un tel
+marqueur (voir `needs_plotly` dans `app/main.py`), pas globalement.

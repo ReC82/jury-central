@@ -39,14 +39,29 @@ class ExerciseBlockConfig:
 
 
 def exercise_to_dict(exercise: GeneratedExercise) -> dict[str, Any]:
+    """Représentation complète, y compris la réponse. Réservé à l'admin (debug)."""
     return {
         "statement": exercise.statement,
         "solution_steps": exercise.solution_steps,
         "answer_value": float(exercise.answer),
         "answer_display": str(exercise.answer),
+        "hint": exercise.hint,
     }
 
 
+def exercise_to_public_dict(exercise: GeneratedExercise) -> dict[str, Any]:
+    """Représentation publique : jamais la réponse ni la correction.
+
+    La vérification et la correction se font via un second appel serveur
+    (`/practice/api/verify` et `/practice/api/reveal`) en fournissant le seed.
+    """
+    return {"statement": exercise.statement, "seed": exercise.seed, "hint": exercise.hint}
+
+
 def generate_exercises(config: ExerciseBlockConfig) -> list[dict[str, Any]]:
+    """Génère `count` exercices publics (sans réponse) pour l'affichage d'un bloc."""
     generator = get_generator(config.generator)
-    return [exercise_to_dict(generator(difficulty=config.difficulty)) for _ in range(config.count)]
+    return [
+        exercise_to_public_dict(generator(difficulty=config.difficulty))
+        for _ in range(config.count)
+    ]

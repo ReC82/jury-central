@@ -4,6 +4,12 @@ Document d'audit. Reflète l'état du code au moment de sa rédaction (après le
 `0282895 feat: add local student progress`, branche `develop`). À mettre à jour à chaque
 étape significative.
 
+> **Note** : ce document n'a pas été réécrit depuis l'ajout de l'import CSV de quiz, de la
+> page de debug des générateurs, et de la tranche verticale "Fonction constante" (MB32 UAA1).
+> Pour l'état le plus récent, voir [changelog.md](changelog.md) (historique daté) et
+> [mb32-uaa1.md](mb32-uaa1.md) (détail de la dernière tranche). Le nombre de tests indiqué
+> ci-dessous (19) est obsolète : voir `docs/development.md` pour le compte à jour.
+
 ## 1. Structure du projet
 
 ```

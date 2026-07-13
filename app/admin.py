@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from sqlalchemy.orm import Session
 
 from app import models
+from app.answer_checking import parse_answer
 from app.auth import require_admin, verify_credentials
 from app.database import get_db
 from app.exercise_blocks import ExerciseBlockConfig
@@ -129,7 +130,30 @@ def _build_quiz_content(
     choice_4: str,
     correct_choice: str,
     explanation: str,
+    answer_type: str,
+    correct_value: str,
+    group: str,
+    order_in_group: int,
 ) -> str:
+    question = question.strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="La question est obligatoire.")
+
+    if answer_type == "numeric":
+        if parse_answer(correct_value) is None:
+            raise HTTPException(
+                status_code=400, detail="La réponse numérique correcte est invalide."
+            )
+        config = QuizConfig(
+            question=question,
+            answer_type="numeric",
+            correct_value=correct_value.strip(),
+            explanation=explanation.strip(),
+            group=group.strip(),
+            order_in_group=order_in_group,
+        )
+        return config.to_json()
+
     try:
         selected_raw_index = int(correct_choice)
     except ValueError:
@@ -143,6 +167,8 @@ def _build_quiz_content(
     )
     if error:
         raise HTTPException(status_code=400, detail=error)
+    config.group = group.strip()
+    config.order_in_group = order_in_group
     return config.to_json()
 
 
@@ -160,6 +186,10 @@ def _build_content(
     choice_4: str,
     correct_choice: str,
     explanation: str,
+    answer_type: str,
+    correct_value: str,
+    group: str,
+    order_in_group: int,
 ) -> str:
     if parsed_type == models.BlockType.GENERATED_EXERCISE:
         if generator not in available_generators():
@@ -174,7 +204,17 @@ def _build_content(
 
     if parsed_type == models.BlockType.QUIZ:
         return _build_quiz_content(
-            question, choice_1, choice_2, choice_3, choice_4, correct_choice, explanation
+            question,
+            choice_1,
+            choice_2,
+            choice_3,
+            choice_4,
+            correct_choice,
+            explanation,
+            answer_type,
+            correct_value,
+            group,
+            order_in_group,
         )
 
     return content
@@ -222,6 +262,10 @@ async def admin_create_block(
     choice_4: str = Form(""),
     correct_choice: str = Form("0"),
     explanation: str = Form(""),
+    answer_type: str = Form("choice"),
+    correct_value: str = Form(""),
+    quiz_group: str = Form(""),
+    order_in_group: int = Form(0),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     uaa = db.get(models.UAA, uaa_id)
@@ -246,6 +290,10 @@ async def admin_create_block(
         choice_4,
         correct_choice,
         explanation,
+        answer_type,
+        correct_value,
+        quiz_group,
+        order_in_group,
     )
 
     db.add(
@@ -313,6 +361,10 @@ async def admin_update_block(
     choice_4: str = Form(""),
     correct_choice: str = Form("0"),
     explanation: str = Form(""),
+    answer_type: str = Form("choice"),
+    correct_value: str = Form(""),
+    quiz_group: str = Form(""),
+    order_in_group: int = Form(0),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     block = db.get(models.LessonBlock, block_id)
@@ -337,6 +389,10 @@ async def admin_update_block(
         choice_4,
         correct_choice,
         explanation,
+        answer_type,
+        correct_value,
+        quiz_group,
+        order_in_group,
     )
 
     block.title = title

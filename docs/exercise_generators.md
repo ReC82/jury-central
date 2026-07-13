@@ -7,9 +7,9 @@ un exercice peut être **généré à la demande**, avec un résultat calculé p
 à l'avance, pas d'IA). C'est le rôle du package `generators/`.
 
 Exemples de notions concernées : équations, fonctions du premier degré, tableaux de valeurs,
-intersections, puissances, intérêts, proportionnalité inverse. **Un seul générateur est
-implémenté à ce jour** (équations du premier degré) — cette page documente l'architecture,
-pas un inventaire de générateurs à venir.
+intersections, puissances, intérêts, proportionnalité inverse. **Deux générateurs sont
+implémentés à ce jour** (équations du premier degré, fonction constante) — cette page
+documente l'architecture, pas un inventaire complet des générateurs à venir.
 
 ## Où vit ce code, et pourquoi
 
@@ -18,7 +18,8 @@ generators/                  # package racine, indépendant de app/ et de FastAP
 ├── base.py                    # dataclass GeneratedExercise + interface ExerciseGenerator
 ├── registry.py                  # registre id → fonction generate()
 └── maths/
-    └── equations.py              # premier générateur : équations ax + b = c
+    ├── equations.py              # équations ax + b = c
+    └── constant_function.py       # fonction constante f(x) = p (4 formulations, 3 niveaux)
 ```
 
 `generators/` est **à la racine du projet, pas sous `app/`**. C'est volontaire : ces
@@ -47,6 +48,7 @@ class GeneratedExercise:
     seed: int                                    # seed effectivement utilisé (pour rejouer l'exercice)
     solution_steps: list[str] = field(...)       # étapes de correction, affichées à la demande
     metadata: dict[str, Any] = field(...)        # données internes utiles au debug/tests (ex. coefficients)
+    hint: str = ""                               # indice optionnel, ne révèle pas la réponse
 ```
 
 `answer` est volontairement typé `Any` : chaque générateur choisit le type le plus adapté
@@ -141,15 +143,35 @@ Existe aussi : `GET /practice/api/generate?generator=<id>&difficulty=<n>` — AP
 équivalente, utilisée par le bouton "Nouvel exercice" des blocs `generated_exercise` (voir
 `app/practice.py`).
 
+## Validation des réponses : jamais côté client
+
+Depuis la leçon "Fonction constante" (MB32 UAA1), la réponse n'est **plus jamais** envoyée
+au navigateur avant que l'étudiant ait répondu. Trois routes publiques dans `app/practice.py` :
+
+- `GET /practice/api/generate?generator=<id>&difficulty=<n>` — renvoie uniquement
+  `{statement, seed, hint}` (via `exercise_to_public_dict()` dans `app/exercise_blocks.py`).
+  Utilisée pour l'affichage initial et le bouton "Nouvel exercice".
+- `POST /practice/api/verify` — reçoit `{generator, difficulty, seed, answer}`, **régénère**
+  l'exercice à partir du même seed côté serveur, compare via
+  `app/answer_checking.py::answers_match` (parsing entier/décimal virgule-point/fraction,
+  comparaison exacte via `Fraction`, jamais d'`eval()`), renvoie `{correct: bool}` — jamais
+  la réponse.
+- `POST /practice/api/reveal` — même principe, renvoie `solution_steps` + `answer_display`,
+  appelée uniquement au clic explicite sur "Afficher la correction".
+
+`exercise_to_dict()` (avec la réponse complète) reste utilisé **uniquement** par
+`/admin/generators`, un outil de debug authentifié — jamais par une route publique.
+
 ## Où c'est consommé dans `app/`
 
 - `app/exercise_blocks.py` — `ExerciseBlockConfig` (générateur + difficulté + nombre
   d'exercices + tags), stocké en JSON dans `LessonBlock.content` pour le type de bloc
-  `generated_exercise`. `generate_exercises()` appelle le registre `count` fois.
+  `generated_exercise`. `generate_exercises()` appelle le registre `count` fois et renvoie
+  des dicts publics (sans réponse).
 - `app/main.py` — route `/uaa/{slug}` : génère les exercices à la volée pour chaque bloc
   `generated_exercise` publié.
-- `app/practice.py` — page `/practice/equations` (entraînement libre) et l'API JSON de
-  régénération.
+- `app/practice.py` — page `/practice/equations` (entraînement libre) et les 3 routes API
+  ci-dessus (génération/vérification/correction).
 - `app/admin.py` — formulaire de bloc (sélection du générateur) et page de debug
   `/admin/generators`.
 
@@ -157,8 +179,12 @@ Existe aussi : `GET /practice/api/generate?generator=<id>&difficulty=<n>` — AP
 
 ```bash
 pytest tests/generators/
+pytest tests/test_answer_checking.py
 ```
 
-14 tests actuellement : 8 spécifiques au générateur d'équations
-(`test_equations.py`), 3 sur le registre (`test_registry.py`), 3 de contrat d'architecture
-(`test_architecture.py`, appliqués automatiquement à chaque générateur enregistré).
+28 tests dans `tests/generators/` : 10 pour le générateur d'équations
+(`test_equations.py`), 10 pour la fonction constante (`test_constant_function.py`), 3 sur le
+registre (`test_registry.py`), 6 de contrat d'architecture (`test_architecture.py`, 3 règles
+× 2 générateurs enregistrés — automatique pour tout nouveau générateur). Plus 11 tests pour
+`app/answer_checking.py` (parsing et comparaison, hors du dossier `generators/` puisque
+c'est un module `app/`, pas un générateur).

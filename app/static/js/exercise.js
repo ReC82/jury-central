@@ -1,40 +1,70 @@
-function parseAnswer(raw) {
-    const trimmed = (raw || "").trim();
-    if (trimmed === "") {
+async function postJson(url, body) {
+    const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+    });
+    if (!response.ok) {
         return null;
     }
-    if (trimmed.includes("/")) {
-        const parts = trimmed.split("/");
-        if (parts.length !== 2) {
-            return null;
-        }
-        const numerator = parseFloat(parts[0].replace(",", "."));
-        const denominator = parseFloat(parts[1].replace(",", "."));
-        if (Number.isNaN(numerator) || Number.isNaN(denominator) || denominator === 0) {
-            return null;
-        }
-        return numerator / denominator;
-    }
-    const value = parseFloat(trimmed.replace(",", "."));
-    return Number.isNaN(value) ? null : value;
+    return response.json();
 }
 
-function checkAnswer(button) {
+function exerciseWidgetPayload(widget) {
+    return {
+        generator: widget.dataset.generator,
+        difficulty: parseInt(widget.dataset.difficulty, 10),
+        seed: parseInt(widget.dataset.seed, 10),
+    };
+}
+
+async function checkExerciseAnswer(button) {
     const widget = button.closest(".exercise-widget");
     const input = widget.querySelector(".exercise-answer-input");
     const feedback = widget.querySelector(".exercise-feedback");
-    const expected = parseFloat(button.dataset.answer);
-    const submitted = parseAnswer(input.value);
 
-    if (submitted === null) {
+    if (!input.value.trim()) {
         feedback.textContent = "Merci d'entrer une réponse.";
         feedback.className = "exercise-feedback small mb-2 text-warning";
         return;
     }
 
-    const isCorrect = Math.abs(submitted - expected) < 1e-6;
-    feedback.textContent = isCorrect ? "Correct !" : "Incorrect, réessaie.";
-    feedback.className = "exercise-feedback small mb-2 " + (isCorrect ? "text-success" : "text-danger");
+    const result = await postJson("/practice/api/verify", {
+        ...exerciseWidgetPayload(widget),
+        answer: input.value,
+    });
+    if (!result) {
+        return;
+    }
+
+    feedback.textContent = result.correct ? "Correct !" : "Incorrect, réessaie.";
+    feedback.className = "exercise-feedback small mb-2 " + (result.correct ? "text-success" : "text-danger");
+}
+
+function showExerciseHint(button) {
+    const widget = button.closest(".exercise-widget");
+    const hintBox = widget.querySelector(".exercise-hint");
+    hintBox.textContent = button.dataset.hint;
+    hintBox.classList.remove("d-none");
+}
+
+async function revealExerciseCorrection(button) {
+    const widget = button.closest(".exercise-widget");
+    const stepsList = widget.querySelector(".exercise-steps");
+
+    const result = await postJson("/practice/api/reveal", exerciseWidgetPayload(widget));
+    if (!result) {
+        return;
+    }
+
+    stepsList.innerHTML = "";
+    result.solution_steps.forEach((step) => {
+        const li = document.createElement("li");
+        li.textContent = step;
+        stepsList.appendChild(li);
+    });
+    stepsList.classList.remove("d-none");
+    button.disabled = true;
 }
 
 async function newExercise(button) {
@@ -50,6 +80,7 @@ async function newExercise(button) {
     }
     const data = await response.json();
 
+    widget.dataset.seed = data.seed;
     widget.querySelector(".exercise-statement").textContent = data.statement;
     widget.querySelector(".exercise-answer-input").value = "";
 
@@ -57,25 +88,35 @@ async function newExercise(button) {
     feedback.textContent = "";
     feedback.className = "exercise-feedback small mb-2";
 
-    widget.querySelector(".exercise-check-btn").dataset.answer = data.answer_value;
+    const hintButton = widget.querySelector(".exercise-hint-btn");
+    if (hintButton) {
+        hintButton.dataset.hint = data.hint || "";
+    }
+    const hintBox = widget.querySelector(".exercise-hint");
+    if (hintBox) {
+        hintBox.classList.add("d-none");
+        hintBox.textContent = "";
+    }
 
     const stepsList = widget.querySelector(".exercise-steps");
     stepsList.innerHTML = "";
-    data.solution_steps.forEach((step) => {
-        const li = document.createElement("li");
-        li.textContent = step;
-        stepsList.appendChild(li);
-    });
+    stepsList.classList.add("d-none");
 
-    const details = widget.querySelector("details");
-    if (details) {
-        details.open = false;
+    const revealButton = widget.querySelector(".exercise-reveal-btn");
+    if (revealButton) {
+        revealButton.disabled = false;
     }
 }
 
 document.addEventListener("click", (event) => {
     if (event.target.classList.contains("exercise-check-btn")) {
-        checkAnswer(event.target);
+        checkExerciseAnswer(event.target);
+    }
+    if (event.target.classList.contains("exercise-hint-btn")) {
+        showExerciseHint(event.target);
+    }
+    if (event.target.classList.contains("exercise-reveal-btn")) {
+        revealExerciseCorrection(event.target);
     }
     if (event.target.classList.contains("exercise-new-btn")) {
         newExercise(event.target);
