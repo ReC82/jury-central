@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ32"
+uaa: 2
+code: "MQ32-UAA2"
+title: "Modèles de croissance"
+slug: "mq32-uaa2-modeles-de-croissance"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ32_UAA2_modeles_de_croissance.html"
+    sha256: "c2d5d95c7cdb556bba739c22b8ec32e844f7405b80c4972ee36377956f322c59"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "Cours MQ32 UAA2 – Modèles de croissance – Jury CESS.pdf"
+    sha256: "cb97a42f62e618be0871469611c9ae8d4d29e8c176cee71029033075788c26e6"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.0211757+02:00"

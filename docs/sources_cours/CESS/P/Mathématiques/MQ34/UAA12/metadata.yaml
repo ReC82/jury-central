@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 12
+code: "MQ34-UAA12"
+title: "Programmation linéaire"
+slug: "mq34-uaa12-programmation-lineaire"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA12_programmation_lineaire.html"
+    sha256: "db2e02194574e4c10854cbb76d64c27d740b022f68416ed1686d7bc6244c1fd2"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA12 – Programmation linéaire.pdf"
+    sha256: "3ba4a28b003727292c28be430e8a59e1896ccd59f3285fd40642a1d115ce98ac"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:26.1460079+02:00"

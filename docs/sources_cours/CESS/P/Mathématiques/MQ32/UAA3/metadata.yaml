@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ32"
+uaa: 3
+code: "MQ32-UAA3"
+title: "Statistique"
+slug: "mq32-uaa3-statistique"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ32_UAA3_statistique.html"
+    sha256: "07bfa943dbe6811ee3ac2df41c2699e4998a2027f33c439744fc644a4de6c1e8"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "Cours MQ32 UAA3 – Statistique – Jury CESS.pdf"
+    sha256: "4198d78b8c1aa42b729e016de030cc6d76af3962dd845d3fc0a380cba28a7b21"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.1001751+02:00"

@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 10
+code: "MQ34-UAA10"
+title: "Algèbre financière"
+slug: "mq34-uaa10-algebre-financiere"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA10_algebre_financiere.html"
+    sha256: "5544fe9caa76fbb677aeb2852328a4c8173354d071ce8aab56abf8acbed309c0"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA10 – Algèbre financière.pdf"
+    sha256: "add45b645aa9bdbc55061139e441a0cd122c1f401c177ab45f54b03f821168c2"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.9770084+02:00"

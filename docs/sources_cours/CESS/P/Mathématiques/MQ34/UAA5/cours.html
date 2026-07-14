@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA5 – Comportement asymptotique</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}
+h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:110px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.small{font-size:.92em;color:#555}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table,svg{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ34 UAA5 – Comportement asymptotique<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> comprendre le comportement d’une fonction quand x devient très grand, très petit, ou quand x s’approche d’une valeur interdite. Cette UAA se concentre sur les <strong>limites graphiques</strong>, les <strong>asymptotes</strong> et les <strong>comportements en l’infini</strong>.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> on attend surtout une lecture correcte de graphiques, une utilisation précise du vocabulaire et une justification claire : “quand x tend vers..., la fonction tend vers...”.
+</div>
+
+<h2>1. Repartir des bases : lire un graphique</h2>
+
+<p>Une fonction associe à une valeur de <strong>x</strong> une valeur <strong>f(x)</strong>. Sur un graphique, x se lit horizontalement et f(x) verticalement.</p>
+
+<table>
+<tr><th>Élément</th><th>Signification</th></tr>
+<tr><td>x</td><td>variable indépendante, lue sur l’axe horizontal</td></tr>
+<tr><td>f(x)</td><td>image de x, lue sur l’axe vertical</td></tr>
+<tr><td>courbe</td><td>ensemble des points représentant la fonction</td></tr>
+<tr><td>comportement</td><td>façon dont la courbe évolue</td></tr>
+</table>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> ne pas confondre “x devient très grand” avec “f(x) devient très grand”. Ce sont deux choses différentes.
+</div>
+
+<h2>2. Notion intuitive de limite</h2>
+
+<div class="box">
+Une <strong>limite</strong> décrit vers quoi se rapproche une fonction quand x se rapproche d’une certaine valeur ou quand x part vers l’infini.
+</div>
+
+<table>
+<tr><th>Écriture</th><th>Lecture</th><th>Signification</th></tr>
+<tr><td><span class="formula">x → +∞</span></td><td>x tend vers plus l’infini</td><td>x devient très grand positivement</td></tr>
+<tr><td><span class="formula">x → −∞</span></td><td>x tend vers moins l’infini</td><td>x devient très grand négativement</td></tr>
+<tr><td><span class="formula">x → a</span></td><td>x tend vers a</td><td>x se rapproche de a</td></tr>
+<tr><td><span class="formula">f(x) → L</span></td><td>f(x) tend vers L</td><td>les images se rapprochent de L</td></tr>
+</table>
+
+<h3>Exemple simple</h3>
+<div class="ex">
+Si, quand x devient très grand, la courbe se rapproche de la droite horizontale y = 3, que peut-on dire ?
+</div>
+<div class="corr">
+On dit que <span class="formula">f(x)</span> tend vers 3 quand <span class="formula">x → +∞</span>.<br>
+On peut écrire : <span class="formula">lim f(x) = 3 quand x → +∞</span>.<br>
+Graphiquement, la courbe se rapproche de la hauteur 3 sans forcément l’atteindre.
+</div>
+
+<h2>3. Comportement en l’infini</h2>
+
+<div class="box">
+Étudier le <strong>comportement en l’infini</strong>, c’est regarder ce que devient la fonction quand x devient très grand positivement ou très grand négativement.
+</div>
+
+<table>
+<tr><th>Situation graphique</th><th>Interprétation</th></tr>
+<tr><td>La courbe monte sans limite vers la droite.</td><td><span class="formula">f(x) → +∞ quand x → +∞</span></td></tr>
+<tr><td>La courbe descend sans limite vers la droite.</td><td><span class="formula">f(x) → −∞ quand x → +∞</span></td></tr>
+<tr><td>La courbe se rapproche d’une hauteur fixe.</td><td>Il y a une asymptote horizontale.</td></tr>
+<tr><td>La courbe se rapproche d’une droite oblique.</td><td>Il peut y avoir une asymptote oblique.</td></tr>
+</table>
+
+<h2>4. Asymptote : idée générale</h2>
+
+<div class="box">
+Une <strong>asymptote</strong> est une droite dont la courbe se rapproche de plus en plus. La courbe peut parfois couper une asymptote, mais à long terme elle s’en rapproche.
+</div>
+
+<h3>Types d’asymptotes</h3>
+<table>
+<tr><th>Type</th><th>Équation</th><th>Comment la reconnaître</th></tr>
+<tr><td>Horizontale</td><td><span class="formula">y = L</span></td><td>La courbe se rapproche d’une hauteur fixe quand x tend vers ±∞.</td></tr>
+<tr><td>Verticale</td><td><span class="formula">x = a</span></td><td>La courbe monte ou descend sans limite quand x s’approche de a.</td></tr>
+<tr><td>Oblique</td><td><span class="formula">y = ax + b</span></td><td>La courbe se rapproche d’une droite inclinée quand x tend vers ±∞.</td></tr>
+</table>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> une asymptote verticale est une droite de type <span class="formula">x = a</span>, pas <span class="formula">y = a</span>. Elle est verticale.
+</div>
+
+<h2>5. Asymptote horizontale</h2>
+
+<div class="box">
+Il y a une <strong>asymptote horizontale</strong> <span class="formula">y = L</span> quand la fonction se rapproche de L lorsque x tend vers +∞ ou −∞.
+</div>
+
+<svg width="720" height="360" viewBox="0 0 720 360">
+<line x1="70" y1="290" x2="660" y2="290" stroke="#222" stroke-width="2"/>
+<line x1="360" y1="330" x2="360" y2="40" stroke="#222" stroke-width="2"/>
+<text x="665" y="295" font-size="16">x</text><text x="370" y="50" font-size="16">y</text>
+<line x1="70" y1="140" x2="660" y2="140" stroke="#b03a2e" stroke-width="3" stroke-dasharray="8 6"/>
+<text x="590" y="130" font-size="16" fill="#b03a2e">y = 3</text>
+<path d="M80 250 C170 210, 230 180, 300 160 C390 140, 510 140, 650 140" fill="none" stroke="#1f618d" stroke-width="4"/>
+<text x="120" y="70" font-size="17">La courbe se rapproche de y = 3</text>
+</svg>
+
+<div class="ex">
+Une courbe se rapproche de la droite y = 2 quand x devient très grand. Quelle est l’asymptote horizontale ?
+</div>
+<div class="corr">
+L’asymptote horizontale est <span class="formula">y = 2</span>.<br>
+On peut écrire : <span class="formula">f(x) → 2 quand x → +∞</span>.
+</div>
+
+<h2>6. Asymptote verticale</h2>
+
+<div class="box">
+Il y a une <strong>asymptote verticale</strong> <span class="formula">x = a</span> quand la fonction devient infiniment grande ou infiniment petite lorsque x se rapproche de a.
+</div>
+
+<svg width="720" height="360" viewBox="0 0 720 360">
+<line x1="70" y1="180" x2="660" y2="180" stroke="#222" stroke-width="2"/>
+<line x1="360" y1="330" x2="360" y2="40" stroke="#222" stroke-width="2"/>
+<line x1="460" y1="40" x2="460" y2="330" stroke="#b03a2e" stroke-width="3" stroke-dasharray="8 6"/>
+<text x="470" y="60" font-size="16" fill="#b03a2e">x = 2</text>
+<path d="M390 310 C420 250, 440 190, 455 50" fill="none" stroke="#1f618d" stroke-width="4"/>
+<path d="M465 50 C485 150, 520 230, 650 300" fill="none" stroke="#1f618d" stroke-width="4"/>
+<text x="105" y="50" font-size="17">Près de x = 2, la fonction part vers l’infini</text>
+</svg>
+
+<div class="ex">
+Une courbe monte vers +∞ quand x s’approche de 5 par la gauche et descend vers −∞ quand x s’approche de 5 par la droite. Quelle asymptote verticale observe-t-on ?
+</div>
+<div class="corr">
+L’asymptote verticale est <span class="formula">x = 5</span>.<br>
+La fonction n’a pas une limite finie en 5 : elle diverge.
+</div>
+
+<h2>7. Asymptote oblique</h2>
+
+<div class="box">
+Une <strong>asymptote oblique</strong> est une droite inclinée de type <span class="formula">y = ax + b</span> dont la courbe se rapproche quand x tend vers +∞ ou −∞.
+</div>
+
+<div class="ex">
+Si une courbe se rapproche de la droite <span class="formula">y = 2x − 1</span> quand x tend vers +∞, que peut-on dire ?
+</div>
+<div class="corr">
+La droite <span class="formula">y = 2x − 1</span> est une asymptote oblique en +∞. Cela signifie que la courbe et cette droite deviennent de plus en plus proches pour les grandes valeurs de x.
+</div>
+
+<h2>8. Limites graphiques : méthode de lecture</h2>
+
+<div class="method box">
+<strong>Pour lire une limite sur un graphique :</strong><br>
+1. Repérer vers quoi x se dirige : <span class="formula">+∞</span>, <span class="formula">−∞</span> ou une valeur a.<br>
+2. Suivre la courbe dans ce sens.<br>
+3. Observer vers quoi vont les valeurs de y.<br>
+4. Écrire la limite en mots ou avec une notation mathématique.<br>
+5. Si la courbe se rapproche d’une droite, identifier l’asymptote.
+</div>
+
+<h2>9. Tableau récapitulatif des comportements</h2>
+<table>
+<tr><th>Observation</th><th>Conclusion</th></tr>
+<tr><td>La courbe se rapproche de y = 4 à droite.</td><td>Asymptote horizontale <span class="formula">y = 4</span> en +∞.</td></tr>
+<tr><td>La courbe se rapproche de l’axe des x.</td><td>Asymptote horizontale <span class="formula">y = 0</span>.</td></tr>
+<tr><td>La courbe explose près de x = −3.</td><td>Asymptote verticale <span class="formula">x = −3</span>.</td></tr>
+<tr><td>La courbe suit une droite inclinée.</td><td>Asymptote oblique.</td></tr>
+<tr><td>La courbe monte sans limite.</td><td>La limite vaut <span class="formula">+∞</span>.</td></tr>
+<tr><td>La courbe descend sans limite.</td><td>La limite vaut <span class="formula">−∞</span>.</td></tr>
+</table>
+
+<h2>10. Exercices progressifs</h2>
+
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : limite, asymptote, asymptote horizontale, asymptote verticale, asymptote oblique.<br>
+2. Quelle est la différence entre <span class="formula">x → +∞</span> et <span class="formula">f(x) → +∞</span> ?<br>
+3. Quelle forme a l’équation d’une asymptote verticale ?
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+4. Une courbe se rapproche de la droite y = −2 quand x tend vers +∞. Donne l’asymptote et la limite correspondante.<br><br>
+5. Une fonction devient infiniment grande quand x s’approche de 3. Quelle asymptote observe-t-on ?<br><br>
+6. Une courbe se rapproche de la droite y = x + 4 quand x tend vers −∞. Quel type d’asymptote est-ce ?
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+7. Une entreprise modélise un coût moyen qui se rapproche de 12 € quand la quantité produite devient très grande. Interprète cette limite dans le contexte.<br><br>
+8. Un graphique de concentration montre que la courbe se rapproche de 0 sans l’atteindre. Interprète.<br><br>
+9. Un modèle possède une asymptote verticale x = 0. Explique pourquoi il faut être prudent près de x = 0.
+</div>
+
+<h2>11. Corrections détaillées</h2>
+
+<div class="corr">
+1. Une limite décrit vers quoi tend une fonction. Une asymptote est une droite dont la courbe se rapproche. Horizontale : y = L. Verticale : x = a. Oblique : y = ax + b.
+</div>
+<div class="corr">
+2. <span class="formula">x → +∞</span> signifie que la variable x devient très grande. <span class="formula">f(x) → +∞</span> signifie que les valeurs de la fonction deviennent très grandes.
+</div>
+<div class="corr">
+3. Une asymptote verticale a une équation de la forme <span class="formula">x = a</span>.
+</div>
+<div class="corr">
+4. Asymptote horizontale : <span class="formula">y = −2</span>. Limite : <span class="formula">f(x) → −2 quand x → +∞</span>.
+</div>
+<div class="corr">
+5. Si la fonction devient infiniment grande près de x = 3, il y a une asymptote verticale <span class="formula">x = 3</span>.
+</div>
+<div class="corr">
+6. La droite <span class="formula">y = x + 4</span> est une asymptote oblique.
+</div>
+<div class="corr">
+7. Cela signifie que, pour une très grande production, le coût moyen se stabilise autour de 12 €. Il ne faut pas dire qu’il sera exactement 12 €, mais qu’il s’en rapproche.
+</div>
+<div class="corr">
+8. La concentration tend vers 0 : elle devient très faible à long terme, sans forcément être exactement nulle.
+</div>
+<div class="corr">
+9. Près de x = 0, les valeurs de la fonction peuvent devenir énormes ou instables. Le modèle peut ne pas être utilisable ou réaliste dans cette zone.
+</div>
+
+<h2>12. Mini-test final type examen</h2>
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse avec une phrase complète. Les réponses doivent être basées sur la lecture du comportement de la fonction.
+</div>
+
+<div class="ex">
+<strong>Question 1.</strong> Une fonction se rapproche de la droite y = 5 lorsque x tend vers +∞.<br>
+1) Quelle est l’asymptote ?<br>
+2) Quel type d’asymptote est-ce ?<br>
+3) Écris la limite correspondante.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 2.</strong> Une courbe monte vers +∞ quand x s’approche de −2 par la gauche et descend vers −∞ quand x s’approche de −2 par la droite.<br>
+1) Quelle asymptote observe-t-on ?<br>
+2) La limite en −2 est-elle finie ? Justifie.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 3.</strong> Une fonction se rapproche de la droite y = −3x + 1 quand x tend vers +∞.<br>
+1) Quel type d’asymptote observe-t-on ?<br>
+2) Que signifie cette phrase graphiquement ?<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 4.</strong> Dans un modèle de refroidissement, la température se rapproche de 20 °C quand le temps devient très grand.<br>
+1) Quelle limite peut-on écrire ?<br>
+2) Interprète dans le contexte.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 5.</strong> Une courbe a une asymptote horizontale y = 0 et une asymptote verticale x = 4.<br>
+Explique ce que chacune de ces asymptotes indique sur le comportement de la fonction.<div class="answer"></div>
+</div>
+
+<h2>13. Correction du mini-test</h2>
+
+<div class="corr">
+<strong>Q1.</strong> L’asymptote est <span class="formula">y = 5</span>. C’est une asymptote horizontale. On peut écrire : <span class="formula">f(x) → 5 quand x → +∞</span>.
+</div>
+<div class="corr">
+<strong>Q2.</strong> L’asymptote verticale est <span class="formula">x = −2</span>. La limite en −2 n’est pas finie, car la fonction part vers l’infini ou moins l’infini.
+</div>
+<div class="corr">
+<strong>Q3.</strong> C’est une asymptote oblique. Graphiquement, cela signifie que la courbe se rapproche de plus en plus de la droite inclinée <span class="formula">y = −3x + 1</span> pour les grandes valeurs de x.
+</div>
+<div class="corr">
+<strong>Q4.</strong> Si t représente le temps, on peut écrire <span class="formula">T(t) → 20 quand t → +∞</span>. Cela signifie que la température se stabilise progressivement autour de 20 °C.
+</div>
+<div class="corr">
+<strong>Q5.</strong> L’asymptote horizontale <span class="formula">y = 0</span> indique que la fonction se rapproche de 0 quand x part vers l’infini. L’asymptote verticale <span class="formula">x = 4</span> indique que la fonction devient infiniment grande ou petite quand x s’approche de 4.
+</div>
+
+<h2>14. Fiche mémo finale</h2>
+<div class="box memo">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Limite :</strong> valeur vers laquelle tend une fonction.</li>
+<li><strong>Asymptote :</strong> droite dont une courbe se rapproche.</li>
+<li><strong>Asymptote horizontale :</strong> droite <span class="formula">y = L</span>.</li>
+<li><strong>Asymptote verticale :</strong> droite <span class="formula">x = a</span>.</li>
+<li><strong>Asymptote oblique :</strong> droite <span class="formula">y = ax + b</span>.</li>
+</ul>
+
+<h3>À savoir lire</h3>
+<ul>
+<li><span class="formula">x → +∞</span> : x devient très grand.</li>
+<li><span class="formula">x → −∞</span> : x devient très grand négativement.</li>
+<li><span class="formula">f(x) → L</span> : la fonction se rapproche de L.</li>
+<li><span class="formula">f(x) → +∞</span> : la fonction monte sans limite.</li>
+<li><span class="formula">f(x) → −∞</span> : la fonction descend sans limite.</li>
+</ul>
+
+<h3>Procédure graphique</h3>
+<ol>
+<li>Identifier dans quel sens on lit la courbe.</li>
+<li>Regarder vers quoi tend x.</li>
+<li>Observer vers quoi tend f(x).</li>
+<li>Repérer si la courbe se rapproche d’une droite.</li>
+<li>Nommer le type d’asymptote.</li>
+<li>Interpréter dans le contexte.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Confondre asymptote horizontale et verticale.</li>
+<li>Dire qu’une courbe “atteint forcément” son asymptote.</li>
+<li>Oublier le sens de lecture : +∞ ou −∞.</li>
+<li>Confondre x qui tend vers l’infini et f(x) qui tend vers l’infini.</li>
+<li>Ne pas interpréter le résultat dans la situation.</li>
+</ul>
+</div>
+
+<h2>15. Ressources utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=limites+graphiques+asymptotes">YouTube – limites graphiques et asymptotes</a></li>
+<li><a href="https://www.youtube.com/results?search_query=asymptote+horizontale+verticale+oblique">YouTube – asymptotes horizontales, verticales, obliques</a></li>
+<li><a href="https://www.youtube.com/results?search_query=comportement+en+l%27infini+fonction">YouTube – comportement en l’infini</a></li>
+<li><a href="https://fr.khanacademy.org/math/ap-calculus-ab/ab-limits-new">Khan Academy – introduction aux limites</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-asymptotes-m1112">Alloprof – les asymptotes</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ34 UAA5 – Comportement asymptotique.
+</div>
+
+</div>
+</body>
+</html>

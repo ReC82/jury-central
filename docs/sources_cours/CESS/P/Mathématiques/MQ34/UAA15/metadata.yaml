@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 15
+code: "MQ34-UAA15"
+title: "Nombres complexes"
+slug: "mq34-uaa15-nombres-complexes"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA15_nombres_complexes.html"
+    sha256: "644d0c92588763b35828b47a171821eaa34bf64e8efffb31b5e4b827643fdb82"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA15 – Nombres complexes.pdf"
+    sha256: "d978b03c96fa8520fbc1d64cb872a84025229376bd42a44a7566fc5f8cba20a1"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:26.3910106+02:00"

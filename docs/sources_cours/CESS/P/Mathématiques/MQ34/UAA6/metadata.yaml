@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 6
+code: "MQ34-UAA6"
+title: "Dérivée"
+slug: "mq34-uaa6-derivee"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA6_derivee.html"
+    sha256: "9b2d149868b0f2d68a423a944b63733cec3023d4b8383d605ab0f26c7dc432ba"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA6 – Dérivée.pdf"
+    sha256: "d1f57e41977c4febeaa2a68bee274bcd130cd90da4364b27cc7c93e7ce9d30f6"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.6282344+02:00"

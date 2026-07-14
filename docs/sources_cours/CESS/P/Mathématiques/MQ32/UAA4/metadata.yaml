@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ32"
+uaa: 4
+code: "MQ32-UAA4"
+title: "Probabilité"
+slug: "mq32-uaa4-probabilite"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ32_UAA4_probabilite.html"
+    sha256: "eb1d4d2b0b3540e311ab632155be2a6dd3641d620ec0e028d22c0d57db64c0b9"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "Cours MQ32 UAA4 – Probabilité – Jury CESS.pdf"
+    sha256: "7b4751fc76b38feee842a44fd8230b8af8eff9684fb925f692b8467612456d33"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.1881737+02:00"

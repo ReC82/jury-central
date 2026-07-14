@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA6 – Dérivée</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}.page{max-width:1120px;margin:auto;padding:28px}h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}h3{color:#8a4b08}.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}.warn{border:2px solid #b03a2e;background:#fff5f3}.method{border:2px solid #1f618d;background:#f2f8fc}.memo{border:2px solid #1f7a4d;background:#f0fff6}.exam{border:2px solid #b8860b;background:#fff8df}.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}table{border-collapse:collapse;width:100%;margin:12px 0}td,th{border:1px solid #999;padding:8px;vertical-align:top}th{background:#eee}.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}.answer{height:110px;border:1px dashed #aaa;background:#fff;margin:8px 0}.small{font-size:.92em;color:#555}@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body><div class="page">
+<h1>MQ34 UAA6 – Dérivée<br><small>Cours complet imprimable – Jury CESS</small></h1>
+<div class="box"><strong>Objectif :</strong> comprendre la dérivée comme un outil qui mesure la variation instantanée d’une fonction, puis l’utiliser pour étudier les variations et résoudre des problèmes d’optimisation.</div>
+<div class="box exam"><strong>À l’examen :</strong> savoir calculer un taux de variation, interpréter un nombre dérivé, déterminer une fonction dérivée, étudier le signe de la dérivée et utiliser cela pour trouver un maximum ou un minimum.</div>
+<h2>1. Pourquoi apprendre les dérivées ?</h2>
+<p>La dérivée sert à répondre à des questions comme : une fonction augmente-t-elle ? À quelle vitesse change-t-elle ? Où atteint-elle un maximum ou un minimum ?</p>
+<table><tr><th>Situation</th><th>Ce que mesure la dérivée</th></tr><tr><td>Position d’une voiture</td><td>vitesse instantanée</td></tr><tr><td>Coût de production</td><td>variation du coût quand on produit une unité de plus</td></tr><tr><td>Bénéfice</td><td>moment où le bénéfice augmente ou diminue</td></tr><tr><td>Aire / volume</td><td>valeur qui rend une grandeur maximale ou minimale</td></tr></table>
+<h2>2. Pente d’une droite</h2>
+<div class="box">Entre deux points <span class="formula">A(x₁ ; y₁)</span> et <span class="formula">B(x₂ ; y₂)</span> :<br><span class="formula">pente = (y₂ − y₁) / (x₂ − x₁)</span></div>
+<div class="ex">Calcule la pente de la droite passant par A(2 ; 5) et B(6 ; 13).</div>
+<div class="corr"><span class="formula">pente = (13−5)/(6−2)=8/4=2</span>. La droite monte de 2 unités verticales quand x augmente de 1.</div>
+<div class="warn box"><strong>Piège fréquent :</strong> ne pas inverser les coordonnées. La pente compare la variation verticale à la variation horizontale.</div>
+<h2>3. Taux de variation moyen</h2>
+<div class="box">Le <strong>taux de variation moyen</strong> de f entre a et b mesure la variation moyenne sur l’intervalle.<br><span class="formula">taux = (f(b) − f(a)) / (b − a)</span></div>
+<p>Graphiquement, c’est la pente de la sécante qui relie deux points de la courbe.</p>
+<div class="ex">Soit <span class="formula">f(x)=x²</span>. Calcule le taux de variation entre 2 et 5.</div>
+<div class="corr"><span class="formula">f(2)=4</span> et <span class="formula">f(5)=25</span>.<br><span class="formula">(25−4)/(5−2)=21/3=7</span>. Sur [2 ; 5], la fonction augmente en moyenne de 7 unités par unité de x.</div>
+<h2>4. Nombre dérivé</h2>
+<div class="box">Le <strong>nombre dérivé</strong> d’une fonction en un point mesure la variation instantanée en ce point. Graphiquement, c’est la pente de la tangente à la courbe.</div>
+<table><tr><th>Nombre dérivé</th><th>Interprétation</th></tr><tr><td><span class="formula">f'(a) &gt; 0</span></td><td>la fonction monte près de a</td></tr><tr><td><span class="formula">f'(a) &lt; 0</span></td><td>la fonction descend près de a</td></tr><tr><td><span class="formula">f'(a) = 0</span></td><td>tangente horizontale ; possible maximum ou minimum</td></tr></table>
+<h2>5. Fonction dérivée</h2>
+<div class="box">La <strong>fonction dérivée</strong>, notée <span class="formula">f'(x)</span>, associe à chaque x le nombre dérivé de f en x.</div>
+<h2>6. Formules de dérivation à connaître</h2>
+<table><tr><th>Fonction f(x)</th><th>Dérivée f'(x)</th><th>Exemple</th></tr><tr><td><span class="formula">c</span></td><td><span class="formula">0</span></td><td>si f(x)=7, alors f'(x)=0</td></tr><tr><td><span class="formula">x</span></td><td><span class="formula">1</span></td><td>si f(x)=x, alors f'(x)=1</td></tr><tr><td><span class="formula">x²</span></td><td><span class="formula">2x</span></td><td>si f(x)=x², alors f'(x)=2x</td></tr><tr><td><span class="formula">x³</span></td><td><span class="formula">3x²</span></td><td>si f(x)=x³, alors f'(x)=3x²</td></tr><tr><td><span class="formula">xⁿ</span></td><td><span class="formula">n×xⁿ⁻¹</span></td><td>si f(x)=x⁵, alors f'(x)=5x⁴</td></tr><tr><td><span class="formula">a×f(x)</span></td><td><span class="formula">a×f'(x)</span></td><td>si f(x)=4x², alors f'(x)=8x</td></tr><tr><td><span class="formula">f(x)+g(x)</span></td><td><span class="formula">f'(x)+g'(x)</span></td><td>on dérive terme par terme</td></tr></table>
+<div class="warn box"><strong>Piège fréquent :</strong> la dérivée d’une constante est 0. La dérivée de 12 est 0, pas 12.</div>
+<div class="ex">Calcule la dérivée de <span class="formula">f(x)=3x²−5x+7</span>.</div>
+<div class="corr">La dérivée de <span class="formula">3x²</span> est <span class="formula">6x</span>. La dérivée de <span class="formula">−5x</span> est <span class="formula">−5</span>. La dérivée de <span class="formula">7</span> est <span class="formula">0</span>. Donc <span class="formula">f'(x)=6x−5</span>.</div>
+<h2>7. Signe de la dérivée et variations</h2>
+<table><tr><th>Signe de f'(x)</th><th>Comportement de f</th></tr><tr><td><span class="formula">f'(x) &gt; 0</span></td><td>f est croissante</td></tr><tr><td><span class="formula">f'(x) &lt; 0</span></td><td>f est décroissante</td></tr><tr><td><span class="formula">f'(x) = 0</span></td><td>point critique possible</td></tr></table>
+<div class="method box"><strong>Méthode :</strong><br>1. Calculer <span class="formula">f'(x)</span>.<br>2. Résoudre <span class="formula">f'(x)=0</span>.<br>3. Étudier le signe de <span class="formula">f'(x)</span>.<br>4. En déduire croissance, décroissance, maximum ou minimum.</div>
+<div class="ex">Soit <span class="formula">f(x)=x²−4x+1</span>. Étudie ses variations.</div>
+<div class="corr">Dérivée : <span class="formula">f'(x)=2x−4</span>. On résout <span class="formula">2x−4=0</span>, donc <span class="formula">x=2</span>. Si x&lt;2, f'(x)&lt;0 : f décroît. Si x&gt;2, f'(x)&gt;0 : f croît. Minimum en x=2. <span class="formula">f(2)=−3</span>.</div>
+<h2>8. Optimisation</h2>
+<div class="box">Un problème d’<strong>optimisation</strong> demande de trouver la meilleure valeur possible : maximum de bénéfice, minimum de coût, aire maximale, etc.</div>
+<div class="method box"><strong>Procédure :</strong><br>1. Identifier ce qu’on optimise.<br>2. Écrire la fonction.<br>3. Calculer la dérivée.<br>4. Résoudre <span class="formula">f'(x)=0</span>.<br>5. Vérifier maximum/minimum.<br>6. Répondre dans le contexte.</div>
+<div class="ex">Une entreprise modélise son bénéfice par <span class="formula">B(x)=−2x²+40x−50</span>. Trouve la production qui maximise le bénéfice.</div>
+<div class="corr"><span class="formula">B'(x)=−4x+40</span>. <span class="formula">B'(x)=0</span> donne <span class="formula">x=10</span>. Comme le coefficient de x² est négatif, c’est un maximum. <span class="formula">B(10)=150</span>. Si x est en dizaines, il faut produire 100 unités.</div>
+<h2>9. Exercices progressifs</h2>
+<h3>Connaître</h3><div class="ex">1. Définis : taux de variation, nombre dérivé, tangente, fonction dérivée.<br>2. Que signifie <span class="formula">f'(a)>0</span> ?<br>3. Que signifie <span class="formula">f'(a)=0</span> dans un problème d’optimisation ?</div>
+<h3>Appliquer</h3><div class="ex">4. Calcule le taux de variation de <span class="formula">f(x)=x²+1</span> entre 1 et 4.<br><br>5. Calcule la dérivée de : a) <span class="formula">5x²−3x+9</span> ; b) <span class="formula">2x³+x²−7</span> ; c) <span class="formula">−4x²+12x</span>.<br><br>6. Pour <span class="formula">f(x)=x²−6x+5</span>, calcule <span class="formula">f'(x)</span>, trouve la valeur critique et détermine s’il s’agit d’un minimum ou d’un maximum.</div>
+<h3>Transférer</h3><div class="ex">7. Un bénéfice est modélisé par <span class="formula">B(x)=−x²+20x−30</span>. Trouve la valeur de x qui maximise le bénéfice.<br><br>8. Une aire est modélisée par <span class="formula">A(x)=−2x²+24x</span> pour <span class="formula">0≤x≤12</span>. Trouve l’aire maximale.<br><br>9. Une voiture a une position <span class="formula">s(t)=t²+3t</span>. Interprète <span class="formula">s'(4)</span>.</div>
+<h2>10. Corrections détaillées</h2>
+<div class="corr">1. Le taux de variation mesure la variation moyenne. Le nombre dérivé mesure la variation instantanée. La tangente donne la pente locale. La fonction dérivée associe à chaque x la pente locale.</div>
+<div class="corr">2. <span class="formula">f'(a)>0</span> signifie que la fonction est localement croissante près de a.</div>
+<div class="corr">3. <span class="formula">f'(a)=0</span> signifie tangente horizontale ; cela peut correspondre à un maximum ou minimum, mais il faut vérifier.</div>
+<div class="corr">4. <span class="formula">f(1)=2</span>, <span class="formula">f(4)=17</span>. Taux : <span class="formula">(17−2)/(4−1)=5</span>.</div>
+<div class="corr">5. a) <span class="formula">10x−3</span>. b) <span class="formula">6x²+2x</span>. c) <span class="formula">−8x+12</span>.</div>
+<div class="corr">6. <span class="formula">f'(x)=2x−6</span>. Valeur critique x=3. La dérivée passe de négative à positive : minimum. <span class="formula">f(3)=−4</span>.</div>
+<div class="corr">7. <span class="formula">B'(x)=−2x+20</span>. Donc x=10. Maximum en x=10.</div>
+<div class="corr">8. <span class="formula">A'(x)=−4x+24</span>. Donc x=6. <span class="formula">A(6)=72</span>.</div>
+<div class="corr">9. <span class="formula">s'(t)=2t+3</span>. <span class="formula">s'(4)=11</span>. À t=4, la vitesse instantanée est de 11 unités de distance par unité de temps.</div>
+<h2>11. Mini-test final type examen</h2>
+<div class="box exam">Justifie chaque réponse. Les calculs doivent être accompagnés d’une phrase d’interprétation.</div>
+<div class="ex"><strong>Question 1.</strong> Soit <span class="formula">f(x)=x²−2x</span>. Calcule le taux de variation entre 1 et 4 et interprète graphiquement.<div class="answer"></div></div>
+<div class="ex"><strong>Question 2.</strong> Calcule les dérivées : a) <span class="formula">4x²−8x+3</span> ; b) <span class="formula">x³−5x²+2</span> ; c) <span class="formula">−3x²+18x−1</span>.<div class="answer"></div></div>
+<div class="ex"><strong>Question 3.</strong> Soit <span class="formula">f(x)=x²−8x+10</span>. Calcule <span class="formula">f'(x)</span>, trouve la valeur critique, détermine l’extrême et calcule sa valeur.<div class="answer"></div></div>
+<div class="ex"><strong>Question 4.</strong> Un bénéfice est donné par <span class="formula">B(x)=−2x²+36x−100</span>. Calcule <span class="formula">B'(x)</span>, trouve la quantité qui maximise le bénéfice et calcule ce bénéfice.<div class="answer"></div></div>
+<div class="ex"><strong>Question 5.</strong> Une position est donnée par <span class="formula">s(t)=2t²+5t</span>. Calcule <span class="formula">s'(t)</span>, <span class="formula">s'(3)</span> et interprète.<div class="answer"></div></div>
+<h2>12. Correction du mini-test</h2>
+<div class="corr"><strong>Q1.</strong> <span class="formula">f(1)=−1</span>, <span class="formula">f(4)=8</span>. Taux : <span class="formula">(8−(−1))/(4−1)=3</span>. C’est la pente de la sécante entre x=1 et x=4.</div>
+<div class="corr"><strong>Q2.</strong> a) <span class="formula">8x−8</span>. b) <span class="formula">3x²−10x</span>. c) <span class="formula">−6x+18</span>.</div>
+<div class="corr"><strong>Q3.</strong> <span class="formula">f'(x)=2x−8</span>. Valeur critique : x=4. Coefficient de x² positif : minimum. <span class="formula">f(4)=−6</span>.</div>
+<div class="corr"><strong>Q4.</strong> <span class="formula">B'(x)=−4x+36</span>. x=9. <span class="formula">B(9)=62</span>.</div>
+<div class="corr"><strong>Q5.</strong> <span class="formula">s'(t)=4t+5</span>. <span class="formula">s'(3)=17</span>. À t=3, la vitesse instantanée est de 17 unités de distance par unité de temps.</div>
+<h2>13. Fiche mémo finale</h2>
+<div class="box memo"><h3>Définitions</h3><ul><li><strong>Taux de variation :</strong> variation moyenne entre deux valeurs.</li><li><strong>Nombre dérivé :</strong> variation instantanée en un point.</li><li><strong>Tangente :</strong> droite donnant la pente locale.</li><li><strong>Fonction dérivée :</strong> fonction qui donne la pente en chaque x.</li><li><strong>Optimisation :</strong> recherche d’un maximum ou minimum.</li></ul><h3>Formules</h3><ul><li><span class="formula">taux = (f(b)−f(a))/(b−a)</span></li><li><span class="formula">(c)'=0</span></li><li><span class="formula">(x)'=1</span></li><li><span class="formula">(xⁿ)'=n×xⁿ⁻¹</span></li><li><span class="formula">(af)'=a×f'</span></li><li><span class="formula">(f+g)'=f'+g'</span></li></ul><h3>Variations</h3><ul><li><span class="formula">f'(x)>0</span> : f croît.</li><li><span class="formula">f'(x)<0</span> : f décroît.</li><li><span class="formula">f'(x)=0</span> : point critique possible.</li></ul><h3>Pièges fréquents</h3><ul><li>Confondre taux moyen et nombre dérivé.</li><li>Oublier que la dérivée d’une constante vaut 0.</li><li>Dire qu’un point critique est toujours un maximum.</li><li>Ne pas vérifier l’intervalle du problème.</li><li>Donner x sans calculer la valeur maximale ou minimale demandée.</li></ul></div>
+<h2>14. Ressources utiles</h2>
+<ul><li><a href="https://www.youtube.com/results?search_query=taux+de+variation+nombre+d%C3%A9riv%C3%A9+exercices">YouTube – taux de variation et nombre dérivé</a></li><li><a href="https://www.youtube.com/results?search_query=fonction+d%C3%A9riv%C3%A9e+exercices">YouTube – fonction dérivée</a></li><li><a href="https://www.youtube.com/results?search_query=signe+de+la+d%C3%A9riv%C3%A9e+variations">YouTube – signe de la dérivée et variations</a></li><li><a href="https://www.youtube.com/results?search_query=optimisation+d%C3%A9riv%C3%A9e+exercices">YouTube – optimisation avec dérivée</a></li><li><a href="https://fr.khanacademy.org/math/differential-calculus">Khan Academy – dérivées</a></li><li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/la-derivee-m1150">Alloprof – la dérivée</a></li></ul>
+<div class="box small">Document conçu pour une révision ciblée de MQ34 UAA6 – Dérivée.</div>
+</div></body></html>

@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ32"
+uaa: 1
+code: "MQ32-UAA1"
+title: "Approche graphique d’une fonction"
+slug: "mq32-uaa1-approche-graphique-d-une-fonction"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ32_UAA1_approche_graphique_fonction.html"
+    sha256: "e689b0786849422a1f76afa7c1c0edab235b92fe77fe8d99b064ecda58ac6dde"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "Cours MQ32 UAA1 – Approche graphique d’une fonction – Jury CESS.pdf"
+    sha256: "7b6ece4459c09092451a48299c6da7d76a9c632aa7ea65d2befea8b5d2c2ff50"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:24.9371740+02:00"

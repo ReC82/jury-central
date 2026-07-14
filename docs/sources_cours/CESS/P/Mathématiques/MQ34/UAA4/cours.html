@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA4 – Lois de probabilité</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}
+h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:110px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+.small{font-size:.92em;color:#555}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ34 UAA4 – Lois de probabilité<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> résoudre des problèmes en utilisant des lois de probabilité. Cette UAA introduit les variables aléatoires, les lois de probabilité, l’espérance, l’écart-type, puis les lois usuelles : uniforme, binomiale, normale et Poisson.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> il faut identifier la loi adaptée au contexte, repérer ses paramètres, calculer ou lire une probabilité avec une table, une calculatrice ou un outil informatique, puis interpréter le résultat.
+</div>
+
+<h2>1. Rappels indispensables</h2>
+<p>Une probabilité mesure la chance qu’un événement se réalise. Elle est toujours comprise entre 0 et 1.</p>
+<div class="box"><span class="formula">0 ≤ P(A) ≤ 1</span></div>
+<table>
+<tr><th>Notion</th><th>Définition</th><th>Exemple</th></tr>
+<tr><td>Expérience aléatoire</td><td>Expérience dont le résultat n’est pas connu à l’avance.</td><td>Lancer un dé.</td></tr>
+<tr><td>Issue</td><td>Résultat possible.</td><td>Obtenir 4.</td></tr>
+<tr><td>Univers Ω</td><td>Ensemble des issues possibles.</td><td>{1,2,3,4,5,6}</td></tr>
+<tr><td>Événement</td><td>Ensemble d’issues.</td><td>Obtenir un nombre pair.</td></tr>
+</table>
+
+<h2>2. Variable aléatoire</h2>
+<div class="box">
+Une <strong>variable aléatoire</strong> associe un nombre à chaque résultat possible d’une expérience aléatoire.
+</div>
+
+<h3>Variable discrète ou continue</h3>
+<table>
+<tr><th>Type</th><th>Définition</th><th>Exemple</th></tr>
+<tr><td>Variable aléatoire discrète</td><td>Elle prend des valeurs séparées que l’on peut lister.</td><td>Nombre de garçons dans une famille de 3 enfants.</td></tr>
+<tr><td>Variable aléatoire continue</td><td>Elle peut prendre toutes les valeurs d’un intervalle.</td><td>Taille, durée, masse, température.</td></tr>
+</table>
+
+<div class="ex">
+On lance deux pièces. X désigne le nombre de piles obtenus. Quelles valeurs X peut-elle prendre ?
+</div>
+<div class="corr">
+Les résultats possibles sont : FF, FP, PF, PP.<br>
+X peut valoir 0, 1 ou 2. C’est une variable aléatoire discrète.
+</div>
+
+<h2>3. Loi de probabilité</h2>
+<div class="box">
+La <strong>loi de probabilité</strong> d’une variable aléatoire donne toutes ses valeurs possibles et la probabilité de chacune.
+</div>
+
+<table>
+<tr><th>x</th><td>0</td><td>1</td><td>2</td></tr>
+<tr><th>P(X=x)</th><td>1/4</td><td>1/2</td><td>1/4</td></tr>
+</table>
+
+<div class="warn box">
+<strong>Vérification obligatoire :</strong> dans une loi de probabilité, toutes les probabilités doivent être positives et leur somme doit valoir 1.
+</div>
+
+<h2>4. Espérance mathématique</h2>
+<div class="box">
+L’<strong>espérance</strong> est la moyenne théorique d’une variable aléatoire si l’expérience était répétée un très grand nombre de fois.
+</div>
+<div class="box">
+<span class="formula">E(X)=x₁P(X=x₁)+x₂P(X=x₂)+...+xₙP(X=xₙ)</span>
+</div>
+
+<div class="ex">
+Un jeu donne 0 €, 2 € ou 5 € avec les probabilités suivantes :
+<table>
+<tr><th>Gain x</th><td>0</td><td>2</td><td>5</td></tr>
+<tr><th>P(X=x)</th><td>1/2</td><td>1/3</td><td>1/6</td></tr>
+</table>
+Calcule l’espérance.
+</div>
+<div class="corr">
+<span class="formula">E(X)=0×1/2+2×1/3+5×1/6</span><br>
+<span class="formula">E(X)=0+2/3+5/6=4/6+5/6=9/6=1,5</span><br>
+L’espérance est de 1,50 €. À long terme, le gain moyen est de 1,50 € par partie.
+</div>
+
+<h2>5. Variance et écart-type</h2>
+<div class="box">
+L’<strong>écart-type</strong> mesure la dispersion des valeurs autour de l’espérance. Plus il est grand, plus les résultats sont variables.
+</div>
+<div class="box">
+<span class="formula">V(X)=Σ (x−E(X))² × P(X=x)</span><br>
+<span class="formula">σ(X)=√V(X)</span>
+</div>
+
+<div class="ex">
+Pour le jeu précédent, l’espérance vaut 1,5. Calcule la variance et l’écart-type.
+</div>
+<div class="corr">
+<span class="formula">V(X)=(0−1,5)²×1/2+(2−1,5)²×1/3+(5−1,5)²×1/6</span><br>
+<span class="formula">V(X)=2,25×1/2+0,25×1/3+12,25×1/6</span><br>
+<span class="formula">V(X)=1,125+0,0833+2,0417=3,25</span><br>
+<span class="formula">σ=√3,25≈1,80</span><br>
+L’écart-type est environ 1,80 €. Les gains sont donc assez dispersés autour du gain moyen.
+</div>
+
+<h2>6. Loi uniforme</h2>
+<div class="box">
+Une variable suit une <strong>loi uniforme</strong> lorsque toutes les issues ont la même probabilité.
+</div>
+
+<h3>Loi uniforme discrète</h3>
+<div class="ex">
+On lance un dé équilibré. X est le résultat obtenu. Quelle est la loi de X ?
+</div>
+<div class="corr">
+Les valeurs possibles sont 1, 2, 3, 4, 5, 6. Chaque valeur a une probabilité de 1/6.<br>
+C’est une loi uniforme discrète.
+</div>
+
+<h3>Espérance et écart-type d’un dé équilibré</h3>
+<div class="corr">
+<span class="formula">E(X)=(1+2+3+4+5+6)/6=3,5</span>.<br>
+L’espérance n’est pas une valeur que le dé peut forcément donner : elle représente une moyenne théorique.
+</div>
+
+<h2>7. Loi binomiale</h2>
+<div class="box">
+La <strong>loi binomiale</strong> modélise le nombre de succès dans une répétition d’épreuves identiques et indépendantes.
+</div>
+
+<h3>Schéma de Bernoulli</h3>
+<table>
+<tr><th>Condition</th><th>Signification</th></tr>
+<tr><td>Deux résultats possibles</td><td>succès / échec</td></tr>
+<tr><td>Nombre d’épreuves fixé</td><td>n essais</td></tr>
+<tr><td>Même probabilité de succès</td><td>p reste constant</td></tr>
+<tr><td>Épreuves indépendantes</td><td>un résultat ne modifie pas les suivants</td></tr>
+</table>
+
+<div class="box">
+Si <span class="formula">X</span> est le nombre de succès, alors <span class="formula">X ~ B(n ; p)</span>.<br>
+<span class="formula">P(X=k)=C(n,k) × pᵏ × (1−p)ⁿ⁻ᵏ</span><br>
+<span class="formula">E(X)=np</span><br>
+<span class="formula">σ=√(np(1−p))</span>
+</div>
+
+<div class="ex">
+La probabilité qu’un nouveau-né soit un garçon est 0,48. Un couple a 3 enfants. X est le nombre de garçons. Calcule P(X=1).
+</div>
+<div class="corr">
+On a une loi binomiale : <span class="formula">X ~ B(3 ; 0,48)</span>.<br>
+On cherche exactement 1 garçon : <span class="formula">k=1</span>.<br>
+<span class="formula">P(X=1)=C(3,1)×0,48¹×0,52²</span><br>
+<span class="formula">P(X=1)=3×0,48×0,2704=0,389376</span><br>
+Donc <strong>P(X=1)≈0,389</strong>, soit environ 38,9 %.
+</div>
+
+<div class="warn box">
+<strong>Piège :</strong> “au moins un” se calcule souvent plus facilement avec le contraire : <span class="formula">P(X≥1)=1−P(X=0)</span>.
+</div>
+
+<h2>8. Loi normale</h2>
+<div class="box">
+La <strong>loi normale</strong> modélise de nombreuses grandeurs naturelles ou techniques : tailles, erreurs de mesure, résultats nombreux concentrés autour d’une moyenne. Sa courbe est une courbe en cloche, appelée courbe de Gauss.
+</div>
+
+<div class="box">
+Si <span class="formula">X</span> suit une loi normale de moyenne <span class="formula">μ</span> et d’écart-type <span class="formula">σ</span>, on écrit :<br>
+<span class="formula">X ~ N(μ ; σ)</span>
+</div>
+
+<h3>Interprétation graphique</h3>
+<ul>
+<li>La moyenne <span class="formula">μ</span> est au centre de la courbe.</li>
+<li>L’écart-type <span class="formula">σ</span> mesure l’étalement.</li>
+<li>Une probabilité se lit comme une aire sous la courbe.</li>
+</ul>
+
+<h3>Variable centrée réduite</h3>
+<div class="box">
+Pour utiliser une table normale centrée réduite :<br>
+<span class="formula">Z = (X−μ)/σ</span><br>
+Alors <span class="formula">Z ~ N(0 ; 1)</span>.
+</div>
+
+<div class="ex">
+Les notes d’un test suivent approximativement une loi normale de moyenne 60 et d’écart-type 10. Quelle est la valeur centrée réduite correspondant à une note de 75 ?
+</div>
+<div class="corr">
+<span class="formula">Z=(75−60)/10=15/10=1,5</span>.<br>
+Une note de 75 est donc à 1,5 écart-type au-dessus de la moyenne.
+</div>
+
+<div class="ex">
+Si une table donne <span class="formula">P(Z≤1,5)=0,9332</span>, interprète ce résultat dans le contexte précédent.
+</div>
+<div class="corr">
+<span class="formula">P(X≤75)=0,9332</span>.<br>
+Environ 93,3 % des élèves ont une note inférieure ou égale à 75, si le modèle normal est pertinent.
+</div>
+
+<h2>9. Loi de Poisson</h2>
+<div class="box">
+La <strong>loi de Poisson</strong> modélise un nombre d’événements rares dans un intervalle donné : défauts, appels, accidents, erreurs, pannes.
+</div>
+
+<div class="box">
+Si <span class="formula">X</span> suit une loi de Poisson de paramètre <span class="formula">λ</span>, on écrit :<br>
+<span class="formula">X ~ P(λ)</span><br>
+<span class="formula">P(X=k)=e⁻λ × λᵏ / k!</span><br>
+<span class="formula">E(X)=λ</span> et <span class="formula">V(X)=λ</span>, donc <span class="formula">σ=√λ</span>.
+</div>
+
+<div class="ex">
+Une usine produit en moyenne 5 pièces défectueuses par lot. X est le nombre de pièces défectueuses dans un lot. On modélise par une loi de Poisson de paramètre 5. Calcule P(X=3).
+</div>
+<div class="corr">
+<span class="formula">X ~ P(5)</span>.<br>
+<span class="formula">P(X=3)=e⁻⁵×5³/3!</span><br>
+<span class="formula">P(X=3)=e⁻⁵×125/6≈0,140</span>.<br>
+La probabilité d’avoir exactement 3 pièces défectueuses est environ 14,0 %.
+</div>
+
+<h2>10. Choisir la bonne loi</h2>
+<table>
+<tr><th>Situation</th><th>Loi probable</th><th>Paramètres</th></tr>
+<tr><td>Issues toutes également probables.</td><td>Uniforme</td><td>nombre de valeurs possibles</td></tr>
+<tr><td>Nombre de succès dans n essais indépendants.</td><td>Binomiale</td><td>n et p</td></tr>
+<tr><td>Grandeur continue autour d’une moyenne.</td><td>Normale</td><td>μ et σ</td></tr>
+<tr><td>Nombre d’événements rares dans un intervalle.</td><td>Poisson</td><td>λ</td></tr>
+</table>
+
+<div class="method box">
+<strong>Procédure :</strong><br>
+1. Lire le contexte.<br>
+2. Identifier la variable aléatoire X.<br>
+3. Déterminer les valeurs possibles ou le type de variable.<br>
+4. Choisir la loi adaptée.<br>
+5. Identifier les paramètres.<br>
+6. Calculer la probabilité.<br>
+7. Interpréter.
+</div>
+
+<h2>11. Exercices progressifs</h2>
+
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : variable aléatoire, loi de probabilité, espérance, écart-type.<br>
+2. Explique la différence entre variable discrète et variable continue.<br>
+3. Associe chaque contexte à une loi : dé équilibré, nombre de succès dans 20 essais, tailles d’adultes, nombre de pannes rares par jour.
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+4. Une variable X a la loi suivante :
+<table><tr><th>x</th><td>0</td><td>2</td><td>5</td></tr><tr><th>P(X=x)</th><td>0,4</td><td>0,5</td><td>0,1</td></tr></table>
+Calcule E(X).<br><br>
+5. X suit une loi binomiale B(5 ; 0,3). Calcule P(X=2).<br><br>
+6. X suit une loi de Poisson de paramètre 4. Calcule P(X=0).<br><br>
+7. X suit une loi normale N(100 ; 15). Calcule la valeur z correspondant à X=130.
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+8. Une usine a en moyenne 2 défauts par rouleau de tissu. On modélise par une loi de Poisson. Calcule la probabilité qu’un rouleau n’ait aucun défaut.<br><br>
+9. Un traitement réussit dans 80 % des cas. On traite 10 patients indépendants. Calcule la probabilité que le traitement réussisse exactement 8 fois.<br><br>
+10. Une variable normale a une moyenne de 50 et un écart-type de 5. Explique ce que signifie une valeur z=2.
+</div>
+
+<h2>12. Corrections détaillées</h2>
+<div class="corr">1. Variable aléatoire : associe un nombre à chaque issue. Loi de probabilité : tableau ou modèle donnant les probabilités des valeurs. Espérance : moyenne théorique. Écart-type : dispersion autour de l’espérance.</div>
+<div class="corr">2. Discrète : valeurs séparées, que l’on peut compter. Continue : toutes les valeurs d’un intervalle.</div>
+<div class="corr">3. Dé équilibré : uniforme. Succès dans 20 essais : binomiale. Tailles : normale. Pannes rares par jour : Poisson.</div>
+<div class="corr">4. <span class="formula">E(X)=0×0,4+2×0,5+5×0,1=1+0,5=1,5</span>.</div>
+<div class="corr">5. <span class="formula">P(X=2)=C(5,2)×0,3²×0,7³=10×0,09×0,343=0,3087</span>.</div>
+<div class="corr">6. <span class="formula">P(X=0)=e⁻⁴×4⁰/0!=e⁻⁴≈0,0183</span>.</div>
+<div class="corr">7. <span class="formula">z=(130−100)/15=2</span>. La valeur 130 est à deux écarts-types au-dessus de la moyenne.</div>
+<div class="corr">8. <span class="formula">X~P(2)</span>. <span class="formula">P(X=0)=e⁻²≈0,1353</span>.</div>
+<div class="corr">9. <span class="formula">X~B(10 ; 0,8)</span>. <span class="formula">P(X=8)=C(10,8)×0,8⁸×0,2²≈0,302</span>.</div>
+<div class="corr">10. z=2 signifie que la valeur est deux écarts-types au-dessus de la moyenne, donc ici <span class="formula">50+2×5=60</span>.</div>
+
+<h2>13. Mini-test final type examen</h2>
+<div class="box exam">Justifie chaque réponse et indique la loi utilisée avec ses paramètres.</div>
+
+<div class="ex"><strong>Question 1.</strong> On lance un dé équilibré. X est le résultat obtenu.<br>
+1) Quelle loi suit X ? 2) Calcule E(X). 3) Pourquoi est-ce une loi uniforme ?<div class="answer"></div></div>
+
+<div class="ex"><strong>Question 2.</strong> Une graine a 70 % de chances de germer. On plante 6 graines indépendantes. X est le nombre de graines qui germent.<br>
+1) Quelle loi suit X ? 2) Calcule P(X=4). 3) Calcule E(X).<div class="answer"></div></div>
+
+<div class="ex"><strong>Question 3.</strong> Une machine produit en moyenne 3 défauts par heure. X est le nombre de défauts en une heure, modélisé par une loi de Poisson.<br>
+1) Donne le paramètre. 2) Calcule P(X=0). 3) Calcule l’écart-type.<div class="answer"></div></div>
+
+<div class="ex"><strong>Question 4.</strong> Une variable suit une loi normale de moyenne 80 et d’écart-type 12.<br>
+1) Calcule z pour X=98. 2) Interprète. 3) Si une table donne P(Z≤1,5)=0,9332, que vaut P(X≤98) ?<div class="answer"></div></div>
+
+<div class="ex"><strong>Question 5.</strong> Un jeu coûte 3 €. Il rapporte 0 € avec probabilité 0,6 ; 4 € avec probabilité 0,3 ; 10 € avec probabilité 0,1.<br>
+1) Calcule l’espérance du gain brut. 2) Calcule l’espérance du gain net. 3) Le jeu est-il favorable au joueur ?<div class="answer"></div></div>
+
+<h2>14. Correction du mini-test</h2>
+<div class="corr"><strong>Q1.</strong> Loi uniforme discrète sur {1,2,3,4,5,6}. <span class="formula">E(X)=3,5</span>. Elle est uniforme car chaque face a la même probabilité 1/6.</div>
+<div class="corr"><strong>Q2.</strong> <span class="formula">X~B(6 ; 0,7)</span>. <span class="formula">P(X=4)=C(6,4)×0,7⁴×0,3²≈0,324</span>. <span class="formula">E(X)=np=6×0,7=4,2</span>.</div>
+<div class="corr"><strong>Q3.</strong> <span class="formula">λ=3</span>. <span class="formula">P(X=0)=e⁻³≈0,0498</span>. <span class="formula">σ=√3≈1,73</span>.</div>
+<div class="corr"><strong>Q4.</strong> <span class="formula">z=(98−80)/12=1,5</span>. 98 est à 1,5 écart-type au-dessus de la moyenne. Donc <span class="formula">P(X≤98)=0,9332</span>.</div>
+<div class="corr"><strong>Q5.</strong> Gain brut : <span class="formula">0×0,6+4×0,3+10×0,1=2,2 €</span>. Gain net : <span class="formula">2,2−3=−0,8 €</span>. Le jeu est défavorable au joueur à long terme.</div>
+
+<h2>15. Fiche mémo finale</h2>
+<div class="box memo">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Variable aléatoire :</strong> associe un nombre aux issues d’une expérience aléatoire.</li>
+<li><strong>Loi de probabilité :</strong> donne les valeurs possibles et leurs probabilités.</li>
+<li><strong>Espérance :</strong> moyenne théorique à long terme.</li>
+<li><strong>Écart-type :</strong> dispersion autour de l’espérance.</li>
+</ul>
+<h3>Formules</h3>
+<ul>
+<li><span class="formula">E(X)=Σ xᵢP(X=xᵢ)</span></li>
+<li><span class="formula">V(X)=Σ(xᵢ−E(X))²P(X=xᵢ)</span></li>
+<li><span class="formula">σ=√V(X)</span></li>
+<li><span class="formula">Binomiale : P(X=k)=C(n,k)pᵏ(1−p)ⁿ⁻ᵏ</span></li>
+<li><span class="formula">Binomiale : E=np ; σ=√(np(1−p))</span></li>
+<li><span class="formula">Normale : z=(X−μ)/σ</span></li>
+<li><span class="formula">Poisson : P(X=k)=e⁻λ λᵏ/k!</span></li>
+<li><span class="formula">Poisson : E=λ ; σ=√λ</span></li>
+</ul>
+<h3>Choisir une loi</h3>
+<ul>
+<li><strong>Uniforme :</strong> toutes les issues sont équiprobables.</li>
+<li><strong>Binomiale :</strong> nombre de succès dans n essais indépendants.</li>
+<li><strong>Normale :</strong> variable continue autour d’une moyenne, courbe de Gauss.</li>
+<li><strong>Poisson :</strong> nombre d’événements rares dans un intervalle.</li>
+</ul>
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Oublier de vérifier que les probabilités totalisent 1.</li>
+<li>Confondre espérance et résultat certain.</li>
+<li>Utiliser une loi binomiale sans indépendance.</li>
+<li>Utiliser une loi normale sans interpréter l’aire sous la courbe.</li>
+<li>Oublier que la loi de Poisson concerne des événements rares.</li>
+</ul>
+</div>
+
+<h2>16. Ressources utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=variable+al%C3%A9atoire+loi+de+probabilit%C3%A9+esp%C3%A9rance+%C3%A9cart+type">YouTube – variable aléatoire, espérance, écart-type</a></li>
+<li><a href="https://www.youtube.com/results?search_query=loi+binomiale+exercices">YouTube – loi binomiale</a></li>
+<li><a href="https://www.youtube.com/results?search_query=loi+normale+centr%C3%A9e+r%C3%A9duite+exercices">YouTube – loi normale centrée réduite</a></li>
+<li><a href="https://www.youtube.com/results?search_query=loi+de+Poisson+exercices">YouTube – loi de Poisson</a></li>
+<li><a href="https://fr.khanacademy.org/math/statistics-probability">Khan Academy – statistiques et probabilités</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-probabilites-m1320">Alloprof – probabilités</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ34 UAA4 – Lois de probabilité.
+</div>
+
+</div>
+</body>
+</html>

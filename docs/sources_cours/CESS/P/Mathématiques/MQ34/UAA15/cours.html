@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA15 – Nombres complexes</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}
+h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:115px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.small{font-size:.92em;color:#555}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table,svg{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ34 UAA15 – Nombres complexes<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> utiliser l’outil « nombre complexe » dans le cadre d’un cours d’électricité. Cette UAA développe le calcul sur la forme algébrique, la forme trigonométrique et, en introduction, la forme exponentielle d’un nombre complexe pour modéliser des phénomènes ondulatoires et des grandeurs sinusoïdales.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> il faut savoir passer d’une forme à l’autre, représenter un nombre complexe dans le plan de Gauss, calculer une somme, un produit, un quotient, une puissance simple, un inverse, et choisir la forme la plus adaptée à une application électrotechnique.
+</div>
+
+<div class="warn box">
+<strong>Notation importante :</strong> en mathématiques, le nombre imaginaire est noté <span class="formula">i</span>. En électricité, on utilise souvent <span class="formula">j</span> pour éviter la confusion avec l’intensité du courant, généralement notée <span class="formula">i</span>.
+</div>
+
+<h2>1. Pourquoi inventer les nombres complexes ?</h2>
+
+<p>Dans les nombres réels, l’équation <span class="formula">x²=-1</span> n’a pas de solution, car le carré d’un réel est toujours positif ou nul.</p>
+
+<div class="box">
+On introduit donc un nouveau nombre, appelé <strong>nombre imaginaire</strong>, défini par :
+<br><span class="formula">i² = -1</span>
+</div>
+
+<p>Grâce à ce nombre, on peut écrire des solutions à des calculs impossibles dans les réels. Les nombres complexes sont très utiles en électricité, notamment en courant alternatif, car ils permettent de représenter rapidement des grandeurs sinusoïdales avec une amplitude et un déphasage.</p>
+
+<h2>2. Forme algébrique d’un nombre complexe</h2>
+
+<div class="box">
+Un nombre complexe s’écrit sous la forme :
+<br><span class="formula">z = a + bi</span>
+</div>
+
+<table>
+<tr><th>Élément</th><th>Nom</th><th>Exemple pour z = 3 − 4i</th></tr>
+<tr><td><span class="formula">a</span></td><td>partie réelle</td><td><span class="formula">Re(z)=3</span></td></tr>
+<tr><td><span class="formula">b</span></td><td>partie imaginaire</td><td><span class="formula">Im(z)=-4</span></td></tr>
+<tr><td><span class="formula">i</span></td><td>nombre imaginaire</td><td><span class="formula">i²=-1</span></td></tr>
+</table>
+
+<div class="ex">
+Pour <span class="formula">z = -5 + 2i</span>, donne la partie réelle et la partie imaginaire.
+</div>
+<div class="corr">
+La partie réelle est le nombre sans <span class="formula">i</span> : <span class="formula">Re(z)=-5</span>.<br>
+La partie imaginaire est le coefficient de <span class="formula">i</span> : <span class="formula">Im(z)=2</span>.
+</div>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> la partie imaginaire de <span class="formula">3−4i</span> est <span class="formula">-4</span>, pas <span class="formula">-4i</span>.
+</div>
+
+<h2>3. Le plan complexe ou plan de Gauss</h2>
+
+<div class="box">
+Un nombre complexe <span class="formula">z=a+bi</span> peut être représenté par un point dans le plan de Gauss :
+<ul>
+<li>l’axe horizontal représente la partie réelle ;</li>
+<li>l’axe vertical représente la partie imaginaire ;</li>
+<li>le point image de <span class="formula">z</span> a pour coordonnées <span class="formula">(a ; b)</span>.</li>
+</ul>
+</div>
+
+<svg width="680" height="470" viewBox="0 0 680 470">
+<line x1="70" y1="235" x2="620" y2="235" stroke="#222" stroke-width="2"/>
+<line x1="340" y1="420" x2="340" y2="40" stroke="#222" stroke-width="2"/>
+<text x="625" y="240" font-size="16">Re</text>
+<text x="350" y="50" font-size="16">Im</text>
+<g stroke="#e5e5e5">
+<line x1="130" y1="40" x2="130" y2="420"/><line x1="200" y1="40" x2="200" y2="420"/><line x1="270" y1="40" x2="270" y2="420"/><line x1="410" y1="40" x2="410" y2="420"/><line x1="480" y1="40" x2="480" y2="420"/><line x1="550" y1="40" x2="550" y2="420"/>
+<line x1="70" y1="95" x2="620" y2="95"/><line x1="70" y1="165" x2="620" y2="165"/><line x1="70" y1="305" x2="620" y2="305"/><line x1="70" y1="375" x2="620" y2="375"/>
+</g>
+<circle cx="550" cy="95" r="7" fill="#b03a2e"/>
+<line x1="340" y1="235" x2="550" y2="95" stroke="#1f618d" stroke-width="3"/>
+<line x1="550" y1="235" x2="550" y2="95" stroke="#b03a2e" stroke-dasharray="6 5"/>
+<line x1="340" y1="95" x2="550" y2="95" stroke="#b03a2e" stroke-dasharray="6 5"/>
+<text x="560" y="90" font-size="16">z = 3 + 2i</text>
+<path d="M395 235 A55 55 0 0 0 386 202" fill="none" stroke="#e67e22" stroke-width="3"/>
+<text x="398" y="212" font-size="17" fill="#e67e22">θ</text>
+<text x="450" y="220" font-size="15">module r</text>
+</svg>
+
+<h2>4. Module et argument</h2>
+
+<div class="box">
+Le <strong>module</strong> d’un nombre complexe est sa distance à l’origine dans le plan de Gauss.
+</div>
+
+<div class="box">
+Si <span class="formula">z=a+bi</span>, alors :
+<br><span class="formula">|z| = √(a²+b²)</span>
+</div>
+
+<div class="box">
+L’<strong>argument</strong> d’un nombre complexe est l’angle entre l’axe réel positif et le vecteur représentant le nombre complexe.
+</div>
+
+<div class="box">
+Si <span class="formula">z=a+bi</span>, alors, lorsque <span class="formula">a≠0</span> :
+<br><span class="formula">tan(θ)=b/a</span>
+</div>
+
+<div class="warn box">
+<strong>Très important :</strong> le signe de la partie réelle et de la partie imaginaire permet de choisir le bon quadrant. La calculatrice donne parfois un angle qui doit être corrigé selon le quadrant.
+</div>
+
+<h3>Quadrants</h3>
+<table>
+<tr><th>Quadrant</th><th>Signe de a</th><th>Signe de b</th><th>Position</th></tr>
+<tr><td>I</td><td>+</td><td>+</td><td>en haut à droite</td></tr>
+<tr><td>II</td><td>-</td><td>+</td><td>en haut à gauche</td></tr>
+<tr><td>III</td><td>-</td><td>-</td><td>en bas à gauche</td></tr>
+<tr><td>IV</td><td>+</td><td>-</td><td>en bas à droite</td></tr>
+</table>
+
+<div class="ex">
+Pour <span class="formula">z=3+4i</span>, calcule le module et un argument.
+</div>
+<div class="corr">
+Module : <span class="formula">|z|=√(3²+4²)=√25=5</span>.<br>
+Argument : <span class="formula">tan(θ)=4/3</span>, donc <span class="formula">θ≈53,13°</span>.<br>
+Comme la partie réelle et la partie imaginaire sont positives, le point est dans le quadrant I. L’angle est donc cohérent.
+</div>
+
+<h2>5. Forme trigonométrique</h2>
+
+<div class="box">
+La forme trigonométrique d’un nombre complexe est :
+<br><span class="formula">z = r(cos θ + i sin θ)</span>
+</div>
+
+<table>
+<tr><th>Symbole</th><th>Signification</th></tr>
+<tr><td><span class="formula">r</span></td><td>module, toujours positif ou nul</td></tr>
+<tr><td><span class="formula">θ</span></td><td>argument, angle du nombre complexe</td></tr>
+<tr><td><span class="formula">cos θ</span></td><td>lié à la partie réelle</td></tr>
+<tr><td><span class="formula">sin θ</span></td><td>lié à la partie imaginaire</td></tr>
+</table>
+
+<h3>Passer de la forme trigonométrique à la forme algébrique</h3>
+<div class="box">
+Si <span class="formula">z=r(cos θ+i sin θ)</span>, alors :
+<br><span class="formula">a=r cos θ</span> et <span class="formula">b=r sin θ</span>
+</div>
+
+<div class="ex">
+Transforme <span class="formula">z=10(cos 30°+i sin 30°)</span> en forme algébrique.
+</div>
+<div class="corr">
+<span class="formula">a=10cos30°≈10×0,866=8,66</span>.<br>
+<span class="formula">b=10sin30°=10×0,5=5</span>.<br>
+Donc <span class="formula">z≈8,66+5i</span>.
+</div>
+
+<h3>Passer de la forme algébrique à la forme trigonométrique</h3>
+<div class="method box">
+<strong>Procédure :</strong>
+<ol>
+<li>Calculer le module <span class="formula">r=√(a²+b²)</span>.</li>
+<li>Calculer un angle avec <span class="formula">tan(θ)=b/a</span>, si possible.</li>
+<li>Vérifier le quadrant avec les signes de <span class="formula">a</span> et <span class="formula">b</span>.</li>
+<li>Écrire <span class="formula">z=r(cosθ+i sinθ)</span>.</li>
+</ol>
+</div>
+
+<div class="ex">
+Transforme <span class="formula">z=-3+4i</span> en forme trigonométrique.
+</div>
+<div class="corr">
+Module : <span class="formula">r=√((-3)²+4²)=√25=5</span>.<br>
+Angle de référence : <span class="formula">tan⁻¹(|4/−3|)=tan⁻¹(4/3)≈53,13°</span>.<br>
+Le point est en quadrant II, car partie réelle négative et partie imaginaire positive.<br>
+Argument : <span class="formula">θ=180°−53,13°=126,87°</span>.<br>
+Donc <span class="formula">z=5(cos126,87°+i sin126,87°)</span>.
+</div>
+
+<h2>6. Forme exponentielle</h2>
+
+<div class="box">
+La forme exponentielle est liée à la forme trigonométrique :
+<br><span class="formula">e^{iθ}=cos θ+i sin θ</span>
+</div>
+
+<div class="box">
+Ainsi :
+<br><span class="formula">z=r(cosθ+i sinθ)=re^{iθ}</span>
+</div>
+
+<div class="warn box">
+<strong>Dans cette UAA :</strong> la forme exponentielle peut être introduite, mais elle sert surtout à faire le lien avec les cours d’électricité et d’électronique. Le but n’est pas de faire une étude théorique avancée.
+</div>
+
+<div class="ex">
+Écris <span class="formula">z=5(cos60°+i sin60°)</span> en forme exponentielle.
+</div>
+<div class="corr">
+On utilise <span class="formula">r=5</span> et <span class="formula">θ=60°</span>.<br>
+Donc <span class="formula">z=5e^{i60°}</span>.
+</div>
+
+<h2>7. Conjugué et inverse</h2>
+
+<h3>7.1 Conjugué</h3>
+<div class="box">
+Si <span class="formula">z=a+bi</span>, son conjugué est :
+<br><span class="formula">conj(z)=a−bi</span>
+</div>
+
+<p>On le note souvent <span class="formula">z̄</span>.</p>
+
+<div class="ex">
+Donne le conjugué de <span class="formula">z=7−3i</span>.
+</div>
+<div class="corr">
+On change le signe de la partie imaginaire : <span class="formula">z̄=7+3i</span>.
+</div>
+
+<h3>7.2 Inverse</h3>
+<div class="box">
+L’inverse de <span class="formula">z</span> est <span class="formula">1/z</span>. Pour le calculer, on multiplie par le conjugué.
+</div>
+
+<div class="box">
+Si <span class="formula">z=a+bi</span>, alors :
+<br><span class="formula">1/z = (a−bi)/(a²+b²)</span>, si <span class="formula">z≠0</span>
+</div>
+
+<div class="ex">
+Calcule l’inverse de <span class="formula">z=2+3i</span>.
+</div>
+<div class="corr">
+<span class="formula">1/(2+3i)</span>.<br>
+On multiplie par le conjugué :<br>
+<span class="formula">1/(2+3i) = (2−3i)/((2+3i)(2−3i))</span>.<br>
+Dénominateur : <span class="formula">2²+3²=13</span>.<br>
+Donc <span class="formula">1/z=(2−3i)/13=2/13−3i/13</span>.
+</div>
+
+<h2>8. Addition et soustraction</h2>
+
+<div class="box">
+Pour additionner ou soustraire des nombres complexes en forme algébrique, on regroupe les parties réelles et les parties imaginaires.
+</div>
+
+<div class="box">
+<span class="formula">(a+bi)+(c+di)=(a+c)+(b+d)i</span><br>
+<span class="formula">(a+bi)-(c+di)=(a-c)+(b-d)i</span>
+</div>
+
+<div class="ex">
+Calcule <span class="formula">(3+5i)+(-2+7i)</span>.
+</div>
+<div class="corr">
+Parties réelles : <span class="formula">3+(-2)=1</span>.<br>
+Parties imaginaires : <span class="formula">5i+7i=12i</span>.<br>
+Résultat : <span class="formula">1+12i</span>.
+</div>
+
+<h2>9. Multiplication</h2>
+
+<div class="box">
+Pour multiplier deux nombres complexes en forme algébrique, on développe comme en algèbre, en utilisant <span class="formula">i²=-1</span>.
+</div>
+
+<div class="box">
+<span class="formula">(a+bi)(c+di)=(ac-bd)+(ad+bc)i</span>
+</div>
+
+<div class="ex">
+Calcule <span class="formula">(2+3i)(4−i)</span>.
+</div>
+<div class="corr">
+On développe :<br>
+<span class="formula">(2+3i)(4−i)=8−2i+12i−3i²</span><br>
+Comme <span class="formula">i²=-1</span>, alors <span class="formula">−3i²=3</span>.<br>
+Donc <span class="formula">8+3+10i=11+10i</span>.
+</div>
+
+<h2>10. Quotient de deux nombres complexes</h2>
+
+<div class="box">
+Pour diviser par un nombre complexe, on multiplie le numérateur et le dénominateur par le conjugué du dénominateur.
+</div>
+
+<div class="ex">
+Calcule <span class="formula">(3+2i)/(1−i)</span>.
+</div>
+<div class="corr">
+Le conjugué du dénominateur <span class="formula">1−i</span> est <span class="formula">1+i</span>.<br>
+<span class="formula">(3+2i)/(1−i) × (1+i)/(1+i)</span><br>
+Numérateur : <span class="formula">(3+2i)(1+i)=3+3i+2i+2i²=3+5i−2=1+5i</span>.<br>
+Dénominateur : <span class="formula">(1−i)(1+i)=1−i²=2</span>.<br>
+Résultat : <span class="formula">(1+5i)/2=1/2+(5/2)i</span>.
+</div>
+
+<h2>11. Produits et puissances en forme trigonométrique</h2>
+
+<div class="box">
+La forme trigonométrique est très pratique pour multiplier ou diviser des complexes.
+</div>
+
+<table>
+<tr><th>Opération</th><th>Règle</th></tr>
+<tr><td>Produit</td><td>On multiplie les modules et on additionne les arguments.</td></tr>
+<tr><td>Quotient</td><td>On divise les modules et on soustrait les arguments.</td></tr>
+<tr><td>Puissance</td><td>On élève le module à la puissance et on multiplie l’argument.</td></tr>
+</table>
+
+<div class="box">
+Si <span class="formula">z₁=r₁(cosθ₁+i sinθ₁)</span> et <span class="formula">z₂=r₂(cosθ₂+i sinθ₂)</span>, alors :
+<br><span class="formula">z₁z₂=r₁r₂[cos(θ₁+θ₂)+i sin(θ₁+θ₂)]</span>
+</div>
+
+<div class="ex">
+Soient <span class="formula">z₁=2(cos30°+i sin30°)</span> et <span class="formula">z₂=5(cos40°+i sin40°)</span>. Calcule <span class="formula">z₁z₂</span> en forme trigonométrique.
+</div>
+<div class="corr">
+On multiplie les modules : <span class="formula">2×5=10</span>.<br>
+On additionne les arguments : <span class="formula">30°+40°=70°</span>.<br>
+Donc <span class="formula">z₁z₂=10(cos70°+i sin70°)</span>.
+</div>
+
+<h2>12. Pas de relation d’ordre dans les complexes</h2>
+
+<div class="box">
+Dans les nombres réels, on peut dire <span class="formula">3&lt;5</span>. Dans les nombres complexes, il n’existe pas de relation d’ordre naturelle compatible avec les opérations.
+</div>
+
+<div class="warn box">
+<strong>À retenir :</strong> on ne compare pas deux complexes avec <span class="formula">&lt;</span> ou <span class="formula">&gt;</span> comme on le fait avec des réels. On peut comparer leurs modules, mais pas les nombres complexes eux-mêmes de cette manière.
+</div>
+
+<h2>13. Applications électrotechniques</h2>
+
+<div class="box">
+En courant alternatif, les tensions et courants sinusoïdaux peuvent être représentés par des nombres complexes. Cela permet d’additionner rapidement des grandeurs qui ont des amplitudes et des déphasages différents.
+</div>
+
+<h3>13.1 Notation électrique</h3>
+<table>
+<tr><th>Mathématiques</th><th>Électricité</th><th>Raison</th></tr>
+<tr><td><span class="formula">i²=-1</span></td><td><span class="formula">j²=-1</span></td><td>La lettre i désigne souvent l’intensité du courant.</td></tr>
+<tr><td><span class="formula">z=a+bi</span></td><td><span class="formula">Z=a+bj</span></td><td>Notation utilisée en électrotechnique.</td></tr>
+</table>
+
+<h3>13.2 Addition de courants sinusoïdaux</h3>
+<div class="box">
+Pour additionner deux courants sinusoïdaux de même fréquence mais déphasés, on peut :
+<ol>
+<li>les transformer en nombres complexes ;</li>
+<li>les additionner en forme algébrique ;</li>
+<li>revenir à une forme module-argument pour obtenir amplitude et déphasage du courant résultant.</li>
+</ol>
+</div>
+
+<div class="ex">
+Deux courants sont représentés par <span class="formula">I₁=3+4j</span> et <span class="formula">I₂=5−2j</span>. Calcule le courant résultant et son module.
+</div>
+<div class="corr">
+Courant résultant :<br>
+<span class="formula">I=I₁+I₂=(3+4j)+(5−2j)=8+2j</span>.<br>
+Module :<br>
+<span class="formula">|I|=√(8²+2²)=√68≈8,25</span>.<br>
+Le courant résultant est <span class="formula">8+2j</span> et son amplitude complexe vaut environ <strong>8,25</strong>.
+</div>
+
+<h3>13.3 Impédance</h3>
+<div class="box">
+En électricité, l’impédance d’un dipôle en courant alternatif se représente souvent par un nombre complexe :
+<br><span class="formula">Z = R + jX</span>
+</div>
+
+<table>
+<tr><th>Élément</th><th>Signification</th></tr>
+<tr><td><span class="formula">R</span></td><td>résistance, partie réelle</td></tr>
+<tr><td><span class="formula">X</span></td><td>réactance, partie imaginaire</td></tr>
+<tr><td><span class="formula">|Z|</span></td><td>module de l’impédance</td></tr>
+<tr><td><span class="formula">arg(Z)</span></td><td>déphasage associé</td></tr>
+</table>
+
+<div class="ex">
+Une impédance vaut <span class="formula">Z=6+8j</span> ohms. Calcule son module.
+</div>
+<div class="corr">
+<span class="formula">|Z|=√(6²+8²)=√100=10</span>.<br>
+Le module de l’impédance vaut <strong>10 Ω</strong>.
+</div>
+
+<h2>14. Exercices progressifs</h2>
+
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : nombre complexe, partie réelle, partie imaginaire, module, argument, conjugué.<br>
+2. Explique pourquoi on utilise <span class="formula">j</span> au lieu de <span class="formula">i</span> en électricité.<br>
+3. Pourquoi n’y a-t-il pas de relation d’ordre naturelle dans les nombres complexes ?<br>
+4. Donne la forme algébrique générale et la forme trigonométrique générale.
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+5. Pour <span class="formula">z=4−3i</span>, donne la partie réelle, la partie imaginaire, le conjugué et le module.<br><br>
+6. Calcule : <span class="formula">(2+5i)+(-7+3i)</span>.<br><br>
+7. Calcule : <span class="formula">(1−2i)(3+4i)</span>.<br><br>
+8. Calcule : <span class="formula">1/(3−4i)</span>.<br><br>
+9. Transforme <span class="formula">z=2(cos60°+i sin60°)</span> en forme algébrique.
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+10. Transforme <span class="formula">z=-4−4i</span> en forme trigonométrique. Justifie le quadrant.<br><br>
+11. Soient <span class="formula">z₁=3(cos20°+i sin20°)</span> et <span class="formula">z₂=4(cos50°+i sin50°)</span>. Calcule <span class="formula">z₁z₂</span> en forme trigonométrique.<br><br>
+12. Deux courants sont représentés par <span class="formula">I₁=10+5j</span> et <span class="formula">I₂=-3+7j</span>. Calcule le courant résultant et son module.<br><br>
+13. Une impédance vaut <span class="formula">Z=12−5j</span>. Calcule son module et son argument approximatif.
+</div>
+
+<h2>15. Corrections détaillées</h2>
+
+<div class="corr">
+1. Un nombre complexe est un nombre de la forme <span class="formula">a+bi</span>. La partie réelle est <span class="formula">a</span>. La partie imaginaire est <span class="formula">b</span>. Le module est la distance à l’origine. L’argument est l’angle avec l’axe réel positif. Le conjugué de <span class="formula">a+bi</span> est <span class="formula">a−bi</span>.
+</div>
+<div class="corr">
+2. En électricité, on note souvent le nombre imaginaire <span class="formula">j</span> parce que la lettre <span class="formula">i</span> est déjà utilisée pour l’intensité du courant.
+</div>
+<div class="corr">
+3. Un nombre complexe possède deux composantes : réelle et imaginaire. Il n’y a pas de façon naturelle de dire qu’un complexe est plus grand qu’un autre tout en respectant les opérations usuelles.
+</div>
+<div class="corr">
+4. Forme algébrique : <span class="formula">z=a+bi</span>. Forme trigonométrique : <span class="formula">z=r(cosθ+i sinθ)</span>.
+</div>
+<div class="corr">
+5. <span class="formula">Re(z)=4</span>, <span class="formula">Im(z)=-3</span>, <span class="formula">z̄=4+3i</span>, <span class="formula">|z|=√(4²+(-3)²)=5</span>.
+</div>
+<div class="corr">
+6. <span class="formula">(2+5i)+(-7+3i)=-5+8i</span>.
+</div>
+<div class="corr">
+7. <span class="formula">(1−2i)(3+4i)=3+4i−6i−8i²=3−2i+8=11−2i</span>.
+</div>
+<div class="corr">
+8. <span class="formula">1/(3−4i)=(3+4i)/(3²+4²)=(3+4i)/25=3/25+4i/25</span>.
+</div>
+<div class="corr">
+9. <span class="formula">2(cos60°+i sin60°)=2(1/2+i√3/2)=1+i√3</span>.
+</div>
+<div class="corr">
+10. Module : <span class="formula">r=√((-4)²+(-4)²)=√32=4√2</span>.<br>
+Le point est en quadrant III car les deux parties sont négatives. L’angle de référence est 45°. Un argument est donc <span class="formula">225°</span> ou <span class="formula">-135°</span>.<br>
+Forme trigonométrique : <span class="formula">z=4√2(cos225°+i sin225°)</span>.
+</div>
+<div class="corr">
+11. Modules : <span class="formula">3×4=12</span>. Arguments : <span class="formula">20°+50°=70°</span>.<br>
+Donc <span class="formula">z₁z₂=12(cos70°+i sin70°)</span>.
+</div>
+<div class="corr">
+12. <span class="formula">I=I₁+I₂=(10+5j)+(-3+7j)=7+12j</span>.<br>
+Module : <span class="formula">|I|=√(7²+12²)=√193≈13,89</span>.
+</div>
+<div class="corr">
+13. <span class="formula">|Z|=√(12²+(-5)²)=√169=13</span>.<br>
+<span class="formula">tanθ=-5/12</span>, donc <span class="formula">θ≈-22,62°</span>. Le point est en quadrant IV, donc cet angle est cohérent.
+</div>
+
+<h2>16. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse. Pour les applications électriques, tu peux utiliser <span class="formula">j</span> au lieu de <span class="formula">i</span>.
+</div>
+
+<div class="ex">
+<strong>Question 1.</strong> Pour <span class="formula">z=-6+8i</span> :<br>
+1) donne la partie réelle et la partie imaginaire ;<br>
+2) donne le conjugué ;<br>
+3) calcule le module ;<br>
+4) indique le quadrant.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 2.</strong> Calcule et donne le résultat sous forme algébrique :<br>
+1) <span class="formula">(5−2i)+(3+7i)</span><br>
+2) <span class="formula">(4+i)−(6−3i)</span><br>
+3) <span class="formula">(2−3i)(5+i)</span>
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 3.</strong> Calcule <span class="formula">(4+3i)/(2−i)</span> sous forme algébrique.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 4.</strong> Transforme <span class="formula">z=6(cos120°+i sin120°)</span> en forme algébrique.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 5.</strong> En électrotechnique, deux courants sont représentés par <span class="formula">I₁=8−3j</span> et <span class="formula">I₂=4+9j</span>.<br>
+1) Calcule le courant résultant.<br>
+2) Calcule son module.<br>
+3) Explique brièvement l’intérêt des nombres complexes dans ce contexte.
+<div class="answer"></div>
+</div>
+
+<h2>17. Correction du mini-test</h2>
+
+<div class="corr">
+<strong>Q1.</strong> <span class="formula">Re(z)=-6</span>, <span class="formula">Im(z)=8</span>. Conjugué : <span class="formula">z̄=-6−8i</span>. Module : <span class="formula">|z|=√((-6)²+8²)=√100=10</span>. Le point est en quadrant II.
+</div>
+
+<div class="corr">
+<strong>Q2.</strong> 1) <span class="formula">(5−2i)+(3+7i)=8+5i</span>.<br>
+2) <span class="formula">(4+i)−(6−3i)=4+i−6+3i=-2+4i</span>.<br>
+3) <span class="formula">(2−3i)(5+i)=10+2i−15i−3i²=10−13i+3=13−13i</span>.
+</div>
+
+<div class="corr">
+<strong>Q3.</strong> On multiplie par le conjugué <span class="formula">2+i</span> :<br>
+<span class="formula">(4+3i)/(2−i) × (2+i)/(2+i)</span>.<br>
+Numérateur : <span class="formula">(4+3i)(2+i)=8+4i+6i+3i²=8+10i−3=5+10i</span>.<br>
+Dénominateur : <span class="formula">(2−i)(2+i)=4−i²=5</span>.<br>
+Résultat : <span class="formula">(5+10i)/5=1+2i</span>.
+</div>
+
+<div class="corr">
+<strong>Q4.</strong> <span class="formula">cos120°=-1/2</span> et <span class="formula">sin120°=√3/2</span>.<br>
+Donc <span class="formula">z=6(-1/2+i√3/2)=-3+3√3i</span>.
+</div>
+
+<div class="corr">
+<strong>Q5.</strong> Courant résultant : <span class="formula">I=(8−3j)+(4+9j)=12+6j</span>.<br>
+Module : <span class="formula">|I|=√(12²+6²)=√180=6√5≈13,42</span>.<br>
+Les nombres complexes permettent d’additionner rapidement des courants sinusoïdaux en tenant compte de leur amplitude et de leur déphasage.
+</div>
+
+<h2>18. Fiche mémo finale</h2>
+
+<div class="box memo">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Nombre complexe :</strong> nombre de la forme <span class="formula">a+bi</span>.</li>
+<li><strong>Partie réelle :</strong> <span class="formula">a</span>.</li>
+<li><strong>Partie imaginaire :</strong> <span class="formula">b</span>.</li>
+<li><strong>Plan de Gauss :</strong> plan où <span class="formula">a+bi</span> est représenté par le point <span class="formula">(a;b)</span>.</li>
+<li><strong>Module :</strong> distance à l’origine.</li>
+<li><strong>Argument :</strong> angle avec l’axe réel positif.</li>
+<li><strong>Conjugué :</strong> <span class="formula">a−bi</span>.</li>
+</ul>
+
+<h3>Formules essentielles</h3>
+<ul>
+<li><span class="formula">i²=-1</span></li>
+<li><span class="formula">z=a+bi</span></li>
+<li><span class="formula">|z|=√(a²+b²)</span></li>
+<li><span class="formula">tanθ=b/a</span>, avec vérification du quadrant</li>
+<li><span class="formula">z=r(cosθ+i sinθ)</span></li>
+<li><span class="formula">z=re^{iθ}</span></li>
+<li><span class="formula">z̄=a−bi</span></li>
+<li><span class="formula">1/(a+bi)=(a−bi)/(a²+b²)</span></li>
+<li><span class="formula">(a+bi)(c+di)=(ac−bd)+(ad+bc)i</span></li>
+</ul>
+
+<h3>Procédures</h3>
+<ol>
+<li>Pour additionner : regrouper parties réelles et imaginaires.</li>
+<li>Pour multiplier : développer et remplacer <span class="formula">i²</span> par <span class="formula">-1</span>.</li>
+<li>Pour diviser : multiplier par le conjugué du dénominateur.</li>
+<li>Pour passer en forme trigonométrique : calculer module et argument.</li>
+<li>Pour passer en forme algébrique : utiliser <span class="formula">a=r cosθ</span> et <span class="formula">b=r sinθ</span>.</li>
+<li>Pour une application électrique : utiliser la notation <span class="formula">j</span> si nécessaire.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Oublier que <span class="formula">i²=-1</span>.</li>
+<li>Confondre partie imaginaire et terme imaginaire.</li>
+<li>Oublier de vérifier le quadrant de l’argument.</li>
+<li>Comparer deux complexes avec <span class="formula">&lt;</span> ou <span class="formula">&gt;</span>.</li>
+<li>Diviser sans utiliser le conjugué.</li>
+<li>Confondre <span class="formula">i</span> en mathématiques et <span class="formula">j</span> en électricité.</li>
+</ul>
+</div>
+
+<h2>19. Ressources utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=nombres+complexes+forme+alg%C3%A9brique+exercices">YouTube – forme algébrique des nombres complexes</a></li>
+<li><a href="https://www.youtube.com/results?search_query=plan+complexe+module+argument">YouTube – plan complexe, module et argument</a></li>
+<li><a href="https://www.youtube.com/results?search_query=forme+trigonom%C3%A9trique+nombres+complexes">YouTube – forme trigonométrique des complexes</a></li>
+<li><a href="https://www.youtube.com/results?search_query=nombres+complexes+%C3%A9lectricit%C3%A9+imp%C3%A9dance+courant+alternatif">YouTube – nombres complexes en électricité</a></li>
+<li><a href="https://fr.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:complex">Khan Academy – nombres complexes</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-nombres-complexes-m1461">Alloprof – nombres complexes</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ34 UAA15 – Nombres complexes, avec l’orientation électrotechnique prévue par l’UAA.
+</div>
+
+</div>
+</body>
+</html>

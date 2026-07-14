@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Cours MB32 UAA3 – Statistique et probabilité – Jury CESS Professionnel</title>
+<style>
+:root{
+  --orange:#e67e22;--dark:#243447;--light:#f8f9fa;--gray:#e9ecef;
+  --green:#1f7a4d;--red:#b03a2e;--blue:#1f618d;--yellow:#fff8df;
+}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#222;margin:0;background:#fff}
+.page{max-width:1080px;margin:auto;padding:28px}
+h1,h2,h3{color:var(--dark);margin-top:1.2em}
+h1{font-size:30px;border-bottom:5px solid var(--orange);padding-bottom:10px}
+h2{font-size:23px;border-left:8px solid var(--orange);padding-left:12px;background:#fff7ef;padding-top:7px;padding-bottom:7px}
+h3{font-size:18px;color:#8a4b08}
+.box{border:1px solid #ccc;background:var(--light);padding:14px 18px;border-radius:8px;margin:16px 0}
+.memo{border:2px solid var(--green);background:#f0fff6}
+.warning{border:2px solid var(--red);background:#fff5f3}
+.method{border:2px solid var(--blue);background:#f2f8fc}
+.exam{border:2px solid #b8860b;background:var(--yellow)}
+.exercise{border-left:5px solid var(--orange);background:#fffaf5;padding:12px 16px;margin:14px 0}
+.correction{border-left:5px solid var(--green);background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+th,td{border:1px solid #999;padding:8px;text-align:left;vertical-align:top}
+th{background:#eee}
+.formula{font-family:"Cambria Math","Times New Roman",serif;font-size:1.08em;background:#f7f7f7;border:1px solid #ddd;padding:8px;border-radius:6px;display:inline-block;margin:4px 0}
+.small{font-size:.92em;color:#555}
+hr{border:none;border-top:2px solid #ddd;margin:32px 0}
+ul{margin-top:6px}
+.answer-space{height:85px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.two-col{grid-template-columns:1fr}}
+@media print{
+  .page{max-width:none;padding:12mm}
+  a{color:#000;text-decoration:none}
+  h2{break-after:avoid}
+  .box,.exercise,.correction,table,svg{break-inside:avoid}
+  .no-print{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MB32 UAA3 – Statistique et probabilité<br><small>Cours complet imprimable – Jury CESS Professionnel</small></h1>
+
+<div class="box">
+<strong>But du cours :</strong> préparer l’épreuve de mathématiques du Jury CESS Professionnel sur l’UAA <strong>Statistique et probabilité</strong>.<br>
+<strong>Contenu limité à cette UAA :</strong> vocabulaire statistique, tableaux, graphiques, moyenne, médiane, mode, étendue, lecture critique, fréquences, expériences aléatoires, événements, équiprobabilité, arbres, tableaux, diagrammes de Venn, probabilités sous forme de fractions irréductibles.
+</div>
+
+<div class="box exam">
+<strong>À retenir pour l’examen :</strong> une réponse doit être justifiée. En probabilité, on privilégie les <strong>fractions irréductibles</strong>. En statistique, il faut expliquer le calcul ou le raisonnement, pas seulement écrire le résultat.
+</div>
+
+<h2>1. Organisation de l’UAA : ce qu’on attend de toi</h2>
+<table>
+<tr><th>Processus</th><th>Ce que cela veut dire</th><th>Exemples de tâches</th></tr>
+<tr><td><strong>Connaître</strong></td><td>Comprendre et expliquer le vocabulaire.</td><td>Population, échantillon, caractère, effectif, fréquence, événement, équiprobabilité.</td></tr>
+<tr><td><strong>Appliquer</strong></td><td>Utiliser une méthode connue.</td><td>Calculer une moyenne, une fréquence, une probabilité simple, compléter un tableau.</td></tr>
+<tr><td><strong>Transférer</strong></td><td>Choisir la bonne méthode dans une situation nouvelle.</td><td>Critiquer un graphique, résoudre un problème avec arbre ou diagramme de Venn, interpréter un résultat.</td></tr>
+</table>
+
+<h2>2. Partie A – Statistique : repartir des bases</h2>
+
+<h3>2.1 À quoi sert la statistique ?</h3>
+<div class="box">
+La <strong>statistique</strong> sert à collecter, organiser, résumer et interpréter des données. Elle permet par exemple d’analyser les absences d’une classe, les résultats d’un sondage, les tailles de pièces produites dans une usine ou les réponses à une enquête.
+</div>
+
+<h3>2.2 Vocabulaire fondamental</h3>
+<table>
+<tr><th>Mot</th><th>Définition simple</th><th>Exemple</th></tr>
+<tr><td><strong>Population</strong></td><td>Ensemble complet étudié.</td><td>Les 2000 soupapes contrôlées.</td></tr>
+<tr><td><strong>Échantillon</strong></td><td>Partie de la population observée.</td><td>200 personnes interrogées parmi tous les habitants d’une ville.</td></tr>
+<tr><td><strong>Individu</strong></td><td>Un élément de la population.</td><td>Une soupape, un élève, une école.</td></tr>
+<tr><td><strong>Caractère</strong></td><td>Ce qu’on observe ou mesure.</td><td>La longueur d’une soupape, le nombre de jours d’absence.</td></tr>
+<tr><td><strong>Modalité</strong></td><td>Une valeur ou catégorie possible du caractère.</td><td>11,990 cm ; 3 jours ; “escalade”.</td></tr>
+<tr><td><strong>Effectif</strong></td><td>Nombre d’individus correspondant à une modalité.</td><td>173 soupapes mesurent 11,990 cm.</td></tr>
+<tr><td><strong>Fréquence</strong></td><td>Part de l’effectif par rapport au total.</td><td>173/2000.</td></tr>
+</table>
+
+<h3>2.3 Types de caractères</h3>
+<table>
+<tr><th>Type</th><th>Explication</th><th>Exemple</th></tr>
+<tr><td><strong>Qualitatif</strong></td><td>Ce n’est pas un nombre mesuré, c’est une catégorie.</td><td>Sport préféré, marque, couleur.</td></tr>
+<tr><td><strong>Quantitatif discret</strong></td><td>Nombre que l’on compte.</td><td>Nombre d’absences, nombre d’enfants.</td></tr>
+<tr><td><strong>Quantitatif continu</strong></td><td>Grandeur que l’on mesure.</td><td>Longueur, masse, durée, température.</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> un numéro de téléphone ou un code postal est composé de chiffres, mais ce n’est pas un caractère quantitatif : on ne calcule pas une moyenne de numéros de téléphone.
+</div>
+
+<h2>3. Tableaux statistiques : effectifs et fréquences</h2>
+
+<h3>3.1 Formule de la fréquence</h3>
+<div class="box">
+<span class="formula">fréquence = effectif de la modalité / effectif total</span><br>
+La fréquence peut s’écrire sous forme de fraction, de nombre décimal ou de pourcentage.
+</div>
+
+<h3>Exemple corrigé 1 : compléter un tableau</h3>
+<div class="exercise">
+Dans une enquête, 4500 adolescents répondent à la question : “Quelle activité provoquerait une poussée d’adrénaline ?”<br>
+20 % répondent “parapente”, 25 % “canyoning”, 15 % “rafting”, 10 % “accrobranche”, 25 % “escalade”, 5 % “autres”. Complète les effectifs.
+</div>
+<div class="correction">
+Pour trouver un effectif à partir d’un pourcentage : <span class="formula">effectif = pourcentage × total</span><br>
+Parapente : 20 % de 4500 = 0,20 × 4500 = 900.<br>
+Canyoning : 0,25 × 4500 = 1125.<br>
+Rafting : 0,15 × 4500 = 675.<br>
+Accrobranche : 0,10 × 4500 = 450.<br>
+Escalade : 0,25 × 4500 = 1125.<br>
+Autres : 0,05 × 4500 = 225.<br>
+Vérification : 900 + 1125 + 675 + 450 + 1125 + 225 = 4500.
+</div>
+
+<h3>Exercice – connaître/appliquer</h3>
+<div class="exercise">
+Une classe de 30 élèves choisit une activité : 12 choisissent cinéma, 9 sport, 6 jeux vidéo, 3 lecture.<br>
+1) Quelle est la population ?<br>
+2) Quel est le caractère étudié ?<br>
+3) Quel est son type ?<br>
+4) Calcule les fréquences sous forme de fractions et de pourcentages.
+</div>
+
+<h2>4. Valeurs caractéristiques : moyenne, médiane, mode, étendue</h2>
+
+<h3>4.1 Le mode</h3>
+<div class="box">
+Le <strong>mode</strong> est la modalité qui a l’effectif le plus grand. Il peut y avoir plusieurs modes.
+</div>
+
+<h3>4.2 L’étendue</h3>
+<div class="box">
+L’<strong>étendue</strong> mesure l’écart entre la plus grande et la plus petite valeur.<br>
+<span class="formula">étendue = valeur maximale − valeur minimale</span>
+</div>
+
+<h3>4.3 La moyenne</h3>
+<div class="box">
+La <strong>moyenne</strong> est la somme des valeurs divisée par le nombre total de valeurs.<br>
+Avec des effectifs :<br>
+<span class="formula">moyenne = (valeur₁×effectif₁ + valeur₂×effectif₂ + ... ) / effectif total</span>
+</div>
+
+<h3>4.4 La médiane</h3>
+<div class="box">
+La <strong>médiane</strong> est une valeur qui partage la série ordonnée en deux parties de même effectif : 50 % des données sont inférieures ou égales, 50 % sont supérieures ou égales.
+</div>
+
+<h3>Méthode pour trouver la médiane</h3>
+<div class="method">
+1. Ranger les valeurs dans l’ordre croissant.<br>
+2. Compter le nombre total de valeurs <strong>n</strong>.<br>
+3. Si <strong>n</strong> est impair : la médiane est la valeur en position <span class="formula">(n + 1) / 2</span>.<br>
+4. Si <strong>n</strong> est pair : la médiane est la moyenne des deux valeurs centrales, positions <span class="formula">n/2</span> et <span class="formula">n/2 + 1</span>.
+</div>
+
+<h3>Exemple corrigé 2 : absences</h3>
+<div class="exercise">
+Voici le nombre de jours d’absence d’élèves pendant un mois :
+<table>
+<tr><th>Jours d’absence</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+<tr><th>Effectifs</th><td>4</td><td>7</td><td>5</td><td>3</td><td>1</td><td>0</td></tr>
+</table>
+Calcule la moyenne, la médiane, le mode et l’étendue.
+</div>
+<div class="correction">
+Effectif total : 4 + 7 + 5 + 3 + 1 + 0 = 20.<br>
+Moyenne : <span class="formula">(0×4 + 1×7 + 2×5 + 3×3 + 4×1 + 5×0) / 20 = (0 + 7 + 10 + 9 + 4 + 0) / 20 = 30/20 = 1,5</span>.<br>
+Mode : la plus grande fréquence est 7 pour la valeur 1. Le mode est donc 1 jour.<br>
+Étendue : valeur max observée = 4, valeur min = 0. Étendue = 4 − 0 = 4 jours.<br>
+Médiane : il y a 20 élèves, donc on regarde les 10e et 11e valeurs dans la série ordonnée.<br>
+Positions 1 à 4 : 0 jour. Positions 5 à 11 : 1 jour. Donc 10e = 1 et 11e = 1.<br>
+Médiane = (1 + 1)/2 = 1 jour.
+</div>
+
+<h2>5. Lire et critiquer des graphiques</h2>
+
+<h3>5.1 Types de graphiques fréquents</h3>
+<table>
+<tr><th>Graphique</th><th>Utilisation</th><th>Exemple</th></tr>
+<tr><td>Diagramme en bâtons</td><td>Comparer des effectifs ou fréquences.</td><td>Activités préférées.</td></tr>
+<tr><td>Diagramme circulaire</td><td>Montrer la répartition d’un total.</td><td>Part de production par usine.</td></tr>
+<tr><td>Courbe</td><td>Montrer une évolution.</td><td>Température selon l’heure.</td></tr>
+<tr><td>Tableau</td><td>Donner des valeurs précises.</td><td>Longueur de pièces et effectifs.</td></tr>
+</table>
+
+<h3>5.2 Checklist pour critiquer un graphique</h3>
+<div class="method">
+Vérifie toujours :<br>
+1. Le titre est-il clair ?<br>
+2. Les axes sont-ils nommés ?<br>
+3. Les unités sont-elles indiquées ?<br>
+4. L’échelle est-elle régulière ?<br>
+5. L’axe commence-t-il à 0 ou est-il tronqué ?<br>
+6. Le graphique exagère-t-il visuellement une différence ?<br>
+7. La population ou l’échantillon est-il indiqué ?<br>
+8. La conclusion est-elle justifiée par les données ?
+</div>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> un graphique avec un axe vertical tronqué peut faire paraître une petite différence comme énorme.
+</div>
+
+<svg width="760" height="320" viewBox="0 0 760 320" role="img" aria-label="Exemple de graphique trompeur avec axe tronqué">
+<text x="25" y="30" font-size="20" font-weight="bold">Exemple : même différence, effet visuel différent</text>
+<line x1="60" y1="260" x2="320" y2="260" stroke="#222" stroke-width="2"/>
+<line x1="60" y1="80" x2="60" y2="260" stroke="#222" stroke-width="2"/>
+<rect x="120" y="150" width="60" height="110" fill="#bcd"/>
+<rect x="220" y="130" width="60" height="130" fill="#bcd"/>
+<text x="120" y="285" font-size="14">A: 50</text><text x="220" y="285" font-size="14">B: 55</text>
+<text x="65" y="95" font-size="13">60</text><text x="65" y="258" font-size="13">0</text>
+<text x="105" y="65" font-size="16">Axe complet</text>
+<line x1="430" y1="260" x2="690" y2="260" stroke="#222" stroke-width="2"/>
+<line x1="430" y1="80" x2="430" y2="260" stroke="#222" stroke-width="2"/>
+<rect x="490" y="220" width="60" height="40" fill="#f4b183"/>
+<rect x="590" y="120" width="60" height="140" fill="#f4b183"/>
+<text x="490" y="285" font-size="14">A: 50</text><text x="590" y="285" font-size="14">B: 55</text>
+<text x="435" y="95" font-size="13">56</text><text x="435" y="258" font-size="13">48</text>
+<text x="470" y="65" font-size="16">Axe tronqué : impression exagérée</text>
+</svg>
+
+<h2>6. Partie B – Probabilités : bases</h2>
+
+<h3>6.1 Expérience aléatoire</h3>
+<div class="box">
+Une <strong>expérience aléatoire</strong> est une expérience dont on ne peut pas prévoir le résultat exact à l’avance, même si on connaît tous les résultats possibles.<br>
+Exemples : lancer un dé, tirer une carte, tirer une boule dans une urne.
+</div>
+
+<h3>6.2 Issue, univers, événement</h3>
+<table>
+<tr><th>Mot</th><th>Définition</th><th>Exemple avec un dé</th></tr>
+<tr><td><strong>Issue</strong></td><td>Résultat possible.</td><td>Obtenir 4.</td></tr>
+<tr><td><strong>Univers Ω</strong></td><td>Ensemble de toutes les issues possibles.</td><td>{1,2,3,4,5,6}</td></tr>
+<tr><td><strong>Événement</strong></td><td>Ensemble d’issues.</td><td>A = “obtenir un nombre pair” = {2,4,6}</td></tr>
+<tr><td><strong>Événement certain</strong></td><td>Événement qui arrive toujours.</td><td>Obtenir un nombre entre 1 et 6.</td></tr>
+<tr><td><strong>Événement impossible</strong></td><td>Événement qui ne peut pas arriver.</td><td>Obtenir 9 avec un dé classique.</td></tr>
+<tr><td><strong>Événement contraire</strong></td><td>Événement “non A”.</td><td>Si A = pair, contraire = impair.</td></tr>
+<tr><td><strong>Événements incompatibles</strong></td><td>Deux événements qui ne peuvent pas arriver en même temps.</td><td>Obtenir 2 et obtenir 5 au même lancer.</td></tr>
+</table>
+
+<h3>6.3 Équiprobabilité et formule de Laplace</h3>
+<div class="box">
+Des issues sont <strong>équiprobables</strong> lorsqu’elles ont toutes la même chance de se produire.<br>
+Dans ce cas :<br>
+<span class="formula">P(A) = nombre de cas favorables / nombre de cas possibles</span>
+</div>
+
+<h3>Exemple corrigé 3 : dé équilibré</h3>
+<div class="exercise">
+On lance un dé équilibré à 6 faces. Calcule la probabilité d’obtenir un nombre pair.
+</div>
+<div class="correction">
+Univers : {1,2,3,4,5,6}. Il y a 6 cas possibles.<br>
+Nombres pairs : {2,4,6}. Il y a 3 cas favorables.<br>
+<span class="formula">P(pair) = 3/6 = 1/2</span>.<br>
+<strong>Réponse :</strong> la probabilité est 1/2.
+</div>
+
+<h2>7. Écrire une probabilité en fraction irréductible</h2>
+<div class="method">
+Pour simplifier une fraction :<br>
+1. Chercher un diviseur commun au numérateur et au dénominateur.<br>
+2. Diviser les deux par ce même nombre.<br>
+3. Continuer jusqu’à ce qu’on ne puisse plus simplifier.
+</div>
+
+<h3>Exemples</h3>
+<table>
+<tr><th>Fraction</th><th>Simplification</th><th>Fraction irréductible</th></tr>
+<tr><td>6/8</td><td>diviser par 2</td><td>3/4</td></tr>
+<tr><td>12/20</td><td>diviser par 4</td><td>3/5</td></tr>
+<tr><td>45/60</td><td>diviser par 15</td><td>3/4</td></tr>
+<tr><td>173/2000</td><td>pas de diviseur commun évident</td><td>173/2000</td></tr>
+</table>
+
+<h2>8. Opérations sur les événements</h2>
+<table>
+<tr><th>Notation</th><th>Lecture</th><th>Signification</th></tr>
+<tr><td><strong>A ∩ B</strong></td><td>A et B</td><td>Les deux événements arrivent.</td></tr>
+<tr><td><strong>A ∪ B</strong></td><td>A ou B</td><td>Au moins un des deux arrive.</td></tr>
+<tr><td><strong>A̅</strong></td><td>non A</td><td>Le contraire de A.</td></tr>
+<tr><td><strong>A \ B</strong></td><td>A sans B</td><td>A arrive mais pas B.</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> en mathématiques, “A ou B” signifie généralement “A ou B ou les deux”. C’est le “ou inclusif”.
+</div>
+
+<h2>9. Diagrammes de Venn</h2>
+<div class="box">
+Un <strong>diagramme de Venn</strong> représente des ensembles par des cercles. Il est utile pour les problèmes avec “A”, “B”, “A et B”, “A ou B”, “ni A ni B”.
+</div>
+
+<svg width="520" height="260" viewBox="0 0 520 260" role="img" aria-label="Diagramme de Venn deux ensembles">
+<rect x="20" y="20" width="480" height="210" fill="#fff" stroke="#222" stroke-width="2"/>
+<circle cx="210" cy="125" r="80" fill="#cfe2f3" stroke="#1f618d" stroke-width="3" opacity="0.85"/>
+<circle cx="310" cy="125" r="80" fill="#f9cb9c" stroke="#b45f06" stroke-width="3" opacity="0.85"/>
+<text x="175" y="125" font-size="26">A</text>
+<text x="335" y="125" font-size="26">B</text>
+<text x="250" y="125" font-size="22">A∩B</text>
+<text x="35" y="45" font-size="18">Ω</text>
+</svg>
+
+<h3>Exemple corrigé 4 : diagramme de Venn</h3>
+<div class="exercise">
+Dans un groupe de 40 personnes, 22 aiment le football, 18 aiment le tennis et 10 aiment les deux. Combien aiment au moins un des deux sports ? Combien n’aiment aucun des deux ?
+</div>
+<div class="correction">
+Au moins un des deux = football ou tennis.<br>
+Formule : <span class="formula">n(F ∪ T) = n(F) + n(T) − n(F ∩ T)</span><br>
+<span class="formula">n(F ∪ T) = 22 + 18 − 10 = 30</span>.<br>
+Aucun des deux : <span class="formula">40 − 30 = 10</span>.<br>
+<strong>Réponse :</strong> 30 personnes aiment au moins un sport ; 10 n’aiment aucun des deux.
+</div>
+
+<h2>10. Tableaux de probabilités</h2>
+<div class="box">
+Un tableau est utile quand deux critères se croisent : par exemple sexe/profession, ancienneté/fonction, réussite/formation.
+</div>
+
+<h3>Exemple corrigé 5 : tableau</h3>
+<div class="exercise">
+Dans une entreprise de 120 travailleurs :
+<table>
+<tr><th>Ancienneté</th><th>Ouvriers</th><th>Employés</th><th>Total</th></tr>
+<tr><td>Moins de 10 ans</td><td>35</td><td>15</td><td>50</td></tr>
+<tr><td>10 à 20 ans</td><td>40</td><td>5</td><td>45</td></tr>
+<tr><td>Plus de 20 ans</td><td>22</td><td>3</td><td>25</td></tr>
+<tr><th>Total</th><th>97</th><th>23</th><th>120</th></tr>
+</table>
+On choisit un travailleur au hasard. Calcule P(ouvrier et plus de 20 ans), puis P(employé).
+</div>
+<div class="correction">
+Le total est 120.<br>
+Ouvrier et plus de 20 ans : case correspondante = 22.<br>
+<span class="formula">P(O ∩ V) = 22/120 = 11/60</span>.<br>
+Employé : total de la colonne employés = 23.<br>
+<span class="formula">P(E) = 23/120</span>. Fraction déjà irréductible.<br>
+</div>
+
+<h2>11. Arbres de probabilités</h2>
+<div class="box">
+Un <strong>arbre</strong> est très utile pour une expérience en plusieurs étapes : tirer deux boules, lancer deux dés, choisir une option puis un résultat.
+</div>
+
+<h3>Règles</h3>
+<div class="method">
+1. Sur une même séparation, les probabilités doivent totaliser 1.<br>
+2. Pour une branche complète, on multiplie les probabilités rencontrées.<br>
+3. Pour plusieurs chemins possibles menant au même événement, on additionne les probabilités des chemins.
+</div>
+
+<h3>Exemple corrigé 6 : tirage sans remise</h3>
+<div class="exercise">
+Une urne contient 5 boules rouges et 3 boules vertes. On tire deux boules sans remise. Calcule la probabilité de tirer deux rouges.
+</div>
+<div class="correction">
+Premier tirage rouge : <span class="formula">5/8</span>.<br>
+Sans remise : il reste 4 rouges sur 7 boules.<br>
+Deuxième rouge sachant que le premier est rouge : <span class="formula">4/7</span>.<br>
+On multiplie : <span class="formula">P(R puis R) = 5/8 × 4/7 = 20/56 = 5/14</span>.<br>
+<strong>Réponse :</strong> 5/14.
+</div>
+
+<h2>12. Simulation et approche empirique</h2>
+<div class="box">
+On peut approcher une probabilité en répétant une expérience un grand nombre de fois. La fréquence observée se rapproche souvent de la probabilité théorique.
+</div>
+
+<h3>Exemple</h3>
+<div class="exercise">
+On lance une pièce 100 fois. On obtient 53 fois pile. Quelle probabilité empirique de “pile” obtient-on ?
+</div>
+<div class="correction">
+Fréquence observée : <span class="formula">53/100</span>.<br>
+Cela donne une approximation de la probabilité de pile. Elle est proche de la probabilité théorique 1/2.
+</div>
+
+<h2>13. Exemple complet type UAA : soupapes</h2>
+<div class="exercise">
+Une usine produit des soupapes dont la longueur normalisée est 12 cm. On contrôle 2000 soupapes.
+<table>
+<tr><th>Longueur en cm</th><th>Effectif</th></tr>
+<tr><td>11,990</td><td>173</td></tr>
+<tr><td>11,995</td><td>289</td></tr>
+<tr><td>12,000</td><td>461</td></tr>
+<tr><td>12,005</td><td>269</td></tr>
+<tr><td>12,010</td><td>228</td></tr>
+</table>
+Exemples de questions : calculer une probabilité, interpréter une production, justifier un pourcentage.
+</div>
+
+<div class="correction">
+Probabilité qu’une soupape mesure exactement 12,000 cm : <span class="formula">461/2000</span>.<br>
+Probabilité qu’elle mesure entre 11,995 cm et 12,005 cm inclus : cas favorables = 289 + 461 + 269 = 1019.<br>
+<span class="formula">P = 1019/2000</span>.<br>
+Interprétation : sur une très grande production semblable, environ 1019 pièces sur 2000 auraient une longueur dans cet intervalle.
+</div>
+
+<h2>14. Exercices progressifs</h2>
+
+<h3>A. Exercices “connaître”</h3>
+<div class="exercise">
+<strong>1.</strong> Définis : population, échantillon, caractère, effectif, fréquence.<br><br>
+<strong>2.</strong> Pour chaque caractère, indique s’il est qualitatif, quantitatif discret ou quantitatif continu :<br>
+a) couleur d’une voiture ; b) nombre d’enfants ; c) taille en cm ; d) marque d’un téléphone ; e) nombre d’absences.<br><br>
+<strong>3.</strong> Explique la différence entre événement impossible, certain, contraire et incompatible.
+</div>
+
+<h3>B. Exercices “appliquer”</h3>
+<div class="exercise">
+<strong>4.</strong> Série : 4, 5, 5, 7, 9. Calcule moyenne, médiane, mode, étendue.<br><br>
+<strong>5.</strong> Dans une urne, il y a 4 boules rouges, 6 vertes et 2 noires. On tire une boule au hasard. Calcule P(rouge), P(verte), P(noire), P(non rouge).<br><br>
+<strong>6.</strong> On lance un dé équilibré. Calcule P(obtenir au moins 5), P(obtenir un nombre impair), P(obtenir 7).
+</div>
+
+<h3>C. Exercices “transférer”</h3>
+<div class="exercise">
+<strong>7.</strong> Dans un groupe de 60 élèves, 35 font du sport, 28 font de la musique et 15 font les deux. Calcule la probabilité qu’un élève choisi au hasard fasse au moins une des deux activités, puis aucune des deux.<br><br>
+<strong>8.</strong> Une urne contient 3 rouges et 2 bleues. On tire deux boules sans remise. Calcule la probabilité d’obtenir deux boules de même couleur.<br><br>
+<strong>9.</strong> Un graphique montre une hausse de 100 à 104 mais l’axe vertical commence à 99. Explique pourquoi ce graphique peut être trompeur.
+</div>
+
+<hr>
+<h2>15. Corrections détaillées des exercices</h2>
+
+<div class="correction">
+<strong>1.</strong> Population : ensemble étudié. Échantillon : partie observée d’une population. Caractère : ce qu’on observe. Effectif : nombre d’individus pour une modalité. Fréquence : effectif divisé par total.
+</div>
+<div class="correction">
+<strong>2.</strong> a) qualitatif ; b) quantitatif discret ; c) quantitatif continu ; d) qualitatif ; e) quantitatif discret.
+</div>
+<div class="correction">
+<strong>3.</strong> Impossible : ne peut jamais arriver. Certain : arrive toujours. Contraire de A : tous les cas où A ne se réalise pas. Incompatibles : deux événements qui ne peuvent pas se produire ensemble.
+</div>
+<div class="correction">
+<strong>4.</strong> Moyenne : <span class="formula">(4+5+5+7+9)/5 = 30/5 = 6</span>.<br>
+Médiane : série ordonnée, valeur centrale = 5.<br>
+Mode : 5, car il apparaît deux fois.<br>
+Étendue : <span class="formula">9 − 4 = 5</span>.
+</div>
+<div class="correction">
+<strong>5.</strong> Total : 4 + 6 + 2 = 12.<br>
+P(rouge) = 4/12 = 1/3.<br>
+P(verte) = 6/12 = 1/2.<br>
+P(noire) = 2/12 = 1/6.<br>
+P(non rouge) = 8/12 = 2/3.
+</div>
+<div class="correction">
+<strong>6.</strong> Dé équilibré : 6 cas possibles.<br>
+Au moins 5 : {5,6} donc 2/6 = 1/3.<br>
+Impair : {1,3,5} donc 3/6 = 1/2.<br>
+Obtenir 7 : impossible donc 0/6 = 0.
+</div>
+<div class="correction">
+<strong>7.</strong> Au moins une activité : <span class="formula">35 + 28 − 15 = 48</span> élèves.<br>
+Probabilité : <span class="formula">48/60 = 4/5</span>.<br>
+Aucune : <span class="formula">60 − 48 = 12</span> élèves, donc <span class="formula">12/60 = 1/5</span>.
+</div>
+<div class="correction">
+<strong>8.</strong> Total 5 boules.<br>
+Deux rouges : <span class="formula">3/5 × 2/4 = 6/20 = 3/10</span>.<br>
+Deux bleues : <span class="formula">2/5 × 1/4 = 2/20 = 1/10</span>.<br>
+Même couleur : <span class="formula">3/10 + 1/10 = 4/10 = 2/5</span>.
+</div>
+<div class="correction">
+<strong>9.</strong> L’axe vertical commence à 99, donc l’écart entre 100 et 104 paraît visuellement énorme. Le graphique n’est pas forcément faux, mais il peut exagérer l’impression de hausse. Il faut lire l’échelle et ne pas se fier uniquement à la hauteur des barres ou de la courbe.
+</div>
+
+<hr>
+<h2>16. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Durée conseillée :</strong> 45 à 60 minutes.<br>
+<strong>Consigne :</strong> justifie chaque réponse par une phrase, une formule ou un calcul détaillé. Les probabilités doivent être données en fractions irréductibles.
+</div>
+
+<div class="exercise">
+<strong>Question 1 – Statistique / vocabulaire</strong><br>
+Une enquête est menée auprès de 500 élèves sur leur moyen de transport principal pour venir à l’école.
+<table>
+<tr><th>Transport</th><th>Bus</th><th>Voiture</th><th>Vélo</th><th>À pied</th></tr>
+<tr><td>Effectif</td><td>180</td><td>150</td><td>70</td><td>100</td></tr>
+</table>
+1) Quelle est la population ?<br>
+2) Quel est le caractère étudié et son type ?<br>
+3) Calcule les fréquences en pourcentages.<br>
+4) Quel est le mode ?
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 2 – Statistique / valeurs caractéristiques</strong><br>
+Voici le nombre de retards de 12 élèves sur un mois :<br>
+0 ; 1 ; 1 ; 2 ; 2 ; 2 ; 3 ; 4 ; 4 ; 5 ; 6 ; 6<br>
+Calcule la moyenne, la médiane, le mode et l’étendue.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 3 – Critique graphique</strong><br>
+Un graphique compare deux magasins. Le magasin A vend 980 produits, le magasin B vend 1000 produits. L’axe vertical commence à 970. Sur le graphique, la barre du magasin B paraît trois fois plus grande que celle du magasin A.<br>
+Explique pourquoi ce graphique est trompeur.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 4 – Probabilité simple</strong><br>
+Une urne contient 5 boules rouges, 3 vertes et 4 noires. On tire une boule au hasard.<br>
+Calcule P(rouge), P(noire), P(non verte).
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 5 – Diagramme de Venn</strong><br>
+Dans une classe de 30 élèves, 18 aiment les maths, 14 aiment les sciences et 8 aiment les deux.<br>
+1) Combien aiment au moins une des deux matières ?<br>
+2) Combien n’aiment aucune des deux ?<br>
+3) Quelle est la probabilité qu’un élève choisi au hasard aime les maths ou les sciences ?
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 6 – Arbre</strong><br>
+Une urne contient 4 boules rouges et 2 boules bleues. On tire deux boules sans remise.<br>
+1) Construis mentalement ou sur papier un arbre pondéré.<br>
+2) Calcule la probabilité de tirer deux rouges.<br>
+3) Calcule la probabilité de tirer deux boules de couleurs différentes.
+<div class="answer-space"></div>
+</div>
+
+<h2>17. Correction du mini-test final</h2>
+
+<div class="correction">
+<strong>Question 1</strong><br>
+Population : les 500 élèves interrogés.<br>
+Caractère : moyen de transport principal. Type : qualitatif.<br>
+Fréquences : bus = 180/500 = 36 %, voiture = 150/500 = 30 %, vélo = 70/500 = 14 %, à pied = 100/500 = 20 %.<br>
+Mode : bus, car c’est l’effectif le plus élevé.
+</div>
+
+<div class="correction">
+<strong>Question 2</strong><br>
+Total : 12 valeurs.<br>
+Moyenne : <span class="formula">(0+1+1+2+2+2+3+4+4+5+6+6)/12 = 36/12 = 3</span>.<br>
+Médiane : 12 valeurs, donc moyenne de la 6e et 7e valeurs. 6e = 2, 7e = 3, donc médiane = 2,5.<br>
+Mode : 2, car il apparaît 3 fois.<br>
+Étendue : 6 − 0 = 6.
+</div>
+
+<div class="correction">
+<strong>Question 3</strong><br>
+L’axe vertical commence à 970 au lieu de 0. L’écart réel entre 980 et 1000 est de 20 produits, soit un écart faible par rapport aux ventes totales. Le graphique amplifie visuellement la différence, donc il peut induire en erreur.
+</div>
+
+<div class="correction">
+<strong>Question 4</strong><br>
+Total : 5 + 3 + 4 = 12.<br>
+P(rouge) = 5/12.<br>
+P(noire) = 4/12 = 1/3.<br>
+P(non verte) = rouges ou noires = 9/12 = 3/4.
+</div>
+
+<div class="correction">
+<strong>Question 5</strong><br>
+Au moins une matière : <span class="formula">18 + 14 − 8 = 24</span>.<br>
+Aucune : <span class="formula">30 − 24 = 6</span>.<br>
+Probabilité maths ou sciences : <span class="formula">24/30 = 4/5</span>.
+</div>
+
+<div class="correction">
+<strong>Question 6</strong><br>
+Total : 6 boules.<br>
+Deux rouges : <span class="formula">4/6 × 3/5 = 12/30 = 2/5</span>.<br>
+Couleurs différentes : rouge puis bleue ou bleue puis rouge.<br>
+<span class="formula">P(R puis B) = 4/6 × 2/5 = 8/30 = 4/15</span>.<br>
+<span class="formula">P(B puis R) = 2/6 × 4/5 = 8/30 = 4/15</span>.<br>
+Total : <span class="formula">4/15 + 4/15 = 8/15</span>.
+</div>
+
+<hr>
+<h2>18. Fiche mémo finale</h2>
+
+<div class="memo box">
+<h3>Statistique – définitions</h3>
+<ul>
+<li><strong>Population :</strong> ensemble étudié.</li>
+<li><strong>Échantillon :</strong> partie observée de la population.</li>
+<li><strong>Caractère :</strong> ce qu’on étudie.</li>
+<li><strong>Modalité :</strong> valeur ou catégorie possible.</li>
+<li><strong>Effectif :</strong> nombre d’individus.</li>
+<li><strong>Fréquence :</strong> effectif / total.</li>
+</ul>
+
+<h3>Statistique – formules</h3>
+<ul>
+<li><span class="formula">fréquence = effectif / effectif total</span></li>
+<li><span class="formula">moyenne = somme des valeurs / nombre de valeurs</span></li>
+<li><span class="formula">moyenne avec effectifs = Σ(valeur × effectif) / total</span></li>
+<li><span class="formula">étendue = maximum − minimum</span></li>
+</ul>
+
+<h3>Probabilités – définitions</h3>
+<ul>
+<li><strong>Univers Ω :</strong> ensemble des issues possibles.</li>
+<li><strong>Événement :</strong> ensemble d’issues.</li>
+<li><strong>Équiprobabilité :</strong> toutes les issues ont la même chance.</li>
+<li><strong>Contraire :</strong> non A.</li>
+<li><strong>Intersection A ∩ B :</strong> A et B.</li>
+<li><strong>Union A ∪ B :</strong> A ou B, au moins l’un des deux.</li>
+</ul>
+
+<h3>Probabilités – formules et procédures</h3>
+<ul>
+<li><span class="formula">P(A) = cas favorables / cas possibles</span> en situation d’équiprobabilité.</li>
+<li>Dans un arbre, on <strong>multiplie</strong> le long d’un chemin.</li>
+<li>Si plusieurs chemins conviennent, on <strong>additionne</strong> les probabilités des chemins.</li>
+<li>Dans un Venn : <span class="formula">n(A ∪ B) = n(A) + n(B) − n(A ∩ B)</span>.</li>
+<li>Toujours simplifier les probabilités en <strong>fractions irréductibles</strong>.</li>
+</ul>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Confondre effectif et fréquence.</li>
+<li>Oublier de diviser par le total.</li>
+<li>Confondre “et” avec “ou”.</li>
+<li>Oublier de soustraire l’intersection dans un diagramme de Venn.</li>
+<li>Dans un tirage sans remise, oublier que le total change au 2e tirage.</li>
+<li>Se fier à un graphique sans vérifier l’échelle.</li>
+</ul>
+</div>
+
+<h2>19. Ressources utiles pour réviser</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=statistiques+moyenne+m%C3%A9diane+mode+%C3%A9tendue+exercices">YouTube – moyenne, médiane, mode, étendue</a></li>
+<li><a href="https://www.youtube.com/results?search_query=probabilit%C3%A9s+arbres+diagramme+de+Venn+exercices">YouTube – probabilités, arbres, diagrammes de Venn</a></li>
+<li><a href="https://www.youtube.com/results?search_query=probabilit%C3%A9+fraction+irr%C3%A9ductible+exercices">YouTube – probabilités en fractions irréductibles</a></li>
+<li><a href="https://fr.khanacademy.org/math/statistics-probability">Khan Academy – statistiques et probabilités</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-probabilites-m1320">Alloprof – probabilités</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-mesures-de-tendance-centrale-m1077">Alloprof – moyenne, médiane et mode</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MB32 UAA3 – Statistique et probabilité. Les exemples et exercices sont centrés sur les ressources et processus de cette UAA.
+</div>
+
+</div>
+</body>
+</html>

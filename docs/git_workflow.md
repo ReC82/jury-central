@@ -1,174 +1,191 @@
-# Workflow Git — Jury Central
+# Jury Central - Workflow Git
 
-Ce document décrit comment travailler sur ce dépôt depuis plusieurs machines, et plus tard
-depuis GitHub Codespaces. Le dépôt est encore 100 % local à ce stade : aucun remote GitHub
-n'est configuré, aucun push n'a été fait.
+Ce document décrit les conventions Git utilisées dans Jury Central.
 
-## État actuel du dépôt (au moment de la rédaction)
+---
 
-- Une seule branche existe localement : **`develop`**.
-- Aucune branche `main` n'existe encore.
-- Aucun remote n'est configuré (`git remote -v` ne retourne rien).
-- Travail à faire avant tout push : décider quelle branche fait office de branche par défaut
-  sur GitHub (recommandation ci-dessous), puis suivre la section
-  [Premier push vers GitHub](#premier-push-vers-github).
+# Objectif
 
-## Branches recommandées
+L'historique Git doit rester :
 
-- **`main`** — branche stable, toujours déployable. C'est elle qui doit être la branche par
-  défaut sur GitHub (celle que Codespaces ouvrira par défaut plus tard).
-- **`develop`** — branche d'intégration continue du développement courant. C'est la branche
-  utilisée jusqu'ici pour tout le travail de ce projet.
-- **`feature/<nom-court>`** — une branche par fonctionnalité, créée à partir de `develop`,
-  fusionnée dans `develop` une fois terminée (ex. `feature/quiz-blocks`,
-  `feature/git-workflow`).
+- propre ;
+- lisible ;
+- facilement compréhensible.
 
-Projet simple, équipe réduite : pas besoin de branches `release/*` ou `hotfix/*` pour
-l'instant. À introduire seulement si un besoin concret apparaît (ex. plusieurs versions en
-prod en parallèle).
+Chaque commit doit représenter une évolution cohérente.
 
-Comme `main` n'existe pas encore localement, deux options :
+---
 
-1. **Recommandé** : créer `main` à partir de l'état actuel de `develop` au moment du premier
-   push, puis continuer à développer sur `develop` et fusionner vers `main` par pull request
-   quand une étape est stable.
-2. Continuer uniquement sur `develop` et ne créer `main` que plus tard. Fonctionne aussi,
-   mais GitHub désignera `develop` comme branche par défaut tant que `main` n'existe pas.
+# Branches
 
-## Convention de commits
+Le projet utilise les branches suivantes.
 
-Le projet suit déjà `type: description courte à l'impératif`, visible dans l'historique
-existant (`feat: add quiz blocks`, `docs: document current project state...`). À conserver :
+## main
 
-| Type | Usage |
-|---|---|
-| `feat` | nouvelle fonctionnalité |
-| `fix` | correction de bug |
-| `docs` | documentation uniquement |
-| `chore` | maintenance, config, dépendances |
-| `refactor` | changement de structure sans changement de comportement |
-| `test` | ajout/modification de tests uniquement |
+Branche stable.
 
-Règles :
-- Message court (≤ 70 caractères) à l'impératif : `feat: add quiz blocks`, pas
-  `feat: added quiz blocks` ni `feat: Ajout des quiz`.
-- Un commit = un changement cohérent. Éviter les commits fourre-tout.
-- Corps du message (optionnel, après une ligne vide) pour expliquer le **pourquoi** si ce
-  n'est pas évident depuis le diff.
+Elle contient uniquement du code fonctionnel.
 
-## Créer une branche feature
+---
+
+## develop
+
+Branche principale de développement.
+
+Toutes les nouvelles fonctionnalités sont intégrées ici avant d'être fusionnées dans `main`.
+
+---
+
+## feature/<nom>
+
+Chaque nouvelle fonctionnalité est développée dans une branche dédiée.
+
+Exemples :
+
+```
+feature/import-workflow
+feature/content-import
+feature/exercise-generator
+feature/admin-improvements
+```
+
+Une branche feature est fusionnée dans `develop` une fois terminée.
+
+---
+
+# Workflow
+
+Créer une branche :
 
 ```bash
 git checkout develop
-git pull                              # une fois un remote configuré
-git checkout -b feature/nom-court
+git pull
+git checkout -b feature/nom
 ```
 
-Travailler, committer normalement (`git add`, `git commit`), puis :
+Développer.
 
-```bash
-git push -u origin feature/nom-court   # une fois un remote configuré
+Committer régulièrement.
+
+Fusionner dans `develop`.
+
+Une fois une étape stable :
+
+fusion de `develop` vers `main`.
+
+---
+
+# Commits
+
+Convention :
+
+```
+type: description
 ```
 
-Ouvrir une pull request `feature/nom-court` → `develop` sur GitHub. Fusionner une fois
-relu/testé, puis supprimer la branche feature.
+Types utilisés :
 
-## Comment pousser
+| Type | Utilisation |
+|-------|-------------|
+| feat | nouvelle fonctionnalité |
+| fix | correction |
+| docs | documentation |
+| refactor | amélioration interne |
+| test | tests |
+| chore | maintenance |
 
-### Premier push vers GitHub
+Exemples :
 
-Le remote n'existe pas encore. Voir la section dédiée
-[Premier push vers GitHub](#premier-push-vers-github) plus bas — les commandes y sont
-détaillées mais **pas exécutées automatiquement**, car elles impliquent de créer un
-repository GitHub.
+```
+feat: import MB32 UAA2
 
-### Pousser une branche existante (une fois le remote configuré)
+fix: correct quiz rendering
 
-```bash
-git push                          # branche déjà suivie (upstream configuré)
-git push -u origin <nom-branche>  # première fois pour cette branche
+docs: update import workflow
+
+refactor: simplify lesson renderer
 ```
 
-## Récupérer le projet sur un autre PC
+---
 
-```bash
-git clone <url-du-repo>
-cd jury-central
+# Bonnes pratiques
 
-python -m venv .venv
-.venv\Scripts\activate      # Windows
-source .venv/bin/activate   # Linux/macOS
+Toujours :
 
-pip install -e ".[dev]"
-cp .env.example .env        # puis éditer ADMIN_USERNAME / ADMIN_PASSWORD / SECRET_KEY
+- faire des commits petits ;
+- faire des commits cohérents ;
+- écrire un message clair ;
+- terminer une fonctionnalité avant de fusionner.
 
-seed-db
-uvicorn app.main:app --reload
-```
+Éviter :
 
-`jury_central.db` n'est pas versionné (généré localement par `seed-db`) : chaque machine a
-sa propre base SQLite locale, indépendante des autres. `.env` non plus : à recréer sur
-chaque machine à partir de `.env.example`.
+- les commits "WIP" ;
+- les commits contenant plusieurs fonctionnalités ;
+- les commits sans tests lorsque des tests sont nécessaires.
 
-## Premier push vers GitHub
+---
 
-Le remote GitHub n'existe pas encore. Voici les commandes exactes — **à exécuter toi-même**,
-je ne les lance pas à ta place puisqu'elles nécessitent de créer un repository GitHub
-(décision et action côté compte GitHub).
+# Push
 
-### 1. Créer le repository sur GitHub
+Ne jamais pousser directement sur `main`.
 
-Deux façons équivalentes :
+Le développement se fait sur :
 
-**Via l'interface web** : https://github.com/new → nom `jury-central` → ne pas cocher
-"Initialize with README" (le dépôt local a déjà du contenu) → Create repository.
+- feature/*
+- develop
 
-**Via `gh` (GitHub CLI), si installé** :
-```bash
-gh repo create jury-central --private --source=. --remote=origin
-```
-(`gh repo create --source=.` avec `--remote=origin` fait aussi l'étape 2 ci-dessous en un
-seul appel — dans ce cas, passer directement à l'étape 3.)
+---
 
-### 2. Ajouter le remote (si le repo a été créé via l'interface web)
+# Avant un commit
 
-```bash
-git remote add origin https://github.com/<ton-compte>/jury-central.git
-```
+Toujours vérifier :
 
-### 3. Pousser la branche
+- le projet compile ;
+- les tests passent ;
+- aucun fichier inutile n'est ajouté ;
+- la documentation est à jour si nécessaire.
 
-Option recommandée : créer `main` à partir de `develop` et la pousser en premier, pour
-qu'elle devienne la branche par défaut sur GitHub.
+---
 
-```bash
-git checkout develop
-git checkout -b main
-git push -u origin main
+# Avant un merge
 
-git checkout develop
-git push -u origin develop
-```
+Vérifier :
 
-Sur GitHub, vérifier ensuite (Settings → Branches) que `main` est bien la branche par
-défaut, et éventuellement activer une protection de branche.
+- absence de conflits ;
+- fonctionnement de l'application ;
+- cohérence avec les conventions du projet.
 
-Alternative plus simple si tu préfères garder `develop` comme branche principale pour
-l'instant :
+---
 
-```bash
-git push -u origin develop
-```
+# Dépôt
 
-## Codespaces (à venir)
+Le dépôt Git constitue la source de vérité du projet.
 
-Pas de devcontainer pour l'instant, comme demandé. Quand Codespaces sera activé, il faudra :
+Aucun fichier généré localement ne doit être versionné.
 
-- s'assurer que `main` (ou la branche par défaut choisie) est à jour et propre ;
-- créer un `.devcontainer/` minimal (Python 3.12, `pip install -e ".[dev]"` en
-  `postCreateCommand`) — **à faire seulement le jour où Codespaces est explicitement
-  demandé**, pas avant.
+Exemples :
 
-Aucune action Docker n'est nécessaire pour Codespaces à ce stade : GitHub fournit une image
-de base, un devcontainer ne requiert pas nécessairement de Dockerfile custom pour un projet
-aussi simple.
+- base SQLite locale ;
+- environnement virtuel ;
+- fichiers temporaires.
+
+---
+
+# Historique
+
+Préférer un historique simple.
+
+Éviter les commits inutiles.
+
+Chaque commit doit pouvoir être compris indépendamment.
+
+---
+
+# Objectif
+
+Le workflow Git doit rester suffisamment simple pour permettre :
+
+- un développement sur plusieurs machines ;
+- un développement via Codespaces ;
+- une maintenance facile ;
+- une collaboration future.

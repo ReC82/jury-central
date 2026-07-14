@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 7
+code: "MQ34-UAA7"
+title: "Trigonométrie"
+slug: "mq34-uaa7-trigonometrie"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA7_trigonometrie.html"
+    sha256: "26cb2756f678d7feeb32b508d49a89e914cc02a018436b609c1003e35f7b3bfd"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA7 – Trigonométrie.pdf"
+    sha256: "105507ffba9c1468c7c3a43eedde6c8b59345f1886c5880b43e9ad5643a0e9cc"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.7022318+02:00"

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA9 – Intégrale</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}
+h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:115px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.small{font-size:.92em;color:#555}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table,svg{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ34 UAA9 – Intégrale<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> résoudre un problème à l’aide du calcul intégral. Cette UAA complète l’étude des fonctions et de la dérivée : on apprend à calculer une primitive, une intégrale définie, une aire sous une courbe et certaines applications physiques ou techniques.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> il faut savoir représenter graphiquement une aire, écrire l’intégrale correspondant à une zone, calculer une primitive, calculer une intégrale définie, vérifier la plausibilité du résultat et interpréter l’unité.
+</div>
+
+<h2>1. Pourquoi apprendre les intégrales ?</h2>
+
+<p>Une intégrale sert à additionner une infinité de petites quantités. Elle permet de calculer :</p>
+<ul>
+<li>une aire sous une courbe ;</li>
+<li>une distance à partir d’une vitesse ;</li>
+<li>un volume par découpage ;</li>
+<li>un travail mécanique à partir d’une force variable ;</li>
+<li>une valeur accumulée à partir d’un taux de variation.</li>
+</ul>
+
+<table>
+<tr><th>Situation</th><th>Fonction donnée</th><th>Ce que l’intégrale donne</th></tr>
+<tr><td>Voiture</td><td>vitesse en fonction du temps</td><td>distance parcourue</td></tr>
+<tr><td>Électricité</td><td>intensité en fonction du temps</td><td>charge électrique</td></tr>
+<tr><td>Mécanique</td><td>force en fonction du déplacement</td><td>travail</td></tr>
+<tr><td>Géométrie</td><td>hauteur d’une courbe</td><td>aire ou volume</td></tr>
+</table>
+
+<h2>2. Idée intuitive : aire sous une courbe</h2>
+
+<div class="box">
+L’intégrale peut être comprise comme une aire sous une courbe. Pour l’approcher, on découpe la zone en rectangles ou en trapèzes, puis on additionne leurs aires.
+</div>
+
+<svg width="780" height="390" viewBox="0 0 780 390">
+<line x1="70" y1="320" x2="720" y2="320" stroke="#222" stroke-width="2"/>
+<line x1="90" y1="340" x2="90" y2="40" stroke="#222" stroke-width="2"/>
+<path d="M90 290 C180 240, 250 120, 360 150 C480 180, 570 80, 700 100" fill="none" stroke="#1f618d" stroke-width="4"/>
+<g fill="#f9cb9c" opacity="0.6" stroke="#b45f06">
+<rect x="120" y="255" width="70" height="65"/>
+<rect x="190" y="200" width="70" height="120"/>
+<rect x="260" y="145" width="70" height="175"/>
+<rect x="330" y="150" width="70" height="170"/>
+<rect x="400" y="170" width="70" height="150"/>
+<rect x="470" y="140" width="70" height="180"/>
+<rect x="540" y="100" width="70" height="220"/>
+</g>
+<text x="230" y="365" font-size="16">Approximation par rectangles</text>
+<text x="725" y="325" font-size="16">x</text>
+<text x="100" y="50" font-size="16">y</text>
+</svg>
+
+<div class="method box">
+<strong>Méthode d’approximation :</strong><br>
+1. Choisir un intervalle <span class="formula">[a ; b]</span>.<br>
+2. Le découper en petits intervalles.<br>
+3. Construire des rectangles ou trapèzes.<br>
+4. Additionner leurs aires.<br>
+5. Plus le découpage est fin, meilleure est l’approximation.
+</div>
+
+<h2>3. Primitive</h2>
+
+<div class="box">
+Une <strong>primitive</strong> d’une fonction <span class="formula">f</span> est une fonction <span class="formula">F</span> dont la dérivée est <span class="formula">f</span>.
+</div>
+
+<div class="box">
+<span class="formula">F est une primitive de f si F'(x)=f(x)</span>
+</div>
+
+<div class="ex">
+Montre que <span class="formula">F(x)=x²</span> est une primitive de <span class="formula">f(x)=2x</span>.
+</div>
+<div class="corr">
+On dérive <span class="formula">F(x)=x²</span>.<br>
+<span class="formula">F'(x)=2x</span>.<br>
+Comme <span class="formula">F'(x)=f(x)</span>, <span class="formula">F</span> est bien une primitive de <span class="formula">f</span>.
+</div>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> une primitive n’est pas unique. Si <span class="formula">F(x)</span> est une primitive, alors <span class="formula">F(x)+C</span> est aussi une primitive, car la dérivée d’une constante vaut 0.
+</div>
+
+<h2>4. Tableau des primitives de base</h2>
+
+<table>
+<tr><th>Fonction f(x)</th><th>Une primitive F(x)</th></tr>
+<tr><td><span class="formula">0</span></td><td><span class="formula">C</span></td></tr>
+<tr><td><span class="formula">1</span></td><td><span class="formula">x + C</span></td></tr>
+<tr><td><span class="formula">x</span></td><td><span class="formula">x²/2 + C</span></td></tr>
+<tr><td><span class="formula">x²</span></td><td><span class="formula">x³/3 + C</span></td></tr>
+<tr><td><span class="formula">xⁿ</span>, n ≠ -1</td><td><span class="formula">xⁿ⁺¹/(n+1) + C</span></td></tr>
+<tr><td><span class="formula">a×f(x)</span></td><td><span class="formula">a×F(x)+C</span></td></tr>
+<tr><td><span class="formula">f(x)+g(x)</span></td><td><span class="formula">F(x)+G(x)+C</span></td></tr>
+</table>
+
+<h3>Exemple corrigé : primitive simple</h3>
+<div class="ex">
+Détermine une primitive de <span class="formula">f(x)=3x²−4x+5</span>.
+</div>
+<div class="corr">
+On primitive terme par terme :<br>
+<span class="formula">∫3x² dx = x³</span><br>
+<span class="formula">∫−4x dx = −2x²</span><br>
+<span class="formula">∫5 dx = 5x</span><br>
+Donc une primitive est :<br>
+<span class="formula">F(x)=x³−2x²+5x+C</span>.
+</div>
+
+<h2>5. Intégrale définie</h2>
+
+<div class="box">
+Une <strong>intégrale définie</strong> calcule une accumulation entre deux bornes <span class="formula">a</span> et <span class="formula">b</span>.
+</div>
+
+<div class="box">
+<span class="formula">∫[a,b] f(x) dx = F(b) − F(a)</span><br>
+où <span class="formula">F</span> est une primitive de <span class="formula">f</span>.
+</div>
+
+<p>On écrit souvent : <span class="formula">∫ₐᵇ f(x) dx</span>.</p>
+
+<h3>Exemple corrigé</h3>
+<div class="ex">
+Calcule <span class="formula">∫₁³ 2x dx</span>.
+</div>
+<div class="corr">
+Une primitive de <span class="formula">2x</span> est <span class="formula">x²</span>.<br>
+Donc :<br>
+<span class="formula">∫₁³ 2x dx = [x²]₁³ = 3² − 1² = 9 − 1 = 8</span>.<br>
+La valeur de l’intégrale est <strong>8</strong>.
+</div>
+
+<h2>6. Aire sous une courbe</h2>
+
+<div class="box">
+Si <span class="formula">f(x) ≥ 0</span> sur <span class="formula">[a ; b]</span>, alors <span class="formula">∫ₐᵇ f(x) dx</span> donne l’aire entre la courbe, l’axe des x et les droites <span class="formula">x=a</span> et <span class="formula">x=b</span>.
+</div>
+
+<h3>Exemple corrigé</h3>
+<div class="ex">
+Calcule l’aire sous la courbe <span class="formula">f(x)=x²</span> entre 0 et 2.
+</div>
+<div class="corr">
+Une primitive de <span class="formula">x²</span> est <span class="formula">x³/3</span>.<br>
+<span class="formula">∫₀² x² dx = [x³/3]₀² = 2³/3 − 0³/3 = 8/3</span>.<br>
+L’aire vaut <strong>8/3 unités d’aire</strong>, soit environ <strong>2,67</strong>.
+</div>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> une intégrale peut être négative si la courbe est sous l’axe des x. Une aire géométrique doit toujours être positive. Il faut parfois découper l’intervalle ou prendre la valeur absolue.
+</div>
+
+<h2>7. Aire entre deux courbes</h2>
+
+<div class="box">
+Pour calculer l’aire entre deux courbes sur <span class="formula">[a ; b]</span>, on intègre la fonction du dessus moins la fonction du dessous.
+</div>
+
+<div class="box">
+<span class="formula">Aire = ∫ₐᵇ (fonction du dessus − fonction du dessous) dx</span>
+</div>
+
+<div class="ex">
+Calcule l’aire entre <span class="formula">f(x)=4</span> et <span class="formula">g(x)=x</span> de 0 à 3.
+</div>
+<div class="corr">
+Sur [0 ; 3], la fonction du dessus est <span class="formula">4</span> et celle du dessous est <span class="formula">x</span>.<br>
+<span class="formula">Aire = ∫₀³ (4−x) dx</span><br>
+Une primitive est <span class="formula">4x−x²/2</span>.<br>
+<span class="formula">Aire = [4x−x²/2]₀³ = (12−9/2)−0 = 7,5</span>.<br>
+L’aire vaut <strong>7,5 unités d’aire</strong>.
+</div>
+
+<h2>8. Applications physiques et techniques</h2>
+
+<h3>8.1 Distance à partir d’une vitesse</h3>
+<div class="box">
+Si <span class="formula">v(t)</span> est une vitesse en fonction du temps, alors la distance parcourue est :
+<br><span class="formula">distance = ∫ₐᵇ v(t) dt</span>
+</div>
+
+<div class="ex">
+Une voiture roule avec une vitesse <span class="formula">v(t)=3t²</span> en m/s, pour <span class="formula">0≤t≤4</span>. Calcule la distance parcourue.
+</div>
+<div class="corr">
+La distance est l’intégrale de la vitesse :<br>
+<span class="formula">d=∫₀⁴ 3t² dt</span><br>
+Une primitive de <span class="formula">3t²</span> est <span class="formula">t³</span>.<br>
+<span class="formula">d=[t³]₀⁴=4³−0=64</span>.<br>
+La voiture parcourt <strong>64 m</strong>.
+</div>
+
+<h3>8.2 Travail d’une force variable</h3>
+<div class="box">
+Si une force <span class="formula">F(x)</span> varie selon la position, le travail fourni sur l’intervalle <span class="formula">[a ; b]</span> est :
+<br><span class="formula">W = ∫ₐᵇ F(x) dx</span>
+</div>
+
+<div class="ex">
+Une force est donnée par <span class="formula">F(x)=5x</span> en newtons. Calcule le travail entre x=0 m et x=3 m.
+</div>
+<div class="corr">
+<span class="formula">W=∫₀³ 5x dx</span>.<br>
+Une primitive est <span class="formula">5x²/2</span>.<br>
+<span class="formula">W=[5x²/2]₀³ = 45/2 = 22,5</span>.<br>
+Le travail vaut <strong>22,5 joules</strong>.
+</div>
+
+<h3>8.3 Vitesse de voiture et aire sous le graphique</h3>
+<div class="box">
+Dans l’exemple officiel, la vitesse d’une voiture en fonction du temps sert à retrouver une distance parcourue. La première partie du trajet utilise des vitesses relevées ; la deuxième partie modélise la vitesse par une fonction décroissante. L’aire sous la courbe vitesse-temps donne la distance.
+</div>
+
+<div class="ex">
+Une voiture freine avec une vitesse modélisée par <span class="formula">v(t)=30−0,15t²</span> en m/s. Estime analytiquement la distance parcourue entre t=0 et t=10 s.
+</div>
+<div class="corr">
+Distance : <span class="formula">d=∫₀¹⁰ (30−0,15t²) dt</span>.<br>
+Une primitive est <span class="formula">30t−0,15×t³/3 = 30t−0,05t³</span>.<br>
+<span class="formula">d=[30t−0,05t³]₀¹⁰</span><br>
+<span class="formula">d=(300−0,05×1000)−0=300−50=250</span>.<br>
+La voiture parcourt <strong>250 m</strong> pendant ces 10 secondes.
+</div>
+
+<h2>9. Volumes et solides de révolution</h2>
+
+<div class="box">
+Le calcul intégral peut aussi servir à calculer des volumes. Le référentiel mentionne notamment les solides de révolution, obtenus lorsqu’une surface tourne autour de l’axe des x.
+</div>
+
+<div class="box">
+Pour un solide de révolution autour de l’axe des x :
+<br><span class="formula">V = π ∫ₐᵇ [f(x)]² dx</span>
+</div>
+
+<div class="ex">
+Calcule le volume du solide obtenu en faisant tourner la courbe <span class="formula">f(x)=x</span> autour de l’axe des x, entre 0 et 2.
+</div>
+<div class="corr">
+Formule : <span class="formula">V=π∫₀² x² dx</span>.<br>
+<span class="formula">∫₀² x² dx = 8/3</span>.<br>
+Donc <span class="formula">V=8π/3</span> unités de volume.
+</div>
+
+<div class="warn box">
+<strong>Important :</strong> cette partie peut devenir complexe. L’UAA demande surtout de comprendre le principe, d’écrire l’intégrale correcte et de vérifier que le résultat est positif et cohérent.
+</div>
+
+<h2>10. Vérifier la plausibilité d’un résultat</h2>
+
+<div class="method box">
+Avant de finaliser :
+<ol>
+<li>L’intégrale représente-t-elle une aire, une distance, un volume ou une autre grandeur ?</li>
+<li>Le résultat doit-il être positif ?</li>
+<li>Les bornes sont-elles dans le bon ordre ?</li>
+<li>Les unités sont-elles cohérentes ?</li>
+<li>La primitive a-t-elle été vérifiée par dérivation ?</li>
+<li>Si la courbe passe sous l’axe des x, faut-il découper l’aire ?</li>
+</ol>
+</div>
+
+<h2>11. Exercices progressifs</h2>
+
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : primitive, intégrale définie, aire sous une courbe.<br>
+2. Pourquoi ajoute-t-on une constante <span class="formula">C</span> dans une primitive ?<br>
+3. Explique le lien entre vitesse et distance avec une intégrale.<br>
+4. Quelle est la différence entre une intégrale et une aire géométrique ?
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+5. Détermine une primitive de :<br>
+a) <span class="formula">f(x)=4x³</span><br>
+b) <span class="formula">g(x)=6x²−2x+1</span><br>
+c) <span class="formula">h(x)=5</span><br><br>
+6. Calcule :<br>
+a) <span class="formula">∫₀² 3x² dx</span><br>
+b) <span class="formula">∫₁⁴ 2x dx</span><br>
+c) <span class="formula">∫₀³ (x+1) dx</span><br><br>
+7. Calcule l’aire sous <span class="formula">f(x)=2x+1</span> entre 0 et 4.
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+8. Une vitesse est donnée par <span class="formula">v(t)=4t+2</span> en m/s. Calcule la distance parcourue entre 0 et 5 s.<br><br>
+9. Une force est donnée par <span class="formula">F(x)=10+2x</span> en N. Calcule le travail entre 0 m et 4 m.<br><br>
+10. Calcule l’aire entre <span class="formula">f(x)=9</span> et <span class="formula">g(x)=x²</span> entre 0 et 3.<br><br>
+11. Un volume de révolution est donné par <span class="formula">V=π∫₀³ x² dx</span>. Calcule ce volume.
+</div>
+
+<h2>12. Corrections détaillées</h2>
+
+<div class="corr">
+1. Primitive : fonction dont la dérivée est la fonction donnée. Intégrale définie : accumulation entre deux bornes. Aire sous une courbe : surface comprise entre la courbe, l’axe des x et deux verticales.
+</div>
+<div class="corr">
+2. On ajoute <span class="formula">C</span> car toutes les fonctions qui ne diffèrent que d’une constante ont la même dérivée.
+</div>
+<div class="corr">
+3. Si on connaît la vitesse selon le temps, la distance parcourue est l’aire sous la courbe de vitesse, donc une intégrale.
+</div>
+<div class="corr">
+4. Une intégrale peut être négative si la fonction est sous l’axe des x. Une aire géométrique est toujours positive.
+</div>
+<div class="corr">
+5. a) <span class="formula">∫4x³ dx = x⁴ + C</span>.<br>
+b) <span class="formula">∫(6x²−2x+1)dx = 2x³−x²+x+C</span>.<br>
+c) <span class="formula">∫5dx=5x+C</span>.
+</div>
+<div class="corr">
+6. a) <span class="formula">∫₀² 3x² dx=[x³]₀²=8</span>.<br>
+b) <span class="formula">∫₁⁴ 2x dx=[x²]₁⁴=16−1=15</span>.<br>
+c) <span class="formula">∫₀³ (x+1)dx=[x²/2+x]₀³=9/2+3=7,5</span>.
+</div>
+<div class="corr">
+7. <span class="formula">∫₀⁴ (2x+1)dx=[x²+x]₀⁴=16+4=20</span>. L’aire vaut 20 unités d’aire.
+</div>
+<div class="corr">
+8. <span class="formula">d=∫₀⁵ (4t+2)dt=[2t²+2t]₀⁵=50+10=60</span>. Distance : 60 m.
+</div>
+<div class="corr">
+9. <span class="formula">W=∫₀⁴ (10+2x)dx=[10x+x²]₀⁴=40+16=56</span>. Travail : 56 J.
+</div>
+<div class="corr">
+10. La fonction du dessus est 9 et celle du dessous est <span class="formula">x²</span> sur [0 ; 3].<br>
+<span class="formula">A=∫₀³ (9−x²)dx=[9x−x³/3]₀³=27−9=18</span>.
+</div>
+<div class="corr">
+11. <span class="formula">V=π∫₀³ x² dx=π[x³/3]₀³=π×9=9π</span> unités de volume.
+</div>
+
+<h2>13. Mini-test final type examen</h2>
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse. Indique la primitive utilisée, les bornes, le calcul et l’unité quand elle est donnée par le contexte.
+</div>
+
+<div class="ex">
+<strong>Question 1.</strong> Détermine une primitive de <span class="formula">f(x)=8x³−6x+4</span>. Vérifie rapidement par dérivation.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 2.</strong> Calcule <span class="formula">∫₀² (x²+2x) dx</span> et interprète comme aire si la fonction est positive.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 3.</strong> Calcule l’aire entre <span class="formula">f(x)=6</span> et <span class="formula">g(x)=x</span> entre 0 et 4.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 4.</strong> Une voiture a une vitesse <span class="formula">v(t)=5t+10</span> en m/s. Calcule la distance parcourue entre t=0 s et t=6 s.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 5.</strong> Un solide de révolution autour de l’axe des x est donné par <span class="formula">V=π∫₀² (x+1)² dx</span>. Calcule le volume exact.<div class="answer"></div>
+</div>
+
+<h2>14. Correction du mini-test</h2>
+
+<div class="corr">
+<strong>Q1.</strong> Une primitive est <span class="formula">F(x)=2x⁴−3x²+4x+C</span>. Vérification : <span class="formula">F'(x)=8x³−6x+4</span>.
+</div>
+<div class="corr">
+<strong>Q2.</strong> <span class="formula">∫₀² (x²+2x)dx=[x³/3+x²]₀²=8/3+4=20/3</span>. Comme la fonction est positive sur [0 ; 2], l’aire vaut <span class="formula">20/3</span> unités d’aire.
+</div>
+<div class="corr">
+<strong>Q3.</strong> Sur [0 ; 4], 6 est au-dessus de x. <span class="formula">A=∫₀⁴ (6−x)dx=[6x−x²/2]₀⁴=24−8=16</span>. Aire : 16 unités d’aire.
+</div>
+<div class="corr">
+<strong>Q4.</strong> <span class="formula">d=∫₀⁶ (5t+10)dt=[5t²/2+10t]₀⁶=90+60=150</span>. La voiture parcourt 150 m.
+</div>
+<div class="corr">
+<strong>Q5.</strong> <span class="formula">(x+1)²=x²+2x+1</span>.<br>
+<span class="formula">V=π∫₀² (x²+2x+1)dx=π[x³/3+x²+x]₀²</span><br>
+<span class="formula">V=π(8/3+4+2)=π(26/3)=26π/3</span>.
+</div>
+
+<h2>15. Fiche mémo finale</h2>
+<div class="box memo">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Primitive :</strong> fonction dont la dérivée donne la fonction de départ.</li>
+<li><strong>Intégrale définie :</strong> accumulation entre deux bornes.</li>
+<li><strong>Aire sous une courbe :</strong> aire entre la courbe, l’axe des x et deux verticales.</li>
+<li><strong>Fonction intégrée :</strong> fonction placée dans l’intégrale.</li>
+<li><strong>Bornes :</strong> limites inférieure et supérieure de l’intégration.</li>
+</ul>
+
+<h3>Formules principales</h3>
+<ul>
+<li><span class="formula">F'(x)=f(x)</span> signifie que <span class="formula">F</span> est une primitive de <span class="formula">f</span>.</li>
+<li><span class="formula">∫ₐᵇ f(x)dx=F(b)−F(a)</span>.</li>
+<li><span class="formula">∫xⁿdx=xⁿ⁺¹/(n+1)+C</span>, pour <span class="formula">n≠−1</span>.</li>
+<li><span class="formula">Aire entre deux courbes = ∫ₐᵇ (dessus−dessous)dx</span>.</li>
+<li><span class="formula">distance = ∫ vitesse dt</span>.</li>
+<li><span class="formula">travail = ∫ force dx</span>.</li>
+<li><span class="formula">volume de révolution = π∫ₐᵇ [f(x)]²dx</span>.</li>
+</ul>
+
+<h3>Procédure intégrale définie</h3>
+<ol>
+<li>Identifier la fonction.</li>
+<li>Identifier les bornes.</li>
+<li>Trouver une primitive.</li>
+<li>Calculer <span class="formula">F(b)−F(a)</span>.</li>
+<li>Vérifier le signe et l’unité.</li>
+<li>Interpréter dans le contexte.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Oublier la constante <span class="formula">C</span> pour une primitive.</li>
+<li>Confondre dérivée et primitive.</li>
+<li>Inverser les bornes.</li>
+<li>Donner une aire négative.</li>
+<li>Oublier de vérifier la primitive par dérivation.</li>
+<li>Oublier les unités : m, m², m³, joules...</li>
+</ul>
+</div>
+
+<h2>16. Ressources utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=primitive+int%C3%A9grale+d%C3%A9finie+exercices">YouTube – primitives et intégrales définies</a></li>
+<li><a href="https://www.youtube.com/results?search_query=aire+sous+une+courbe+int%C3%A9grale">YouTube – aire sous une courbe et intégrale</a></li>
+<li><a href="https://www.youtube.com/results?search_query=applications+physiques+int%C3%A9grales+vitesse+distance">YouTube – applications physiques des intégrales</a></li>
+<li><a href="https://www.youtube.com/results?search_query=volume+solide+de+r%C3%A9volution+int%C3%A9grale">YouTube – volume de révolution</a></li>
+<li><a href="https://fr.khanacademy.org/math/integral-calculus">Khan Academy – calcul intégral</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/le-calcul-integral-m1160">Alloprof – calcul intégral</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ34 UAA9 – Intégrale.
+</div>
+
+</div>
+</body>
+</html>

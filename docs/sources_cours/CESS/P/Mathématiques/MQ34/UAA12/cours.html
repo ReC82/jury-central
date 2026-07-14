@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA12 – Programmation linéaire</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}
+h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:115px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.small{font-size:.92em;color:#555}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table,svg{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ34 UAA12 – Programmation linéaire<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> résoudre un problème de programmation linéaire, c’est-à-dire un problème d’optimisation où les contraintes et la fonction objectif sont linéaires. On cherche à maximiser ou minimiser une fonction, par exemple un bénéfice, un coût, un stock, une quantité produite ou une ressource utilisée.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> il faut identifier les variables, écrire les contraintes, ne pas oublier les contraintes naturelles de positivité, représenter la région admissible, écrire la fonction objectif et trouver graphiquement la valeur optimale.
+</div>
+
+<h2>1. Qu’est-ce que la programmation linéaire ?</h2>
+
+<div class="box">
+La <strong>programmation linéaire</strong> est une méthode qui permet de choisir la meilleure solution possible quand plusieurs contraintes doivent être respectées.
+</div>
+
+<table>
+<tr><th>Élément</th><th>Signification</th><th>Exemple</th></tr>
+<tr><td>Variables</td><td>Quantités inconnues à décider.</td><td>Nombre de produits A et B.</td></tr>
+<tr><td>Contraintes</td><td>Limites imposées au problème.</td><td>Temps disponible, volume maximum, budget.</td></tr>
+<tr><td>Région admissible</td><td>Zone contenant toutes les solutions possibles.</td><td>Polygone dans le plan.</td></tr>
+<tr><td>Fonction objectif</td><td>Fonction à maximiser ou minimiser.</td><td>Bénéfice, coût, stock.</td></tr>
+<tr><td>Solution optimale</td><td>Meilleure solution parmi les solutions admissibles.</td><td>Bénéfice maximal.</td></tr>
+</table>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> une solution peut sembler intéressante mais être interdite si elle ne respecte pas toutes les contraintes.
+</div>
+
+<h2>2. Inéquation linéaire à deux inconnues</h2>
+
+<div class="box">
+Une <strong>inéquation linéaire à deux inconnues</strong> ressemble à une équation de droite, mais avec un symbole d’inégalité.
+</div>
+
+<table>
+<tr><th>Exemple</th><th>Lecture</th></tr>
+<tr><td><span class="formula">2x + y ≤ 10</span></td><td>Deux fois x plus y ne peut pas dépasser 10.</td></tr>
+<tr><td><span class="formula">x + 3y ≥ 12</span></td><td>x plus trois fois y doit être au moins égal à 12.</td></tr>
+<tr><td><span class="formula">x ≥ 0</span></td><td>x ne peut pas être négatif.</td></tr>
+<tr><td><span class="formula">y ≥ 0</span></td><td>y ne peut pas être négatif.</td></tr>
+</table>
+
+<h3>Représenter une inéquation</h3>
+<div class="method box">
+Pour représenter <span class="formula">ax+by≤c</span> ou <span class="formula">ax+by≥c</span> :
+<ol>
+<li>Tracer d’abord la droite frontière <span class="formula">ax+by=c</span>.</li>
+<li>Choisir un point test, souvent <span class="formula">(0;0)</span> si possible.</li>
+<li>Remplacer x et y par les coordonnées du point test.</li>
+<li>Si l’inégalité est vraie, on garde le demi-plan contenant ce point.</li>
+<li>Si l’inégalité est fausse, on garde l’autre demi-plan.</li>
+</ol>
+</div>
+
+<div class="warn box">
+<strong>Attention aux inégalités strictes :</strong> si l’inégalité est <span class="formula">&lt;</span> ou <span class="formula">&gt;</span>, la droite frontière n’est pas incluse. Si l’inégalité est <span class="formula">≤</span> ou <span class="formula">≥</span>, la droite est incluse.
+</div>
+
+<h2>3. Contraintes naturelles : positivité des variables</h2>
+
+<div class="box">
+Dans beaucoup de problèmes concrets, les variables représentent des quantités : nombre d’objets, kilos, heures, tonnes, euros. Elles ne peuvent donc pas être négatives.
+</div>
+
+<div class="box">
+Les contraintes naturelles sont souvent :
+<br><span class="formula">x ≥ 0</span> et <span class="formula">y ≥ 0</span>
+</div>
+
+<div class="ex">
+Si <span class="formula">x</span> représente un nombre de produits A et <span class="formula">y</span> un nombre de produits B, pourquoi faut-il ajouter <span class="formula">x≥0</span> et <span class="formula">y≥0</span> ?
+</div>
+<div class="corr">
+On ne peut pas fabriquer une quantité négative de produits. Les variables doivent donc être positives ou nulles. Ces contraintes sont indispensables même si l’énoncé ne les écrit pas explicitement.
+</div>
+
+<h2>4. Région admissible</h2>
+
+<div class="box">
+La <strong>région admissible</strong> est l’ensemble des points qui respectent toutes les contraintes en même temps. Graphiquement, c’est l’intersection de plusieurs demi-plans. Elle forme souvent un polygone.
+</div>
+
+<svg width="760" height="430" viewBox="0 0 760 430">
+<line x1="80" y1="350" x2="700" y2="350" stroke="#222" stroke-width="2"/>
+<line x1="120" y1="380" x2="120" y2="50" stroke="#222" stroke-width="2"/>
+<text x="705" y="355" font-size="16">x</text><text x="130" y="60" font-size="16">y</text>
+<g stroke="#e5e5e5">
+<line x1="200" y1="50" x2="200" y2="380"/><line x1="280" y1="50" x2="280" y2="380"/><line x1="360" y1="50" x2="360" y2="380"/><line x1="440" y1="50" x2="440" y2="380"/><line x1="520" y1="50" x2="520" y2="380"/><line x1="600" y1="50" x2="600" y2="380"/>
+<line x1="80" y1="290" x2="700" y2="290"/><line x1="80" y1="230" x2="700" y2="230"/><line x1="80" y1="170" x2="700" y2="170"/><line x1="80" y1="110" x2="700" y2="110"/>
+</g>
+<polygon points="120,350 440,350 520,230 280,110 120,170" fill="#f9cb9c" opacity="0.6" stroke="#b45f06" stroke-width="3"/>
+<line x1="120" y1="170" x2="280" y2="110" stroke="#1f618d" stroke-width="3"/>
+<line x1="280" y1="110" x2="520" y2="230" stroke="#1f618d" stroke-width="3"/>
+<line x1="520" y1="230" x2="440" y2="350" stroke="#1f618d" stroke-width="3"/>
+<text x="300" y="250" font-size="18">région admissible</text>
+<circle cx="120" cy="350" r="5" fill="#b03a2e"/><circle cx="440" cy="350" r="5" fill="#b03a2e"/><circle cx="520" cy="230" r="5" fill="#b03a2e"/><circle cx="280" cy="110" r="5" fill="#b03a2e"/><circle cx="120" cy="170" r="5" fill="#b03a2e"/>
+</svg>
+
+<h2>5. Fonction objectif</h2>
+
+<div class="box">
+La <strong>fonction objectif</strong> est la fonction que l’on veut maximiser ou minimiser.
+</div>
+
+<table>
+<tr><th>Type de problème</th><th>Fonction objectif possible</th></tr>
+<tr><td>Maximiser un bénéfice</td><td><span class="formula">B = 5x + 8y</span></td></tr>
+<tr><td>Minimiser un coût</td><td><span class="formula">C = 12x + 20y</span></td></tr>
+<tr><td>Maximiser une production</td><td><span class="formula">P = 3x + 4y</span></td></tr>
+<tr><td>Minimiser un stock utilisé</td><td><span class="formula">S = 2x + y</span></td></tr>
+</table>
+
+<div class="ex">
+Une entreprise vend deux produits A et B. Le produit A rapporte 5 € par unité et le produit B rapporte 8 € par unité. Si <span class="formula">x</span> est le nombre de produits A et <span class="formula">y</span> le nombre de produits B, écris la fonction objectif du bénéfice.
+</div>
+<div class="corr">
+Chaque produit A rapporte 5 €, donc <span class="formula">5x</span>.<br>
+Chaque produit B rapporte 8 €, donc <span class="formula">8y</span>.<br>
+La fonction objectif est : <span class="formula">B=5x+8y</span>.<br>
+Comme il s’agit d’un bénéfice, on cherchera généralement à le maximiser.
+</div>
+
+<h2>6. Pourquoi tester les sommets ?</h2>
+
+<div class="box">
+Dans un problème de programmation linéaire avec une région admissible fermée et bornée, la valeur maximale ou minimale d’une fonction objectif linéaire est atteinte à un sommet du polygone admissible.
+</div>
+
+<div class="method box">
+<strong>Méthode pratique :</strong><br>
+1. Trouver les sommets de la région admissible.<br>
+2. Calculer la fonction objectif à chaque sommet.<br>
+3. Comparer les valeurs obtenues.<br>
+4. Choisir le sommet qui donne la meilleure valeur.
+</div>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> il ne suffit pas de tester un point “au hasard” dans la région. Il faut tester les sommets.
+</div>
+
+<h2>7. Optimisation graphique : procédure complète</h2>
+
+<div class="method box">
+<strong>Procédure examen :</strong>
+<ol>
+<li>Définir les variables.</li>
+<li>Écrire les contraintes sous forme d’inéquations.</li>
+<li>Ajouter les contraintes naturelles <span class="formula">x≥0</span> et <span class="formula">y≥0</span>.</li>
+<li>Tracer les droites frontières.</li>
+<li>Identifier le demi-plan solution de chaque contrainte.</li>
+<li>Colorier ou hachurer la région admissible.</li>
+<li>Trouver les sommets du polygone admissible.</li>
+<li>Écrire la fonction objectif.</li>
+<li>Calculer la fonction objectif en chaque sommet.</li>
+<li>Conclure dans le contexte.</li>
+</ol>
+</div>
+
+<h2>8. Exemple corrigé complet : entreprise et avion</h2>
+
+<div class="ex">
+Une entreprise fabrique deux produits A et B qu’elle veut expédier par avion. Le produit A rapporte 5 € par kg et le produit B rapporte 8 € par kg. L’avion peut transporter au maximum 60 tonnes et un volume maximum de 2200 m³. Le produit A occupe 25 m³ par tonne, le produit B occupe 50 m³ par tonne. Combien de tonnes de chaque produit faut-il charger pour maximiser le bénéfice ?
+</div>
+
+<div class="corr">
+<strong>1. Variables</strong><br>
+<span class="formula">x</span> = nombre de tonnes de produit A.<br>
+<span class="formula">y</span> = nombre de tonnes de produit B.<br><br>
+
+<strong>2. Contraintes</strong><br>
+Poids total : <span class="formula">x+y≤60</span>.<br>
+Volume : <span class="formula">25x+50y≤2200</span>. On peut simplifier par 25 : <span class="formula">x+2y≤88</span>.<br>
+Contraintes naturelles : <span class="formula">x≥0</span> et <span class="formula">y≥0</span>.<br><br>
+
+<strong>3. Fonction objectif</strong><br>
+Le bénéfice est : <span class="formula">B=5x+8y</span>.<br><br>
+
+<strong>4. Sommets de la région admissible</strong><br>
+Les contraintes sont :
+<span class="formula">x+y≤60</span>, <span class="formula">x+2y≤88</span>, <span class="formula">x≥0</span>, <span class="formula">y≥0</span>.<br>
+Sommets :
+<ul>
+<li><span class="formula">(0;0)</span></li>
+<li><span class="formula">(60;0)</span></li>
+<li><span class="formula">(0;44)</span>, car <span class="formula">x=0</span> dans <span class="formula">x+2y=88</span></li>
+<li>Intersection de <span class="formula">x+y=60</span> et <span class="formula">x+2y=88</span></li>
+</ul>
+Pour l’intersection :<br>
+<span class="formula">x+y=60</span><br>
+<span class="formula">x+2y=88</span><br>
+Soustraction : <span class="formula">y=28</span>, donc <span class="formula">x=32</span>.<br>
+Sommet : <span class="formula">(32;28)</span>.<br><br>
+
+<strong>5. Test de la fonction objectif</strong>
+<table>
+<tr><th>Sommet</th><th>B = 5x + 8y</th></tr>
+<tr><td>(0 ; 0)</td><td>0</td></tr>
+<tr><td>(60 ; 0)</td><td>300</td></tr>
+<tr><td>(0 ; 44)</td><td>352</td></tr>
+<tr><td>(32 ; 28)</td><td>5×32 + 8×28 = 160 + 224 = 384</td></tr>
+</table>
+
+<strong>6. Conclusion</strong><br>
+Le bénéfice maximal est obtenu pour <span class="formula">x=32</span> et <span class="formula">y=28</span>.<br>
+L’entreprise doit charger <strong>32 tonnes de produit A</strong> et <strong>28 tonnes de produit B</strong>. Le bénéfice maximal est <strong>384 €</strong> selon les unités du problème.
+</div>
+
+<h2>9. Exemple de minimisation</h2>
+
+<div class="ex">
+Une cantine doit acheter deux aliments A et B. Une portion de A coûte 2 € et apporte 3 unités de protéines. Une portion de B coûte 3 € et apporte 6 unités de protéines. Il faut au moins 24 unités de protéines. On veut minimiser le coût. Écris les contraintes et la fonction objectif.
+</div>
+
+<div class="corr">
+Variables :<br>
+<span class="formula">x</span> = nombre de portions de A.<br>
+<span class="formula">y</span> = nombre de portions de B.<br><br>
+
+Contrainte de protéines : <span class="formula">3x+6y≥24</span>.<br>
+Contraintes naturelles : <span class="formula">x≥0</span>, <span class="formula">y≥0</span>.<br><br>
+
+Fonction objectif : <span class="formula">C=2x+3y</span>.<br>
+On cherche à <strong>minimiser</strong> le coût <span class="formula">C</span>.
+</div>
+
+<h2>10. Trouver les sommets d’une région admissible</h2>
+
+<div class="box">
+Les sommets proviennent souvent des intersections entre les droites frontières.
+</div>
+
+<div class="method box">
+Pour trouver une intersection :
+<ol>
+<li>Prendre deux contraintes sous forme d’égalité.</li>
+<li>Résoudre le système de deux équations.</li>
+<li>Vérifier que le point respecte toutes les contraintes.</li>
+<li>Si oui, c’est un sommet admissible.</li>
+</ol>
+</div>
+
+<div class="ex">
+Trouve l’intersection des droites <span class="formula">x+y=10</span> et <span class="formula">2x+y=14</span>.
+</div>
+<div class="corr">
+On soustrait la première équation de la deuxième :<br>
+<span class="formula">(2x+y)−(x+y)=14−10</span><br>
+<span class="formula">x=4</span>.<br>
+Dans <span class="formula">x+y=10</span> : <span class="formula">4+y=10</span>, donc <span class="formula">y=6</span>.<br>
+Intersection : <span class="formula">(4;6)</span>.
+</div>
+
+<h2>11. Utilisation d’un outil informatique</h2>
+
+<div class="box">
+L’UAA recommande l’usage d’un logiciel dynamique pour visualiser les contraintes, la région admissible et la fonction d’optimisation. GeoGebra, Desmos ou un tableur peuvent être utiles.
+</div>
+
+<table>
+<tr><th>Outil</th><th>Utilité</th></tr>
+<tr><td>GeoGebra</td><td>Tracer les droites, afficher les demi-plans, trouver les intersections.</td></tr>
+<tr><td>Desmos</td><td>Représenter rapidement des inéquations linéaires.</td></tr>
+<tr><td>Tableur</td><td>Tester la fonction objectif aux sommets.</td></tr>
+<tr><td>Calculatrice</td><td>Résoudre les systèmes d’intersection.</td></tr>
+</table>
+
+<div class="warn box">
+<strong>Important :</strong> l’outil aide à visualiser, mais l’évaluation demande souvent d’expliquer la méthode et de justifier la solution.
+</div>
+
+<h2>12. Exercices progressifs</h2>
+
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : contrainte, région admissible, fonction objectif, solution optimale.<br>
+2. Pourquoi ajoute-t-on souvent <span class="formula">x≥0</span> et <span class="formula">y≥0</span> ?<br>
+3. Pourquoi teste-t-on les sommets de la région admissible ?<br>
+4. Quelle est la différence entre maximiser et minimiser ?
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+5. Représente mentalement ou graphiquement les contraintes : <span class="formula">x≥0</span>, <span class="formula">y≥0</span>, <span class="formula">x+y≤10</span>. Donne les sommets de la région admissible.<br><br>
+6. Pour les sommets <span class="formula">(0;0)</span>, <span class="formula">(10;0)</span>, <span class="formula">(0;8)</span> et <span class="formula">(4;6)</span>, calcule <span class="formula">B=3x+5y</span>. Quel sommet maximise B ?<br><br>
+7. Trouve l’intersection des droites <span class="formula">2x+y=20</span> et <span class="formula">x+2y=16</span>.<br><br>
+8. Une contrainte est <span class="formula">4x+2y≤40</span>. Simplifie-la.
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+9. Une entreprise fabrique deux produits A et B. A rapporte 4 € par unité et B rapporte 7 € par unité. A demande 2 h de travail, B demande 3 h. On dispose de 60 h. A demande 1 kg de matière, B demande 4 kg. On dispose de 48 kg. Écris les contraintes et la fonction objectif.<br><br>
+10. Avec les contraintes de l’exercice 9, trouve les sommets de la région admissible et détermine la production qui maximise le bénéfice.<br><br>
+11. Une personne veut acheter deux types d’aliments A et B. A coûte 2 €, B coûte 5 €. Il faut au moins 20 unités nutritives. A apporte 2 unités, B apporte 5 unités. Écris un modèle de minimisation.
+</div>
+
+<h2>13. Corrections détaillées</h2>
+
+<div class="corr">
+1. Une contrainte est une condition à respecter. La région admissible est l’ensemble des points respectant toutes les contraintes. La fonction objectif est la fonction à optimiser. La solution optimale est la meilleure solution admissible.
+</div>
+<div class="corr">
+2. On ajoute <span class="formula">x≥0</span> et <span class="formula">y≥0</span> quand les variables représentent des quantités concrètes, car elles ne peuvent pas être négatives.
+</div>
+<div class="corr">
+3. Dans une programmation linéaire graphique, l’optimum est atteint à un sommet de la région admissible lorsque celle-ci est fermée et bornée.
+</div>
+<div class="corr">
+4. Maximiser signifie chercher la plus grande valeur possible. Minimiser signifie chercher la plus petite valeur possible.
+</div>
+<div class="corr">
+5. Les contraintes donnent un triangle dans le premier quadrant. Les sommets sont <span class="formula">(0;0)</span>, <span class="formula">(10;0)</span> et <span class="formula">(0;10)</span>.
+</div>
+<div class="corr">
+6. <span class="formula">B(0;0)=0</span>.<br>
+<span class="formula">B(10;0)=30</span>.<br>
+<span class="formula">B(0;8)=40</span>.<br>
+<span class="formula">B(4;6)=12+30=42</span>.<br>
+Le maximum est obtenu au sommet <span class="formula">(4;6)</span>.
+</div>
+<div class="corr">
+7. Système : <span class="formula">2x+y=20</span>, <span class="formula">x+2y=16</span>.<br>
+De la première : <span class="formula">y=20−2x</span>.<br>
+Dans la deuxième : <span class="formula">x+2(20−2x)=16</span>.<br>
+<span class="formula">x+40−4x=16</span>, donc <span class="formula">−3x=−24</span>, <span class="formula">x=8</span>.<br>
+Alors <span class="formula">y=20−16=4</span>.<br>
+Intersection : <span class="formula">(8;4)</span>.
+</div>
+<div class="corr">
+8. <span class="formula">4x+2y≤40</span> se divise par 2 : <span class="formula">2x+y≤20</span>.
+</div>
+<div class="corr">
+9. Variables : <span class="formula">x</span> = unités de A, <span class="formula">y</span> = unités de B.<br>
+Travail : <span class="formula">2x+3y≤60</span>.<br>
+Matière : <span class="formula">x+4y≤48</span>.<br>
+Positivité : <span class="formula">x≥0</span>, <span class="formula">y≥0</span>.<br>
+Fonction objectif : <span class="formula">B=4x+7y</span>, à maximiser.
+</div>
+<div class="corr">
+10. Sommets : <span class="formula">(0;0)</span>.<br>
+Sur l’axe x : <span class="formula">2x≤60</span> et <span class="formula">x≤48</span>, donc <span class="formula">(30;0)</span>.<br>
+Sur l’axe y : <span class="formula">3y≤60</span> et <span class="formula">4y≤48</span>, donc <span class="formula">(0;12)</span>.<br>
+Intersection : <span class="formula">2x+3y=60</span> et <span class="formula">x+4y=48</span>.<br>
+De la deuxième : <span class="formula">x=48−4y</span>.<br>
+Dans la première : <span class="formula">2(48−4y)+3y=60</span>.<br>
+<span class="formula">96−8y+3y=60</span>, donc <span class="formula">−5y=−36</span>, <span class="formula">y=7,2</span>.<br>
+<span class="formula">x=48−28,8=19,2</span>.<br>
+Test objectif :<br>
+<span class="formula">B(0;0)=0</span>, <span class="formula">B(30;0)=120</span>, <span class="formula">B(0;12)=84</span>, <span class="formula">B(19,2;7,2)=76,8+50,4=127,2</span>.<br>
+Le bénéfice maximal est obtenu pour <span class="formula">x=19,2</span> et <span class="formula">y=7,2</span>. Si les produits doivent être entiers, il faudrait ensuite tester des solutions entières proches.
+</div>
+<div class="corr">
+11. Variables : <span class="formula">x</span> = nombre d’aliments A, <span class="formula">y</span> = nombre d’aliments B.<br>
+Contrainte nutritive : <span class="formula">2x+5y≥20</span>.<br>
+Positivité : <span class="formula">x≥0</span>, <span class="formula">y≥0</span>.<br>
+Fonction objectif : <span class="formula">C=2x+5y</span>, à minimiser.
+</div>
+
+<h2>14. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse. Pour les problèmes, définis les variables, écris les contraintes, la fonction objectif, puis teste les sommets.
+</div>
+
+<div class="ex">
+<strong>Question 1.</strong> Explique les notions suivantes : contrainte, région admissible, fonction objectif et sommet admissible.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 2.</strong> Une région admissible a pour sommets <span class="formula">(0;0)</span>, <span class="formula">(8;0)</span>, <span class="formula">(5;4)</span>, <span class="formula">(0;6)</span>. On veut maximiser <span class="formula">B=6x+10y</span>. Quel sommet est optimal ?
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 3.</strong> Trouve l’intersection des droites <span class="formula">x+y=14</span> et <span class="formula">2x+y=20</span>.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 4.</strong> Une entreprise fabrique deux produits A et B. A rapporte 6 € par unité, B rapporte 9 € par unité. A demande 2 h, B demande 3 h, et on dispose de 48 h. A demande 4 kg de matière, B demande 2 kg, et on dispose de 56 kg.<br>
+1) Définis les variables.<br>
+2) Écris les contraintes.<br>
+3) Écris la fonction objectif.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 5.</strong> Pour le problème précédent, les sommets admissibles sont <span class="formula">(0;0)</span>, <span class="formula">(14;0)</span>, <span class="formula">(12;8)</span>, <span class="formula">(0;16)</span>. Teste la fonction objectif et donne la production optimale.
+<div class="answer"></div>
+</div>
+
+<h2>15. Correction du mini-test</h2>
+
+<div class="corr">
+<strong>Q1.</strong> Une contrainte est une condition à respecter. La région admissible est l’ensemble des solutions qui respectent toutes les contraintes. La fonction objectif est la fonction à maximiser ou minimiser. Un sommet admissible est un coin du polygone admissible.
+</div>
+
+<div class="corr">
+<strong>Q2.</strong> <span class="formula">B(0;0)=0</span>.<br>
+<span class="formula">B(8;0)=48</span>.<br>
+<span class="formula">B(5;4)=30+40=70</span>.<br>
+<span class="formula">B(0;6)=60</span>.<br>
+Le maximum est <span class="formula">70</span>, obtenu au sommet <span class="formula">(5;4)</span>.
+</div>
+
+<div class="corr">
+<strong>Q3.</strong> On soustrait <span class="formula">x+y=14</span> de <span class="formula">2x+y=20</span> : <span class="formula">x=6</span>.<br>
+Alors <span class="formula">6+y=14</span>, donc <span class="formula">y=8</span>.<br>
+Intersection : <span class="formula">(6;8)</span>.
+</div>
+
+<div class="corr">
+<strong>Q4.</strong> Variables : <span class="formula">x</span> = unités de A, <span class="formula">y</span> = unités de B.<br>
+Travail : <span class="formula">2x+3y≤48</span>.<br>
+Matière : <span class="formula">4x+2y≤56</span>.<br>
+Positivité : <span class="formula">x≥0</span>, <span class="formula">y≥0</span>.<br>
+Fonction objectif : <span class="formula">B=6x+9y</span>, à maximiser.
+</div>
+
+<div class="corr">
+<strong>Q5.</strong> <span class="formula">B(0;0)=0</span>.<br>
+<span class="formula">B(14;0)=84</span>.<br>
+<span class="formula">B(12;8)=72+72=144</span>.<br>
+<span class="formula">B(0;16)=144</span>.<br>
+Le maximum est <span class="formula">144</span>. Il est atteint aux sommets <span class="formula">(12;8)</span> et <span class="formula">(0;16)</span>. Il peut donc y avoir plusieurs solutions optimales sur le segment entre ces deux sommets.
+</div>
+
+<h2>16. Fiche mémo finale</h2>
+
+<div class="box memo">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Programmation linéaire :</strong> méthode d’optimisation avec contraintes linéaires et fonction objectif linéaire.</li>
+<li><strong>Variable :</strong> quantité inconnue à décider.</li>
+<li><strong>Contrainte :</strong> condition à respecter.</li>
+<li><strong>Région admissible :</strong> zone des solutions qui respectent toutes les contraintes.</li>
+<li><strong>Fonction objectif :</strong> fonction à maximiser ou minimiser.</li>
+<li><strong>Solution optimale :</strong> solution admissible donnant la meilleure valeur de la fonction objectif.</li>
+</ul>
+
+<h3>Contraintes fréquentes</h3>
+<ul>
+<li><span class="formula">x≥0</span> et <span class="formula">y≥0</span> : positivité des variables.</li>
+<li><span class="formula">ax+by≤c</span> : limite maximale.</li>
+<li><span class="formula">ax+by≥c</span> : exigence minimale.</li>
+</ul>
+
+<h3>Procédure complète</h3>
+<ol>
+<li>Définir les variables.</li>
+<li>Traduire les contraintes en inéquations.</li>
+<li>Ajouter la positivité.</li>
+<li>Tracer les droites frontières.</li>
+<li>Déterminer les demi-plans solutions.</li>
+<li>Repérer la région admissible.</li>
+<li>Trouver les sommets.</li>
+<li>Écrire la fonction objectif.</li>
+<li>Tester les sommets.</li>
+<li>Répondre dans le contexte.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Oublier les contraintes <span class="formula">x≥0</span> et <span class="formula">y≥0</span>.</li>
+<li>Confondre <span class="formula">≤</span> et <span class="formula">≥</span>.</li>
+<li>Tracer la droite mais choisir le mauvais demi-plan.</li>
+<li>Ne pas tester tous les sommets.</li>
+<li>Oublier que certaines variables doivent parfois être entières.</li>
+<li>Donner une réponse sans vérifier le contexte.</li>
+</ul>
+</div>
+
+<h2>17. Ressources utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=programmation+lin%C3%A9aire+contraintes+r%C3%A9gion+admissible">YouTube – programmation linéaire, contraintes et région admissible</a></li>
+<li><a href="https://www.youtube.com/results?search_query=optimisation+graphique+programmation+lin%C3%A9aire">YouTube – optimisation graphique en programmation linéaire</a></li>
+<li><a href="https://www.youtube.com/results?search_query=fonction+objectif+programmation+lin%C3%A9aire+exercices">YouTube – fonction objectif et exercices</a></li>
+<li><a href="https://www.youtube.com/results?search_query=inequations+lineaires+deux+inconnues+graphique">YouTube – inéquations linéaires à deux inconnues</a></li>
+<li><a href="https://fr.khanacademy.org/math/algebra-home/alg-system-of-equations/alg-graphing-systems-of-inequalities">Khan Academy – systèmes d’inéquations</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/la-programmation-lineaire-m1394">Alloprof – programmation linéaire</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ34 UAA12 – Programmation linéaire.
+</div>
+
+</div>
+</body>
+</html>

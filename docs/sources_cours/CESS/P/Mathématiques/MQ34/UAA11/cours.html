@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA11 – Système d’équations linéaires</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}
+h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:115px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.small{font-size:.92em;color:#555}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table,svg{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ34 UAA11 – Système d’équations linéaires<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> résoudre un problème de la vie courante qui se ramène à un système d’équations linéaires. Cette UAA couvre les systèmes de deux équations à deux inconnues, les systèmes de trois équations à trois inconnues, les méthodes de résolution, l’interprétation graphique et les problèmes contextualisés.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> il faut savoir modéliser un problème, identifier les inconnues, traduire les informations en équations, choisir une méthode de résolution, vérifier la solution et remettre la réponse dans le contexte.
+</div>
+
+<h2>1. Repartir des bases : équation linéaire</h2>
+
+<div class="box">
+Une <strong>équation linéaire</strong> est une équation où les inconnues sont au premier degré. Cela signifie qu’on ne trouve pas de <span class="formula">x²</span>, <span class="formula">xy</span>, <span class="formula">1/x</span> ou racine de l’inconnue.
+</div>
+
+<table>
+<tr><th>Équation</th><th>Linéaire ?</th><th>Pourquoi ?</th></tr>
+<tr><td><span class="formula">2x+3y=12</span></td><td>Oui</td><td>x et y sont au premier degré.</td></tr>
+<tr><td><span class="formula">x²+y=5</span></td><td>Non</td><td>Il y a <span class="formula">x²</span>.</td></tr>
+<tr><td><span class="formula">3x−2y+z=8</span></td><td>Oui</td><td>x, y et z sont au premier degré.</td></tr>
+<tr><td><span class="formula">xy=6</span></td><td>Non</td><td>Les inconnues sont multipliées.</td></tr>
+</table>
+
+<h2>2. Qu’est-ce qu’un système d’équations ?</h2>
+
+<div class="box">
+Un <strong>système d’équations</strong> est un ensemble de plusieurs équations qui doivent être vraies en même temps.
+</div>
+
+<div class="box">
+Exemple de système 2x2 :
+<br><span class="formula">{ 2x + y = 11 ; x − y = 1 }</span>
+</div>
+
+<p>Résoudre le système, c’est trouver les valeurs des inconnues qui vérifient toutes les équations à la fois.</p>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> une valeur qui vérifie une seule équation ne suffit pas. Elle doit vérifier toutes les équations du système.
+</div>
+
+<h2>3. Système 2x2 : sens graphique</h2>
+
+<div class="box">
+Un système de deux équations à deux inconnues représente généralement deux droites dans un plan. La solution est le point d’intersection des deux droites.
+</div>
+
+<table>
+<tr><th>Situation graphique</th><th>Type de système</th><th>Nombre de solutions</th></tr>
+<tr><td>Deux droites qui se coupent</td><td>Système compatible déterminé</td><td>Une solution unique</td></tr>
+<tr><td>Deux droites parallèles distinctes</td><td>Système impossible</td><td>Aucune solution</td></tr>
+<tr><td>Deux droites confondues</td><td>Système indéterminé</td><td>Une infinité de solutions</td></tr>
+</table>
+
+<svg width="760" height="410" viewBox="0 0 760 410">
+<line x1="70" y1="330" x2="700" y2="330" stroke="#222" stroke-width="2"/>
+<line x1="370" y1="370" x2="370" y2="40" stroke="#222" stroke-width="2"/>
+<text x="705" y="335" font-size="16">x</text><text x="380" y="50" font-size="16">y</text>
+<g stroke="#e5e5e5">
+<line x1="70" y1="280" x2="700" y2="280"/><line x1="70" y1="230" x2="700" y2="230"/><line x1="70" y1="180" x2="700" y2="180"/><line x1="70" y1="130" x2="700" y2="130"/><line x1="70" y1="80" x2="700" y2="80"/>
+<line x1="120" y1="40" x2="120" y2="370"/><line x1="170" y1="40" x2="170" y2="370"/><line x1="220" y1="40" x2="220" y2="370"/><line x1="270" y1="40" x2="270" y2="370"/><line x1="320" y1="40" x2="320" y2="370"/><line x1="420" y1="40" x2="420" y2="370"/><line x1="470" y1="40" x2="470" y2="370"/><line x1="520" y1="40" x2="520" y2="370"/><line x1="570" y1="40" x2="570" y2="370"/><line x1="620" y1="40" x2="620" y2="370"/>
+</g>
+<line x1="110" y1="310" x2="650" y2="85" stroke="#1f618d" stroke-width="4"/>
+<line x1="120" y1="90" x2="650" y2="310" stroke="#e67e22" stroke-width="4"/>
+<circle cx="392" cy="192" r="7" fill="#b03a2e"/>
+<text x="402" y="185" font-size="16">solution</text>
+<text x="520" y="105" font-size="16" fill="#1f618d">droite 1</text>
+<text x="520" y="295" font-size="16" fill="#e67e22">droite 2</text>
+</svg>
+
+<h2>4. Méthode 1 : substitution</h2>
+
+<div class="box">
+La <strong>substitution</strong> consiste à isoler une inconnue dans une équation, puis à la remplacer dans l’autre équation.
+</div>
+
+<div class="method box">
+<strong>Procédure :</strong><br>
+1. Choisir une équation où une inconnue est facile à isoler.<br>
+2. Isoler cette inconnue.<br>
+3. Remplacer cette inconnue dans l’autre équation.<br>
+4. Résoudre l’équation obtenue à une inconnue.<br>
+5. Revenir à l’expression isolée pour trouver l’autre inconnue.<br>
+6. Vérifier dans les deux équations.
+</div>
+
+<div class="ex">
+Résous par substitution :
+<br><span class="formula">{ x + y = 10 ; 2x + y = 14 }</span>
+</div>
+<div class="corr">
+Dans la première équation : <span class="formula">x+y=10</span>, donc <span class="formula">y=10−x</span>.<br>
+On remplace dans la deuxième :<br>
+<span class="formula">2x+(10−x)=14</span><br>
+<span class="formula">x+10=14</span><br>
+<span class="formula">x=4</span><br>
+Puis <span class="formula">y=10−4=6</span>.<br>
+Solution : <span class="formula">(x ; y)=(4 ; 6)</span>.<br>
+Vérification : <span class="formula">4+6=10</span> et <span class="formula">2×4+6=14</span>.
+</div>
+
+<h2>5. Méthode 2 : combinaisons linéaires</h2>
+
+<div class="box">
+La méthode des <strong>combinaisons linéaires</strong>, aussi appelée méthode d’élimination, consiste à additionner ou soustraire les équations pour faire disparaître une inconnue.
+</div>
+
+<div class="method box">
+<strong>Procédure :</strong><br>
+1. Aligner les inconnues et les nombres.<br>
+2. Multiplier éventuellement une ou deux équations pour obtenir des coefficients opposés.<br>
+3. Additionner les équations pour éliminer une inconnue.<br>
+4. Résoudre l’équation restante.<br>
+5. Remplacer pour trouver l’autre inconnue.<br>
+6. Vérifier.
+</div>
+
+<div class="ex">
+Résous par combinaison :
+<br><span class="formula">{ 3x + 2y = 16 ; x − 2y = 4 }</span>
+</div>
+<div class="corr">
+On additionne les deux équations car <span class="formula">+2y</span> et <span class="formula">−2y</span> s’annulent :<br>
+<span class="formula">(3x+2y)+(x−2y)=16+4</span><br>
+<span class="formula">4x=20</span><br>
+<span class="formula">x=5</span><br>
+On remplace dans <span class="formula">x−2y=4</span> :<br>
+<span class="formula">5−2y=4</span><br>
+<span class="formula">−2y=−1</span><br>
+<span class="formula">y=0,5</span><br>
+Solution : <span class="formula">(5 ; 0,5)</span>.
+</div>
+
+<h2>6. Choisir entre substitution et combinaison</h2>
+
+<table>
+<tr><th>Situation</th><th>Méthode conseillée</th></tr>
+<tr><td>Une équation contient <span class="formula">x=...</span> ou <span class="formula">y=...</span></td><td>Substitution</td></tr>
+<tr><td>Une inconnue a déjà des coefficients opposés</td><td>Combinaison</td></tr>
+<tr><td>Les coefficients sont simples</td><td>Les deux méthodes sont possibles</td></tr>
+<tr><td>Système 3x3</td><td>Gauss ou combinaisons successives</td></tr>
+</table>
+
+<h2>7. Système impossible ou indéterminé</h2>
+
+<h3>Système impossible</h3>
+<div class="box">
+Un système est <strong>impossible</strong> s’il n’a aucune solution.
+</div>
+
+<div class="ex">
+Résous :
+<br><span class="formula">{ 2x + 2y = 8 ; x + y = 7 }</span>
+</div>
+<div class="corr">
+La première équation équivaut à <span class="formula">x+y=4</span>.<br>
+La deuxième dit <span class="formula">x+y=7</span>.<br>
+Il est impossible que <span class="formula">x+y</span> vaille à la fois 4 et 7.<br>
+Le système est impossible : aucune solution.
+</div>
+
+<h3>Système indéterminé</h3>
+<div class="box">
+Un système est <strong>indéterminé</strong> s’il possède une infinité de solutions.
+</div>
+
+<div class="ex">
+Résous :
+<br><span class="formula">{ 2x + 2y = 8 ; x + y = 4 }</span>
+</div>
+<div class="corr">
+La première équation divisée par 2 donne <span class="formula">x+y=4</span>.<br>
+Les deux équations représentent donc la même droite.<br>
+Il y a une infinité de solutions : tous les couples qui vérifient <span class="formula">x+y=4</span>.
+</div>
+
+<h2>8. Systèmes 3x3</h2>
+
+<div class="box">
+Un système 3x3 contient trois équations et trois inconnues, souvent notées <span class="formula">x</span>, <span class="formula">y</span> et <span class="formula">z</span>.
+</div>
+
+<div class="box">
+Exemple :
+<br><span class="formula">{ x+y+z=6 ; 2x−y+z=3 ; x+2y−z=2 }</span>
+</div>
+
+<p>La solution est un triplet <span class="formula">(x ; y ; z)</span> qui vérifie les trois équations.</p>
+
+<h2>9. Méthode de Gauss</h2>
+
+<div class="box">
+La <strong>méthode de Gauss</strong> transforme progressivement le système pour obtenir une forme plus simple, souvent triangulaire.
+</div>
+
+<div class="method box">
+<strong>Idée :</strong><br>
+1. Garder une première équation comme pivot.<br>
+2. Utiliser cette équation pour éliminer une inconnue dans les autres équations.<br>
+3. Recommencer avec une deuxième équation pour éliminer une autre inconnue.<br>
+4. Obtenir une équation avec une seule inconnue.<br>
+5. Remonter pour calculer les autres inconnues.
+</div>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> dans la méthode de Gauss, le choix du pivot est important. Il faut privilégier un pivot simple, par exemple un coefficient 1 ou -1.
+</div>
+
+<h3>Exemple corrigé 3x3</h3>
+<div class="ex">
+Résous :
+<br><span class="formula">{ x + y + z = 6 ; x − y + z = 2 ; x + y − z = 4 }</span>
+</div>
+
+<div class="corr">
+On note les équations :<br>
+E1 : <span class="formula">x+y+z=6</span><br>
+E2 : <span class="formula">x−y+z=2</span><br>
+E3 : <span class="formula">x+y−z=4</span><br><br>
+
+On soustrait E2 à E1 :<br>
+<span class="formula">(x+y+z)−(x−y+z)=6−2</span><br>
+<span class="formula">2y=4</span>, donc <span class="formula">y=2</span>.<br><br>
+
+On soustrait E3 à E1 :<br>
+<span class="formula">(x+y+z)−(x+y−z)=6−4</span><br>
+<span class="formula">2z=2</span>, donc <span class="formula">z=1</span>.<br><br>
+
+On remplace dans E1 :<br>
+<span class="formula">x+2+1=6</span><br>
+<span class="formula">x=3</span>.<br><br>
+
+Solution : <span class="formula">(x ; y ; z)=(3 ; 2 ; 1)</span>.<br>
+Vérification :<br>
+E1 : <span class="formula">3+2+1=6</span>.<br>
+E2 : <span class="formula">3−2+1=2</span>.<br>
+E3 : <span class="formula">3+2−1=4</span>.
+</div>
+
+<h2>10. Modéliser un problème contextualisé</h2>
+
+<div class="method box">
+<strong>Procédure complète :</strong><br>
+1. Lire l’énoncé lentement.<br>
+2. Repérer les informations numériques.<br>
+3. Choisir les inconnues et les définir clairement.<br>
+4. Traduire chaque phrase utile en équation.<br>
+5. Résoudre le système.<br>
+6. Vérifier mathématiquement.<br>
+7. Vérifier la plausibilité dans le contexte.<br>
+8. Répondre par une phrase.
+</div>
+
+<h3>Exemple boulangerie</h3>
+<div class="ex">
+Dans une boulangerie, Jacques achète 2 croissants et 1 pain au chocolat pour 2,80 €. Doris achète 1 croissant et 3 pains au chocolat pour 3,05 €. Quel est le prix d’un croissant et d’un pain au chocolat ?
+</div>
+<div class="corr">
+On pose :<br>
+<span class="formula">x</span> = prix d’un croissant en euros.<br>
+<span class="formula">y</span> = prix d’un pain au chocolat en euros.<br><br>
+
+Traduction :<br>
+<span class="formula">2x+y=2,80</span><br>
+<span class="formula">x+3y=3,05</span><br><br>
+
+Depuis la première équation : <span class="formula">y=2,80−2x</span>.<br>
+On remplace dans la deuxième :<br>
+<span class="formula">x+3(2,80−2x)=3,05</span><br>
+<span class="formula">x+8,40−6x=3,05</span><br>
+<span class="formula">−5x=−5,35</span><br>
+<span class="formula">x=1,07</span>.<br>
+Puis <span class="formula">y=2,80−2×1,07=0,66</span>.<br><br>
+
+Un croissant coûte <strong>1,07 €</strong> et un pain au chocolat coûte <strong>0,66 €</strong>.
+</div>
+
+<h3>Exemple pots de confiture</h3>
+<div class="ex">
+Sur une étagère, il y a 2 petits pots, 3 moyens et 1 grand. Le poids total est 5 kg. On sait qu’un grand pot pèse autant que 2 moyens, et qu’un moyen pèse autant que 2 petits. Quel est le poids de chaque type de pot ?
+</div>
+<div class="corr">
+On pose :<br>
+<span class="formula">p</span> = poids d’un petit pot.<br>
+<span class="formula">m</span> = poids d’un pot moyen.<br>
+<span class="formula">g</span> = poids d’un grand pot.<br><br>
+
+Traduction :<br>
+<span class="formula">2p+3m+g=5</span><br>
+<span class="formula">g=2m</span><br>
+<span class="formula">m=2p</span><br><br>
+
+On remplace <span class="formula">m=2p</span> et <span class="formula">g=2m=4p</span> dans la première équation :<br>
+<span class="formula">2p+3(2p)+4p=5</span><br>
+<span class="formula">2p+6p+4p=5</span><br>
+<span class="formula">12p=5</span><br>
+<span class="formula">p=5/12≈0,417</span> kg.<br>
+<span class="formula">m=2p=10/12≈0,833</span> kg.<br>
+<span class="formula">g=4p=20/12≈1,667</span> kg.<br><br>
+Un petit pot pèse environ <strong>0,417 kg</strong>, un moyen <strong>0,833 kg</strong> et un grand <strong>1,667 kg</strong>.
+</div>
+
+<h2>11. Utiliser un outil informatique</h2>
+
+<div class="box">
+L’UAA autorise et encourage l’utilisation d’un outil informatique pour visualiser les solutions dans le plan et résoudre des systèmes plus lourds.
+</div>
+
+<table>
+<tr><th>Outil</th><th>Utilité</th></tr>
+<tr><td>Calculatrice</td><td>Résolution rapide de systèmes simples.</td></tr>
+<tr><td>Tableur</td><td>Tester des valeurs, vérifier une solution, organiser les données.</td></tr>
+<tr><td>GeoGebra</td><td>Visualiser les droites et leur intersection.</td></tr>
+<tr><td>Python / calcul formel</td><td>Résolution algébrique et vérification.</td></tr>
+</table>
+
+<div class="warn box">
+<strong>Important :</strong> l’outil ne remplace pas le raisonnement. Il faut encore poser correctement le problème et vérifier si la solution a du sens.
+</div>
+
+<h2>12. Exercices progressifs</h2>
+
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : système d’équations, inconnue, solution, système impossible, système indéterminé.<br>
+2. Explique l’interprétation graphique d’un système 2x2.<br>
+3. Quand conseille-t-on la méthode de substitution ?<br>
+4. Quand conseille-t-on la méthode des combinaisons linéaires ?
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+5. Résous par substitution : <span class="formula">{ x+y=9 ; x−y=3 }</span>.<br><br>
+6. Résous par combinaison : <span class="formula">{ 2x+3y=18 ; 4x−3y=6 }</span>.<br><br>
+7. Détermine si le système est impossible, indéterminé ou a une solution unique : <span class="formula">{ 2x+2y=10 ; x+y=5 }</span>.<br><br>
+8. Résous : <span class="formula">{ x+y+z=10 ; x−y+z=4 ; x+y−z=2 }</span>.
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+9. Dans un café, 2 cafés et 3 thés coûtent 10,40 €. 4 cafés et 1 thé coûtent 11,20 €. Trouve le prix d’un café et d’un thé.<br><br>
+10. Une entreprise fabrique deux produits A et B. Une unité de A demande 2 h de travail et 1 kg de matière. Une unité de B demande 1 h de travail et 3 kg de matière. On dispose de 40 h et 45 kg. Combien peut-on produire de chaque si toutes les ressources sont utilisées ?<br><br>
+11. Trois types de colis petit, moyen et grand pèsent ensemble 18 kg selon le système : <span class="formula">p+m+g=18</span>, <span class="formula">m=2p</span>, <span class="formula">g=m+3</span>. Trouve p, m et g.
+</div>
+
+<h2>13. Corrections détaillées</h2>
+
+<div class="corr">
+1. Un système est un ensemble d’équations à vérifier simultanément. Une inconnue est une valeur à trouver. Une solution vérifie toutes les équations. Un système impossible n’a aucune solution. Un système indéterminé a une infinité de solutions.
+</div>
+<div class="corr">
+2. Dans un système 2x2, chaque équation peut représenter une droite. La solution est l’intersection. Deux droites parallèles donnent aucune solution. Deux droites confondues donnent une infinité de solutions.
+</div>
+<div class="corr">
+3. La substitution est conseillée quand une inconnue est déjà isolée ou facile à isoler.
+</div>
+<div class="corr">
+4. Les combinaisons linéaires sont conseillées quand les coefficients permettent d’éliminer facilement une inconnue.
+</div>
+<div class="corr">
+5. <span class="formula">x+y=9</span> et <span class="formula">x−y=3</span>. On additionne : <span class="formula">2x=12</span>, donc <span class="formula">x=6</span>. Puis <span class="formula">y=3</span>.
+</div>
+<div class="corr">
+6. On additionne les équations : <span class="formula">6x=24</span>, donc <span class="formula">x=4</span>. Puis <span class="formula">2×4+3y=18</span>, donc <span class="formula">3y=10</span>, <span class="formula">y=10/3</span>.
+</div>
+<div class="corr">
+7. La première équation divisée par 2 donne <span class="formula">x+y=5</span>. Les deux équations sont équivalentes. Le système est indéterminé : infinité de solutions.
+</div>
+<div class="corr">
+8. E1 : <span class="formula">x+y+z=10</span>, E2 : <span class="formula">x−y+z=4</span>, E3 : <span class="formula">x+y−z=2</span>.<br>
+E1−E2 : <span class="formula">2y=6</span>, donc <span class="formula">y=3</span>.<br>
+E1−E3 : <span class="formula">2z=8</span>, donc <span class="formula">z=4</span>.<br>
+Dans E1 : <span class="formula">x+3+4=10</span>, donc <span class="formula">x=3</span>.<br>
+Solution : <span class="formula">(3 ; 3 ; 4)</span>.
+</div>
+<div class="corr">
+9. On pose <span class="formula">c</span> = prix d’un café, <span class="formula">t</span> = prix d’un thé.<br>
+Système : <span class="formula">2c+3t=10,40</span> et <span class="formula">4c+t=11,20</span>.<br>
+Depuis la deuxième : <span class="formula">t=11,20−4c</span>.<br>
+Dans la première : <span class="formula">2c+3(11,20−4c)=10,40</span>.<br>
+<span class="formula">2c+33,60−12c=10,40</span>, donc <span class="formula">−10c=−23,20</span>, <span class="formula">c=2,32</span>.<br>
+<span class="formula">t=11,20−4×2,32=1,92</span>.<br>
+Café : 2,32 €. Thé : 1,92 €.
+</div>
+<div class="corr">
+10. On pose <span class="formula">x</span> = nombre de produits A et <span class="formula">y</span> = nombre de produits B.<br>
+Travail : <span class="formula">2x+y=40</span>. Matière : <span class="formula">x+3y=45</span>.<br>
+Depuis <span class="formula">y=40−2x</span>.<br>
+Dans la deuxième : <span class="formula">x+3(40−2x)=45</span>.<br>
+<span class="formula">x+120−6x=45</span>, donc <span class="formula">−5x=−75</span>, <span class="formula">x=15</span>.<br>
+<span class="formula">y=40−30=10</span>.<br>
+On produit 15 unités de A et 10 unités de B.
+</div>
+<div class="corr">
+11. <span class="formula">m=2p</span> et <span class="formula">g=m+3=2p+3</span>.<br>
+Dans <span class="formula">p+m+g=18</span> : <span class="formula">p+2p+(2p+3)=18</span>.<br>
+<span class="formula">5p+3=18</span>, donc <span class="formula">5p=15</span>, <span class="formula">p=3</span>.<br>
+<span class="formula">m=6</span> et <span class="formula">g=9</span>.
+</div>
+
+<h2>14. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse. Pour les problèmes, définis les inconnues, écris le système, résous-le, vérifie et réponds dans le contexte.
+</div>
+
+<div class="ex">
+<strong>Question 1.</strong> Résous le système :
+<br><span class="formula">{ 2x + y = 13 ; x − y = 2 }</span>
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 2.</strong> Résous le système :
+<br><span class="formula">{ 3x + 2y = 19 ; 5x − 2y = 13 }</span>
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 3.</strong> Détermine le type de système et justifie :
+<br><span class="formula">{ 4x + 8y = 20 ; x + 2y = 5 }</span>
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 4.</strong> Résous le système 3x3 :
+<br><span class="formula">{ x+y+z=12 ; x−y+z=6 ; x+y−z=4 }</span>
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 5.</strong> Dans une boulangerie, 3 croissants et 2 pains au chocolat coûtent 6,80 €. 2 croissants et 4 pains au chocolat coûtent 7,60 €.<br>
+Trouve le prix d’un croissant et d’un pain au chocolat.
+<div class="answer"></div>
+</div>
+
+<h2>15. Correction du mini-test</h2>
+
+<div class="corr">
+<strong>Q1.</strong> Depuis <span class="formula">x−y=2</span>, on a <span class="formula">y=x−2</span>. Dans <span class="formula">2x+y=13</span> : <span class="formula">2x+x−2=13</span>, donc <span class="formula">3x=15</span>, <span class="formula">x=5</span>. Puis <span class="formula">y=3</span>. Solution : <span class="formula">(5 ; 3)</span>.
+</div>
+
+<div class="corr">
+<strong>Q2.</strong> On additionne : <span class="formula">(3x+2y)+(5x−2y)=19+13</span>, donc <span class="formula">8x=32</span>, <span class="formula">x=4</span>. Dans <span class="formula">3x+2y=19</span> : <span class="formula">12+2y=19</span>, donc <span class="formula">y=3,5</span>. Solution : <span class="formula">(4 ; 3,5)</span>.
+</div>
+
+<div class="corr">
+<strong>Q3.</strong> La première équation divisée par 4 donne <span class="formula">x+2y=5</span>. Les deux équations sont identiques. Le système est indéterminé : il possède une infinité de solutions.
+</div>
+
+<div class="corr">
+<strong>Q4.</strong> E1−E2 : <span class="formula">2y=6</span>, donc <span class="formula">y=3</span>.<br>
+E1−E3 : <span class="formula">2z=8</span>, donc <span class="formula">z=4</span>.<br>
+Dans E1 : <span class="formula">x+3+4=12</span>, donc <span class="formula">x=5</span>.<br>
+Solution : <span class="formula">(5 ; 3 ; 4)</span>.
+</div>
+
+<div class="corr">
+<strong>Q5.</strong> On pose <span class="formula">c</span> = prix d’un croissant et <span class="formula">p</span> = prix d’un pain au chocolat.<br>
+Système : <span class="formula">3c+2p=6,80</span> et <span class="formula">2c+4p=7,60</span>.<br>
+On divise la deuxième par 2 : <span class="formula">c+2p=3,80</span>, donc <span class="formula">c=3,80−2p</span>.<br>
+Dans la première : <span class="formula">3(3,80−2p)+2p=6,80</span>.<br>
+<span class="formula">11,40−6p+2p=6,80</span>, donc <span class="formula">−4p=−4,60</span>, <span class="formula">p=1,15</span>.<br>
+<span class="formula">c=3,80−2×1,15=1,50</span>.<br>
+Un croissant coûte 1,50 € et un pain au chocolat coûte 1,15 €.
+</div>
+
+<h2>16. Fiche mémo finale</h2>
+
+<div class="box memo">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Système :</strong> plusieurs équations à vérifier en même temps.</li>
+<li><strong>Solution :</strong> couple ou triplet qui vérifie toutes les équations.</li>
+<li><strong>Système compatible déterminé :</strong> une seule solution.</li>
+<li><strong>Système impossible :</strong> aucune solution.</li>
+<li><strong>Système indéterminé :</strong> infinité de solutions.</li>
+<li><strong>Substitution :</strong> isoler une inconnue puis remplacer.</li>
+<li><strong>Combinaison linéaire :</strong> additionner ou soustraire pour éliminer une inconnue.</li>
+<li><strong>Méthode de Gauss :</strong> transformer un système pour le simplifier progressivement.</li>
+</ul>
+
+<h3>Procédure 2x2</h3>
+<ol>
+<li>Choisir substitution ou combinaison.</li>
+<li>Éliminer une inconnue.</li>
+<li>Calculer la première inconnue.</li>
+<li>Remplacer pour trouver la deuxième.</li>
+<li>Vérifier dans les deux équations.</li>
+</ol>
+
+<h3>Procédure 3x3</h3>
+<ol>
+<li>Choisir une équation pivot simple.</li>
+<li>Éliminer une inconnue dans deux équations.</li>
+<li>Obtenir un système 2x2.</li>
+<li>Résoudre le système 2x2.</li>
+<li>Remonter pour trouver la troisième inconnue.</li>
+<li>Vérifier les trois équations.</li>
+</ol>
+
+<h3>Procédure problème</h3>
+<ol>
+<li>Définir clairement les inconnues.</li>
+<li>Traduire les phrases en équations.</li>
+<li>Résoudre.</li>
+<li>Vérifier la solution.</li>
+<li>Répondre dans le contexte avec les unités.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Ne pas définir les inconnues.</li>
+<li>Traduire une phrase dans le mauvais sens.</li>
+<li>Oublier de vérifier la solution.</li>
+<li>Confondre système impossible et indéterminé.</li>
+<li>Faire une erreur de signe lors d’une combinaison.</li>
+<li>Donner une réponse mathématique sans phrase de contexte.</li>
+</ul>
+</div>
+
+<h2>17. Ressources utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=syst%C3%A8me+2+%C3%A9quations+2+inconnues+substitution">YouTube – systèmes 2x2 par substitution</a></li>
+<li><a href="https://www.youtube.com/results?search_query=syst%C3%A8me+2+%C3%A9quations+combinaison+lin%C3%A9aire">YouTube – systèmes 2x2 par combinaison</a></li>
+<li><a href="https://www.youtube.com/results?search_query=syst%C3%A8me+3+%C3%A9quations+3+inconnues+m%C3%A9thode+de+Gauss">YouTube – systèmes 3x3 et méthode de Gauss</a></li>
+<li><a href="https://www.youtube.com/results?search_query=interpr%C3%A9tation+graphique+syst%C3%A8me+d%27%C3%A9quations">YouTube – interprétation graphique des systèmes</a></li>
+<li><a href="https://fr.khanacademy.org/math/algebra/x2f8bb11595b61c86:systems-of-equations">Khan Academy – systèmes d’équations</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-systemes-d-equations-m1087">Alloprof – systèmes d’équations</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ34 UAA11 – Système d’équations linéaires.
+</div>
+
+</div>
+</body>
+</html>

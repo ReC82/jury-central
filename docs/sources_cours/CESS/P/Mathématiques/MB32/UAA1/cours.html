@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MB32 UAA1 – Tableaux, graphiques, formules</title>
+<style>
+:root{--orange:#e87722;--dark:#263238;--light:#fff7ef;--border:#ddd;--blue:#eaf4ff;--green:#eef9f0;--red:#fff0f0}
+*{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:var(--dark);margin:0;background:#f7f7f7} main{max-width:1100px;margin:auto;background:white;padding:36px} h1,h2,h3{line-height:1.2} h1{color:var(--orange);font-size:32px;border-bottom:4px solid var(--orange);padding-bottom:12px} h2{margin-top:34px;color:#bf5b13;border-left:8px solid var(--orange);padding-left:12px} h3{color:#37474f;margin-top:24px}.box{border:1px solid var(--border);border-left:6px solid var(--orange);background:var(--light);padding:14px 18px;margin:16px 0}.method{background:var(--blue);border-left-color:#1976d2}.memo{background:#fffde7;border-left-color:#fbc02d}.corr{background:var(--green);border-left-color:#388e3c}.warn{background:var(--red);border-left-color:#d32f2f} table{border-collapse:collapse;width:100%;margin:12px 0} th,td{border:1px solid #bbb;padding:8px;text-align:left} th{background:#eee}.formula{font-family:Cambria,Georgia,serif;font-size:1.1em;background:#f3f3f3;border:1px solid #ddd;padding:8px 10px;display:inline-block;margin:6px 0} .pagebreak{page-break-before:always}.small{font-size:.92em;color:#455a64}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.tag{display:inline-block;background:#eceff1;border-radius:4px;padding:2px 6px;font-size:.85em;margin-right:6px} ol li,ul li{margin:5px 0} a{color:#1565c0} @media print{body{background:white} main{max-width:none;padding:18mm} a{color:#000;text-decoration:none}.pagebreak{page-break-before:always}.no-print{display:none}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<h1>MB32 UAA1 – Tableaux, graphiques, formules</h1>
+<p><strong>Cours complet imprimable pour préparer le Jury CESS en mathématiques.</strong></p>
+<div class="box"><strong>Objectif de l’UAA :</strong> traiter un problème en utilisant un tableau de nombres, un graphique ou une formule. Le cours couvre uniquement : fonctions constantes et du premier degré, intersections, puissances et notation scientifique, proportionnalité inverse, croissance exponentielle, intérêts simples et composés.</div>
+
+<h2>0. Comment travailler cette UAA</h2>
+<p>Dans cette UAA, il ne suffit pas de calculer. Il faut savoir <strong>choisir l’outil adapté</strong> : tableau, graphique ou formule, puis <strong>justifier</strong> la démarche.</p>
+<div class="method"><strong>Méthode générale en 5 étapes :</strong><ol><li>Lire la situation et repérer les grandeurs.</li><li>Identifier ce qui est connu et ce qu’on cherche.</li><li>Choisir un modèle : droite, puissance, proportionnalité inverse, croissance exponentielle, intérêt simple ou composé.</li><li>Calculer ou lire graphiquement.</li><li>Répondre par une phrase et vérifier si le résultat est plausible.</li></ol></div>
+
+<h2>1. Bases indispensables</h2>
+<h3>1.1 Grandeur, variable et formule</h3>
+<p>Une <strong>grandeur</strong> est une quantité mesurable : prix, distance, temps, volume, capital, nombre de personnes. Une <strong>variable</strong> est une grandeur qui peut changer. Une <strong>formule</strong> relie deux ou plusieurs variables.</p>
+<p>Exemple : un repas coûte 20 € par personne et la salle coûte 1000 €. Si <em>x</em> est le nombre de personnes, le prix total est :</p><div class="formula">P(x) = 1000 + 20x</div>
+<h3>1.2 Tableau, graphique, formule</h3>
+<table><tr><th>Outil</th><th>À quoi il sert</th><th>Piège fréquent</th></tr><tr><td>Tableau</td><td>Organiser des valeurs et repérer une régularité.</td><td>Oublier les unités ou mélanger les colonnes.</td></tr><tr><td>Graphique</td><td>Visualiser l’évolution et comparer.</td><td>Choisir une échelle trompeuse ou oublier les axes.</td></tr><tr><td>Formule</td><td>Calculer rapidement une valeur.</td><td>Remplacer la mauvaise variable ou oublier les priorités.</td></tr></table>
+
+<h2>2. Fonctions constantes</h2>
+<p>Une fonction constante donne toujours la même valeur, quelle que soit la valeur de <em>x</em>.</p><div class="formula">f(x) = p</div>
+<p>Son graphique est une droite horizontale.</p>
+<div class="box"><strong>Exemple corrigé :</strong> Un abonnement coûte 15 € par mois, peu importe l’utilisation. La fonction est <span class="formula">f(x)=15</span>. Pour x = 0, 5 ou 20, le prix reste 15 €.</div>
+<div class="warn"><strong>Piège :</strong> une fonction constante n’est pas une fonction “sans formule”. Sa formule existe : elle ne dépend simplement pas de x.</div>
+
+<h2>3. Fonctions du premier degré</h2>
+<p>Une fonction du premier degré se présente sous la forme :</p><div class="formula">f(x) = mx + p avec m ≠ 0</div>
+<p><strong>m</strong> est la pente ou coefficient directeur : il indique de combien la valeur change quand x augmente de 1. <strong>p</strong> est l’ordonnée à l’origine : la valeur de f(x) quand x = 0.</p>
+<table><tr><th>Si m est...</th><th>Comportement</th><th>Exemple</th></tr><tr><td>positif</td><td>la droite monte</td><td>f(x)=2x+3</td></tr><tr><td>négatif</td><td>la droite descend</td><td>f(x)=-4x+10</td></tr></table>
+<div class="method"><strong>Construire un graphique à partir d’une formule :</strong><ol><li>Choisir quelques valeurs de x.</li><li>Calculer f(x).</li><li>Placer les points dans le repère.</li><li>Tracer la droite.</li><li>Nommer les axes et indiquer les unités.</li></ol></div>
+<div class="box"><strong>Exemple corrigé :</strong> Tracer f(x)=3x+2.<table><tr><th>x</th><td>0</td><td>1</td><td>2</td></tr><tr><th>f(x)</th><td>2</td><td>5</td><td>8</td></tr></table>On place les points (0;2), (1;5), (2;8). Ils sont alignés. La droite monte car m=3 est positif.</div>
+
+<h2>4. Intersection de deux fonctions</h2>
+<p>L’intersection de deux fonctions est le point où les deux formules donnent la même valeur.</p><div class="formula">f(x) = g(x)</div>
+<p>Graphiquement, c’est le point où les deux droites se croisent. Algébriquement, on résout une équation.</p>
+<div class="box"><strong>Exemple corrigé type Jury :</strong><br>Devis A : 1000 € + 20 € par personne → A(x)=1000+20x.<br>Devis B : 500 € + 30 € par personne → B(x)=500+30x.<br><br>Intersection : 1000 + 20x = 500 + 30x<br>1000 − 500 = 30x − 20x<br>500 = 10x<br>x = 50.<br><br>Pour 50 personnes, les deux devis coûtent le même prix : A(50)=2000 € et B(50)=2000 €. Si moins de 50 personnes, B est moins cher. Si plus de 50 personnes, A est moins cher.</div>
+<div class="warn"><strong>Pièges :</strong> confondre le nombre de personnes avec le prix ; ne pas interpréter le résultat ; oublier que l’intersection est un couple (x ; y).</div>
+
+<h2>5. Puissances et notation scientifique</h2>
+<h3>5.1 Puissance à exposant entier</h3>
+<p>Une puissance est une multiplication répétée.</p><div class="formula">10³ = 10 × 10 × 10 = 1000</div><div class="formula">10⁻³ = 1 / 10³ = 0,001</div>
+<table><tr><th>Règle</th><th>Exemple</th></tr><tr><td>10ᵃ × 10ᵇ = 10ᵃ⁺ᵇ</td><td>10² × 10³ = 10⁵</td></tr><tr><td>10ᵃ / 10ᵇ = 10ᵃ⁻ᵇ</td><td>10⁵ / 10² = 10³</td></tr><tr><td>(10ᵃ)ᵇ = 10ᵃˣᵇ</td><td>(10²)³ = 10⁶</td></tr></table>
+<h3>5.2 Notation scientifique</h3>
+<p>Un nombre en notation scientifique s’écrit :</p><div class="formula">a × 10ⁿ avec 1 ≤ a &lt; 10</div>
+<div class="box"><strong>Exemples corrigés :</strong><br>300 000 000 = 3 × 10⁸.<br>0,000003 = 3 × 10⁻⁶.<br>5 400 000 = 5,4 × 10⁶.</div>
+<div class="box"><strong>Exemple contextualisé :</strong> La lumière se déplace à 3 × 10⁸ m/s. En 8 min 20 s, soit 500 s, la distance parcourue est :<br><span class="formula">d = v × t = 3 × 10⁸ × 500 = 1,5 × 10¹¹ m</span><br>La distance Terre-Soleil est donc environ 150 000 000 000 m.</div>
+
+<h2>6. Proportionnalité inverse</h2>
+<p>Deux grandeurs sont en proportionnalité inverse si leur produit reste constant.</p><div class="formula">x × y = a donc y = a / x</div>
+<p>Quand x augmente, y diminue. Le graphique n’est pas une droite : c’est une courbe. La valeur x = 0 est impossible car on ne peut pas diviser par zéro.</p>
+<div class="box"><strong>Exemple corrigé :</strong> Pour parcourir 120 km, le temps dépend de la vitesse.<table><tr><th>Vitesse x en km/h</th><td>30</td><td>60</td><td>120</td></tr><tr><th>Temps y en h</th><td>4</td><td>2</td><td>1</td></tr><tr><th>x × y</th><td>120</td><td>120</td><td>120</td></tr></table>Comme le produit est constant, c’est une proportionnalité inverse.</div>
+
+<h2>7. Croissance exponentielle</h2>
+<p>Une croissance exponentielle se produit quand on multiplie régulièrement par le même facteur.</p><div class="formula">Valeur finale = Valeur initiale × facteurⁿ</div>
+<p>Si une quantité augmente de 10 %, on multiplie par 1,10. Si elle diminue de 10 %, on multiplie par 0,90.</p>
+<div class="box"><strong>Exemple corrigé :</strong> Une population de bactéries double chaque heure. Au départ : 200 bactéries.<br>Après 1 h : 200 × 2 = 400.<br>Après 2 h : 200 × 2² = 800.<br>Après 5 h : 200 × 2⁵ = 6400.</div>
+<div class="warn"><strong>Piège :</strong> “exponentiel” ne veut pas seulement dire “rapide”. Cela veut dire que l’on multiplie par un facteur constant à chaque étape.</div>
+
+<h2>8. Intérêts simples et composés</h2>
+<h3>8.1 Vocabulaire</h3>
+<table><tr><th>Mot</th><th>Sens</th></tr><tr><td>Capital initial C</td><td>Somme placée ou empruntée au départ.</td></tr><tr><td>Taux t</td><td>Pourcentage d’intérêt par période.</td></tr><tr><td>Durée n</td><td>Nombre de périodes.</td></tr><tr><td>Intérêt I</td><td>Somme gagnée ou payée.</td></tr><tr><td>Valeur acquise A</td><td>Capital final.</td></tr></table>
+<h3>8.2 Intérêt simple</h3><div class="formula">I = C × t × n</div><div class="formula">A = C + I = C × (1 + t × n)</div>
+<p>Le taux doit être sous forme décimale : 5 % = 0,05.</p>
+<div class="box"><strong>Exemple corrigé :</strong> 1000 € placés à 4 % pendant 3 ans.<br>I = 1000 × 0,04 × 3 = 120 €.<br>A = 1000 + 120 = 1120 €.</div>
+<h3>8.3 Intérêt composé</h3><div class="formula">A = C × (1 + t)ⁿ</div>
+<p>Les intérêts s’ajoutent au capital et produisent eux-mêmes des intérêts.</p>
+<div class="box"><strong>Exemple corrigé :</strong> 1000 € placés à 4 % pendant 3 ans.<br>A = 1000 × 1,04³ = 1124,864 € ≈ 1124,86 €.<br>L’intérêt composé donne ici plus que l’intérêt simple.</div>
+<div class="warn"><strong>Pièges fréquents :</strong> utiliser 4 au lieu de 0,04 ; confondre mois et années ; appliquer l’intérêt composé alors que l’énoncé parle d’intérêt simple ; arrondir trop tôt.</div>
+
+<h2>9. Exercices progressifs</h2>
+<h3>9.1 Connaître</h3><ol><li>Explique ce qu’est une fonction constante.</li><li>Dans f(x)=4x+7, identifie m et p.</li><li>Écris 0,00045 en notation scientifique.</li><li>Explique comment reconnaître une proportionnalité inverse dans un tableau.</li><li>Explique la différence entre intérêt simple et intérêt composé.</li></ol>
+<h3>9.2 Appliquer</h3><ol><li>Complète le tableau pour f(x)=2x+5 avec x=0,1,2,3.</li><li>Résous l’intersection de f(x)=3x+10 et g(x)=x+30.</li><li>Calcule 2,5 × 10⁴ × 3 × 10².</li><li>Un trajet fait 180 km. Calcule le temps pour 60 km/h, 90 km/h et 120 km/h.</li><li>Calcule la valeur acquise de 2500 € à intérêt composé de 3 % pendant 4 ans.</li></ol>
+<h3>9.3 Transférer</h3><ol><li>Un loueur A demande 80 € fixes + 0,20 €/km. Un loueur B demande 50 € fixes + 0,35 €/km. À partir de combien de km A devient-il plus intéressant ? Justifie.</li><li>Une machine perd 12 % de sa valeur chaque année. Elle vaut 8000 € au départ. Quelle est sa valeur après 5 ans ?</li><li>Un atelier doit produire 600 pièces. Plus il y a d’ouvriers, moins le travail dure. Complète un tableau pour 2, 3, 4, 6 ouvriers si 2 ouvriers mettent 12 h. Identifie le type de relation.</li></ol>
+
+<div class="pagebreak"></div><h2>10. Correction détaillée des exercices</h2>
+<h3>10.1 Connaître</h3><ol><li>Une fonction constante donne toujours la même image : f(x)=p.</li><li>m=4 et p=7.</li><li>0,00045 = 4,5 × 10⁻⁴.</li><li>On multiplie les deux grandeurs : si le produit est constant, il y a proportionnalité inverse.</li><li>Intérêt simple : calculé toujours sur le capital initial. Intérêt composé : calculé sur le capital augmenté des intérêts précédents.</li></ol>
+<h3>10.2 Appliquer</h3><ol><li>f(0)=5, f(1)=7, f(2)=9, f(3)=11.</li><li>3x+10=x+30 → 2x=20 → x=10. La valeur commune est 40. Intersection : (10 ; 40).</li><li>2,5×3×10⁴×10² = 7,5×10⁶.</li><li>t=distance/vitesse. Pour 60 : 3 h ; pour 90 : 2 h ; pour 120 : 1,5 h.</li><li>A=2500×1,03⁴=2813,77 € environ.</li></ol>
+<h3>10.3 Transférer</h3><ol><li>A(x)=80+0,20x ; B(x)=50+0,35x. Intersection : 80+0,20x=50+0,35x → 30=0,15x → x=200. À 200 km, même prix. Au-delà de 200 km, A est plus intéressant.</li><li>Perdre 12 %, c’est multiplier par 0,88. Valeur après 5 ans : 8000×0,88⁵≈4222,73 €.</li><li>Travail total : 2×12=24 heures-ouvriers. Durée = 24/nombre d’ouvriers. Pour 2 : 12 h ; 3 : 8 h ; 4 : 6 h ; 6 : 4 h. C’est une proportionnalité inverse.</li></ol>
+
+<div class="pagebreak"></div><h2>11. Mini-test final type examen</h2>
+<p><strong>Consigne :</strong> toutes les réponses doivent être justifiées par une phrase, un calcul détaillé ou une formule.</p>
+<ol><li>Une salle coûte 600 € de location et 18 € par personne. Écris la formule du coût total C(x).</li><li>Un deuxième devis propose 300 € de location et 28 € par personne. Détermine à partir de combien de personnes le premier devis devient plus avantageux.</li><li>Écris 72 000 000 et 0,0000091 en notation scientifique.</li><li>Une grandeur suit la formule y=240/x. Complète le tableau pour x=4, 8, 12, 20 et explique le type de relation.</li><li>Un capital de 1500 € est placé à 5 % pendant 4 ans. Calcule la valeur acquise à intérêt simple puis à intérêt composé. Compare.</li><li>Une quantité diminue de 8 % par an. Elle vaut 12 000 au départ. Calcule sa valeur après 6 ans.</li></ol>
+<h3>Correction du mini-test</h3>
+<ol><li>C(x)=600+18x.</li><li>D1(x)=600+18x ; D2(x)=300+28x. 600+18x=300+28x → 300=10x → x=30. Pour plus de 30 personnes, le premier devis est plus avantageux.</li><li>72 000 000 = 7,2×10⁷ ; 0,0000091 = 9,1×10⁻⁶.</li><li>y(4)=60 ; y(8)=30 ; y(12)=20 ; y(20)=12. Comme x×y=240, c’est une proportionnalité inverse.</li><li>Simple : A=1500×(1+0,05×4)=1800 €. Composé : A=1500×1,05⁴≈1823,26 €. Le composé est plus intéressant.</li><li>Perdre 8 %, c’est multiplier par 0,92. Valeur = 12000×0,92⁶≈7276,70.</li></ol>
+
+<div class="pagebreak"></div><h2>12. Fiche mémo finale</h2>
+<div class="memo"><h3>Formules à connaître</h3><ul><li>Fonction constante : f(x)=p</li><li>Fonction du premier degré : f(x)=mx+p, m≠0</li><li>Intersection : résoudre f(x)=g(x)</li><li>Notation scientifique : a×10ⁿ avec 1≤a&lt;10</li><li>Proportionnalité inverse : y=a/x ou x×y=a</li><li>Évolution de t % : multiplier par 1+t ou 1−t</li><li>Croissance exponentielle : valeur finale = valeur initiale × facteurⁿ</li><li>Intérêt simple : A=C×(1+t×n)</li><li>Intérêt composé : A=C×(1+t)ⁿ</li></ul></div>
+<div class="memo"><h3>Procédures</h3><ul><li>Pour tracer une droite : tableau → points → axes → droite.</li><li>Pour comparer deux offres : écrire deux fonctions, chercher l’intersection, interpréter avant/après.</li><li>Pour une proportionnalité inverse : vérifier si les produits sont constants.</li><li>Pour les intérêts : convertir le taux en décimal et vérifier la durée.</li></ul></div>
+
+<h2>13. Ressources internet et YouTube</h2>
+<ul><li><a href="https://www.youtube.com/watch?v=Hi5ZGHcPeHM">Fonction du premier degré et fonction constante</a></li><li><a href="https://www.youtube.com/watch?v=IxCzv5FPJ3s">Puissances et notation scientifique – cours vidéo</a></li><li><a href="https://fr.khanacademy.org/math/electricite-chauffage-me3/x1566376891ae1b23%3Apuissances-positive-et-negative/x1566376891ae1b23%3Ala-notation-scientifique-definitions/v/scientific-notation">Khan Academy – notation scientifique</a></li><li><a href="https://www.mathematiquesfaciles.com/interets-simples-et-composes_2_109876.htm">Intérêts simples et composés – exercices</a></li><li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/le-taux-d-interet-simple-m1569">Alloprof – taux d’intérêt simple</a></li><li><a href="https://www.kartable.fr/ressources/enseignement-scientifique/cours/la-croissance-exponentielle/64230">Kartable – croissance exponentielle</a></li></ul>
+<p class="small">Document généré pour l’étude personnelle. À l’examen, les justifications sont indispensables.</p>
+</main></body></html>

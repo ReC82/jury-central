@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Cours MQ32 UAA3 – Statistique – Jury CESS</title>
+<style>
+:root{
+  --orange:#e67e22;--dark:#243447;--light:#f8f9fa;--gray:#e9ecef;
+  --green:#1f7a4d;--red:#b03a2e;--blue:#1f618d;--yellow:#fff8df;
+}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#222;margin:0;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1,h2,h3{color:var(--dark);margin-top:1.2em}
+h1{font-size:30px;border-bottom:5px solid var(--orange);padding-bottom:10px}
+h2{font-size:23px;border-left:8px solid var(--orange);padding-left:12px;background:#fff7ef;padding-top:7px;padding-bottom:7px}
+h3{font-size:18px;color:#8a4b08}
+.box{border:1px solid #ccc;background:var(--light);padding:14px 18px;border-radius:8px;margin:16px 0}
+.memo{border:2px solid var(--green);background:#f0fff6}
+.warning{border:2px solid var(--red);background:#fff5f3}
+.method{border:2px solid var(--blue);background:#f2f8fc}
+.exam{border:2px solid #b8860b;background:var(--yellow)}
+.exercise{border-left:5px solid var(--orange);background:#fffaf5;padding:12px 16px;margin:14px 0}
+.correction{border-left:5px solid var(--green);background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+th,td{border:1px solid #999;padding:8px;text-align:left;vertical-align:top}
+th{background:#eee}
+.formula{font-family:"Cambria Math","Times New Roman",serif;font-size:1.08em;background:#f7f7f7;border:1px solid #ddd;padding:8px;border-radius:6px;display:inline-block;margin:4px 0}
+.small{font-size:.92em;color:#555}
+hr{border:none;border-top:2px solid #ddd;margin:32px 0}
+ul{margin-top:6px}
+.answer-space{height:105px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.two-col{grid-template-columns:1fr}}
+@media print{
+  .page{max-width:none;padding:12mm}
+  a{color:#000;text-decoration:none}
+  h2{break-after:avoid}
+  .box,.exercise,.correction,table,svg{break-inside:avoid}
+  .no-print{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ32 UAA3 – Statistique<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif de l’UAA :</strong> lire, construire et interpréter des tableaux, graphiques et diagrammes statistiques ; calculer des valeurs caractéristiques ; interpréter et critiquer des informations graphiques ou numériques.<br>
+<strong>Contenu limité à cette UAA :</strong> statistique à une variable avec quartiles, écart-type, intervalle interquartile, boîte à moustaches ; statistique à deux variables avec nuage de points, ajustement linéaire et droite de Mayer.
+</div>
+
+<div class="box exam">
+<strong>Important :</strong> cette UAA demande de calculer, mais surtout d’interpréter. Une réponse doit expliquer ce que le résultat signifie dans la situation étudiée.
+</div>
+
+<h2>1. Ce qu’il faut savoir faire</h2>
+<table>
+<tr><th>Processus</th><th>Ce que cela veut dire</th><th>Exemples</th></tr>
+<tr><td><strong>Connaître</strong></td><td>Comprendre le vocabulaire statistique et lire des données.</td><td>Population, échantillon, quartiles, dispersion, nuage de points.</td></tr>
+<tr><td><strong>Appliquer</strong></td><td>Calculer et construire des représentations.</td><td>Quartiles, écart-type, boîte à moustaches, droite de Mayer.</td></tr>
+<tr><td><strong>Transférer</strong></td><td>Interpréter, comparer, critiquer, choisir une méthode.</td><td>Comparer deux séries, critiquer un graphique, utiliser une droite d’ajustement pour prévoir.</td></tr>
+</table>
+
+<h2>2. Rappels indispensables : statistique à une variable</h2>
+
+<h3>2.1 Vocabulaire de base</h3>
+<table>
+<tr><th>Terme</th><th>Définition</th><th>Exemple</th></tr>
+<tr><td><strong>Population</strong></td><td>Ensemble complet étudié.</td><td>Les élèves d’une école.</td></tr>
+<tr><td><strong>Échantillon</strong></td><td>Partie de la population observée.</td><td>80 élèves interrogés.</td></tr>
+<tr><td><strong>Individu</strong></td><td>Un élément de la population.</td><td>Un élève.</td></tr>
+<tr><td><strong>Caractère</strong></td><td>Ce que l’on étudie.</td><td>Temps de trajet, taille, note.</td></tr>
+<tr><td><strong>Effectif</strong></td><td>Nombre d’individus correspondant à une valeur.</td><td>12 élèves ont 14/20.</td></tr>
+<tr><td><strong>Fréquence</strong></td><td>Effectif divisé par l’effectif total.</td><td>12/80 = 0,15 = 15 %.</td></tr>
+</table>
+
+<h3>2.2 Moyenne, médiane, mode, étendue</h3>
+<table>
+<tr><th>Indicateur</th><th>Utilité</th><th>Formule / méthode</th></tr>
+<tr><td><strong>Moyenne</strong></td><td>Valeur centrale sensible aux valeurs extrêmes.</td><td><span class="formula">moyenne = somme des valeurs / nombre de valeurs</span></td></tr>
+<tr><td><strong>Médiane</strong></td><td>Valeur qui coupe la série ordonnée en deux parties égales.</td><td>Ordonner les valeurs puis chercher le milieu.</td></tr>
+<tr><td><strong>Mode</strong></td><td>Valeur la plus fréquente.</td><td>Repérer l’effectif le plus élevé.</td></tr>
+<tr><td><strong>Étendue</strong></td><td>Dispersion globale.</td><td><span class="formula">maximum − minimum</span></td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> deux séries peuvent avoir la même moyenne mais être très différentes. C’est pourquoi on étudie aussi la dispersion.
+</div>
+
+<h2>3. Quartiles et intervalle interquartile</h2>
+
+<h3>3.1 À quoi servent les quartiles ?</h3>
+<div class="box">
+Les <strong>quartiles</strong> découpent une série ordonnée en quatre parties. Ils permettent de voir comment les données sont réparties, sans être trop influencés par les valeurs extrêmes.
+</div>
+
+<table>
+<tr><th>Notation</th><th>Signification</th></tr>
+<tr><td><strong>Q1</strong></td><td>Premier quartile : environ 25 % des données sont inférieures ou égales à Q1.</td></tr>
+<tr><td><strong>Q2</strong></td><td>Deuxième quartile : c’est la médiane.</td></tr>
+<tr><td><strong>Q3</strong></td><td>Troisième quartile : environ 75 % des données sont inférieures ou égales à Q3.</td></tr>
+<tr><td><strong>Intervalle interquartile</strong></td><td>Intervalle [Q1 ; Q3], qui contient environ la moitié centrale des données.</td></tr>
+<tr><td><strong>Écart interquartile</strong></td><td><span class="formula">Q3 − Q1</span></td></tr>
+</table>
+
+<h3>3.2 Méthode simple pour déterminer les quartiles</h3>
+<div class="method">
+1. Ranger les données dans l’ordre croissant.<br>
+2. Déterminer la médiane Q2.<br>
+3. Q1 est la médiane de la moitié basse de la série.<br>
+4. Q3 est la médiane de la moitié haute de la série.<br>
+5. Calculer l’écart interquartile : <span class="formula">Q3 − Q1</span>.
+</div>
+
+<div class="box small">
+Selon les conventions scolaires, il existe plusieurs méthodes proches pour déterminer Q1 et Q3. À l’examen, le plus important est de garder une méthode cohérente, de trier correctement les données et de justifier.
+</div>
+
+<h3>Exemple corrigé 1 : quartiles</h3>
+<div class="exercise">
+On a relevé les temps de trajet, en minutes, de 11 élèves :<br>
+8 ; 12 ; 15 ; 18 ; 20 ; 22 ; 25 ; 30 ; 34 ; 40 ; 55.<br>
+Détermine la médiane, Q1, Q3, l’intervalle interquartile et l’écart interquartile.
+</div>
+<div class="correction">
+La série est déjà ordonnée. Il y a 11 valeurs.<br>
+Médiane : la 6e valeur est 22, donc <span class="formula">Q2 = 22</span>.<br>
+Moitié basse : 8 ; 12 ; 15 ; 18 ; 20. La médiane de cette moitié est 15, donc <span class="formula">Q1 = 15</span>.<br>
+Moitié haute : 25 ; 30 ; 34 ; 40 ; 55. La médiane de cette moitié est 34, donc <span class="formula">Q3 = 34</span>.<br>
+Intervalle interquartile : <span class="formula">[15 ; 34]</span>.<br>
+Écart interquartile : <span class="formula">34 − 15 = 19</span> minutes.<br>
+<strong>Interprétation :</strong> environ la moitié centrale des élèves a un temps de trajet compris entre 15 et 34 minutes.
+</div>
+
+<h2>4. Boîte à moustaches</h2>
+
+<h3>4.1 Principe</h3>
+<div class="box">
+Une <strong>boîte à moustaches</strong> représente rapidement la dispersion d’une série. Elle utilise cinq nombres :
+<ul>
+<li>minimum ;</li>
+<li>Q1 ;</li>
+<li>médiane ;</li>
+<li>Q3 ;</li>
+<li>maximum.</li>
+</ul>
+</div>
+
+<svg width="860" height="230" viewBox="0 0 860 230" role="img" aria-label="Boîte à moustaches">
+<line x1="80" y1="170" x2="780" y2="170" stroke="#333" stroke-width="2"/>
+<g font-size="13">
+<text x="75" y="195">0</text><text x="215" y="195">10</text><text x="355" y="195">20</text><text x="495" y="195">30</text><text x="635" y="195">40</text><text x="775" y="195">50</text>
+</g>
+<g stroke="#bbb"><line x1="80" y1="160" x2="80" y2="180"/><line x1="220" y1="160" x2="220" y2="180"/><line x1="360" y1="160" x2="360" y2="180"/><line x1="500" y1="160" x2="500" y2="180"/><line x1="640" y1="160" x2="640" y2="180"/><line x1="780" y1="160" x2="780" y2="180"/></g>
+<!-- min=5 Q1=15 med=25 Q3=35 max=48 scale 14px per unit -->
+<line x1="150" y1="95" x2="290" y2="95" stroke="#1f618d" stroke-width="4"/>
+<line x1="570" y1="95" x2="752" y2="95" stroke="#1f618d" stroke-width="4"/>
+<rect x="290" y="65" width="280" height="60" fill="#cfe2f3" stroke="#1f618d" stroke-width="3"/>
+<line x1="430" y1="65" x2="430" y2="125" stroke="#b03a2e" stroke-width="4"/>
+<line x1="150" y1="70" x2="150" y2="120" stroke="#1f618d" stroke-width="3"/>
+<line x1="752" y1="70" x2="752" y2="120" stroke="#1f618d" stroke-width="3"/>
+<text x="135" y="50" font-size="14">min</text><text x="282" y="50" font-size="14">Q1</text><text x="405" y="50" font-size="14">médiane</text><text x="562" y="50" font-size="14">Q3</text><text x="735" y="50" font-size="14">max</text>
+</svg>
+
+<h3>4.2 Méthode de construction</h3>
+<div class="method">
+1. Trier la série.<br>
+2. Trouver minimum, Q1, médiane, Q3, maximum.<br>
+3. Tracer un axe gradué.<br>
+4. Dessiner la boîte de Q1 à Q3.<br>
+5. Tracer la médiane dans la boîte.<br>
+6. Dessiner les moustaches jusqu’au minimum et au maximum.
+</div>
+
+<h3>Exemple corrigé 2 : construire et interpréter</h3>
+<div class="exercise">
+Pour une série, on a : minimum = 4, Q1 = 10, médiane = 13, Q3 = 20, maximum = 38.<br>
+Que peut-on dire ?
+</div>
+<div class="correction">
+La boîte va de 10 à 20 : environ la moitié centrale des données est dans l’intervalle <span class="formula">[10 ; 20]</span>.<br>
+La médiane vaut 13 : environ la moitié des données est inférieure ou égale à 13.<br>
+L’écart interquartile vaut <span class="formula">20 − 10 = 10</span>.<br>
+La moustache droite est longue, car le maximum 38 est loin de Q3. Cela indique une dispersion vers les grandes valeurs.
+</div>
+
+<h2>5. Écart-type</h2>
+
+<h3>5.1 Intuition</h3>
+<div class="box">
+L’<strong>écart-type</strong> mesure la dispersion des valeurs autour de la moyenne. Plus il est grand, plus les données sont dispersées. Plus il est petit, plus les données sont proches de la moyenne.
+</div>
+
+<h3>5.2 Formule utile</h3>
+<div class="box">
+Pour une série de n valeurs <span class="formula">x₁, x₂, ..., xₙ</span> de moyenne <span class="formula">m</span> :<br>
+<span class="formula">écart-type = √(((x₁−m)² + (x₂−m)² + ... + (xₙ−m)²) / n)</span>
+</div>
+
+<div class="box small">
+La calculatrice ou un tableur peut calculer l’écart-type. Le plus important est de comprendre son sens et de savoir l’interpréter.
+</div>
+
+<h3>Exemple corrigé 3 : deux séries de même moyenne</h3>
+<div class="exercise">
+Série A : 9 ; 10 ; 11<br>
+Série B : 0 ; 10 ; 20<br>
+Compare les moyennes et la dispersion.
+</div>
+<div class="correction">
+Moyenne de A : <span class="formula">(9+10+11)/3 = 10</span>.<br>
+Moyenne de B : <span class="formula">(0+10+20)/3 = 10</span>.<br>
+Les deux séries ont la même moyenne.<br>
+Mais la série A est peu dispersée : les valeurs sont proches de 10.<br>
+La série B est très dispersée : 0 et 20 sont loin de 10.<br>
+<strong>Conclusion :</strong> la moyenne seule ne suffit pas ; il faut aussi regarder un indicateur de dispersion.
+</div>
+
+<h3>Exemple corrigé 4 : calcul d’un écart-type simple</h3>
+<div class="exercise">
+Calcule l’écart-type de la série : 2 ; 4 ; 6.
+</div>
+<div class="correction">
+Moyenne : <span class="formula">m = (2+4+6)/3 = 4</span>.<br>
+Écarts à la moyenne : 2−4 = −2 ; 4−4 = 0 ; 6−4 = 2.<br>
+Carrés des écarts : 4 ; 0 ; 4.<br>
+Moyenne des carrés : <span class="formula">(4+0+4)/3 = 8/3 ≈ 2,67</span>.<br>
+Écart-type : <span class="formula">√2,67 ≈ 1,63</span>.<br>
+<strong>Interprétation :</strong> les valeurs s’écartent en moyenne d’environ 1,63 unité autour de la moyenne.
+</div>
+
+<h2>6. Comparer deux séries statistiques</h2>
+
+<h3>Méthode</h3>
+<div class="method">
+Pour comparer deux séries :
+<ol>
+<li>Comparer les moyennes ou médianes : niveau central.</li>
+<li>Comparer l’étendue, l’écart interquartile ou l’écart-type : dispersion.</li>
+<li>Observer les boîtes à moustaches si elles sont données.</li>
+<li>Interpréter en contexte : régularité, homogénéité, valeurs extrêmes.</li>
+</ol>
+</div>
+
+<h3>Exemple corrigé 5 : notes de deux classes</h3>
+<div class="exercise">
+Classe A : moyenne 12, médiane 12, écart-type 1,5.<br>
+Classe B : moyenne 12, médiane 11, écart-type 4,2.<br>
+Compare.
+</div>
+<div class="correction">
+Les deux classes ont la même moyenne : 12.<br>
+La classe A a un écart-type beaucoup plus faible : ses résultats sont plus regroupés autour de 12.<br>
+La classe B a un écart-type plus grand : les résultats sont plus dispersés, avec probablement plus de très faibles et/ou très bonnes notes.<br>
+<strong>Conclusion :</strong> même moyenne, mais classe A plus homogène ; classe B plus hétérogène.
+</div>
+
+<h2>7. Statistique à deux variables</h2>
+
+<h3>7.1 Principe</h3>
+<div class="box">
+La statistique à deux variables étudie deux caractères en même temps, par exemple :
+<ul>
+<li>âge et taille ;</li>
+<li>température et consommation électrique ;</li>
+<li>prix et quantité vendue ;</li>
+<li>temps d’étude et note obtenue.</li>
+</ul>
+Chaque individu donne un couple de valeurs <span class="formula">(x ; y)</span>.
+</div>
+
+<h3>7.2 Nuage de points</h3>
+<div class="box">
+Un <strong>nuage de points</strong> représente les couples <span class="formula">(x ; y)</span> dans un repère. Il permet de voir s’il existe une tendance.
+</div>
+
+<svg width="700" height="420" viewBox="0 0 700 420" role="img" aria-label="Nuage de points tendance positive">
+<line x1="70" y1="350" x2="650" y2="350" stroke="#222" stroke-width="2"/>
+<line x1="70" y1="350" x2="70" y2="50" stroke="#222" stroke-width="2"/>
+<text x="640" y="375" font-size="16">x</text><text x="45" y="60" font-size="16">y</text>
+<g fill="#1f618d">
+<circle cx="110" cy="310" r="5"/><circle cx="150" cy="295" r="5"/><circle cx="190" cy="270" r="5"/><circle cx="230" cy="260" r="5"/>
+<circle cx="270" cy="230" r="5"/><circle cx="310" cy="220" r="5"/><circle cx="350" cy="190" r="5"/><circle cx="390" cy="180" r="5"/>
+<circle cx="430" cy="150" r="5"/><circle cx="470" cy="145" r="5"/><circle cx="510" cy="120" r="5"/><circle cx="550" cy="105" r="5"/>
+</g>
+<line x1="100" y1="315" x2="570" y2="95" stroke="#e67e22" stroke-width="3" stroke-dasharray="8 5"/>
+<text x="270" y="80" font-size="16">Tendance positive</text>
+</svg>
+
+<h3>7.3 Types de tendance</h3>
+<table>
+<tr><th>Aspect du nuage</th><th>Interprétation</th></tr>
+<tr><td>Les points montent globalement de gauche à droite.</td><td>Relation positive : quand x augmente, y tend à augmenter.</td></tr>
+<tr><td>Les points descendent globalement de gauche à droite.</td><td>Relation négative : quand x augmente, y tend à diminuer.</td></tr>
+<tr><td>Les points sont très dispersés sans direction claire.</td><td>Pas de tendance évidente.</td></tr>
+<tr><td>Les points sont presque alignés.</td><td>Un ajustement linéaire peut être pertinent.</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> corrélation ne veut pas forcément dire causalité. Si deux variables évoluent ensemble, cela ne prouve pas que l’une cause l’autre.
+</div>
+
+<h2>8. Ajustement linéaire et droite de Mayer</h2>
+
+<h3>8.1 Pourquoi tracer une droite d’ajustement ?</h3>
+<div class="box">
+Une <strong>droite d’ajustement</strong> résume la tendance générale d’un nuage de points. Elle peut servir à faire des estimations, mais seulement si le nuage a une tendance à peu près linéaire.
+</div>
+
+<h3>8.2 Méthode de Mayer</h3>
+<div class="method">
+1. Trier les points selon les valeurs de x croissantes.<br>
+2. Partager le nuage en deux groupes de même taille ou presque.<br>
+3. Calculer le point moyen du premier groupe : <span class="formula">G₁(x̄₁ ; ȳ₁)</span>.<br>
+4. Calculer le point moyen du deuxième groupe : <span class="formula">G₂(x̄₂ ; ȳ₂)</span>.<br>
+5. Tracer la droite passant par les deux points moyens <span class="formula">G₁</span> et <span class="formula">G₂</span>.<br>
+6. Utiliser cette droite pour estimer une valeur si cela reste raisonnable.
+</div>
+
+<div class="box small">
+L’UAA indique que la recherche systématique de l’équation de la droite de Mayer n’est pas obligatoire. Le point essentiel est de calculer les points moyens, tracer la droite et l’interpréter.
+</div>
+
+<h3>8.3 Calculer un point moyen</h3>
+<div class="box">
+Pour un groupe de points, le point moyen a pour coordonnées :<br>
+<span class="formula">x̄ = moyenne des x</span><br>
+<span class="formula">ȳ = moyenne des y</span>
+</div>
+
+<h3>Exemple corrigé 6 : droite de Mayer</h3>
+<div class="exercise">
+On observe le nombre d’heures d’étude x et la note y de 6 élèves :
+<table>
+<tr><th>Élève</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th></tr>
+<tr><td>x : heures</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+<tr><td>y : note</td><td>7</td><td>8</td><td>10</td><td>13</td><td>14</td><td>16</td></tr>
+</table>
+Construis les deux points moyens de Mayer.
+</div>
+<div class="correction">
+Les points sont déjà triés selon x.<br>
+Premier groupe : (1 ; 7), (2 ; 8), (3 ; 10).<br>
+<span class="formula">x̄₁ = (1+2+3)/3 = 2</span><br>
+<span class="formula">ȳ₁ = (7+8+10)/3 = 25/3 ≈ 8,33</span><br>
+Donc <span class="formula">G₁ ≈ (2 ; 8,33)</span>.<br><br>
+Deuxième groupe : (4 ; 13), (5 ; 14), (6 ; 16).<br>
+<span class="formula">x̄₂ = (4+5+6)/3 = 5</span><br>
+<span class="formula">ȳ₂ = (13+14+16)/3 = 43/3 ≈ 14,33</span><br>
+Donc <span class="formula">G₂ ≈ (5 ; 14,33)</span>.<br>
+La droite de Mayer est la droite passant par ces deux points moyens.
+</div>
+
+<h2>9. Interpolation, extrapolation et limites</h2>
+
+<table>
+<tr><th>Mot</th><th>Définition</th><th>Exemple</th></tr>
+<tr><td><strong>Interpolation</strong></td><td>Prévoir une valeur entre des valeurs observées.</td><td>On a des données de 1 à 6 heures, on estime pour 4,5 heures.</td></tr>
+<tr><td><strong>Extrapolation</strong></td><td>Prévoir une valeur en dehors des valeurs observées.</td><td>On a des données de 1 à 6 heures, on estime pour 12 heures.</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> l’extrapolation est plus risquée que l’interpolation. Plus on s’éloigne du nuage de points observé, moins la prévision est fiable.
+</div>
+
+<h2>10. Graphiques trompeurs et esprit critique</h2>
+
+<h3>Checklist critique</h3>
+<div class="method">
+Pour critiquer un graphique statistique :
+<ol>
+<li>Les axes sont-ils nommés ?</li>
+<li>Les unités sont-elles indiquées ?</li>
+<li>L’échelle est-elle régulière ?</li>
+<li>L’axe commence-t-il à 0 ou est-il tronqué ?</li>
+<li>Les données sont-elles assez nombreuses ?</li>
+<li>Le graphique montre-t-il une vraie tendance ou seulement quelques points isolés ?</li>
+<li>L’ajustement linéaire est-il pertinent ?</li>
+<li>L’interprétation respecte-t-elle le contexte ?</li>
+</ol>
+</div>
+
+<div class="warning">
+<strong>Attention :</strong> une droite de Mayer peut donner une impression de précision. Elle reste un modèle approximatif.
+</div>
+
+<h2>11. Exercices progressifs</h2>
+
+<h3>A. Exercices “connaître”</h3>
+<div class="exercise">
+<strong>1.</strong> Définis : quartile, intervalle interquartile, écart interquartile, écart-type.<br><br>
+<strong>2.</strong> Explique à quoi sert une boîte à moustaches.<br><br>
+<strong>3.</strong> Explique la différence entre interpolation et extrapolation.<br><br>
+<strong>4.</strong> Dans un nuage de points, que signifie une tendance positive ?
+</div>
+
+<h3>B. Exercices “appliquer”</h3>
+<div class="exercise">
+<strong>5.</strong> Série : 4 ; 6 ; 7 ; 9 ; 10 ; 12 ; 15 ; 18 ; 20.<br>
+Calcule la médiane, Q1, Q3, l’intervalle interquartile et l’écart interquartile.<br><br>
+<strong>6.</strong> Série : 3 ; 5 ; 7. Calcule la moyenne et l’écart-type.<br><br>
+<strong>7.</strong> Pour une série, on donne : min = 2, Q1 = 5, médiane = 8, Q3 = 12, max = 30. Décris la boîte à moustaches et interprète la dispersion.
+</div>
+
+<h3>C. Exercices “transférer”</h3>
+<div class="exercise">
+<strong>8.</strong> Deux machines produisent des pièces. Machine A : moyenne 50 mm, écart-type 0,4 mm. Machine B : moyenne 50 mm, écart-type 1,8 mm. Laquelle est la plus régulière ? Justifie.<br><br>
+<strong>9.</strong> Points observés : (1 ; 4), (2 ; 5), (3 ; 7), (4 ; 10), (5 ; 11), (6 ; 13). Construis les deux points moyens de Mayer.<br><br>
+<strong>10.</strong> On utilise une droite de Mayer construite à partir de données de x compris entre 0 et 10 pour prévoir une valeur à x = 40. Que faut-il signaler ?
+</div>
+
+<hr>
+<h2>12. Corrections détaillées des exercices</h2>
+
+<div class="correction">
+<strong>1.</strong> Quartile : valeur qui découpe une série ordonnée en quarts. Intervalle interquartile : intervalle [Q1 ; Q3]. Écart interquartile : Q3 − Q1. Écart-type : indicateur de dispersion autour de la moyenne.
+</div>
+
+<div class="correction">
+<strong>2.</strong> Une boîte à moustaches sert à visualiser rapidement la dispersion d’une série à partir du minimum, de Q1, de la médiane, de Q3 et du maximum.
+</div>
+
+<div class="correction">
+<strong>3.</strong> L’interpolation estime une valeur à l’intérieur de la zone de données observées. L’extrapolation estime une valeur en dehors de cette zone et est plus risquée.
+</div>
+
+<div class="correction">
+<strong>4.</strong> Une tendance positive signifie que lorsque x augmente, y a tendance à augmenter aussi.
+</div>
+
+<div class="correction">
+<strong>5.</strong> Série ordonnée : 4 ; 6 ; 7 ; 9 ; 10 ; 12 ; 15 ; 18 ; 20.<br>
+Il y a 9 valeurs. Médiane = 5e valeur = 10.<br>
+Moitié basse : 4 ; 6 ; 7 ; 9. Q1 = moyenne de 6 et 7 = 6,5.<br>
+Moitié haute : 12 ; 15 ; 18 ; 20. Q3 = moyenne de 15 et 18 = 16,5.<br>
+Intervalle interquartile : <span class="formula">[6,5 ; 16,5]</span>.<br>
+Écart interquartile : <span class="formula">16,5 − 6,5 = 10</span>.
+</div>
+
+<div class="correction">
+<strong>6.</strong> Moyenne : <span class="formula">(3+5+7)/3 = 5</span>.<br>
+Écarts à la moyenne : -2 ; 0 ; 2.<br>
+Carrés : 4 ; 0 ; 4.<br>
+Moyenne des carrés : <span class="formula">8/3 ≈ 2,67</span>.<br>
+Écart-type : <span class="formula">√2,67 ≈ 1,63</span>.
+</div>
+
+<div class="correction">
+<strong>7.</strong> La boîte va de 5 à 12, la médiane est à 8. Les moustaches vont de 2 à 5 et de 12 à 30. La moustache droite est beaucoup plus longue, ce qui indique des valeurs élevées éloignées du centre. La série est plus étalée vers les grandes valeurs.
+</div>
+
+<div class="correction">
+<strong>8.</strong> Les deux machines ont la même moyenne de 50 mm. La machine A a un écart-type de 0,4 mm, beaucoup plus petit que celui de la machine B. La machine A est donc plus régulière.
+</div>
+
+<div class="correction">
+<strong>9.</strong> Les points sont déjà triés.<br>
+Groupe 1 : (1 ; 4), (2 ; 5), (3 ; 7).<br>
+<span class="formula">x̄₁ = (1+2+3)/3 = 2</span>, <span class="formula">ȳ₁ = (4+5+7)/3 = 16/3 ≈ 5,33</span>.<br>
+Donc <span class="formula">G₁ ≈ (2 ; 5,33)</span>.<br>
+Groupe 2 : (4 ; 10), (5 ; 11), (6 ; 13).<br>
+<span class="formula">x̄₂ = (4+5+6)/3 = 5</span>, <span class="formula">ȳ₂ = (10+11+13)/3 = 34/3 ≈ 11,33</span>.<br>
+Donc <span class="formula">G₂ ≈ (5 ; 11,33)</span>.
+</div>
+
+<div class="correction">
+<strong>10.</strong> Il faut signaler qu’il s’agit d’une extrapolation très éloignée des données observées. La prévision est donc peu fiable et doit être interprétée avec prudence.
+</div>
+
+<hr>
+<h2>13. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse par une phrase, un calcul ou une interprétation claire. Les résultats doivent être interprétés dans le contexte.
+</div>
+
+<div class="exercise">
+<strong>Question 1 – Quartiles et boîte à moustaches</strong><br>
+On relève les durées, en minutes, de 13 interventions techniques :<br>
+12 ; 15 ; 18 ; 20 ; 22 ; 25 ; 30 ; 35 ; 38 ; 42 ; 50 ; 55 ; 80<br>
+1) Détermine le minimum, Q1, la médiane, Q3 et le maximum.<br>
+2) Donne l’intervalle interquartile et l’écart interquartile.<br>
+3) Explique ce que montre la valeur 80 dans cette série.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 2 – Écart-type et interprétation</strong><br>
+Deux équipes ont le même temps moyen d’intervention : 30 minutes.<br>
+Équipe A : écart-type 3 minutes.<br>
+Équipe B : écart-type 12 minutes.<br>
+Compare les deux équipes.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 3 – Nuage de points</strong><br>
+Dans une étude, x représente la température extérieure et y la consommation de chauffage. Le nuage de points descend globalement de gauche à droite.<br>
+1) Quelle est la tendance ?<br>
+2) Interprète dans le contexte.<br>
+3) Peut-on affirmer que la température est la seule cause de la consommation ? Justifie.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 4 – Droite de Mayer</strong><br>
+On donne les points suivants :<br>
+(1 ; 12), (2 ; 15), (3 ; 17), (4 ; 20), (5 ; 24), (6 ; 26), (7 ; 29), (8 ; 31).<br>
+1) Partage la série en deux groupes.<br>
+2) Calcule les deux points moyens de Mayer.<br>
+3) Explique comment tracer la droite de Mayer.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 5 – Esprit critique</strong><br>
+Un graphique utilise une droite d’ajustement pour prévoir une valeur pour x = 100, alors que toutes les données observées sont comprises entre x = 0 et x = 15.<br>
+Explique pourquoi cette prévision doit être critiquée.
+<div class="answer-space"></div>
+</div>
+
+<h2>14. Correction du mini-test final</h2>
+
+<div class="correction">
+<strong>Question 1</strong><br>
+Série déjà ordonnée. Minimum = 12, maximum = 80.<br>
+Il y a 13 valeurs, la médiane est la 7e valeur : <span class="formula">médiane = 30</span>.<br>
+Moitié basse : 12 ; 15 ; 18 ; 20 ; 22 ; 25. Q1 = moyenne de 18 et 20 = 19.<br>
+Moitié haute : 35 ; 38 ; 42 ; 50 ; 55 ; 80. Q3 = moyenne de 42 et 50 = 46.<br>
+Intervalle interquartile : <span class="formula">[19 ; 46]</span>.<br>
+Écart interquartile : <span class="formula">46 − 19 = 27</span> minutes.<br>
+La valeur 80 est très éloignée du reste de la série : elle augmente fortement l’étendue et peut correspondre à une intervention exceptionnellement longue.
+</div>
+
+<div class="correction">
+<strong>Question 2</strong><br>
+Les deux équipes ont la même moyenne, donc elles ont globalement le même temps moyen d’intervention. Mais l’équipe A a un écart-type de 3 minutes, beaucoup plus petit que 12 minutes. L’équipe A est donc plus régulière. L’équipe B est plus variable : certaines interventions peuvent être beaucoup plus courtes ou beaucoup plus longues.
+</div>
+
+<div class="correction">
+<strong>Question 3</strong><br>
+1) La tendance est négative : quand x augmente, y diminue globalement.<br>
+2) Quand la température extérieure augmente, la consommation de chauffage tend à diminuer.<br>
+3) Non, on ne peut pas affirmer que la température est la seule cause. D’autres facteurs peuvent intervenir : isolation, surface du bâtiment, comportement des occupants, réglage du chauffage.
+</div>
+
+<div class="correction">
+<strong>Question 4</strong><br>
+Groupe 1 : (1 ; 12), (2 ; 15), (3 ; 17), (4 ; 20).<br>
+<span class="formula">x̄₁ = (1+2+3+4)/4 = 2,5</span>.<br>
+<span class="formula">ȳ₁ = (12+15+17+20)/4 = 64/4 = 16</span>.<br>
+Donc <span class="formula">G₁ = (2,5 ; 16)</span>.<br><br>
+Groupe 2 : (5 ; 24), (6 ; 26), (7 ; 29), (8 ; 31).<br>
+<span class="formula">x̄₂ = (5+6+7+8)/4 = 6,5</span>.<br>
+<span class="formula">ȳ₂ = (24+26+29+31)/4 = 110/4 = 27,5</span>.<br>
+Donc <span class="formula">G₂ = (6,5 ; 27,5)</span>.<br>
+Pour tracer la droite de Mayer, on place G₁ et G₂ dans le repère puis on trace la droite passant par ces deux points.
+</div>
+
+<div class="correction">
+<strong>Question 5</strong><br>
+La prévision pour x = 100 est une extrapolation très éloignée de la zone observée, puisque les données connues vont seulement de 0 à 15. La droite d’ajustement peut ne plus représenter correctement le phénomène loin du nuage de points. La prévision doit donc être considérée comme très incertaine.
+</div>
+
+<hr>
+<h2>15. Fiche mémo finale</h2>
+
+<div class="memo box">
+<h3>Statistique à une variable</h3>
+<ul>
+<li><strong>Quartiles :</strong> valeurs qui découpent une série ordonnée en quatre parties.</li>
+<li><strong>Q1 :</strong> environ 25 % des données sont inférieures ou égales.</li>
+<li><strong>Médiane / Q2 :</strong> environ 50 % des données sont inférieures ou égales.</li>
+<li><strong>Q3 :</strong> environ 75 % des données sont inférieures ou égales.</li>
+<li><strong>Intervalle interquartile :</strong> <span class="formula">[Q1 ; Q3]</span>.</li>
+<li><strong>Écart interquartile :</strong> <span class="formula">Q3 − Q1</span>.</li>
+<li><strong>Écart-type :</strong> mesure de dispersion autour de la moyenne.</li>
+<li><strong>Boîte à moustaches :</strong> min, Q1, médiane, Q3, max.</li>
+</ul>
+
+<h3>Statistique à deux variables</h3>
+<ul>
+<li><strong>Couple :</strong> une donnée sous forme <span class="formula">(x ; y)</span>.</li>
+<li><strong>Nuage de points :</strong> représentation de tous les couples.</li>
+<li><strong>Ajustement linéaire :</strong> droite qui résume une tendance approximativement linéaire.</li>
+<li><strong>Droite de Mayer :</strong> droite passant par deux points moyens calculés à partir de deux groupes de points.</li>
+<li><strong>Interpolation :</strong> estimation dans la zone des données.</li>
+<li><strong>Extrapolation :</strong> estimation hors de la zone des données, plus risquée.</li>
+</ul>
+
+<h3>Procédure Mayer</h3>
+<ol>
+<li>Trier les points par x croissant.</li>
+<li>Partager en deux groupes.</li>
+<li>Calculer le point moyen de chaque groupe.</li>
+<li>Placer les deux points moyens.</li>
+<li>Tracer la droite passant par ces deux points.</li>
+<li>Utiliser la droite avec prudence pour estimer.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Oublier de trier la série avant les quartiles.</li>
+<li>Confondre écart interquartile et intervalle interquartile.</li>
+<li>Interpréter une moyenne sans regarder la dispersion.</li>
+<li>Tracer une droite d’ajustement alors que le nuage n’est pas linéaire.</li>
+<li>Faire une extrapolation trop éloignée sans avertissement.</li>
+<li>Confondre corrélation et causalité.</li>
+</ul>
+</div>
+
+<h2>16. Ressources utiles pour réviser</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=quartiles+boite+%C3%A0+moustaches+exercices">YouTube – quartiles et boîte à moustaches</a></li>
+<li><a href="https://www.youtube.com/results?search_query=%C3%A9cart+type+statistique+exercices">YouTube – écart-type en statistique</a></li>
+<li><a href="https://www.youtube.com/results?search_query=nuage+de+points+droite+de+Mayer">YouTube – nuage de points et droite de Mayer</a></li>
+<li><a href="https://www.youtube.com/results?search_query=ajustement+lin%C3%A9aire+interpolation+extrapolation">YouTube – ajustement linéaire, interpolation, extrapolation</a></li>
+<li><a href="https://fr.khanacademy.org/math/statistics-probability">Khan Academy – statistiques</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-mesures-de-position-m1078">Alloprof – mesures de position</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/le-nuage-de-points-m1375">Alloprof – nuage de points</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ32 UAA3 – Statistique. Le cours se limite aux indicateurs de dispersion, aux boîtes à moustaches, à la statistique à deux variables, au nuage de points et à la droite de Mayer.
+</div>
+
+</div>
+</body>
+</html>

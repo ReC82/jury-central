@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA7 – Trigonométrie</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}
+h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:110px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.small{font-size:.92em;color:#555}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table,svg{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ34 UAA7 – Trigonométrie<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> utiliser les relations trigonométriques dans un triangle rectangle pour calculer des angles et des longueurs dans des situations géométriques ou techniques.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> il faut identifier correctement le triangle rectangle, repérer l’angle connu ou cherché, nommer les côtés par rapport à cet angle, choisir sinus, cosinus ou tangente, puis justifier le calcul.
+</div>
+
+<h2>1. Repartir des bases : le triangle rectangle</h2>
+
+<div class="box">
+Un <strong>triangle rectangle</strong> est un triangle qui possède un angle droit, c’est-à-dire un angle de 90°.
+</div>
+
+<table>
+<tr><th>Élément</th><th>Définition</th></tr>
+<tr><td>Angle droit</td><td>Angle de 90°.</td></tr>
+<tr><td>Hypoténuse</td><td>Côté opposé à l’angle droit. C’est toujours le plus long côté du triangle rectangle.</td></tr>
+<tr><td>Côté opposé à un angle</td><td>Côté situé en face de l’angle choisi.</td></tr>
+<tr><td>Côté adjacent à un angle</td><td>Côté qui touche l’angle choisi, mais qui n’est pas l’hypoténuse.</td></tr>
+</table>
+
+<svg width="720" height="380" viewBox="0 0 720 380">
+<polygon points="120,300 560,300 120,80" fill="#fff" stroke="#222" stroke-width="3"/>
+<path d="M120 280 L140 280 L140 300" fill="none" stroke="#222" stroke-width="2"/>
+<text x="310" y="325" font-size="18">côté adjacent à l’angle α</text>
+<text x="80" y="190" font-size="18" transform="rotate(-90 80,190)">côté opposé</text>
+<text x="330" y="175" font-size="18" transform="rotate(27 330,175)">hypoténuse</text>
+<path d="M525 300 A45 45 0 0 0 500 277" fill="none" stroke="#e67e22" stroke-width="3"/>
+<text x="500" y="290" font-size="20" fill="#e67e22">α</text>
+<text x="105" y="325" font-size="16">angle droit</text>
+</svg>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> “opposé” et “adjacent” dépendent de l’angle choisi. Si on change d’angle, les noms des côtés changent.
+</div>
+
+<h2>2. Rappel utile : théorème de Pythagore</h2>
+
+<div class="box">
+Dans un triangle rectangle, si <span class="formula">a</span> et <span class="formula">b</span> sont les deux côtés de l’angle droit, et <span class="formula">c</span> l’hypoténuse, alors :
+<br><span class="formula">a² + b² = c²</span>
+</div>
+
+<div class="ex">
+Un triangle rectangle a deux côtés de l’angle droit mesurant 6 cm et 8 cm. Calcule l’hypoténuse.
+</div>
+<div class="corr">
+<span class="formula">c² = 6² + 8² = 36 + 64 = 100</span><br>
+<span class="formula">c = √100 = 10</span><br>
+L’hypoténuse mesure <strong>10 cm</strong>.
+</div>
+
+<h2>3. Sinus, cosinus et tangente</h2>
+
+<div class="box">
+Dans un triangle rectangle, les rapports trigonométriques permettent de relier un angle aigu aux longueurs des côtés.
+</div>
+
+<table>
+<tr><th>Rapport</th><th>Formule</th><th>Moyen mnémotechnique</th></tr>
+<tr><td>Sinus</td><td><span class="formula">sin(angle)=opposé/hypoténuse</span></td><td>SOH</td></tr>
+<tr><td>Cosinus</td><td><span class="formula">cos(angle)=adjacent/hypoténuse</span></td><td>CAH</td></tr>
+<tr><td>Tangente</td><td><span class="formula">tan(angle)=opposé/adjacent</span></td><td>TOA</td></tr>
+</table>
+
+<div class="box">
+Mémo complet : <strong>SOH CAH TOA</strong><br>
+S = O/H ; C = A/H ; T = O/A.
+</div>
+
+<h2>4. Choisir sinus, cosinus ou tangente</h2>
+
+<div class="method box">
+<strong>Méthode :</strong><br>
+1. Vérifier que le triangle est rectangle.<br>
+2. Repérer l’angle utilisé.<br>
+3. Nommer les côtés connus et cherchés : opposé, adjacent, hypoténuse.<br>
+4. Choisir la formule qui contient les deux côtés utiles.<br>
+5. Remplacer par les valeurs.<br>
+6. Résoudre l’équation.<br>
+7. Écrire une phrase-réponse avec l’unité.
+</div>
+
+<table>
+<tr><th>Côtés concernés</th><th>Rapport à utiliser</th></tr>
+<tr><td>opposé et hypoténuse</td><td>sinus</td></tr>
+<tr><td>adjacent et hypoténuse</td><td>cosinus</td></tr>
+<tr><td>opposé et adjacent</td><td>tangente</td></tr>
+</table>
+
+<h2>5. Calculer une longueur</h2>
+
+<h3>Exemple corrigé 1 : utiliser le sinus</h3>
+<div class="ex">
+Dans un triangle rectangle, l’hypoténuse mesure 12 cm. Un angle aigu vaut 35°. Calcule le côté opposé à cet angle.
+</div>
+<div class="corr">
+On connaît l’hypoténuse et on cherche le côté opposé : on utilise le sinus.<br>
+<span class="formula">sin(35°)=opposé/12</span><br>
+<span class="formula">opposé=12×sin(35°)</span><br>
+<span class="formula">opposé≈12×0,574=6,89</span><br>
+Le côté opposé mesure environ <strong>6,89 cm</strong>.
+</div>
+
+<h3>Exemple corrigé 2 : utiliser le cosinus</h3>
+<div class="ex">
+Dans un triangle rectangle, l’hypoténuse mesure 20 m. L’angle avec le sol vaut 28°. Calcule le côté adjacent.
+</div>
+<div class="corr">
+On connaît l’hypoténuse et on cherche le côté adjacent : on utilise le cosinus.<br>
+<span class="formula">cos(28°)=adjacent/20</span><br>
+<span class="formula">adjacent=20×cos(28°)</span><br>
+<span class="formula">adjacent≈20×0,883=17,66</span><br>
+Le côté adjacent mesure environ <strong>17,66 m</strong>.
+</div>
+
+<h3>Exemple corrigé 3 : utiliser la tangente</h3>
+<div class="ex">
+Une échelle fait un angle de 65° avec le sol. Son pied est à 2 m du mur. À quelle hauteur arrive-t-elle sur le mur ?
+</div>
+<div class="corr">
+Le triangle est rectangle : le mur est vertical et le sol horizontal.<br>
+L’angle au sol vaut 65°.<br>
+Le côté adjacent vaut 2 m. On cherche le côté opposé, la hauteur sur le mur.<br>
+On utilise la tangente :<br>
+<span class="formula">tan(65°)=hauteur/2</span><br>
+<span class="formula">hauteur=2×tan(65°)</span><br>
+<span class="formula">hauteur≈2×2,145=4,29</span><br>
+L’échelle arrive à environ <strong>4,29 m</strong> de hauteur.
+</div>
+
+<div class="warn box">
+<strong>Piège calculatrice :</strong> vérifie que la calculatrice est en mode <strong>degrés</strong> et non en radians.
+</div>
+
+<h2>6. Calculer un angle</h2>
+
+<div class="box">
+Pour trouver un angle, on utilise les fonctions inverses :
+<br><span class="formula">sin⁻¹</span>, <span class="formula">cos⁻¹</span>, <span class="formula">tan⁻¹</span>
+</div>
+
+<table>
+<tr><th>Données</th><th>Calcul de l’angle</th></tr>
+<tr><td>opposé et hypoténuse</td><td><span class="formula">angle = sin⁻¹(opposé/hypoténuse)</span></td></tr>
+<tr><td>adjacent et hypoténuse</td><td><span class="formula">angle = cos⁻¹(adjacent/hypoténuse)</span></td></tr>
+<tr><td>opposé et adjacent</td><td><span class="formula">angle = tan⁻¹(opposé/adjacent)</span></td></tr>
+</table>
+
+<h3>Exemple corrigé 4 : calculer un angle avec la tangente</h3>
+<div class="ex">
+Une rampe monte de 1,2 m sur une longueur horizontale de 8 m. Calcule son angle avec le sol.
+</div>
+<div class="corr">
+Le côté opposé vaut 1,2 m et le côté adjacent vaut 8 m.<br>
+On utilise la tangente :<br>
+<span class="formula">tan(angle)=1,2/8=0,15</span><br>
+<span class="formula">angle=tan⁻¹(0,15)≈8,53°</span><br>
+La rampe forme un angle d’environ <strong>8,53°</strong> avec le sol.
+</div>
+
+<h2>7. Applications techniques</h2>
+
+<h3>7.1 Hauteur inaccessible</h3>
+<div class="ex">
+Un observateur se trouve à 30 m d’un bâtiment. L’angle de visée vers le sommet est de 40°. Ses yeux sont à 1,6 m du sol. Calcule la hauteur du bâtiment.
+</div>
+<div class="corr">
+On calcule d’abord la hauteur au-dessus des yeux.<br>
+Adjacent = distance horizontale = 30 m.<br>
+Opposé = hauteur au-dessus des yeux.<br>
+<span class="formula">tan(40°)=hauteur/30</span><br>
+<span class="formula">hauteur=30×tan(40°)≈30×0,839=25,17 m</span><br>
+Il faut ajouter la hauteur des yeux :<br>
+<span class="formula">25,17+1,6=26,77 m</span><br>
+Le bâtiment mesure environ <strong>26,77 m</strong>.
+</div>
+
+<h3>7.2 Pente d’une route ou d’une rampe</h3>
+<div class="box">
+Une pente peut se décrire par un angle ou par un pourcentage.
+<br><span class="formula">pente en % = (dénivelé / distance horizontale) × 100</span>
+</div>
+
+<div class="ex">
+Une route monte de 6 m sur une distance horizontale de 80 m. Calcule l’angle et la pente en pourcentage.
+</div>
+<div class="corr">
+Pente en pourcentage :<br>
+<span class="formula">(6/80)×100=7,5%</span><br>
+Angle :<br>
+<span class="formula">tan(angle)=6/80=0,075</span><br>
+<span class="formula">angle=tan⁻¹(0,075)≈4,29°</span><br>
+La pente vaut <strong>7,5 %</strong>, soit environ <strong>4,29°</strong>.
+</div>
+
+<h3>7.3 Distance inclinée</h3>
+<div class="ex">
+Une rampe doit atteindre une hauteur de 1,5 m avec un angle de 10°. Quelle longueur doit avoir la rampe ?
+</div>
+<div class="corr">
+La hauteur est le côté opposé. La rampe est l’hypoténuse.<br>
+On utilise le sinus :<br>
+<span class="formula">sin(10°)=1,5/longueur</span><br>
+<span class="formula">longueur=1,5/sin(10°)</span><br>
+<span class="formula">longueur≈1,5/0,174=8,64 m</span><br>
+La rampe doit mesurer environ <strong>8,64 m</strong>.
+</div>
+
+<h2>8. Arrondis et unités</h2>
+
+<div class="box">
+En trigonométrie appliquée, les réponses doivent être réalistes. On indique toujours l’unité : cm, m, degrés, pourcentage.
+</div>
+
+<table>
+<tr><th>Grandeur calculée</th><th>Unité habituelle</th></tr>
+<tr><td>Longueur</td><td>cm, m, km</td></tr>
+<tr><td>Angle</td><td>degrés °</td></tr>
+<tr><td>Pente</td><td>% ou °</td></tr>
+</table>
+
+<div class="warn box">
+<strong>Pièges fréquents :</strong><br>
+- oublier l’unité ;<br>
+- mélanger mètres et centimètres ;<br>
+- arrondir trop tôt ;<br>
+- utiliser le mauvais côté par rapport à l’angle choisi ;<br>
+- oublier la hauteur de l’observateur dans les problèmes de visée.
+</div>
+
+<h2>9. Exercices progressifs</h2>
+
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : hypoténuse, côté opposé, côté adjacent.<br>
+2. Écris les trois formules : sinus, cosinus, tangente.<br>
+3. Explique le moyen mnémotechnique SOH CAH TOA.<br>
+4. Pourquoi faut-il vérifier que le triangle est rectangle ?
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+5. Dans un triangle rectangle, l’hypoténuse mesure 15 cm et un angle vaut 30°. Calcule le côté opposé à cet angle.<br><br>
+6. Dans un triangle rectangle, le côté adjacent à un angle de 42° mesure 9 cm. Calcule l’hypoténuse.<br><br>
+7. Une rampe monte de 2 m sur une distance horizontale de 12 m. Calcule son angle avec le sol.<br><br>
+8. Une échelle de 5 m fait un angle de 70° avec le sol. À quelle hauteur arrive-t-elle sur le mur ?
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+9. Un technicien mesure un angle de 35° vers le sommet d’un pylône depuis un point situé à 45 m du pied du pylône. Ses yeux sont à 1,7 m du sol. Calcule la hauteur du pylône.<br><br>
+10. Une route monte de 12 m sur une distance horizontale de 150 m. Calcule la pente en pourcentage et l’angle de montée.<br><br>
+11. Une rampe ne peut pas dépasser 8°. Elle doit atteindre une hauteur de 0,9 m. Quelle longueur minimale doit-elle avoir ?
+</div>
+
+<h2>10. Corrections détaillées</h2>
+
+<div class="corr">
+1. L’hypoténuse est le côté opposé à l’angle droit. Le côté opposé est le côté en face de l’angle choisi. Le côté adjacent touche l’angle choisi, sans être l’hypoténuse.
+</div>
+<div class="corr">
+2. <span class="formula">sin(angle)=opposé/hypoténuse</span>, <span class="formula">cos(angle)=adjacent/hypoténuse</span>, <span class="formula">tan(angle)=opposé/adjacent</span>.
+</div>
+<div class="corr">
+3. SOH CAH TOA signifie : Sinus = Opposé/Hypoténuse ; Cosinus = Adjacent/Hypoténuse ; Tangente = Opposé/Adjacent.
+</div>
+<div class="corr">
+4. Ces formules sont valables dans un triangle rectangle. Sans angle droit, il faut d’autres outils.
+</div>
+<div class="corr">
+5. <span class="formula">sin(30°)=opposé/15</span>, donc <span class="formula">opposé=15×sin(30°)=15×0,5=7,5 cm</span>.
+</div>
+<div class="corr">
+6. <span class="formula">cos(42°)=9/hypoténuse</span>, donc <span class="formula">hypoténuse=9/cos(42°)≈9/0,743=12,11 cm</span>.
+</div>
+<div class="corr">
+7. <span class="formula">tan(angle)=2/12=1/6</span>, donc <span class="formula">angle=tan⁻¹(1/6)≈9,46°</span>.
+</div>
+<div class="corr">
+8. La hauteur est le côté opposé et l’échelle est l’hypoténuse : <span class="formula">sin(70°)=hauteur/5</span>. Donc <span class="formula">hauteur=5×sin(70°)≈4,70 m</span>.
+</div>
+<div class="corr">
+9. Hauteur au-dessus des yeux : <span class="formula">45×tan(35°)≈45×0,700=31,51 m</span>. Hauteur totale : <span class="formula">31,51+1,7=33,21 m</span>.
+</div>
+<div class="corr">
+10. Pente en % : <span class="formula">(12/150)×100=8%</span>. Angle : <span class="formula">tan⁻¹(12/150)≈4,57°</span>.
+</div>
+<div class="corr">
+11. La hauteur est opposée et la rampe est l’hypoténuse : <span class="formula">sin(8°)=0,9/longueur</span>. Donc <span class="formula">longueur=0,9/sin(8°)≈6,47 m</span>. La rampe doit mesurer au moins 6,47 m.
+</div>
+
+<h2>11. Mini-test final type examen</h2>
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse. Indique la formule utilisée, le calcul et une phrase-réponse avec l’unité.
+</div>
+
+<div class="ex">
+<strong>Question 1.</strong> Dans un triangle rectangle, l’hypoténuse mesure 18 cm et un angle aigu vaut 38°.<br>
+1) Calcule le côté opposé à cet angle.<br>
+2) Calcule le côté adjacent à cet angle.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 2.</strong> Dans un triangle rectangle, le côté opposé à un angle vaut 7 cm et le côté adjacent vaut 11 cm.<br>
+Calcule l’angle.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 3.</strong> Une échelle de 6 m est posée contre un mur. Elle fait un angle de 68° avec le sol.<br>
+1) À quelle hauteur arrive-t-elle ?<br>
+2) À quelle distance du mur se trouve son pied ?<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 4.</strong> Un observateur situé à 60 m d’une tour mesure un angle de visée de 32°. Ses yeux sont à 1,65 m du sol. Calcule la hauteur de la tour.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 5.</strong> Une rampe doit atteindre une hauteur de 1,2 m. Pour être accessible, son angle ne doit pas dépasser 6°.<br>
+Quelle longueur minimale doit-elle avoir ?<div class="answer"></div>
+</div>
+
+<h2>12. Correction du mini-test</h2>
+
+<div class="corr">
+<strong>Q1.</strong> Côté opposé : <span class="formula">sin(38°)=opposé/18</span>, donc <span class="formula">opposé=18×sin(38°)≈11,08 cm</span>.<br>
+Côté adjacent : <span class="formula">cos(38°)=adjacent/18</span>, donc <span class="formula">adjacent=18×cos(38°)≈14,18 cm</span>.
+</div>
+<div class="corr">
+<strong>Q2.</strong> <span class="formula">tan(angle)=7/11</span>. Donc <span class="formula">angle=tan⁻¹(7/11)≈32,47°</span>.
+</div>
+<div class="corr">
+<strong>Q3.</strong> La hauteur est opposée à l’angle : <span class="formula">hauteur=6×sin(68°)≈5,56 m</span>.<br>
+La distance au mur est adjacente : <span class="formula">distance=6×cos(68°)≈2,25 m</span>.
+</div>
+<div class="corr">
+<strong>Q4.</strong> Hauteur au-dessus des yeux : <span class="formula">60×tan(32°)≈37,49 m</span>.<br>
+Hauteur totale : <span class="formula">37,49+1,65=39,14 m</span>. La tour mesure environ 39,14 m.
+</div>
+<div class="corr">
+<strong>Q5.</strong> La hauteur est le côté opposé et la rampe l’hypoténuse : <span class="formula">sin(6°)=1,2/L</span>.<br>
+Donc <span class="formula">L=1,2/sin(6°)≈11,48 m</span>. La rampe doit mesurer au moins 11,48 m.
+</div>
+
+<h2>13. Fiche mémo finale</h2>
+<div class="box memo">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Triangle rectangle :</strong> triangle avec un angle de 90°.</li>
+<li><strong>Hypoténuse :</strong> côté opposé à l’angle droit, toujours le plus long.</li>
+<li><strong>Opposé :</strong> côté en face de l’angle choisi.</li>
+<li><strong>Adjacent :</strong> côté qui touche l’angle choisi, sauf l’hypoténuse.</li>
+</ul>
+
+<h3>Formules</h3>
+<ul>
+<li><span class="formula">sin(angle)=opposé/hypoténuse</span></li>
+<li><span class="formula">cos(angle)=adjacent/hypoténuse</span></li>
+<li><span class="formula">tan(angle)=opposé/adjacent</span></li>
+<li><span class="formula">a²+b²=c²</span> pour Pythagore.</li>
+<li><span class="formula">pente en %=(dénivelé/distance horizontale)×100</span></li>
+</ul>
+
+<h3>Fonctions inverses</h3>
+<ul>
+<li><span class="formula">angle=sin⁻¹(opposé/hypoténuse)</span></li>
+<li><span class="formula">angle=cos⁻¹(adjacent/hypoténuse)</span></li>
+<li><span class="formula">angle=tan⁻¹(opposé/adjacent)</span></li>
+</ul>
+
+<h3>Procédure</h3>
+<ol>
+<li>Vérifier que le triangle est rectangle.</li>
+<li>Choisir l’angle de référence.</li>
+<li>Nommer les côtés : opposé, adjacent, hypoténuse.</li>
+<li>Choisir sinus, cosinus ou tangente.</li>
+<li>Remplacer dans la formule.</li>
+<li>Résoudre.</li>
+<li>Répondre avec l’unité et une phrase.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Calculatrice en radians au lieu de degrés.</li>
+<li>Confondre opposé et adjacent.</li>
+<li>Prendre l’hypoténuse comme côté adjacent.</li>
+<li>Oublier que l’hypoténuse est toujours le plus long côté.</li>
+<li>Oublier d’ajouter la hauteur des yeux dans un problème de visée.</li>
+<li>Arrondir trop tôt.</li>
+</ul>
+</div>
+
+<h2>14. Ressources utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=trigonom%C3%A9trie+triangle+rectangle+sinus+cosinus+tangente">YouTube – trigonométrie dans le triangle rectangle</a></li>
+<li><a href="https://www.youtube.com/results?search_query=SOH+CAH+TOA+exercices">YouTube – SOH CAH TOA exercices</a></li>
+<li><a href="https://www.youtube.com/results?search_query=calculer+un+angle+avec+sinus+cosinus+tangente">YouTube – calculer un angle avec sin/cos/tan</a></li>
+<li><a href="https://www.youtube.com/results?search_query=trigonom%C3%A9trie+applications+techniques+hauteur+rampe">YouTube – applications techniques trigonométrie</a></li>
+<li><a href="https://fr.khanacademy.org/math/trigonometry">Khan Academy – trigonométrie</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-rapports-trigonometriques-m1278">Alloprof – rapports trigonométriques</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ34 UAA7 – Trigonométrie.
+</div>
+
+</div>
+</body>
+</html>
