@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 13
+code: "MQ34-UAA13"
+title: "Géométrie vectorielle"
+slug: "mq34-uaa13-geometrie-vectorielle"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA13_geometrie_vectorielle.html"
+    sha256: "d7636d19e26512e120066c72d5a8cb96cd59018ae545a90f1f564a20dafc18de"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA13 – Géométrie vectorielle.pdf"
+    sha256: "46116233c332d8ab7131c80801e277471f50eb69407f49ad2c090369da207074"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:26.2190120+02:00"

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA2 – Statistique à deux variables</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:white}
+.page{max-width:1050px;margin:auto;padding:28px}
+h1{border-bottom:5px solid #e67e22;padding-bottom:10px;color:#243447}
+h2{border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px;color:#243447}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:95px;border:1px dashed #aaa;background:white;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table,svg{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+<h1>MQ34 UAA2 – Statistique à deux variables<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> apprendre à analyser deux variables numériques ensemble : construire un nuage de points, reconnaître une tendance, tracer une droite d’ajustement, utiliser la droite de Mayer ou la droite des moindres carrés, et interpréter correctement la corrélation sans la confondre avec une causalité.
+</div>
+
+<div class="box exam">
+<strong>Compétence centrale :</strong> représenter des données, ajuster un modèle linéaire quand c’est pertinent, estimer une valeur, puis critiquer la portée de l’estimation.
+</div>
+
+<h2>1. Qu’est-ce qu’une statistique à deux variables ?</h2>
+<p>On parle de statistique à deux variables lorsqu’on mesure deux grandeurs pour chaque individu. Chaque donnée devient un couple <span class="formula">(x ; y)</span>.</p>
+<table>
+<tr><th>Situation</th><th>x</th><th>y</th><th>Question</th></tr>
+<tr><td>Étude scolaire</td><td>heures d’étude</td><td>note</td><td>Plus on étudie, meilleure est la note ?</td></tr>
+<tr><td>Commerce</td><td>prix</td><td>quantité vendue</td><td>Quand le prix augmente, les ventes baissent-elles ?</td></tr>
+<tr><td>Énergie</td><td>température extérieure</td><td>chauffage consommé</td><td>Existe-t-il une relation ?</td></tr>
+</table>
+
+<h2>2. Nuage de points</h2>
+<div class="box">
+Un <strong>nuage de points</strong> est un graphique où chaque couple <span class="formula">(x ; y)</span> est placé dans un repère. Il sert à voir rapidement s’il existe une tendance.
+</div>
+
+<div class="method box">
+<strong>Méthode :</strong><br>
+1. Lire les couples de données.<br>
+2. Choisir une échelle adaptée.<br>
+3. Nommer les axes et les unités.<br>
+4. Placer tous les points.<br>
+5. Observer la forme générale : tendance positive, négative, forte, faible, linéaire ou non linéaire.
+</div>
+
+<svg width="760" height="390" viewBox="0 0 760 390">
+<line x1="70" y1="330" x2="700" y2="330" stroke="#222" stroke-width="2"/>
+<line x1="70" y1="330" x2="70" y2="40" stroke="#222" stroke-width="2"/>
+<text x="685" y="360" font-size="16">x</text><text x="40" y="55" font-size="16">y</text>
+<g fill="#1f618d">
+<circle cx="120" cy="300" r="5"/><circle cx="170" cy="280" r="5"/><circle cx="230" cy="260" r="5"/><circle cx="290" cy="225" r="5"/>
+<circle cx="350" cy="210" r="5"/><circle cx="410" cy="180" r="5"/><circle cx="470" cy="160" r="5"/><circle cx="530" cy="120" r="5"/><circle cx="600" cy="105" r="5"/>
+</g>
+<line x1="105" y1="305" x2="625" y2="95" stroke="#e67e22" stroke-width="3" stroke-dasharray="8 5"/>
+<text x="315" y="75" font-size="18">Tendance positive linéaire</text>
+</svg>
+
+<h2>3. Lire une tendance</h2>
+<table>
+<tr><th>Aspect du nuage</th><th>Nom</th><th>Interprétation</th></tr>
+<tr><td>Les points montent de gauche à droite.</td><td>Corrélation positive</td><td>Quand x augmente, y tend à augmenter.</td></tr>
+<tr><td>Les points descendent de gauche à droite.</td><td>Corrélation négative</td><td>Quand x augmente, y tend à diminuer.</td></tr>
+<tr><td>Les points sont proches d’une droite.</td><td>Tendance linéaire forte</td><td>Une droite d’ajustement peut être pertinente.</td></tr>
+<tr><td>Les points sont très dispersés.</td><td>Tendance faible ou absente</td><td>Une droite peut être peu fiable.</td></tr>
+</table>
+
+<div class="box warn">
+<strong>Piège :</strong> ne trace pas une droite d’ajustement simplement parce qu’on te le demande. Il faut d’abord vérifier que le nuage ressemble globalement à une droite.
+</div>
+
+<h2>4. Ajustement linéaire</h2>
+<p>Un <strong>ajustement linéaire</strong> consiste à résumer un nuage de points par une droite. La droite ne passe pas par tous les points : elle représente seulement une tendance moyenne.</p>
+
+<h3>Interpolation et extrapolation</h3>
+<table>
+<tr><th>Mot</th><th>Définition</th><th>Fiabilité</th></tr>
+<tr><td>Interpolation</td><td>Prévoir une valeur dans la zone des données observées.</td><td>Plus fiable.</td></tr>
+<tr><td>Extrapolation</td><td>Prévoir une valeur hors de la zone des données observées.</td><td>Plus risquée.</td></tr>
+</table>
+
+<h2>5. Droite de Mayer</h2>
+<div class="box">
+La <strong>droite de Mayer</strong> est une droite d’ajustement construite à partir de deux points moyens.
+</div>
+
+<div class="method box">
+<strong>Procédure Mayer :</strong><br>
+1. Trier les points selon les x croissants.<br>
+2. Partager les points en deux groupes de même taille ou presque.<br>
+3. Calculer le point moyen du premier groupe : <span class="formula">G₁(x̄₁ ; ȳ₁)</span>.<br>
+4. Calculer le point moyen du second groupe : <span class="formula">G₂(x̄₂ ; ȳ₂)</span>.<br>
+5. Tracer la droite passant par G₁ et G₂.
+</div>
+
+<h3>Exemple corrigé</h3>
+<div class="ex">
+On donne les points : (1 ; 8), (2 ; 9), (3 ; 11), (4 ; 12), (5 ; 14), (6 ; 15), (7 ; 17), (8 ; 18). Calcule les deux points moyens de Mayer.
+</div>
+<div class="corr">
+Groupe 1 : (1 ; 8), (2 ; 9), (3 ; 11), (4 ; 12).<br>
+<span class="formula">x̄₁=(1+2+3+4)/4=2,5</span> et <span class="formula">ȳ₁=(8+9+11+12)/4=10</span>.<br>
+Donc <span class="formula">G₁=(2,5 ; 10)</span>.<br><br>
+Groupe 2 : (5 ; 14), (6 ; 15), (7 ; 17), (8 ; 18).<br>
+<span class="formula">x̄₂=(5+6+7+8)/4=6,5</span> et <span class="formula">ȳ₂=(14+15+17+18)/4=16</span>.<br>
+Donc <span class="formula">G₂=(6,5 ; 16)</span>.
+</div>
+
+<h2>6. Équation d’une droite d’ajustement</h2>
+<div class="box">
+Une droite s’écrit souvent <span class="formula">y = ax + b</span>, où <strong>a</strong> est la pente et <strong>b</strong> l’ordonnée à l’origine.
+</div>
+<div class="box">
+Avec deux points <span class="formula">(x₁ ; y₁)</span> et <span class="formula">(x₂ ; y₂)</span> :<br>
+<span class="formula">a = (y₂ − y₁) / (x₂ − x₁)</span>
+</div>
+
+<h3>Exemple corrigé</h3>
+<div class="ex">
+La droite de Mayer passe par <span class="formula">G₁(2,5 ; 10)</span> et <span class="formula">G₂(6,5 ; 16)</span>. Trouve une équation.
+</div>
+<div class="corr">
+Pente : <span class="formula">a=(16−10)/(6,5−2,5)=6/4=1,5</span>.<br>
+Donc <span class="formula">y=1,5x+b</span>.<br>
+Avec <span class="formula">(2,5 ; 10)</span> : <span class="formula">10=1,5×2,5+b</span>, donc <span class="formula">b=6,25</span>.<br>
+Équation : <span class="formula">y=1,5x+6,25</span>.
+</div>
+
+<h2>7. Droite des moindres carrés</h2>
+<div class="box">
+La <strong>droite des moindres carrés</strong> est une droite calculée pour minimiser globalement les écarts entre les points et la droite. Elle est généralement obtenue avec une calculatrice ou un tableur.
+</div>
+<table>
+<tr><th>Méthode</th><th>Avantage</th><th>Limite</th></tr>
+<tr><td>Droite de Mayer</td><td>Simple, faisable à la main.</td><td>Dépend du découpage des points.</td></tr>
+<tr><td>Moindres carrés</td><td>Utilise tous les points de manière systématique.</td><td>Souvent calculée par outil ; ne garantit pas que le modèle soit pertinent.</td></tr>
+</table>
+
+<h2>8. Corrélation et causalité</h2>
+<div class="box">
+La <strong>corrélation</strong> mesure le lien statistique entre deux variables. Elle peut être positive, négative, forte ou faible.
+</div>
+<div class="box warn">
+<strong>Règle essentielle :</strong> corrélation ne signifie pas causalité. Deux variables peuvent évoluer ensemble à cause d’un troisième facteur caché.
+</div>
+
+<h3>Exemple</h3>
+<div class="ex">
+On observe que les ventes de glaces et les coups de soleil augmentent en même temps. Les glaces causent-elles les coups de soleil ?
+</div>
+<div class="corr">
+Non. Une variable cachée probable est la météo. Quand il fait chaud et ensoleillé, les gens achètent plus de glaces et ont plus de coups de soleil. Il y a corrélation, mais pas causalité directe.
+</div>
+
+<h2>9. Exercices progressifs</h2>
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : nuage de points, ajustement linéaire, interpolation, extrapolation.<br>
+2. Explique la différence entre droite de Mayer et droite des moindres carrés.<br>
+3. Explique pourquoi corrélation ne signifie pas causalité.
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+4. Points : (1 ; 3), (2 ; 5), (3 ; 6), (4 ; 8), (5 ; 10), (6 ; 11). Calcule les deux points moyens de Mayer.<br><br>
+5. Une droite d’ajustement est <span class="formula">y=2,4x+5</span>. Estime y pour x=12.<br><br>
+6. Une droite passe par A(2 ; 9) et B(8 ; 21). Calcule sa pente.
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+7. Une droite est construite avec des données entre x=0 et x=20. On l’utilise pour prévoir x=100. Que faut-il signaler ?<br><br>
+8. Une étude montre une forte corrélation entre temps passé sur une application de révision et réussite. Peut-on conclure que l’application cause la réussite ?
+</div>
+
+<h2>10. Corrections détaillées</h2>
+<div class="corr">
+1. Nuage de points : graphique de couples (x ; y). Ajustement linéaire : droite qui résume une tendance. Interpolation : estimation dans la zone observée. Extrapolation : estimation hors de la zone observée.
+</div>
+<div class="corr">
+2. Mayer utilise deux points moyens calculés à partir de deux groupes. Les moindres carrés utilisent tous les points et minimisent les écarts.
+</div>
+<div class="corr">
+3. Une corrélation montre un lien statistique, mais ne prouve pas qu’une variable provoque l’autre. Il peut y avoir une cause cachée.
+</div>
+<div class="corr">
+4. Groupe 1 : (1 ; 3), (2 ; 5), (3 ; 6). <span class="formula">G₁=(2 ; 14/3)≈(2 ; 4,67)</span>.<br>
+Groupe 2 : (4 ; 8), (5 ; 10), (6 ; 11). <span class="formula">G₂=(5 ; 29/3)≈(5 ; 9,67)</span>.
+</div>
+<div class="corr">
+5. <span class="formula">y=2,4×12+5=33,8</span>.
+</div>
+<div class="corr">
+6. <span class="formula">a=(21−9)/(8−2)=12/6=2</span>.
+</div>
+<div class="corr">
+7. C’est une extrapolation très éloignée. La prévision est peu fiable et doit être interprétée avec prudence.
+</div>
+<div class="corr">
+8. Non. Les élèves motivés peuvent réviser plus et réussir mieux. Il faut une étude plus contrôlée pour parler de causalité.
+</div>
+
+<h2>11. Mini-test final type examen</h2>
+<div class="box exam">
+Justifie chaque réponse. Les calculs doivent être accompagnés d’une interprétation.
+</div>
+
+<div class="ex">
+<strong>Question 1.</strong> Un nuage de points monte globalement de gauche à droite et les points sont proches d’une droite.<br>
+1) Quelle tendance observe-t-on ?<br>
+2) Un ajustement linéaire est-il pertinent ?<br>
+3) Peut-on conclure à une causalité ?<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 2.</strong> Points : (1 ; 6), (2 ; 7), (3 ; 9), (4 ; 11), (5 ; 13), (6 ; 14), (7 ; 16), (8 ; 18).<br>
+Calcule les deux points moyens de Mayer.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 3.</strong> Une droite passe par <span class="formula">G₁(2,5 ; 8,25)</span> et <span class="formula">G₂(6,5 ; 15,25)</span>.<br>
+1) Calcule la pente.<br>
+2) Trouve une équation.<br>
+3) Estime y pour x=10.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 4.</strong> Un modèle est construit avec x entre 5 et 30. Estimer y pour x=18 est-il une interpolation ou une extrapolation ? Et pour x=80 ? Laquelle est la plus fiable ?<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 5.</strong> On observe une forte corrélation positive entre ventes de cafés et ventes de parapluies. Explique pourquoi cela ne prouve pas que les cafés causent l’achat de parapluies.<div class="answer"></div>
+</div>
+
+<h2>12. Correction du mini-test</h2>
+<div class="corr">
+<strong>Q1.</strong> Tendance positive. Oui, l’ajustement linéaire est pertinent car les points sont proches d’une droite. Non, une corrélation ne prouve pas une causalité.
+</div>
+<div class="corr">
+<strong>Q2.</strong> Groupe 1 : <span class="formula">G₁=(2,5 ; 8,25)</span>. Groupe 2 : <span class="formula">G₂=(6,5 ; 15,25)</span>.
+</div>
+<div class="corr">
+<strong>Q3.</strong> Pente : <span class="formula">a=(15,25−8,25)/(6,5−2,5)=7/4=1,75</span>.<br>
+Équation : <span class="formula">y=1,75x+3,875</span>.<br>
+Pour x=10 : <span class="formula">y=21,375</span>.
+</div>
+<div class="corr">
+<strong>Q4.</strong> x=18 : interpolation. x=80 : extrapolation. L’interpolation est plus fiable car elle reste dans la zone observée.
+</div>
+<div class="corr">
+<strong>Q5.</strong> Une variable cachée, comme la pluie ou la météo, peut expliquer les deux ventes. Il y a corrélation, mais pas causalité démontrée.
+</div>
+
+<h2>13. Fiche mémo finale</h2>
+<div class="box memo">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Nuage de points :</strong> graphique de couples <span class="formula">(x ; y)</span>.</li>
+<li><strong>Ajustement linéaire :</strong> droite qui résume une tendance.</li>
+<li><strong>Droite de Mayer :</strong> droite passant par deux points moyens.</li>
+<li><strong>Moindres carrés :</strong> droite calculée en minimisant les écarts aux points.</li>
+<li><strong>Interpolation :</strong> estimation dans la zone observée.</li>
+<li><strong>Extrapolation :</strong> estimation hors de la zone observée.</li>
+<li><strong>Corrélation :</strong> lien statistique entre deux variables.</li>
+</ul>
+<h3>Formules</h3>
+<ul>
+<li><span class="formula">x̄ = moyenne des x</span></li>
+<li><span class="formula">ȳ = moyenne des y</span></li>
+<li><span class="formula">a=(y₂−y₁)/(x₂−x₁)</span></li>
+<li><span class="formula">y=ax+b</span></li>
+</ul>
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Tracer une droite alors que le nuage n’est pas linéaire.</li>
+<li>Confondre interpolation et extrapolation.</li>
+<li>Faire une prévision trop loin des données.</li>
+<li>Confondre corrélation et causalité.</li>
+<li>Oublier les unités et le contexte.</li>
+</ul>
+</div>
+
+<h2>14. Liens utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=nuage+de+points+ajustement+lin%C3%A9aire+exercices">YouTube – nuage de points et ajustement linéaire</a></li>
+<li><a href="https://www.youtube.com/results?search_query=droite+de+Mayer+exercices">YouTube – droite de Mayer</a></li>
+<li><a href="https://www.youtube.com/results?search_query=droite+des+moindres+carr%C3%A9s+statistiques">YouTube – droite des moindres carrés</a></li>
+<li><a href="https://www.youtube.com/results?search_query=corr%C3%A9lation+causalit%C3%A9+statistiques">YouTube – corrélation et causalité</a></li>
+<li><a href="https://fr.khanacademy.org/math/statistics-probability/describing-relationships-quantitative-data">Khan Academy – relations entre deux variables quantitatives</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/le-nuage-de-points-m1375">Alloprof – nuage de points</a></li>
+</ul>
+
+<div class="box">
+Document conçu pour une révision ciblée de MQ34 UAA2 – Statistique à deux variables.
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 4
+code: "MQ34-UAA4"
+title: "Lois de probabilité"
+slug: "mq34-uaa4-lois-de-probabilite"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA4_lois_de_probabilite.html"
+    sha256: "f5d4b6f1c50a69d278b758a7ef7b0af69c621f7c8d0ed311999b7a27de9ad5b0"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA4 – Lois de probabilité.pdf"
+    sha256: "e76b0dce6954caa21eef4447f04a7adcbf0e3c443186acc09796d92fae4479cd"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.4752319+02:00"

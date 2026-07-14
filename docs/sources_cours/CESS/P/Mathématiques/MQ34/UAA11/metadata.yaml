@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 11
+code: "MQ34-UAA11"
+title: "Système d’équations linéaires"
+slug: "mq34-uaa11-systeme-d-equations-lineaires"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA11_systeme_equations_lineaires.html"
+    sha256: "f5e63feb78a90606d8d6a9387c2545463a8677255a659f531b2626c33789bd8c"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA11 – Système d’équations linéaires.pdf"
+    sha256: "bff5028a8121d21f9d4b796d69cc874613ed6bb437e0f6dba94d92a950415e4b"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:26.0620093+02:00"

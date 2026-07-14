@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -83,22 +84,60 @@ async def uaa_detail(
     uaa_slug: str, request: Request, db: Session = Depends(get_db)
 ) -> HTMLResponse:
     uaa = db.query(models.UAA).filter_by(slug=uaa_slug).first()
-    if uaa is None:
+    if uaa is None or not uaa.is_published:
         raise HTTPException(status_code=404, detail="UAA introuvable")
 
-    rendered_blocks = []
-    for block in uaa.lesson_blocks:
-        if not block.is_published:
-            continue
-
-        item = {
+    def empty_item(block: models.LessonBlock) -> dict:
+        return {
             "block": block,
             "html": None,
             "youtube_id": None,
             "config": None,
             "exercises": None,
             "quiz": None,
+            "quiz_run": None,
         }
+
+    rendered_blocks: list[dict] = []
+    pending_group_name: str | None = None
+    pending_group_entries: list[tuple[int, models.LessonBlock, QuizConfig]] = []
+
+    def flush_group() -> None:
+        nonlocal pending_group_name, pending_group_entries
+        if pending_group_entries:
+            pending_group_entries.sort(key=lambda entry: entry[0])
+            questions = [
+                config.to_public_dict(block.id) for _, block, config in pending_group_entries
+            ]
+            item = empty_item(pending_group_entries[0][1])
+            item["quiz_run"] = {
+                "questions_json": json.dumps(questions, ensure_ascii=False),
+                "count": len(pending_group_entries),
+            }
+            rendered_blocks.append(item)
+        pending_group_name = None
+        pending_group_entries = []
+
+    for block in uaa.lesson_blocks:
+        if not block.is_published:
+            continue
+
+        if block.type == models.BlockType.QUIZ:
+            config = QuizConfig.from_json(block.content)
+            if config.group:
+                if pending_group_name is not None and pending_group_name != config.group:
+                    flush_group()
+                pending_group_name = config.group
+                pending_group_entries.append((config.order_in_group, block, config))
+                continue
+            flush_group()
+            item = empty_item(block)
+            item["quiz"] = config
+            rendered_blocks.append(item)
+            continue
+
+        flush_group()
+        item = empty_item(block)
 
         if block.type == models.BlockType.MARKDOWN:
             item["html"] = render_markdown(block.content)
@@ -111,13 +150,17 @@ async def uaa_detail(
                 item["exercises"] = generate_exercises(config)
             except KeyError:
                 item["exercises"] = []
-        elif block.type == models.BlockType.QUIZ:
-            item["quiz"] = QuizConfig.from_json(block.content)
 
         rendered_blocks.append(item)
+
+    flush_group()
+
+    needs_plotly = any(
+        item["html"] and "jc-graph-constant" in item["html"] for item in rendered_blocks
+    )
 
     return templates.TemplateResponse(
         request=request,
         name="uaa_detail.html",
-        context={"uaa": uaa, "rendered_blocks": rendered_blocks},
+        context={"uaa": uaa, "rendered_blocks": rendered_blocks, "needs_plotly": needs_plotly},
     )

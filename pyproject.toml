@@ -35,6 +35,7 @@ dev = [
 
 [project.scripts]
 seed-db = "app.seed:seed"
+reset-db = "app.seed:reset"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app", "generators"]

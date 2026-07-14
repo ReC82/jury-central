@@ -24,3 +24,54 @@ def test_config_from_invalid_json_uses_defaults():
     config = QuizConfig.from_json("not json")
     assert config.question == ""
     assert config.choices == []
+
+
+def test_config_defaults_are_backward_compatible():
+    config = QuizConfig.from_json("")
+    assert config.answer_type == "choice"
+    assert config.correct_value == ""
+    assert config.group == ""
+    assert config.order_in_group == 0
+
+
+def test_round_trip_preserves_grouping_and_numeric_fields():
+    config = QuizConfig(
+        question="Combien font 2 + 2 ?",
+        answer_type="numeric",
+        correct_value="4",
+        explanation="2 + 2 = 4",
+        group="chiffres",
+        order_in_group=3,
+    )
+    restored = QuizConfig.from_json(config.to_json())
+    assert restored == config
+
+
+def test_check_choice_mode_correct_and_incorrect():
+    config = QuizConfig(question="Q", choices=["a", "b", "c"], correct_index=1)
+    assert config.check("1") is True
+    assert config.check("0") is False
+    assert config.check("abc") is False
+
+
+def test_check_numeric_mode_accepts_normalized_formats():
+    config = QuizConfig(question="Q", answer_type="numeric", correct_value="1.75")
+    assert config.check("1,75") is True
+    assert config.check("7/4") is True
+    assert config.check("2") is False
+
+
+def test_to_public_dict_never_exposes_the_answer():
+    config = QuizConfig(
+        question="Q", choices=["a", "b"], correct_index=1, correct_value="secret"
+    )
+    public = config.to_public_dict(block_id=42)
+    assert public == {
+        "block_id": 42,
+        "question": "Q",
+        "choices": ["a", "b"],
+        "answer_type": "choice",
+    }
+    assert "correct_index" not in public
+    assert "correct_value" not in public
+    assert "secret" not in str(public)

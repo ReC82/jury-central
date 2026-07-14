@@ -1,99 +1,169 @@
-# Environnement de développement — Jury Central
+# Jury Central - Développement
 
-## Mise en place
+Ce document décrit l'environnement de développement et les commandes utiles.
+
+Les conventions générales du projet sont décrites dans `PROJECT_RULES.md`.
+
+L'architecture est décrite dans `ARCHITECTURE.md`.
+
+---
+
+# Prérequis
+
+- Python 3.12
+- Git
+- SQLite
+- Environnement virtuel Python
+
+---
+
+# Installation
+
+Créer l'environnement virtuel :
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate      # Windows
-source .venv/bin/activate   # Linux/macOS
-
-pip install -e ".[dev]"
-cp .env.example .env        # puis éditer ADMIN_USERNAME / ADMIN_PASSWORD / SECRET_KEY
 ```
 
-## Lancer l'application
+Windows :
 
 ```bash
-seed-db                          # charge les données de démonstration (idempotent)
-uvicorn app.main:app --reload    # http://127.0.0.1:8000
+.venv\Scripts\activate
 ```
 
-Le schéma SQLite (`jury_central.db`, à la racine, non versionné) est créé automatiquement
-au démarrage via `Base.metadata.create_all()` (voir `app/main.py` et `app/seed.py`). **Il
-n'y a pas de système de migration (pas d'Alembic)** : toute modification d'un modèle
-existant (ajout/renommage de colonne) nécessite de supprimer `jury_central.db` en local et
-de relancer `seed-db`, sous peine d'incohérence entre le modèle Python et le fichier SQLite
-déjà créé.
+Linux / macOS :
 
-## Lancer les tests
+```bash
+source .venv/bin/activate
+```
+
+Installer les dépendances :
+
+```bash
+pip install -e ".[dev]"
+```
+
+Créer le fichier de configuration :
+
+```bash
+cp .env.example .env
+```
+
+Configurer ensuite :
+
+- ADMIN_USERNAME
+- ADMIN_PASSWORD
+- SECRET_KEY
+
+---
+
+# Lancer le projet
+
+Initialiser les données :
+
+```bash
+seed-db
+```
+
+Lancer le serveur :
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Application :
+
+```
+http://127.0.0.1:8000
+```
+
+---
+
+# Base de données
+
+La base locale est :
+
+```
+jury_central.db
+```
+
+Elle est créée automatiquement.
+
+Aucun système de migration n'est utilisé actuellement.
+
+Après une modification des modèles :
+
+```bash
+reset-db
+```
+
+---
+
+# Tests
+
+Lancer tous les tests :
 
 ```bash
 pytest
 ```
 
-19 tests actuellement, tous dans `tests/` :
-- `tests/generators/` — le moteur de génération d'exercices (`generators/`), 11 tests.
-- `tests/test_exercise_blocks.py` — sérialisation JSON des blocs `generated_exercise`, 5 tests.
-- `tests/test_quiz.py` — sérialisation JSON des blocs `quiz`, 3 tests.
+Le projet doit rester avec tous les tests au vert.
 
-Aucun test automatisé ne couvre encore les routes FastAPI elles-mêmes (pas de `TestClient`)
-— les routes ont été vérifiées manuellement (curl) à chaque étape de développement.
+---
 
-## Lint
+# Lint
 
 ```bash
 ruff check .
 ```
 
-Configuration dans `pyproject.toml` (`[tool.ruff]`), ligne à 100 caractères, cible Python 3.12.
+---
 
-## Conventions du projet
+# Commandes utiles
 
-- **Stockage polymorphe** : `LessonBlock.content` est un champ texte libre dont le sens
-  dépend de `LessonBlock.type`. Pour les types `generated_exercise` et `quiz`, c'est du JSON
-  sérialisé via un dataclass dédié (`app/exercise_blocks.py::ExerciseBlockConfig`,
-  `app/quiz.py::QuizConfig`) avec des méthodes `to_json()` / `from_json()`. Ce choix évite
-  une migration de schéma à chaque nouveau type de bloc, au prix d'une validation qui se
-  fait au niveau applicatif plutôt qu'au niveau base de données.
-- **Générateurs d'exercices indépendants** : le package `generators/` (racine du projet, pas
-  sous `app/`) ne dépend d'aucun module `app.*`. Chaque générateur expose une fonction
-  `generate(difficulty: int, seed: int | None = None) -> GeneratedExercise` (interface
-  définie dans `generators/base.py`) et s'enregistre dans `generators/registry.py` sous un
-  id du type `domaine.module.nom` (ex. `maths.equations.linear_equation`). Aucune IA n'est
-  utilisée : génération procédurale (Python + `random`) et vérification symbolique via
-  SymPy.
-- **JavaScript vanilla uniquement** : pas de framework front, pas de build step, pas de
-  dépendance npm. Chaque fonctionnalité interactive a son propre fichier sous
-  `app/static/js/` (`exercise.js`, `quiz.js`, `progress.js`), inclus globalement dans
-  `base.html`.
-- **Progression étudiant** : entièrement côté client (`localStorage`, clé
-  `jury-central-progress`), aucune table ni route serveur associée — voulu tant qu'il n'y a
-  pas de comptes étudiants.
-- **Slugs** : générés via `app/slugify.py` (accents retirés, minuscules, tirets), utilisés
-  comme clés d'URL publiques pour `Subject`, `Module`, `UAA`. Les routes admin utilisent les
-  `id` numériques, pas les slugs.
-- **Style des routes admin** : un unique routeur public (`/admin/login`) et un unique
-  routeur protégé (`dependencies=[Depends(require_admin)]` posé au niveau du routeur, pas
-  route par route) — voir `app/admin.py`.
-
-## Commandes utiles
+Réinitialiser la base :
 
 ```bash
-# Réinitialiser la base locale
-rm jury_central.db && seed-db
-
-# Lancer un serveur sur un port différent (utile pour tester en parallèle)
-uvicorn app.main:app --port 8001
-
-# Inspecter le contenu d'un bloc généré/quiz stocké en base (JSON dans content)
-python -c "from app.database import SessionLocal; from app.models import LessonBlock; \
-db = SessionLocal(); [print(b.id, b.type, b.content) for b in db.query(LessonBlock).all()]"
+reset-db
 ```
 
-## Ce qui n'est pas encore fait (hors périmètre de cette étape)
+Lancer un second serveur :
 
-- Docker (explicitement hors périmètre pour l'instant).
-- Migrations de schéma (Alembic ou équivalent).
-- Comptes étudiants / scoring global.
-- Gestion des matières/modules/UAA depuis l'admin (actuellement : script `seed.py` uniquement).
-- Tests automatisés sur les routes FastAPI (`TestClient`).
+```bash
+uvicorn app.main:app --port 8001
+```
+
+---
+
+# Workflow de développement
+
+Pour chaque fonctionnalité :
+
+1. analyser le projet ;
+2. réutiliser les composants existants ;
+3. développer ;
+4. écrire ou adapter les tests ;
+5. vérifier que tous les tests passent ;
+6. mettre à jour la documentation si nécessaire ;
+7. faire un commit propre.
+
+---
+
+# Bonnes pratiques
+
+Toujours :
+
+- utiliser l'environnement virtuel ;
+- lancer les tests avant un commit ;
+- éviter les duplications ;
+- privilégier la simplicité ;
+- respecter les conventions du projet.
+
+---
+
+# Ce qui n'est pas encore implémenté
+
+- Système de migration
+- Comptes étudiants
+- Synchronisation cloud de la progression
+- Réorganisation des contenus par glisser-déposer

@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 5
+code: "MQ34-UAA5"
+title: "Comportement asymptotique"
+slug: "mq34-uaa5-comportement-asymptotique"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA5_comportement_asymptotique.html"
+    sha256: "6b3836a62ef815ee6568fcdb9091100cd424f7573266b5bf3faa41c9e7c4cd96"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA5 – Comportement asymptotique.pdf"
+    sha256: "1e48c885717b611066d850d36d0502aabfc4c0cba9ea6911d48e34be1db46c9b"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.5562318+02:00"

@@ -126,7 +126,19 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Réponses (cocher la bonne réponse)</label>
+            <label for="answer_type" class="form-label">Type de réponse</label>
+            <select class="form-select" id="answer_type" name="answer_type" style="max-width: 16rem;">
+                <option value="choice" {% if quiz_config.answer_type != 'numeric' %}selected{% endif %}>
+                    Choix multiple / Vrai-Faux
+                </option>
+                <option value="numeric" {% if quiz_config.answer_type == 'numeric' %}selected{% endif %}>
+                    Réponse numérique
+                </option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Réponses (cocher la bonne réponse — ignoré en mode numérique)</label>
             {% for i in range(4) %}
             <div class="input-group mb-2">
                 <div class="input-group-text">
@@ -149,7 +161,45 @@
                     value="{{ quiz_config.choices[i] if i < quiz_config.choices | length else '' }}">
             </div>
             {% endfor %}
-            <div class="form-text">Au moins deux réponses non vides sont nécessaires.</div>
+            <div class="form-text">Au moins deux réponses non vides sont nécessaires (mode choix multiple).</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="correct_value" class="form-label">Réponse numérique correcte</label>
+            <input
+                type="text"
+                class="form-control"
+                id="correct_value"
+                name="correct_value"
+                style="max-width: 12rem;"
+                placeholder="ex. 1.75 ou 7/4"
+                value="{{ quiz_config.correct_value }}">
+            <div class="form-text">Utilisé uniquement en mode « Réponse numérique ».</div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-4">
+                <label for="quiz_group" class="form-label">Groupe de quiz</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="quiz_group"
+                    name="quiz_group"
+                    placeholder="ex. fonction-constante"
+                    value="{{ quiz_config.group }}">
+                <div class="form-text">
+                    Même valeur sur plusieurs blocs = un seul parcours avec score.
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <label for="order_in_group" class="form-label">Ordre dans le groupe</label>
+                <input
+                    type="number"
+                    class="form-control"
+                    id="order_in_group"
+                    name="order_in_group"
+                    value="{{ quiz_config.order_in_group }}">
+            </div>
         </div>
 
         <div class="mb-0">

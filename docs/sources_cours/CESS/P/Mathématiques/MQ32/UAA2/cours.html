@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Cours MQ32 UAA2 – Modèles de croissance – Jury CESS</title>
+<style>
+:root{
+  --orange:#e67e22;--dark:#243447;--light:#f8f9fa;--gray:#e9ecef;
+  --green:#1f7a4d;--red:#b03a2e;--blue:#1f618d;--yellow:#fff8df;
+}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#222;margin:0;background:#fff}
+.page{max-width:1100px;margin:auto;padding:28px}
+h1,h2,h3{color:var(--dark);margin-top:1.2em}
+h1{font-size:30px;border-bottom:5px solid var(--orange);padding-bottom:10px}
+h2{font-size:23px;border-left:8px solid var(--orange);padding-left:12px;background:#fff7ef;padding-top:7px;padding-bottom:7px}
+h3{font-size:18px;color:#8a4b08}
+.box{border:1px solid #ccc;background:var(--light);padding:14px 18px;border-radius:8px;margin:16px 0}
+.memo{border:2px solid var(--green);background:#f0fff6}
+.warning{border:2px solid var(--red);background:#fff5f3}
+.method{border:2px solid var(--blue);background:#f2f8fc}
+.exam{border:2px solid #b8860b;background:var(--yellow)}
+.exercise{border-left:5px solid var(--orange);background:#fffaf5;padding:12px 16px;margin:14px 0}
+.correction{border-left:5px solid var(--green);background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+th,td{border:1px solid #999;padding:8px;text-align:left;vertical-align:top}
+th{background:#eee}
+.formula{font-family:"Cambria Math","Times New Roman",serif;font-size:1.08em;background:#f7f7f7;border:1px solid #ddd;padding:8px;border-radius:6px;display:inline-block;margin:4px 0}
+.small{font-size:.92em;color:#555}
+hr{border:none;border-top:2px solid #ddd;margin:32px 0}
+ul{margin-top:6px}
+.answer-space{height:95px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.two-col{grid-template-columns:1fr}}
+@media print{
+  .page{max-width:none;padding:12mm}
+  a{color:#000;text-decoration:none}
+  h2{break-after:avoid}
+  .box,.exercise,.correction,table,svg{break-inside:avoid}
+  .no-print{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ32 UAA2 – Modèles de croissance<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif de l’UAA :</strong> traiter un problème avec un tableau de nombres, un graphique ou une formule, et identifier/exploiter un modèle de croissance dans une situation concrète.<br>
+<strong>Contenu limité à cette UAA :</strong> suites arithmétiques et géométriques, fonctions carré, cube et exponentielle, intérêts simples et composés, logarithme en base 10 pour déterminer une durée de placement.
+</div>
+
+<div class="box exam">
+<strong>Important :</strong> le but n’est pas de faire une étude théorique complète des fonctions. Le cours vise surtout les calculs utiles, les tableaux, les graphiques, les formules et les problèmes concrets : finance, croissance, évolution, phénomènes naturels.
+</div>
+
+<h2>1. Ce qu’il faut savoir faire</h2>
+<table>
+<tr><th>Processus</th><th>Ce que cela signifie</th><th>Exemples de questions</th></tr>
+<tr><td><strong>Connaître</strong></td><td>Reconnaître le type de croissance ou le vocabulaire financier.</td><td>Identifier suite arithmétique/géométrique ; reconnaître croissance linéaire/exponentielle ; expliquer capital, intérêt, taux.</td></tr>
+<tr><td><strong>Appliquer</strong></td><td>Utiliser une formule connue.</td><td>Calculer un terme, une raison, une somme ; construire un tableau ; calculer intérêts simples/composés.</td></tr>
+<tr><td><strong>Transférer</strong></td><td>Choisir la bonne méthode dans un problème réel.</td><td>Établir une formule, comparer deux placements, trouver une durée avec logarithme, répondre à partir d’un graphique/tableau/formule.</td></tr>
+</table>
+
+<h2>2. Bases indispensables : croissance linéaire et exponentielle</h2>
+
+<h3>2.1 Croissance linéaire</h3>
+<div class="box">
+Une grandeur a une <strong>croissance linéaire</strong> quand on ajoute toujours le même nombre à chaque étape.<br>
+Exemple : une dette augmente de 20 € chaque mois.
+</div>
+
+<table>
+<tr><th>Mois</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td></tr>
+<tr><th>Montant</th><td>100</td><td>120</td><td>140</td><td>160</td><td>180</td></tr>
+</table>
+<div class="box">
+Ici, on ajoute toujours 20. Le graphique associé est aligné : c’est une croissance régulière par addition.
+</div>
+
+<h3>2.2 Croissance exponentielle</h3>
+<div class="box">
+Une grandeur a une <strong>croissance exponentielle</strong> quand on multiplie toujours par le même nombre à chaque étape.<br>
+Exemple : une population augmente de 10 % chaque année, donc on multiplie par 1,10.
+</div>
+
+<table>
+<tr><th>Année</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td></tr>
+<tr><th>Population</th><td>1000</td><td>1100</td><td>1210</td><td>1331</td><td>1464,1</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> “+10 % chaque année” ne veut pas dire “+10 unités chaque année”. Cela signifie “multiplier par 1,10 chaque année”.
+</div>
+
+<h2>3. Suites : vocabulaire de base</h2>
+
+<div class="box">
+Une <strong>suite</strong> est une liste ordonnée de nombres. Chaque nombre est un <strong>terme</strong>. Sa position est son <strong>rang</strong> ou son <strong>indice</strong>.
+</div>
+
+<table>
+<tr><th>Notation</th><th>Signification</th></tr>
+<tr><td><span class="formula">u₀</span></td><td>premier terme si on commence au rang 0</td></tr>
+<tr><td><span class="formula">u₁</span></td><td>premier terme si on commence au rang 1, ou deuxième si on commence à u₀</td></tr>
+<tr><td><span class="formula">uₙ</span></td><td>terme de rang n</td></tr>
+<tr><td><span class="formula">r</span></td><td>raison d’une suite arithmétique : ce qu’on ajoute</td></tr>
+<tr><td><span class="formula">q</span></td><td>raison d’une suite géométrique : ce par quoi on multiplie</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> vérifier si la suite commence à <strong>u₀</strong> ou à <strong>u₁</strong>. Cela change les formules.
+</div>
+
+<h2>4. Suites arithmétiques</h2>
+
+<h3>4.1 Définition</h3>
+<div class="box">
+Une suite est <strong>arithmétique</strong> lorsqu’on passe d’un terme au suivant en ajoutant toujours le même nombre.<br>
+Ce nombre s’appelle la <strong>raison</strong>.
+</div>
+
+<div class="box">
+<span class="formula">uₙ₊₁ = uₙ + r</span><br>
+Si la suite commence à <strong>u₀</strong> : <span class="formula">uₙ = u₀ + n × r</span><br>
+Si la suite commence à <strong>u₁</strong> : <span class="formula">uₙ = u₁ + (n − 1) × r</span>
+</div>
+
+<h3>Exemple corrigé 1</h3>
+<div class="exercise">
+Une suite commence à <span class="formula">u₀ = 50</span> et augmente de 8 à chaque étape. Calcule <span class="formula">u₅</span>.
+</div>
+<div class="correction">
+La suite est arithmétique car on ajoute toujours 8. Donc <span class="formula">r = 8</span>.<br>
+Formule : <span class="formula">uₙ = u₀ + n × r</span>.<br>
+Calcul : <span class="formula">u₅ = 50 + 5 × 8 = 50 + 40 = 90</span>.<br>
+<strong>Réponse :</strong> le terme de rang 5 vaut 90.
+</div>
+
+<h3>4.2 Somme des termes d’une suite arithmétique</h3>
+<div class="box">
+Pour additionner des termes consécutifs d’une suite arithmétique :<br>
+<span class="formula">Somme = nombre de termes × (premier terme + dernier terme) / 2</span>
+</div>
+
+<h3>Exemple corrigé 2</h3>
+<div class="exercise">
+Calcule la somme : 10 + 15 + 20 + 25 + 30.
+</div>
+<div class="correction">
+C’est une suite arithmétique de raison 5.<br>
+Nombre de termes : 5.<br>
+Premier terme : 10. Dernier terme : 30.<br>
+<span class="formula">S = 5 × (10 + 30) / 2 = 5 × 40 / 2 = 100</span>.<br>
+<strong>Réponse :</strong> la somme vaut 100.
+</div>
+
+<h2>5. Suites géométriques</h2>
+
+<h3>5.1 Définition</h3>
+<div class="box">
+Une suite est <strong>géométrique</strong> lorsqu’on passe d’un terme au suivant en multipliant toujours par le même nombre.<br>
+Ce nombre s’appelle la <strong>raison</strong>.
+</div>
+
+<div class="box">
+<span class="formula">uₙ₊₁ = uₙ × q</span><br>
+Si la suite commence à <strong>u₀</strong> : <span class="formula">uₙ = u₀ × qⁿ</span><br>
+Si la suite commence à <strong>u₁</strong> : <span class="formula">uₙ = u₁ × qⁿ⁻¹</span>
+</div>
+
+<h3>Exemple corrigé 3</h3>
+<div class="exercise">
+Une population de bactéries commence à 200 et double chaque heure. Calcule la population après 5 heures.
+</div>
+<div class="correction">
+“Double” signifie multiplier par 2. C’est une suite géométrique de raison <span class="formula">q = 2</span>.<br>
+On commence à <span class="formula">u₀ = 200</span>.<br>
+Formule : <span class="formula">uₙ = u₀ × qⁿ</span>.<br>
+Calcul : <span class="formula">u₅ = 200 × 2⁵ = 200 × 32 = 6400</span>.<br>
+<strong>Réponse :</strong> après 5 heures, il y a 6400 bactéries.
+</div>
+
+<h3>5.2 Somme des termes d’une suite géométrique</h3>
+<div class="box">
+Si <span class="formula">q ≠ 1</span>, la somme des <strong>n premiers termes</strong> à partir de <span class="formula">u₀</span> est :<br>
+<span class="formula">S = u₀ × (1 − qⁿ) / (1 − q)</span><br>
+Cette formule est utile mais elle doit être utilisée prudemment : il faut bien identifier le nombre de termes.
+</div>
+
+<h2>6. Comparer suite arithmétique et suite géométrique</h2>
+
+<table>
+<tr><th>Question à se poser</th><th>Suite arithmétique</th><th>Suite géométrique</th></tr>
+<tr><td>Comment passe-t-on d’un terme au suivant ?</td><td>On ajoute toujours le même nombre.</td><td>On multiplie toujours par le même nombre.</td></tr>
+<tr><td>Type de croissance</td><td>Linéaire</td><td>Exponentielle</td></tr>
+<tr><td>Exemple</td><td>100, 120, 140, 160</td><td>100, 120, 144, 172,8</td></tr>
+<tr><td>Dans les intérêts</td><td>Intérêt simple</td><td>Intérêt composé</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> si l’augmentation est “+20 %”, on multiplie. Ce n’est pas une suite arithmétique, c’est une suite géométrique.
+</div>
+
+<h2>7. Fonctions de référence : carré, cube, exponentielle</h2>
+
+<h3>7.1 Fonction carré</h3>
+<div class="box">
+La fonction carré est du type : <span class="formula">f(x) = kx²</span>.<br>
+Dans cette UAA, on l’utilise surtout pour reconnaître une croissance et construire un tableau/graphique.
+</div>
+
+<table>
+<tr><th>x</th><td>-3</td><td>-2</td><td>-1</td><td>0</td><td>1</td><td>2</td><td>3</td></tr>
+<tr><th>x²</th><td>9</td><td>4</td><td>1</td><td>0</td><td>1</td><td>4</td><td>9</td></tr>
+</table>
+
+<div class="box">
+La courbe de <span class="formula">x²</span> est symétrique par rapport à l’axe vertical. Elle descend jusqu’à 0 puis remonte.
+</div>
+
+<h3>7.2 Fonction cube</h3>
+<div class="box">
+La fonction cube est du type : <span class="formula">f(x) = kx³</span>.
+</div>
+
+<table>
+<tr><th>x</th><td>-3</td><td>-2</td><td>-1</td><td>0</td><td>1</td><td>2</td><td>3</td></tr>
+<tr><th>x³</th><td>-27</td><td>-8</td><td>-1</td><td>0</td><td>1</td><td>8</td><td>27</td></tr>
+</table>
+
+<div class="box">
+La fonction cube conserve le signe de x : négative pour x négatif, positive pour x positif.
+</div>
+
+<h3>7.3 Fonction exponentielle</h3>
+<div class="box">
+Une fonction exponentielle est du type : <span class="formula">f(x) = aˣ</span>, avec <span class="formula">a &gt; 0</span> et <span class="formula">a ≠ 1</span>.<br>
+Si <span class="formula">a &gt; 1</span>, la fonction croît. Si <span class="formula">0 &lt; a &lt; 1</span>, elle décroît.
+</div>
+
+<table>
+<tr><th>x</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td></tr>
+<tr><th>2ˣ</th><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td></tr>
+<tr><th>0,5ˣ</th><td>1</td><td>0,5</td><td>0,25</td><td>0,125</td><td>0,0625</td></tr>
+</table>
+
+<h3>7.4 Comparaison graphique</h3>
+<div class="box">
+Les fonctions exponentielles peuvent finir par augmenter beaucoup plus vite que les fonctions puissances. C’est une idée importante dans les problèmes de population, d’intérêts composés ou de phénomènes naturels.
+</div>
+
+<h2>8. Construire un tableau et un graphique</h2>
+
+<h3>Méthode</h3>
+<div class="method">
+1. Identifier la formule ou la règle.<br>
+2. Choisir quelques valeurs de x pertinentes.<br>
+3. Calculer les valeurs de y.<br>
+4. Placer les points dans un repère clair.<br>
+5. Nommer les axes et indiquer les unités.<br>
+6. Relier ou interpréter selon le contexte.
+</div>
+
+<h3>Exemple corrigé 4 : vapeur qui refroidit</h3>
+<div class="exercise">
+Une vapeur est à 100 °C au départ. Sa température diminue de 1 % par mètre de tuyau. Donne une formule et calcule la température après 12 m.
+</div>
+<div class="correction">
+Diminuer de 1 % signifie conserver 99 %, donc multiplier par <span class="formula">0,99</span> à chaque mètre.<br>
+Formule : <span class="formula">T(x) = 100 × 0,99ˣ</span>, où x est la distance en mètres.<br>
+Après 12 m : <span class="formula">T(12) = 100 × 0,99¹² ≈ 88,6</span>.<br>
+<strong>Réponse :</strong> après 12 m, la température est d’environ 88,6 °C.
+</div>
+
+<h2>9. Pourcentages et coefficients multiplicateurs</h2>
+
+<table>
+<tr><th>Situation</th><th>Coefficient</th><th>Exemple</th></tr>
+<tr><td>Augmenter de 5 %</td><td>1,05</td><td>200 × 1,05 = 210</td></tr>
+<tr><td>Augmenter de 20 %</td><td>1,20</td><td>200 × 1,20 = 240</td></tr>
+<tr><td>Diminuer de 10 %</td><td>0,90</td><td>200 × 0,90 = 180</td></tr>
+<tr><td>Diminuer de 1 %</td><td>0,99</td><td>100 × 0,99 = 99</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> après deux augmentations de 10 %, on ne fait pas +20 % au total. On fait <span class="formula">×1,10×1,10 = ×1,21</span>, donc +21 %.
+</div>
+
+<h2>10. Intérêts simples</h2>
+
+<h3>10.1 Vocabulaire financier</h3>
+<table>
+<tr><th>Mot</th><th>Signification</th></tr>
+<tr><td><strong>Capital initial C₀</strong></td><td>Somme placée au départ.</td></tr>
+<tr><td><strong>Taux i</strong></td><td>Pourcentage d’intérêt par période, écrit en nombre décimal.</td></tr>
+<tr><td><strong>Durée n</strong></td><td>Nombre de périodes.</td></tr>
+<tr><td><strong>Intérêt I</strong></td><td>Gain obtenu grâce au placement.</td></tr>
+<tr><td><strong>Valeur acquise Cₙ</strong></td><td>Capital final après les intérêts.</td></tr>
+</table>
+
+<h3>10.2 Formules des intérêts simples</h3>
+<div class="box">
+En intérêt simple, les intérêts sont calculés uniquement sur le capital initial.<br>
+<span class="formula">I = C₀ × i × n</span><br>
+<span class="formula">Cₙ = C₀ + I = C₀ × (1 + i × n)</span>
+</div>
+
+<h3>Exemple corrigé 5</h3>
+<div class="exercise">
+On place 1000 € pendant 4 ans à intérêt simple au taux annuel de 3 %. Calcule l’intérêt et la valeur acquise.
+</div>
+<div class="correction">
+Capital initial : <span class="formula">C₀ = 1000</span>.<br>
+Taux : 3 % = <span class="formula">0,03</span>.<br>
+Durée : <span class="formula">n = 4</span>.<br>
+Intérêt : <span class="formula">I = 1000 × 0,03 × 4 = 120 €</span>.<br>
+Valeur acquise : <span class="formula">Cₙ = 1000 + 120 = 1120 €</span>.<br>
+<strong>Réponse :</strong> le placement rapporte 120 € et vaut 1120 € après 4 ans.
+</div>
+
+<h2>11. Intérêts composés</h2>
+
+<h3>11.1 Principe</h3>
+<div class="box">
+En intérêt composé, les intérêts s’ajoutent au capital et produisent eux-mêmes des intérêts. C’est une croissance exponentielle.
+</div>
+
+<h3>11.2 Formule</h3>
+<div class="box">
+<span class="formula">Cₙ = C₀ × (1 + i)ⁿ</span><br>
+où <strong>C₀</strong> est le capital initial, <strong>i</strong> le taux par période, <strong>n</strong> le nombre de périodes.
+</div>
+
+<h3>Exemple corrigé 6</h3>
+<div class="exercise">
+On place 1000 € pendant 4 ans à intérêts composés au taux annuel de 3 %. Calcule la valeur acquise.
+</div>
+<div class="correction">
+Capital initial : <span class="formula">C₀ = 1000</span>.<br>
+Taux : <span class="formula">i = 0,03</span>.<br>
+Durée : <span class="formula">n = 4</span>.<br>
+Formule : <span class="formula">Cₙ = 1000 × (1 + 0,03)⁴</span>.<br>
+Calcul : <span class="formula">Cₙ = 1000 × 1,03⁴ ≈ 1125,5 €</span>.<br>
+<strong>Réponse :</strong> après 4 ans, le capital vaut environ 1125,5 €.
+</div>
+
+<h3>Comparaison simple/composé</h3>
+<table>
+<tr><th>Type</th><th>Après 4 ans pour 1000 € à 3 %</th></tr>
+<tr><td>Intérêt simple</td><td>1120 €</td></tr>
+<tr><td>Intérêt composé</td><td>1125,5 €</td></tr>
+</table>
+
+<h2>12. Logarithme pour trouver une durée de placement</h2>
+
+<h3>12.1 Pourquoi utiliser un logarithme ?</h3>
+<div class="box">
+Dans une formule composée <span class="formula">Cₙ = C₀ × (1+i)ⁿ</span>, la durée <strong>n</strong> est dans l’exposant. Pour retrouver un exposant, on utilise un <strong>logarithme</strong>.
+</div>
+
+<h3>12.2 Formule utile</h3>
+<div class="box">
+À partir de <span class="formula">Cₙ = C₀ × (1+i)ⁿ</span>, on obtient :<br>
+<span class="formula">n = log(Cₙ / C₀) / log(1+i)</span><br>
+La touche <strong>log</strong> de la calculatrice permet ce calcul.
+</div>
+
+<h3>Exemple corrigé 7</h3>
+<div class="exercise">
+On place 1000 € à intérêts composés au taux annuel de 4 %. Au bout de combien d’années le capital atteindra-t-il 1500 € ?
+</div>
+<div class="correction">
+Formule : <span class="formula">Cₙ = C₀ × (1+i)ⁿ</span>.<br>
+Données : <span class="formula">C₀ = 1000</span>, <span class="formula">Cₙ = 1500</span>, <span class="formula">i = 0,04</span>.<br>
+On isole la durée : <span class="formula">n = log(1500/1000) / log(1,04)</span>.<br>
+Calcul : <span class="formula">n = log(1,5) / log(1,04) ≈ 10,3</span>.<br>
+<strong>Réponse :</strong> il faut environ 10,3 ans. Si on parle d’années entières complètes, il faudra attendre 11 ans pour dépasser 1500 €.
+</div>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> si le résultat est 10,3 ans, cela ne veut pas dire que le capital atteint l’objectif après 10 ans entiers. Pour être sûr de dépasser l’objectif en années complètes, il faut souvent arrondir à l’année supérieure.
+</div>
+
+<h2>13. Exercices progressifs</h2>
+
+<h3>A. Exercices “connaître”</h3>
+<div class="exercise">
+<strong>1.</strong> Explique la différence entre une suite arithmétique et une suite géométrique.<br><br>
+<strong>2.</strong> Indique si les suites suivantes sont arithmétiques, géométriques ou ni l’une ni l’autre :<br>
+a) 5 ; 8 ; 11 ; 14 ; 17<br>
+b) 3 ; 6 ; 12 ; 24 ; 48<br>
+c) 2 ; 4 ; 7 ; 11 ; 16<br><br>
+<strong>3.</strong> Explique la différence entre intérêts simples et intérêts composés.
+</div>
+
+<h3>B. Exercices “appliquer”</h3>
+<div class="exercise">
+<strong>4.</strong> Une suite arithmétique commence à <span class="formula">u₀=12</span> et a pour raison 7. Calcule <span class="formula">u₈</span>.<br><br>
+<strong>5.</strong> Une suite géométrique commence à <span class="formula">u₀=80</span> et a pour raison 1,5. Calcule <span class="formula">u₄</span>.<br><br>
+<strong>6.</strong> Calcule la valeur acquise de 2500 € placés pendant 5 ans à intérêts simples au taux annuel de 2,5 %. <br><br>
+<strong>7.</strong> Calcule la valeur acquise de 2500 € placés pendant 5 ans à intérêts composés au taux annuel de 2,5 %.
+</div>
+
+<h3>C. Exercices “transférer”</h3>
+<div class="exercise">
+<strong>8.</strong> Une machine perd 12 % de sa valeur chaque année. Elle vaut 15 000 € au départ. Donne une formule pour sa valeur après n années et calcule sa valeur après 6 ans.<br><br>
+<strong>9.</strong> Une population de 5000 habitants augmente de 3 % par an. Après combien d’années dépassera-t-elle 7000 habitants ? Utilise un logarithme.<br><br>
+<strong>10.</strong> Deux placements sont proposés pour 1000 € pendant 8 ans :<br>
+A : intérêt simple à 5 % par an.<br>
+B : intérêt composé à 4 % par an.<br>
+Quel placement est le plus intéressant ? Justifie.
+</div>
+
+<hr>
+<h2>14. Corrections détaillées des exercices</h2>
+
+<div class="correction">
+<strong>1.</strong> Une suite arithmétique ajoute toujours le même nombre. Une suite géométrique multiplie toujours par le même nombre.
+</div>
+
+<div class="correction">
+<strong>2.</strong> a) 5 ; 8 ; 11 ; 14 ; 17 : arithmétique, car on ajoute 3.<br>
+b) 3 ; 6 ; 12 ; 24 ; 48 : géométrique, car on multiplie par 2.<br>
+c) 2 ; 4 ; 7 ; 11 ; 16 : ni arithmétique ni géométrique, car les écarts changent et il n’y a pas de multiplicateur constant.
+</div>
+
+<div class="correction">
+<strong>3.</strong> En intérêt simple, les intérêts sont calculés sur le capital initial uniquement. En intérêt composé, les intérêts s’ajoutent au capital et produisent ensuite de nouveaux intérêts.
+</div>
+
+<div class="correction">
+<strong>4.</strong> Suite arithmétique : <span class="formula">uₙ = u₀ + n×r</span>.<br>
+<span class="formula">u₈ = 12 + 8×7 = 12 + 56 = 68</span>.
+</div>
+
+<div class="correction">
+<strong>5.</strong> Suite géométrique : <span class="formula">uₙ = u₀ × qⁿ</span>.<br>
+<span class="formula">u₄ = 80 × 1,5⁴ = 80 × 5,0625 = 405</span>.
+</div>
+
+<div class="correction">
+<strong>6.</strong> Intérêt simple : <span class="formula">Cₙ = C₀ × (1 + i×n)</span>.<br>
+<span class="formula">Cₙ = 2500 × (1 + 0,025×5) = 2500 × 1,125 = 2812,5 €</span>.
+</div>
+
+<div class="correction">
+<strong>7.</strong> Intérêt composé : <span class="formula">Cₙ = C₀ × (1+i)ⁿ</span>.<br>
+<span class="formula">Cₙ = 2500 × 1,025⁵ ≈ 2828,5 €</span>.
+</div>
+
+<div class="correction">
+<strong>8.</strong> Perdre 12 % signifie conserver 88 %, donc multiplier par 0,88.<br>
+Formule : <span class="formula">V(n)=15000×0,88ⁿ</span>.<br>
+Après 6 ans : <span class="formula">V(6)=15000×0,88⁶≈6966,8 €</span>.
+</div>
+
+<div class="correction">
+<strong>9.</strong> Formule : <span class="formula">P(n)=5000×1,03ⁿ</span>.<br>
+On veut <span class="formula">5000×1,03ⁿ &gt; 7000</span>, donc <span class="formula">1,03ⁿ &gt; 1,4</span>.<br>
+Durée : <span class="formula">n = log(1,4)/log(1,03) ≈ 11,4</span>.<br>
+Il faut donc attendre 12 années complètes pour dépasser 7000 habitants.
+</div>
+
+<div class="correction">
+<strong>10.</strong> Placement A : intérêt simple.<br>
+<span class="formula">C₈ = 1000×(1+0,05×8)=1000×1,4=1400 €</span>.<br>
+Placement B : intérêt composé.<br>
+<span class="formula">C₈ = 1000×1,04⁸≈1368,6 €</span>.<br>
+Le placement A est plus intéressant sur 8 ans, car 1400 € &gt; 1368,6 €.
+</div>
+
+<hr>
+<h2>15. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse par une phrase, une formule ou un calcul détaillé. Arrondis raisonnablement si nécessaire.
+</div>
+
+<div class="exercise">
+<strong>Question 1 – Suites</strong><br>
+On considère la suite : 120 ; 108 ; 97,2 ; 87,48 ; ...<br>
+1) Est-elle arithmétique ou géométrique ? Justifie.<br>
+2) Donne sa raison.<br>
+3) Donne une formule pour le terme de rang n si le premier terme est <span class="formula">u₀=120</span>.<br>
+4) Calcule <span class="formula">u₅</span>.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 2 – Fonction exponentielle</strong><br>
+Une substance perd 8 % de sa masse chaque heure. Au départ, elle a une masse de 500 g.<br>
+1) Donne une formule donnant la masse après x heures.<br>
+2) Calcule la masse après 10 heures.<br>
+3) S’agit-il d’une croissance ou d’une décroissance exponentielle ? Justifie.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 3 – Fonctions carré et cube</strong><br>
+Complète le tableau.
+<table>
+<tr><th>x</th><td>-2</td><td>-1</td><td>0</td><td>1</td><td>2</td><td>3</td></tr>
+<tr><th>x²</th><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><th>x³</th><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+Explique une différence de comportement entre <span class="formula">x²</span> et <span class="formula">x³</span> pour les valeurs négatives de x.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 4 – Intérêts simples et composés</strong><br>
+On place 3000 € pendant 6 ans.<br>
+A : intérêt simple à 4 % par an.<br>
+B : intérêt composé à 3,5 % par an.<br>
+1) Calcule la valeur acquise dans chaque cas.<br>
+2) Quel placement est le plus intéressant ?
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 5 – Logarithme</strong><br>
+Un capital de 2000 € est placé à intérêts composés au taux annuel de 5 %. Au bout de combien d’années atteindra-t-il 3000 € ? Donne le calcul avec logarithme et interprète l’arrondi.
+<div class="answer-space"></div>
+</div>
+
+<h2>16. Correction du mini-test final</h2>
+
+<div class="correction">
+<strong>Question 1</strong><br>
+1) La suite est géométrique, car on multiplie par le même nombre : <span class="formula">108/120 = 0,9</span> et <span class="formula">97,2/108 = 0,9</span>.<br>
+2) La raison est <span class="formula">q=0,9</span>.<br>
+3) Formule : <span class="formula">uₙ = 120×0,9ⁿ</span>.<br>
+4) <span class="formula">u₅ = 120×0,9⁵ ≈ 70,9</span>.
+</div>
+
+<div class="correction">
+<strong>Question 2</strong><br>
+Perdre 8 % signifie conserver 92 %, donc multiplier par <span class="formula">0,92</span>.<br>
+1) Formule : <span class="formula">M(x)=500×0,92ˣ</span>.<br>
+2) <span class="formula">M(10)=500×0,92¹⁰≈217,2 g</span>.<br>
+3) C’est une décroissance exponentielle, car on multiplie toujours par le même coefficient inférieur à 1.
+</div>
+
+<div class="correction">
+<strong>Question 3</strong>
+<table>
+<tr><th>x</th><td>-2</td><td>-1</td><td>0</td><td>1</td><td>2</td><td>3</td></tr>
+<tr><th>x²</th><td>4</td><td>1</td><td>0</td><td>1</td><td>4</td><td>9</td></tr>
+<tr><th>x³</th><td>-8</td><td>-1</td><td>0</td><td>1</td><td>8</td><td>27</td></tr>
+</table>
+Pour x négatif, <span class="formula">x²</span> est positif alors que <span class="formula">x³</span> reste négatif.
+</div>
+
+<div class="correction">
+<strong>Question 4</strong><br>
+A : intérêt simple : <span class="formula">C = 3000×(1+0,04×6)=3000×1,24=3720 €</span>.<br>
+B : intérêt composé : <span class="formula">C = 3000×1,035⁶≈3688,6 €</span>.<br>
+Le placement A est plus intéressant, car 3720 € &gt; 3688,6 €.
+</div>
+
+<div class="correction">
+<strong>Question 5</strong><br>
+Formule : <span class="formula">3000 = 2000×1,05ⁿ</span>.<br>
+Donc <span class="formula">1,05ⁿ = 1,5</span>.<br>
+<span class="formula">n = log(1,5)/log(1,05) ≈ 8,3</span>.<br>
+Il faut environ 8,3 ans. En années complètes, il faut attendre 9 ans pour atteindre ou dépasser 3000 €.
+</div>
+
+<hr>
+<h2>17. Fiche mémo finale</h2>
+
+<div class="memo box">
+<h3>Suites</h3>
+<ul>
+<li><strong>Suite arithmétique :</strong> on ajoute toujours la même raison <span class="formula">r</span>.</li>
+<li><span class="formula">uₙ = u₀ + n×r</span></li>
+<li><strong>Suite géométrique :</strong> on multiplie toujours par la même raison <span class="formula">q</span>.</li>
+<li><span class="formula">uₙ = u₀×qⁿ</span></li>
+<li><strong>Somme arithmétique :</strong> <span class="formula">S = nombre de termes × (premier + dernier) / 2</span></li>
+<li><strong>Somme géométrique :</strong> <span class="formula">S = u₀×(1−qⁿ)/(1−q)</span> si <span class="formula">q≠1</span></li>
+</ul>
+
+<h3>Fonctions de référence</h3>
+<ul>
+<li><strong>Carré :</strong> <span class="formula">x²</span>, valeurs positives ou nulles.</li>
+<li><strong>Cube :</strong> <span class="formula">x³</span>, conserve le signe de x.</li>
+<li><strong>Exponentielle :</strong> <span class="formula">aˣ</span>, croissance si <span class="formula">a&gt;1</span>, décroissance si <span class="formula">0&lt;a&lt;1</span>.</li>
+</ul>
+
+<h3>Pourcentages</h3>
+<ul>
+<li>Augmenter de 10 % : multiplier par <span class="formula">1,10</span>.</li>
+<li>Diminuer de 10 % : multiplier par <span class="formula">0,90</span>.</li>
+<li>Augmenter de t % : multiplier par <span class="formula">1 + t/100</span>.</li>
+<li>Diminuer de t % : multiplier par <span class="formula">1 − t/100</span>.</li>
+</ul>
+
+<h3>Intérêts</h3>
+<ul>
+<li><strong>Intérêt simple :</strong> <span class="formula">I=C₀×i×n</span> et <span class="formula">Cₙ=C₀×(1+i×n)</span>.</li>
+<li><strong>Intérêt composé :</strong> <span class="formula">Cₙ=C₀×(1+i)ⁿ</span>.</li>
+<li><strong>Durée avec logarithme :</strong> <span class="formula">n = log(Cₙ/C₀) / log(1+i)</span>.</li>
+</ul>
+
+<h3>Procédure examen</h3>
+<ol>
+<li>Lire la situation et identifier ce qui évolue.</li>
+<li>Repérer si on ajoute ou si on multiplie.</li>
+<li>Choisir arithmétique/linéaire ou géométrique/exponentiel.</li>
+<li>Écrire les données : capital initial, taux, durée, raison.</li>
+<li>Choisir la formule.</li>
+<li>Calculer et arrondir clairement.</li>
+<li>Répondre par une phrase contextualisée.</li>
+</ol>
+</div>
+
+<h2>18. Ressources utiles pour réviser</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=suites+arithm%C3%A9tiques+et+g%C3%A9om%C3%A9triques+exercices">YouTube – suites arithmétiques et géométriques</a></li>
+<li><a href="https://www.youtube.com/results?search_query=fonction+carr%C3%A9+fonction+cube+fonction+exponentielle">YouTube – fonctions carré, cube et exponentielle</a></li>
+<li><a href="https://www.youtube.com/results?search_query=int%C3%A9r%C3%AAts+simples+et+compos%C3%A9s+maths">YouTube – intérêts simples et composés</a></li>
+<li><a href="https://www.youtube.com/results?search_query=logarithme+dur%C3%A9e+placement+int%C3%A9r%C3%AAts+compos%C3%A9s">YouTube – logarithme et durée de placement</a></li>
+<li><a href="https://fr.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:exponential-and-logarithmic-functions">Khan Academy – exponentielles et logarithmes</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-suites-arithmetiques-m1173">Alloprof – suites arithmétiques</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-suites-geometriques-m1174">Alloprof – suites géométriques</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ32 UAA2 – Modèles de croissance. Les exemples et exercices restent centrés sur les suites, fonctions de référence, intérêts simples/composés et logarithme pour durée de placement.
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Cours MQ32 UAA1 – Approche graphique d’une fonction – Jury CESS</title>
+<style>
+:root{
+  --orange:#e67e22;--dark:#243447;--light:#f8f9fa;--gray:#e9ecef;
+  --green:#1f7a4d;--red:#b03a2e;--blue:#1f618d;--yellow:#fff8df;
+}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#222;margin:0;background:#fff}
+.page{max-width:1080px;margin:auto;padding:28px}
+h1,h2,h3{color:var(--dark);margin-top:1.2em}
+h1{font-size:30px;border-bottom:5px solid var(--orange);padding-bottom:10px}
+h2{font-size:23px;border-left:8px solid var(--orange);padding-left:12px;background:#fff7ef;padding-top:7px;padding-bottom:7px}
+h3{font-size:18px;color:#8a4b08}
+.box{border:1px solid #ccc;background:var(--light);padding:14px 18px;border-radius:8px;margin:16px 0}
+.memo{border:2px solid var(--green);background:#f0fff6}
+.warning{border:2px solid var(--red);background:#fff5f3}
+.method{border:2px solid var(--blue);background:#f2f8fc}
+.exam{border:2px solid #b8860b;background:var(--yellow)}
+.exercise{border-left:5px solid var(--orange);background:#fffaf5;padding:12px 16px;margin:14px 0}
+.correction{border-left:5px solid var(--green);background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+th,td{border:1px solid #999;padding:8px;text-align:left;vertical-align:top}
+th{background:#eee}
+.formula{font-family:"Cambria Math","Times New Roman",serif;font-size:1.08em;background:#f7f7f7;border:1px solid #ddd;padding:8px;border-radius:6px;display:inline-block;margin:4px 0}
+.small{font-size:.92em;color:#555}
+hr{border:none;border-top:2px solid #ddd;margin:32px 0}
+ul{margin-top:6px}
+.answer-space{height:90px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.two-col{grid-template-columns:1fr}}
+@media print{
+  .page{max-width:none;padding:12mm}
+  a{color:#000;text-decoration:none}
+  h2{break-after:avoid}
+  .box,.exercise,.correction,table,svg{break-inside:avoid}
+  .no-print{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ32 UAA1 – Approche graphique d’une fonction<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif de l’UAA :</strong> rechercher des informations sur une fonction à partir de sa représentation graphique.<br>
+<strong>Important :</strong> dans cette UAA, on travaille <strong>uniquement à partir du graphique</strong>. On ne doit pas étudier les fonctions par des calculs techniques ou par une expression analytique, sauf lecture directe d’un graphique ou comparaison graphique.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> il faut savoir lire un graphique, utiliser le vocabulaire exact, justifier avec des phrases en contexte, et comparer deux graphiques quand la situation le demande.
+</div>
+
+<h2>1. Ce qu’il faut savoir faire</h2>
+<table>
+<tr><th>Processus</th><th>Ce que cela veut dire</th><th>Exemples de questions</th></tr>
+<tr><td><strong>Connaître</strong></td><td>Identifier l’image ou l’antécédent d’un réel.</td><td>Lire f(3), trouver les x tels que f(x)=5.</td></tr>
+<tr><td><strong>Appliquer</strong></td><td>Lire les caractéristiques d’une fonction sur un graphique.</td><td>Domaine, ensemble-image, zéros, signe, croissance/décroissance, maximum/minimum.</td></tr>
+<tr><td><strong>Transférer</strong></td><td>Répondre à une question dans une situation concrète.</td><td>Comparer chiffre d’affaires et frais ; déterminer quand une activité devient rentable.</td></tr>
+</table>
+
+<h2>2. Les bases : repère, axes et coordonnées</h2>
+
+<h3>2.1 Le repère cartésien</h3>
+<div class="box">
+Un graphique se lit dans un <strong>repère</strong> composé de deux axes :
+<ul>
+<li>l’axe horizontal : axe des abscisses, noté souvent <strong>x</strong> ou <strong>Ox</strong> ;</li>
+<li>l’axe vertical : axe des ordonnées, noté souvent <strong>y</strong> ou <strong>Oy</strong>.</li>
+</ul>
+Un point se note <span class="formula">(x ; y)</span>. La première coordonnée se lit horizontalement, la deuxième verticalement.
+</div>
+
+<svg width="640" height="420" viewBox="0 0 640 420" role="img" aria-label="Repère avec axes x et y">
+<line x1="70" y1="350" x2="590" y2="350" stroke="#222" stroke-width="2"/>
+<line x1="320" y1="390" x2="320" y2="40" stroke="#222" stroke-width="2"/>
+<polygon points="590,350 578,344 578,356" fill="#222"/>
+<polygon points="320,40 314,52 326,52" fill="#222"/>
+<text x="595" y="355" font-size="18">x</text>
+<text x="330" y="45" font-size="18">y</text>
+<text x="330" y="370" font-size="14">0</text>
+<g stroke="#ddd" stroke-width="1">
+<line x1="120" y1="40" x2="120" y2="390"/><line x1="170" y1="40" x2="170" y2="390"/><line x1="220" y1="40" x2="220" y2="390"/><line x1="270" y1="40" x2="270" y2="390"/><line x1="370" y1="40" x2="370" y2="390"/><line x1="420" y1="40" x2="420" y2="390"/><line x1="470" y1="40" x2="470" y2="390"/><line x1="520" y1="40" x2="520" y2="390"/>
+<line x1="70" y1="300" x2="590" y2="300"/><line x1="70" y1="250" x2="590" y2="250"/><line x1="70" y1="200" x2="590" y2="200"/><line x1="70" y1="150" x2="590" y2="150"/><line x1="70" y1="100" x2="590" y2="100"/>
+</g>
+<circle cx="470" cy="200" r="6" fill="#e67e22"/>
+<line x1="470" y1="350" x2="470" y2="200" stroke="#e67e22" stroke-dasharray="5 5"/>
+<line x1="320" y1="200" x2="470" y2="200" stroke="#e67e22" stroke-dasharray="5 5"/>
+<text x="480" y="195" font-size="18">P(3 ; 3)</text>
+<text x="462" y="370" font-size="14">3</text>
+<text x="295" y="205" font-size="14">3</text>
+</svg>
+
+<h3>2.2 Lire un point</h3>
+<div class="method">
+Pour lire un point sur un graphique :
+<ol>
+<li>Repère sa position horizontale : c’est la valeur de <strong>x</strong>.</li>
+<li>Repère sa position verticale : c’est la valeur de <strong>y</strong>.</li>
+<li>Écris le point sous la forme <strong>(x ; y)</strong>.</li>
+</ol>
+</div>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> inverser x et y. Dans (3 ; 5), 3 est l’abscisse et 5 est l’ordonnée.
+</div>
+
+<h2>3. Qu’est-ce qu’une fonction ?</h2>
+
+<div class="box">
+Une <strong>fonction</strong> est une règle qui associe à chaque valeur de <strong>x</strong> au maximum une seule valeur de <strong>y</strong>.<br>
+On note souvent : <span class="formula">y = f(x)</span><br>
+Cela se lit : “y est l’image de x par la fonction f”.
+</div>
+
+<h3>3.1 Variable indépendante et variable dépendante</h3>
+<table>
+<tr><th>Mot</th><th>Explication</th><th>Exemple</th></tr>
+<tr><td><strong>x</strong></td><td>Variable indépendante : celle que l’on choisit ou observe.</td><td>Masse de macarons vendus.</td></tr>
+<tr><td><strong>f(x)</strong></td><td>Variable dépendante : elle dépend de x.</td><td>Frais ou chiffre d’affaires.</td></tr>
+</table>
+
+<h3>3.2 Reconnaître si un graphique représente une fonction</h3>
+<div class="method">
+Un graphique représente une fonction si une droite verticale ne coupe jamais le graphique en plus d’un point.
+</div>
+
+<div class="two-col">
+<div>
+<svg width="450" height="260" viewBox="0 0 450 260">
+<text x="20" y="25" font-size="16" font-weight="bold">Fonction</text>
+<line x1="50" y1="220" x2="410" y2="220" stroke="#222"/>
+<line x1="70" y1="240" x2="70" y2="40" stroke="#222"/>
+<path d="M80 190 C150 120, 230 160, 320 70" fill="none" stroke="#1f618d" stroke-width="4"/>
+<line x1="220" y1="40" x2="220" y2="230" stroke="#b03a2e" stroke-dasharray="6 5"/>
+<circle cx="220" cy="140" r="5" fill="#b03a2e"/>
+<text x="90" y="245" font-size="13">Une verticale coupe une seule fois.</text>
+</svg>
+</div>
+<div>
+<svg width="450" height="260" viewBox="0 0 450 260">
+<text x="20" y="25" font-size="16" font-weight="bold">Pas une fonction</text>
+<line x1="50" y1="220" x2="410" y2="220" stroke="#222"/>
+<line x1="70" y1="240" x2="70" y2="40" stroke="#222"/>
+<ellipse cx="230" cy="130" rx="90" ry="60" fill="none" stroke="#1f618d" stroke-width="4"/>
+<line x1="230" y1="40" x2="230" y2="230" stroke="#b03a2e" stroke-dasharray="6 5"/>
+<circle cx="230" cy="70" r="5" fill="#b03a2e"/><circle cx="230" cy="190" r="5" fill="#b03a2e"/>
+<text x="90" y="245" font-size="13">Une verticale coupe deux fois.</text>
+</svg>
+</div>
+</div>
+
+<h2>4. Image et antécédent</h2>
+
+<h3>4.1 Image</h3>
+<div class="box">
+L’<strong>image</strong> d’un nombre x est la valeur de y correspondante sur le graphique.<br>
+Si le point (3 ; 7) est sur le graphique de f, alors <span class="formula">f(3) = 7</span>.<br>
+On dit : “l’image de 3 par f est 7”.
+</div>
+
+<h3>4.2 Antécédent</h3>
+<div class="box">
+Un <strong>antécédent</strong> d’un nombre y est une valeur de x qui donne cette valeur y.<br>
+Si <span class="formula">f(3) = 7</span>, alors 3 est un antécédent de 7.
+</div>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> l’image est une valeur de y. L’antécédent est une valeur de x. Un même nombre peut avoir plusieurs antécédents.
+</div>
+
+<h3>Exemple corrigé 1</h3>
+<div class="exercise">
+Sur un graphique, on lit les points suivants : (0 ; 2), (2 ; 5), (4 ; 5), (6 ; 1).<br>
+1) Quelle est l’image de 2 ?<br>
+2) Quels sont les antécédents de 5 ?<br>
+3) Quelle est l’image de 6 ?
+</div>
+<div class="correction">
+1) Le point (2 ; 5) signifie que <span class="formula">f(2)=5</span>. L’image de 2 est 5.<br>
+2) On cherche les x pour lesquels y = 5. Les points concernés sont (2 ; 5) et (4 ; 5). Les antécédents de 5 sont 2 et 4.<br>
+3) Le point (6 ; 1) signifie que <span class="formula">f(6)=1</span>. L’image de 6 est 1.
+</div>
+
+<h2>5. Domaine et ensemble-image</h2>
+
+<h3>5.1 Domaine</h3>
+<div class="box">
+Le <strong>domaine</strong> d’une fonction est l’ensemble des valeurs de x pour lesquelles le graphique existe.
+</div>
+
+<h3>5.2 Ensemble-image</h3>
+<div class="box">
+L’<strong>ensemble-image</strong> est l’ensemble des valeurs de y prises par la fonction.
+</div>
+
+<h3>5.3 Intervalles</h3>
+<table>
+<tr><th>Notation</th><th>Signification</th></tr>
+<tr><td><span class="formula">[a ; b]</span></td><td>a et b sont compris.</td></tr>
+<tr><td><span class="formula">]a ; b[</span></td><td>a et b ne sont pas compris.</td></tr>
+<tr><td><span class="formula">[a ; b[</span></td><td>a compris, b non compris.</td></tr>
+<tr><td><span class="formula">]a ; b]</span></td><td>a non compris, b compris.</td></tr>
+<tr><td><span class="formula">[a ; +∞[</span></td><td>de a compris vers l’infini.</td></tr>
+</table>
+
+<h3>Exemple corrigé 2</h3>
+<div class="exercise">
+Un graphique commence au point fermé (-2 ; 1), monte jusqu’à (3 ; 6), puis descend jusqu’au point fermé (7 ; -1).<br>
+Donne le domaine et l’ensemble-image.
+</div>
+<div class="correction">
+Le graphique existe pour les x allant de -2 à 7. Les extrémités sont incluses, car les points sont fermés.<br>
+Domaine : <span class="formula">[-2 ; 7]</span>.<br>
+Les valeurs de y vont de -1 à 6. Ces valeurs sont atteintes.<br>
+Ensemble-image : <span class="formula">[-1 ; 6]</span>.
+</div>
+
+<h2>6. Zéros et intersections avec les axes</h2>
+
+<h3>6.1 Zéro d’une fonction</h3>
+<div class="box">
+Un <strong>zéro</strong> de la fonction est une valeur de x pour laquelle <span class="formula">f(x)=0</span>.<br>
+Graphiquement, les zéros sont les abscisses des points où le graphique coupe ou touche l’axe des x.
+</div>
+
+<h3>6.2 Intersection avec les axes</h3>
+<table>
+<tr><th>Intersection</th><th>Ce qu’on cherche</th></tr>
+<tr><td>Avec l’axe des x</td><td>Les points où y = 0. Ce sont les zéros de la fonction.</td></tr>
+<tr><td>Avec l’axe des y</td><td>Le point où x = 0. On lit f(0).</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> le zéro est une valeur de x, pas un point complet. Le point d’intersection avec l’axe des x est par exemple (4 ; 0), mais le zéro est 4.
+</div>
+
+<h3>Exemple corrigé 3</h3>
+<div class="exercise">
+Un graphique coupe l’axe des x aux points (-1 ; 0), (2 ; 0) et (5 ; 0). Il coupe l’axe des y au point (0 ; -3).<br>
+1) Quels sont les zéros ?<br>
+2) Quelle est l’image de 0 ?
+</div>
+<div class="correction">
+1) Les zéros sont les abscisses des points où y = 0 : <span class="formula">-1, 2 et 5</span>.<br>
+2) Le point sur l’axe des y est (0 ; -3), donc <span class="formula">f(0) = -3</span>.
+</div>
+
+<h2>7. Signe d’une fonction</h2>
+
+<div class="box">
+Étudier le <strong>signe</strong> d’une fonction, c’est dire où elle est :
+<ul>
+<li><strong>positive</strong> : graphique au-dessus de l’axe des x ;</li>
+<li><strong>nulle</strong> : graphique sur l’axe des x ;</li>
+<li><strong>négative</strong> : graphique en-dessous de l’axe des x.</li>
+</ul>
+</div>
+
+<h3>Méthode : tableau de signes</h3>
+<div class="method">
+1. Repère les zéros de la fonction.<br>
+2. Coupe le domaine en intervalles grâce à ces zéros.<br>
+3. Regarde si le graphique est au-dessus ou en-dessous de l’axe des x sur chaque intervalle.<br>
+4. Écris +, 0 ou −.
+</div>
+
+<h3>Exemple corrigé 4</h3>
+<div class="exercise">
+Une fonction a pour domaine [-4 ; 6]. Elle coupe l’axe des x en -1 et 3. Elle est au-dessus de l’axe entre -4 et -1, en-dessous entre -1 et 3, puis au-dessus entre 3 et 6. Donne son signe.
+</div>
+<div class="correction">
+La fonction est positive sur <span class="formula">[-4 ; -1[</span> et <span class="formula">]3 ; 6]</span>.<br>
+Elle est nulle pour <span class="formula">x = -1</span> et <span class="formula">x = 3</span>.<br>
+Elle est négative sur <span class="formula">]-1 ; 3[</span>.
+</div>
+
+<h2>8. Croissance et décroissance</h2>
+
+<div class="box">
+Une fonction est :
+<ul>
+<li><strong>croissante</strong> quand le graphique monte lorsqu’on va de gauche à droite ;</li>
+<li><strong>décroissante</strong> quand le graphique descend lorsqu’on va de gauche à droite ;</li>
+<li><strong>constante</strong> quand le graphique reste horizontal.</li>
+</ul>
+</div>
+
+<h3>Méthode : tableau de variation</h3>
+<div class="method">
+1. Lis le graphique de gauche à droite.<br>
+2. Repère les endroits où le sens change : sommet, creux, point de retournement.<br>
+3. Note les intervalles où la fonction monte ou descend.<br>
+4. Indique les valeurs importantes dans un tableau de variation.
+</div>
+
+<h3>Exemple corrigé 5</h3>
+<div class="exercise">
+Une fonction est définie sur [0 ; 10]. Elle monte de x=0 à x=4, descend de x=4 à x=8, puis remonte de x=8 à x=10. Donne ses intervalles de croissance et décroissance.
+</div>
+<div class="correction">
+La fonction est croissante sur <span class="formula">[0 ; 4]</span> et sur <span class="formula">[8 ; 10]</span>.<br>
+Elle est décroissante sur <span class="formula">[4 ; 8]</span>.
+</div>
+
+<h2>9. Maximum et minimum</h2>
+
+<div class="box">
+Le <strong>maximum</strong> est la plus grande valeur atteinte par la fonction.<br>
+Le <strong>minimum</strong> est la plus petite valeur atteinte par la fonction.
+</div>
+
+<h3>Exemple corrigé 6</h3>
+<div class="exercise">
+Sur un graphique, le point le plus haut est (4 ; 12) et le point le plus bas est (-2 ; -3). Que peut-on dire ?
+</div>
+<div class="correction">
+Le maximum de la fonction est 12. Il est atteint pour <span class="formula">x = 4</span>.<br>
+Le minimum de la fonction est -3. Il est atteint pour <span class="formula">x = -2</span>.
+</div>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> ne pas confondre la valeur du maximum avec l’endroit où il est atteint. Dans (4 ; 12), le maximum est 12, et il est atteint en x=4.
+</div>
+
+<h2>10. Comparaison de deux graphiques</h2>
+
+<div class="box">
+Comparer deux fonctions f et g à partir de leurs graphiques, c’est déterminer :
+<ul>
+<li>où <span class="formula">f(x)=g(x)</span> : les graphiques se coupent ;</li>
+<li>où <span class="formula">f(x)>g(x)</span> : le graphique de f est au-dessus de celui de g ;</li>
+<li>où <span class="formula">f(x)<g(x)</span> : le graphique de f est en-dessous de celui de g.</li>
+</ul>
+</div>
+
+<h3>Exemple corrigé 7 : chiffre d’affaires et frais</h3>
+<div class="exercise">
+Une fonction C(x) représente le chiffre d’affaires et F(x) les frais de production. Sur le graphique, les deux courbes se coupent pour x = 2 kg. Pour x &gt; 2, C(x) est au-dessus de F(x). Interprète.
+</div>
+<div class="correction">
+L’égalité <span class="formula">C(x)=F(x)</span> pour x = 2 signifie que le chiffre d’affaires est égal aux frais : il n’y a ni bénéfice ni perte.<br>
+Pour x &gt; 2, <span class="formula">C(x)>F(x)</span>, donc le chiffre d’affaires dépasse les frais : l’activité est rentable.<br>
+Pour x &lt; 2, si C(x) est en-dessous de F(x), l’activité est en perte.
+</div>
+
+<h2>11. Répondre en contexte</h2>
+
+<div class="method">
+Pour une question contextualisée :
+<ol>
+<li>Identifie ce que représentent x et y.</li>
+<li>Lis le graphique avec les unités.</li>
+<li>Réponds à la question mathématique.</li>
+<li>Traduis le résultat dans la situation réelle.</li>
+</ol>
+</div>
+
+<h3>Exemple corrigé 8</h3>
+<div class="exercise">
+Un graphique donne la température T(t) d’un four en fonction du temps t en minutes. Le maximum est 220 °C atteint à t = 18 min. Interprète.
+</div>
+<div class="correction">
+Mathématiquement, le maximum de la fonction est 220, atteint pour x = 18.<br>
+Dans la situation, cela signifie que le four atteint sa température maximale de 220 °C après 18 minutes.
+</div>
+
+<h2>12. Exercices progressifs</h2>
+
+<h3>A. Exercices “connaître”</h3>
+<div class="exercise">
+<strong>1.</strong> Explique avec tes mots : image, antécédent, domaine, ensemble-image.<br><br>
+<strong>2.</strong> Si le point (5 ; 12) appartient au graphique de f, complète : f(5)=… ; 5 est un … de 12 ; 12 est l’… de 5.<br><br>
+<strong>3.</strong> Quelle différence y a-t-il entre un zéro de fonction et une intersection avec l’axe des x ?
+</div>
+
+<h3>B. Exercices “appliquer”</h3>
+<div class="exercise">
+<strong>4.</strong> Une fonction passe par les points (0 ; 3), (2 ; 7), (4 ; 1), (6 ; 1).<br>
+a) Quelle est l’image de 2 ?<br>
+b) Quels sont les antécédents de 1 ?<br>
+c) Quelle est l’image de 0 ?<br><br>
+
+<strong>5.</strong> Une fonction définie sur [-3 ; 5] coupe l’axe des x en -2 et 4. Elle est positive sur [-3 ; -2[, négative sur ]-2 ; 4[, positive sur ]4 ; 5]. Fais une phrase complète décrivant son signe.<br><br>
+
+<strong>6.</strong> Une fonction monte sur [0 ; 3], descend sur [3 ; 7], puis reste constante sur [7 ; 10]. Donne ses intervalles de croissance, décroissance et constance.
+</div>
+
+<h3>C. Exercices “transférer”</h3>
+<div class="exercise">
+<strong>7.</strong> Un graphique représente la quantité d’eau dans un réservoir en fonction du temps. La fonction est décroissante de 0 à 8 h, puis constante de 8 h à 12 h. Interprète dans la situation.<br><br>
+
+<strong>8.</strong> Deux forfaits téléphoniques sont représentés par deux graphiques A(x) et B(x), où x est le nombre de Go utilisés et y le prix en euros. Les graphiques se coupent pour x = 12. Pour x &lt; 12, A est en-dessous de B ; pour x &gt; 12, A est au-dessus de B. Quel forfait choisir selon la consommation ? Justifie.<br><br>
+
+<strong>9.</strong> Une fonction bénéfice B(x) est positive à partir de x = 15. Que signifie cette information pour une entreprise ?
+</div>
+
+<hr>
+<h2>13. Corrections détaillées des exercices</h2>
+
+<div class="correction">
+<strong>1.</strong> Image : valeur de y correspondant à une valeur de x. Antécédent : valeur de x qui donne une valeur de y. Domaine : ensemble des x où la fonction existe. Ensemble-image : ensemble des valeurs de y prises par la fonction.
+</div>
+
+<div class="correction">
+<strong>2.</strong> Si (5 ; 12) appartient au graphique, alors <span class="formula">f(5)=12</span>. 5 est un antécédent de 12. 12 est l’image de 5.
+</div>
+
+<div class="correction">
+<strong>3.</strong> Un zéro est une valeur de x telle que f(x)=0. L’intersection avec l’axe des x est le point complet correspondant, par exemple (2 ; 0). Le zéro est 2.
+</div>
+
+<div class="correction">
+<strong>4.</strong> a) L’image de 2 est 7, car le point (2 ; 7) est donné.<br>
+b) Les antécédents de 1 sont 4 et 6, car les points (4 ; 1) et (6 ; 1) sont donnés.<br>
+c) L’image de 0 est 3.
+</div>
+
+<div class="correction">
+<strong>5.</strong> La fonction est positive sur <span class="formula">[-3 ; -2[</span> et <span class="formula">]4 ; 5]</span>, nulle pour <span class="formula">x=-2</span> et <span class="formula">x=4</span>, négative sur <span class="formula">]-2 ; 4[</span>.
+</div>
+
+<div class="correction">
+<strong>6.</strong> La fonction est croissante sur <span class="formula">[0 ; 3]</span>, décroissante sur <span class="formula">[3 ; 7]</span> et constante sur <span class="formula">[7 ; 10]</span>.
+</div>
+
+<div class="correction">
+<strong>7.</strong> De 0 à 8 h, la quantité d’eau diminue : le réservoir se vide. De 8 h à 12 h, la quantité reste constante : il n’y a plus de variation, donc le niveau d’eau ne change pas.
+</div>
+
+<div class="correction">
+<strong>8.</strong> Pour x &lt; 12, A est moins cher car son graphique est en-dessous de B. Pour x = 12, les deux forfaits coûtent le même prix. Pour x &gt; 12, B devient moins cher car A passe au-dessus de B.
+</div>
+
+<div class="correction">
+<strong>9.</strong> Si le bénéfice est positif à partir de x = 15, cela signifie que l’entreprise commence à gagner de l’argent à partir de 15 unités vendues, produites ou utilisées selon le contexte.
+</div>
+
+<hr>
+<h2>14. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse par une phrase. Les réponses doivent être données à partir du graphique ou des informations graphiques, pas par une étude algébrique.
+</div>
+
+<div class="exercise">
+<strong>Question 1 – Lecture de base</strong><br>
+Le graphique d’une fonction f passe par les points suivants :<br>
+(-3 ; 2), (-1 ; 0), (0 ; -2), (2 ; 0), (4 ; 5), (6 ; 3).<br>
+1) Donne l’image de 4.<br>
+2) Donne les antécédents de 0.<br>
+3) Donne les zéros de la fonction.<br>
+4) Donne f(0).
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 2 – Domaine et ensemble-image</strong><br>
+Une fonction est représentée par une courbe qui commence au point fermé (-4 ; -2), atteint un sommet en (1 ; 6), puis se termine au point fermé (5 ; 0).<br>
+1) Donne le domaine.<br>
+2) Donne l’ensemble-image.<br>
+3) Donne le maximum et indique où il est atteint.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 3 – Signe</strong><br>
+Une fonction définie sur [-5 ; 7] coupe l’axe des x en -2, 1 et 6. Elle est au-dessus de l’axe sur [-5 ; -2[ et ]1 ; 6[, et en-dessous sur ]-2 ; 1[ et ]6 ; 7].<br>
+Décris son signe.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 4 – Variations</strong><br>
+Une fonction descend sur [-3 ; 0], monte sur [0 ; 4], puis descend sur [4 ; 8].<br>
+1) Donne les intervalles de croissance et décroissance.<br>
+2) Si f(0)=-5 et f(4)=10, que représentent ces deux valeurs ?
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 5 – Comparaison de graphiques</strong><br>
+Deux fonctions C(x) et F(x) représentent le chiffre d’affaires et les frais d’une vente. Les graphiques se coupent pour x = 8. Pour x &lt; 8, C(x) est en-dessous de F(x). Pour x &gt; 8, C(x) est au-dessus de F(x).<br>
+1) Résous graphiquement C(x)=F(x).<br>
+2) Résous graphiquement C(x)>F(x).<br>
+3) Interprète dans le contexte.
+<div class="answer-space"></div>
+</div>
+
+<h2>15. Correction du mini-test final</h2>
+
+<div class="correction">
+<strong>Question 1</strong><br>
+1) L’image de 4 est 5, car le point (4 ; 5) est sur le graphique.<br>
+2) Les antécédents de 0 sont -1 et 2, car les points (-1 ; 0) et (2 ; 0) sont sur le graphique.<br>
+3) Les zéros sont -1 et 2.<br>
+4) f(0) = -2.
+</div>
+
+<div class="correction">
+<strong>Question 2</strong><br>
+1) Le graphique existe de x=-4 à x=5, donc le domaine est <span class="formula">[-4 ; 5]</span>.<br>
+2) Les valeurs de y vont de -2 à 6, donc l’ensemble-image est <span class="formula">[-2 ; 6]</span>.<br>
+3) Le maximum est 6, atteint pour x=1.
+</div>
+
+<div class="correction">
+<strong>Question 3</strong><br>
+La fonction est positive sur <span class="formula">[-5 ; -2[</span> et <span class="formula">]1 ; 6[</span>.<br>
+Elle est nulle pour <span class="formula">x=-2</span>, <span class="formula">x=1</span> et <span class="formula">x=6</span>.<br>
+Elle est négative sur <span class="formula">]-2 ; 1[</span> et <span class="formula">]6 ; 7]</span>.
+</div>
+
+<div class="correction">
+<strong>Question 4</strong><br>
+1) La fonction est décroissante sur <span class="formula">[-3 ; 0]</span>, croissante sur <span class="formula">[0 ; 4]</span>, puis décroissante sur <span class="formula">[4 ; 8]</span>.<br>
+2) f(0)=-5 est une valeur minimale locale : la fonction cesse de descendre et commence à monter. f(4)=10 est une valeur maximale locale : la fonction cesse de monter et commence à descendre.
+</div>
+
+<div class="correction">
+<strong>Question 5</strong><br>
+1) Graphiquement, <span class="formula">C(x)=F(x)</span> pour <span class="formula">x=8</span>.<br>
+2) Graphiquement, <span class="formula">C(x)>F(x)</span> pour <span class="formula">x>8</span>.<br>
+3) Pour 8 unités vendues, le chiffre d’affaires est égal aux frais : il n’y a ni bénéfice ni perte. Pour plus de 8 unités, le chiffre d’affaires dépasse les frais : l’activité devient rentable.
+</div>
+
+<hr>
+<h2>16. Fiche mémo finale</h2>
+
+<div class="memo box">
+<h3>Vocabulaire essentiel</h3>
+<ul>
+<li><strong>Fonction :</strong> correspondance qui associe à chaque x au maximum une valeur y.</li>
+<li><strong>f(x) :</strong> image de x par la fonction f.</li>
+<li><strong>Image :</strong> valeur de y correspondant à x.</li>
+<li><strong>Antécédent :</strong> valeur de x qui donne une image donnée.</li>
+<li><strong>Domaine :</strong> ensemble des valeurs de x où le graphique existe.</li>
+<li><strong>Ensemble-image :</strong> ensemble des valeurs de y prises par la fonction.</li>
+<li><strong>Zéro :</strong> valeur de x telle que f(x)=0.</li>
+<li><strong>Maximum :</strong> plus grande valeur de la fonction.</li>
+<li><strong>Minimum :</strong> plus petite valeur de la fonction.</li>
+</ul>
+
+<h3>Procédures</h3>
+<table>
+<tr><th>Ce qu’on cherche</th><th>Comment faire sur le graphique</th></tr>
+<tr><td>Image de a</td><td>Partir de x=a, monter/descendre jusqu’au graphique, lire y.</td></tr>
+<tr><td>Antécédent de b</td><td>Partir de y=b, aller jusqu’au graphique, lire les x possibles.</td></tr>
+<tr><td>Domaine</td><td>Regarder de quel x à quel x le graphique existe.</td></tr>
+<tr><td>Ensemble-image</td><td>Regarder de quel y à quel y le graphique monte/descend.</td></tr>
+<tr><td>Zéros</td><td>Lire les abscisses des intersections avec l’axe des x.</td></tr>
+<tr><td>Signe</td><td>Au-dessus de l’axe x : positif ; sur l’axe : nul ; en-dessous : négatif.</td></tr>
+<tr><td>Croissance</td><td>Le graphique monte de gauche à droite.</td></tr>
+<tr><td>Décroissance</td><td>Le graphique descend de gauche à droite.</td></tr>
+<tr><td>Comparer f et g</td><td>f&gt;g si f est au-dessus de g ; f&lt;g si f est en-dessous ; f=g aux intersections.</td></tr>
+</table>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Confondre image et antécédent.</li>
+<li>Confondre zéro et ordonnée à l’origine.</li>
+<li>Dire “maximum = x” au lieu de donner la valeur de y.</li>
+<li>Oublier les unités du graphique.</li>
+<li>Ne pas interpréter le résultat dans le contexte.</li>
+<li>Lire trop vite une échelle irrégulière ou mal graduée.</li>
+</ul>
+</div>
+
+<h2>17. Ressources utiles pour réviser</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=image+ant%C3%A9c%C3%A9dent+fonction+graphique">YouTube – image et antécédent d’une fonction sur graphique</a></li>
+<li><a href="https://www.youtube.com/results?search_query=domaine+ensemble+image+fonction+graphique">YouTube – domaine et ensemble-image d’une fonction</a></li>
+<li><a href="https://www.youtube.com/results?search_query=tableau+de+signe+fonction+graphique">YouTube – signe d’une fonction à partir d’un graphique</a></li>
+<li><a href="https://www.youtube.com/results?search_query=variations+fonction+graphique+maximum+minimum">YouTube – variations, maximum et minimum</a></li>
+<li><a href="https://fr.khanacademy.org/math/algebra/x2f8bb11595b61c86:functions">Khan Academy – fonctions</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-fonctions-m1125">Alloprof – les fonctions</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ32 UAA1 – Approche graphique d’une fonction. Toutes les méthodes sont centrées sur la lecture et l’interprétation graphique.
+</div>
+
+</div>
+</body>
+</html>

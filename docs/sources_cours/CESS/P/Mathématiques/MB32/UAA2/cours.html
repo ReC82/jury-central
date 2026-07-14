@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Cours MB32 UAA2 – Géométrie – Jury CESS Professionnel</title>
+<style>
+:root{--orange:#e67e22;--dark:#2c3e50;--light:#f8f9fa;--gray:#e9ecef;--green:#1f7a4d;--red:#b03a2e;--blue:#1f618d}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#222;margin:0;background:#fff}
+.page{max-width:1050px;margin:auto;padding:28px}
+h1,h2,h3{color:var(--dark);margin-top:1.2em}
+h1{font-size:30px;border-bottom:5px solid var(--orange);padding-bottom:10px}
+h2{font-size:23px;border-left:8px solid var(--orange);padding-left:12px;background:#fff7ef;padding-top:7px;padding-bottom:7px}
+h3{font-size:18px;color:#8a4b08}
+.box{border:1px solid #ccc;background:var(--light);padding:14px 18px;border-radius:8px;margin:16px 0}
+.memo{border:2px solid var(--green);background:#f0fff6}
+.warning{border:2px solid var(--red);background:#fff5f3}
+.method{border:2px solid var(--blue);background:#f2f8fc}
+.exercise{border-left:5px solid var(--orange);background:#fffaf5;padding:12px 16px;margin:14px 0}
+.correction{border-left:5px solid var(--green);background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+th,td{border:1px solid #999;padding:8px;text-align:left;vertical-align:top}
+th{background:#eee}
+.formula{font-family:"Cambria Math","Times New Roman",serif;font-size:1.08em;background:#f7f7f7;border:1px solid #ddd;padding:8px;border-radius:6px;display:inline-block;margin:4px 0}
+.small{font-size:.92em;color:#555}
+hr{border:none;border-top:2px solid #ddd;margin:32px 0}
+ul{margin-top:6px}
+.answer-space{height:70px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+@media print{
+  .page{max-width:none;padding:12mm}
+  a{color:#000;text-decoration:none}
+  h2{break-after:avoid}
+  .box,.exercise,.correction,table{break-inside:avoid}
+  .no-print{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<h1>MB32 UAA2 – Géométrie<br><small>Cours complet imprimable – Jury CESS Professionnel</small></h1>
+
+<div class="box">
+<strong>Objectif de l’UAA :</strong> apprendre à représenter dans le plan des objets de l’espace, associer un solide à ses représentations planes, utiliser les patrons, les vues coordonnées, la perspective cavalière, et calculer des longueurs, des aires et des volumes.<br>
+<strong>Contenu respecté :</strong> solides usuels, perspective cavalière, développements/patrons, vues coordonnées, aires et volumes. Pas de statistique, pas de fonctions, pas de probabilités.
+</div>
+
+<h2>1. Ce qu’il faut savoir faire à l’examen</h2>
+<table>
+<tr><th>Processus</th><th>Ce qu’on attend de toi</th><th>Exemples de tâches</th></tr>
+<tr><td><strong>Connaître</strong></td><td>Reconnaître, nommer, décrire.</td><td>Identifier un cylindre, une pyramide, une sphère ; donner faces, arêtes, sommets ; choisir l’unité correcte.</td></tr>
+<tr><td><strong>Appliquer</strong></td><td>Utiliser une méthode entraînée.</td><td>Calculer le volume d’une cuve cylindrique ; dessiner un patron ; faire une perspective cavalière.</td></tr>
+<tr><td><strong>Transférer</strong></td><td>Choisir soi-même la méthode dans une situation réelle.</td><td>Calculer le prix de remplissage d’une cuve, associer vue de face/vue de dessus/patron, vérifier si un résultat est plausible.</td></tr>
+</table>
+
+<h2>2. Bases indispensables : vocabulaire de géométrie</h2>
+<h3>2.1 Solide, face, arête, sommet</h3>
+<div class="box">
+Un <strong>solide</strong> est un objet en trois dimensions : longueur, largeur/profondeur, hauteur.<br>
+Une <strong>face</strong> est une surface plane ou courbe qui limite le solide.<br>
+Une <strong>arête</strong> est un segment où deux faces se rencontrent.<br>
+Un <strong>sommet</strong> est un point où plusieurs arêtes se rencontrent.
+</div>
+
+<table>
+<tr><th>Solide</th><th>Type</th><th>Faces / surface</th><th>À retenir</th></tr>
+<tr><td>Cube</td><td>Polyèdre</td><td>6 faces carrées</td><td>Toutes les arêtes ont la même longueur.</td></tr>
+<tr><td>Parallélépipède rectangle</td><td>Polyèdre</td><td>6 faces rectangulaires</td><td>Boîte, brique, carton.</td></tr>
+<tr><td>Prisme</td><td>Polyèdre</td><td>2 bases identiques + faces latérales</td><td>Les bases sont parallèles.</td></tr>
+<tr><td>Pyramide</td><td>Polyèdre</td><td>1 base + faces triangulaires</td><td>Les faces latérales se rejoignent en un sommet.</td></tr>
+<tr><td>Cylindre</td><td>Non-polyèdre</td><td>2 disques + surface latérale courbe</td><td>Boîte de conserve, cuve.</td></tr>
+<tr><td>Cône</td><td>Non-polyèdre</td><td>1 disque + surface latérale courbe</td><td>Base circulaire et sommet.</td></tr>
+<tr><td>Sphère</td><td>Non-polyèdre</td><td>Surface courbe uniquement</td><td>Balle, globe.</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> un cylindre, un cône et une sphère ne sont pas des polyèdres, car ils possèdent des surfaces courbes.
+</div>
+
+<h2>3. Les unités : longueurs, aires, volumes</h2>
+<table>
+<tr><th>Grandeur</th><th>Unité</th><th>Exemples</th><th>Conversion importante</th></tr>
+<tr><td>Longueur</td><td>m, cm, mm</td><td>rayon, diamètre, hauteur</td><td>1 m = 100 cm</td></tr>
+<tr><td>Aire</td><td>m², cm²</td><td>surface à peindre, surface d’un patron</td><td>1 m² = 10 000 cm²</td></tr>
+<tr><td>Volume</td><td>m³, cm³, L</td><td>contenance d’une cuve</td><td>1 m³ = 1000 L ; 1 L = 1 dm³</td></tr>
+</table>
+
+<div class="warning">
+<strong>Piège majeur :</strong> ne mélange jamais cm et m dans une même formule. Convertis tout dans la même unité avant de calculer.
+</div>
+
+<h2>4. Formules de base à maîtriser</h2>
+
+<h3>4.1 Aires planes utiles</h3>
+<table>
+<tr><th>Figure</th><th>Formule</th><th>Signification</th></tr>
+<tr><td>Rectangle</td><td><span class="formula">A = L × l</span></td><td>longueur × largeur</td></tr>
+<tr><td>Carré</td><td><span class="formula">A = c²</span></td><td>côté × côté</td></tr>
+<tr><td>Triangle</td><td><span class="formula">A = (base × hauteur) / 2</span></td><td>moitié du rectangle correspondant</td></tr>
+<tr><td>Disque</td><td><span class="formula">A = π × r²</span></td><td>r = rayon</td></tr>
+<tr><td>Cercle : périmètre</td><td><span class="formula">P = 2πr = πD</span></td><td>D = diamètre</td></tr>
+</table>
+
+<h3>4.2 Volumes</h3>
+<table>
+<tr><th>Solide</th><th>Volume</th><th>Remarque</th></tr>
+<tr><td>Cube</td><td><span class="formula">V = c³</span></td><td>c = côté</td></tr>
+<tr><td>Parallélépipède rectangle</td><td><span class="formula">V = L × l × h</span></td><td>longueur × largeur × hauteur</td></tr>
+<tr><td>Prisme</td><td><span class="formula">V = aire de la base × hauteur</span></td><td>fonctionne pour tout prisme droit</td></tr>
+<tr><td>Cylindre</td><td><span class="formula">V = π × r² × h</span></td><td>h = longueur/hauteur du cylindre</td></tr>
+<tr><td>Pyramide</td><td><span class="formula">V = (aire de la base × hauteur) / 3</span></td><td>hauteur perpendiculaire à la base</td></tr>
+<tr><td>Cône</td><td><span class="formula">V = (π × r² × h) / 3</span></td><td>un tiers du cylindre correspondant</td></tr>
+<tr><td>Sphère</td><td><span class="formula">V = (4/3) × π × r³</span></td><td>r = rayon</td></tr>
+</table>
+
+<h3>4.3 Aires totales courantes</h3>
+<table>
+<tr><th>Solide</th><th>Aire totale</th><th>À comprendre</th></tr>
+<tr><td>Cube</td><td><span class="formula">A = 6c²</span></td><td>6 faces carrées</td></tr>
+<tr><td>Parallélépipède rectangle</td><td><span class="formula">A = 2(Ll + Lh + lh)</span></td><td>faces opposées identiques</td></tr>
+<tr><td>Cylindre</td><td><span class="formula">A = 2πr² + 2πrh</span></td><td>2 disques + rectangle enroulé</td></tr>
+<tr><td>Sphère</td><td><span class="formula">A = 4πr²</span></td><td>surface courbe complète</td></tr>
+</table>
+
+<h2>5. Chapitre : reconnaître les solides</h2>
+<h3>Exemple corrigé 1 : identifier un solide</h3>
+<div class="exercise">
+Un objet possède deux bases circulaires identiques et parallèles, reliées par une surface courbe. Quel est ce solide ?
+</div>
+<div class="correction">
+<strong>Correction :</strong><br>
+1. Bases circulaires : ce n’est pas un prisme à base polygonale.<br>
+2. Deux bases parallèles : ce n’est pas un cône, qui n’a qu’une base.<br>
+3. Surface latérale courbe : ce n’est pas un polyèdre.<br>
+<strong>Réponse :</strong> c’est un cylindre.
+</div>
+
+<h3>Exercice – connaître</h3>
+<div class="exercise">
+Pour chaque description, indique le solide :<br>
+a) Une seule base circulaire et un sommet.<br>
+b) Une seule surface courbe, aucun sommet, aucune arête.<br>
+c) Deux bases triangulaires parallèles et trois faces rectangulaires.<br>
+d) Une base carrée et quatre faces triangulaires.
+</div>
+
+<h2>6. Chapitre : perspective cavalière</h2>
+<div class="box">
+La <strong>perspective cavalière</strong> est une façon de représenter un solide 3D sur une feuille 2D. Elle garde la face avant en vraie grandeur. Les arêtes qui partent vers la profondeur sont tracées inclinées, souvent à 45°, et parfois réduites.
+</div>
+
+<h3>Vocabulaire</h3>
+<ul>
+<li><strong>Plan frontal :</strong> face dessinée de face, en vraie grandeur.</li>
+<li><strong>Fuyantes :</strong> arêtes qui partent vers l’arrière.</li>
+<li><strong>Coefficient de réduction :</strong> nombre qui réduit la longueur des fuyantes, souvent 1/2.</li>
+<li><strong>Arêtes cachées :</strong> arêtes non visibles, dessinées en pointillés.</li>
+</ul>
+
+<svg width="650" height="330" viewBox="0 0 650 330" role="img" aria-label="Parallélépipède en perspective cavalière">
+<rect x="110" y="110" width="230" height="130" fill="none" stroke="#222" stroke-width="3"/>
+<line x1="110" y1="110" x2="200" y2="60" stroke="#222" stroke-width="3"/>
+<line x1="340" y1="110" x2="430" y2="60" stroke="#222" stroke-width="3"/>
+<line x1="340" y1="240" x2="430" y2="190" stroke="#222" stroke-width="3"/>
+<line x1="200" y1="60" x2="430" y2="60" stroke="#222" stroke-width="3"/>
+<line x1="430" y1="60" x2="430" y2="190" stroke="#222" stroke-width="3"/>
+<line x1="200" y1="60" x2="200" y2="190" stroke="#999" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="200" y1="190" x2="430" y2="190" stroke="#999" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="110" y1="240" x2="200" y2="190" stroke="#999" stroke-width="2" stroke-dasharray="6 6"/>
+<text x="140" y="270" font-size="16">face frontale en vraie grandeur</text>
+<text x="445" y="120" font-size="16">fuyantes</text>
+<text x="205" y="205" font-size="16" fill="#777">arêtes cachées</text>
+</svg>
+
+<h3>Méthode : dessiner un parallélépipède rectangle en perspective cavalière</h3>
+<div class="method">
+1. Dessiner la face avant en vraie grandeur.<br>
+2. Depuis trois sommets visibles, tracer des fuyantes parallèles, souvent à 45°.<br>
+3. Réduire la profondeur si demandé, par exemple profondeur × 1/2.<br>
+4. Relier les extrémités des fuyantes.<br>
+5. Mettre les arêtes cachées en pointillés.
+</div>
+
+<div class="warning">
+<strong>Pièges fréquents :</strong> les angles ne sont pas toujours conservés ; seules les longueurs dans le plan frontal sont en vraie grandeur. Les arêtes parallèles dans le solide restent parallèles sur le dessin.
+</div>
+
+<h2>7. Chapitre : développements et patrons</h2>
+<div class="box">
+Un <strong>patron</strong> ou <strong>développement</strong> est une figure plane que l’on peut découper et plier pour reconstituer un solide.
+</div>
+
+<h3>Patrons à connaître</h3>
+<table>
+<tr><th>Solide</th><th>Patron</th></tr>
+<tr><td>Cube</td><td>6 carrés identiques.</td></tr>
+<tr><td>Parallélépipède rectangle</td><td>6 rectangles, opposés deux à deux identiques.</td></tr>
+<tr><td>Prisme droit</td><td>2 bases identiques + rectangles latéraux.</td></tr>
+<tr><td>Pyramide</td><td>1 base + triangles autour de la base.</td></tr>
+<tr><td>Cylindre</td><td>2 disques + 1 rectangle dont une dimension est le périmètre du disque.</td></tr>
+<tr><td>Cône</td><td>1 disque + 1 secteur circulaire.</td></tr>
+</table>
+
+<h3>Exemple corrigé 2 : patron d’un cylindre</h3>
+<div class="exercise">
+Un cylindre a un rayon de 4 cm et une hauteur de 10 cm. Quelles sont les dimensions du rectangle dans son patron ?
+</div>
+<div class="correction">
+Le patron d’un cylindre contient deux disques et un rectangle.<br>
+La hauteur du rectangle est la hauteur du cylindre : 10 cm.<br>
+La longueur du rectangle est le périmètre du disque : <span class="formula">2πr = 2 × π × 4 = 8π ≈ 25,1 cm</span>.<br>
+<strong>Réponse :</strong> rectangle de 10 cm sur environ 25,1 cm.
+</div>
+
+<h2>8. Chapitre : vues coordonnées</h2>
+<div class="box">
+Les <strong>vues coordonnées</strong> sont les projections orthogonales d’un objet : vue de face, vue de dessus, vue de côté/profil. Dans ces vues, les dimensions sont représentées en vraie grandeur sur le plan choisi.
+</div>
+
+<table>
+<tr><th>Vue</th><th>Ce qu’on voit</th><th>Exemple pour un cylindre horizontal</th></tr>
+<tr><td>Vue de face</td><td>largeur × hauteur</td><td>un cercle ou un rectangle selon l’orientation</td></tr>
+<tr><td>Vue de dessus</td><td>longueur × profondeur</td><td>souvent un rectangle</td></tr>
+<tr><td>Vue de profil</td><td>profondeur × hauteur</td><td>un cercle si on regarde la base</td></tr>
+</table>
+
+<h3>Méthode pour associer un solide à ses vues</h3>
+<div class="method">
+1. Repérer la forme générale : boîte, cylindre, pyramide, cône...<br>
+2. Chercher les faces visibles dans chaque direction.<br>
+3. Comparer les dimensions : hauteur, largeur, profondeur.<br>
+4. Vérifier si la vue contient des cercles, rectangles, triangles.<br>
+5. Écarter les vues impossibles.
+</div>
+
+<h2>9. Chapitre : calculer des volumes</h2>
+
+<h3>Exemple corrigé 3 : volume d’une cuve cylindrique</h3>
+<div class="exercise">
+Une cuve cylindrique horizontale mesure 2 m de long. Son diamètre est 1,2 m. On la remplit à 95 %. Combien de litres contient-elle ?
+</div>
+<div class="correction">
+1. Identifier le solide : cylindre.<br>
+2. Formule : <span class="formula">V = πr²h</span><br>
+3. Rayon : diamètre / 2 = 1,2 / 2 = 0,6 m.<br>
+4. Volume total : <span class="formula">V = π × 0,6² × 2 = π × 0,36 × 2 = 0,72π ≈ 2,262 m³</span>.<br>
+5. Remplissage à 95 % : <span class="formula">2,262 × 0,95 ≈ 2,149 m³</span>.<br>
+6. Conversion en litres : <span class="formula">2,149 m³ × 1000 ≈ 2149 L</span>.<br>
+<strong>Réponse :</strong> environ 2149 litres.
+</div>
+
+<h3>Exemple corrigé 4 : volume d’un cône</h3>
+<div class="exercise">
+Un cône a un rayon de 3 cm et une hauteur de 12 cm. Calcule son volume.
+</div>
+<div class="correction">
+Formule : <span class="formula">V = (πr²h)/3</span><br>
+Calcul : <span class="formula">V = (π × 3² × 12)/3 = (π × 9 × 12)/3 = 36π ≈ 113,1 cm³</span>.<br>
+<strong>Réponse :</strong> environ 113,1 cm³.
+</div>
+
+<h3>Exemple corrigé 5 : volume d’une sphère</h3>
+<div class="exercise">
+Une boule a un rayon de 5 cm. Calcule son volume.
+</div>
+<div class="correction">
+Formule : <span class="formula">V = (4/3)πr³</span><br>
+Calcul : <span class="formula">V = (4/3) × π × 5³ = (4/3) × π × 125 ≈ 523,6 cm³</span>.<br>
+<strong>Réponse :</strong> environ 523,6 cm³.
+</div>
+
+<h2>10. Chapitre : calculer des aires</h2>
+<h3>Exemple corrigé 6 : surface d’un cylindre fermé</h3>
+<div class="exercise">
+Une boîte cylindrique fermée a un rayon de 6 cm et une hauteur de 15 cm. Calcule l’aire totale.
+</div>
+<div class="correction">
+Aire totale d’un cylindre fermé : <span class="formula">A = 2πr² + 2πrh</span><br>
+Aire des deux bases : <span class="formula">2π × 6² = 72π</span><br>
+Aire latérale : <span class="formula">2π × 6 × 15 = 180π</span><br>
+Total : <span class="formula">252π ≈ 791,7 cm²</span><br>
+<strong>Réponse :</strong> environ 791,7 cm².
+</div>
+
+<h2>11. Problèmes de transfert : choisir la bonne méthode</h2>
+<div class="method">
+Pour résoudre un problème contextualisé :<br>
+1. Lire la question finale : que demande-t-on ? longueur, aire, volume, prix ?<br>
+2. Identifier le solide ou l’assemblage de solides.<br>
+3. Relever les données utiles et convertir les unités.<br>
+4. Choisir la formule.<br>
+5. Calculer étape par étape.<br>
+6. Donner une phrase-réponse avec l’unité.<br>
+7. Vérifier si le résultat est plausible.
+</div>
+
+<h3>Exemple corrigé 7 : facture de mazout</h3>
+<div class="exercise">
+Une cuve cylindrique de longueur 2 m et de diamètre 1,2 m est remplie à 95 %. Le prix est de 0,7133 €/L si la commande est inférieure à 2000 L et de 0,6848 €/L si elle dépasse 2000 L. Quel est le prix approximatif ?
+</div>
+<div class="correction">
+On reprend le volume trouvé plus haut : environ 2149 L.<br>
+Comme 2149 L &gt; 2000 L, on utilise le prix de 0,6848 €/L.<br>
+Prix : <span class="formula">2149 × 0,6848 ≈ 1471,6 €</span>.<br>
+<strong>Réponse :</strong> la facture sera d’environ 1471,6 €.
+</div>
+
+<h2>12. Exercices progressifs</h2>
+
+<h3>A. Exercices “connaître”</h3>
+<div class="exercise">
+<strong>1.</strong> Donne le nom du solide :<br>
+a) deux bases circulaires parallèles ; b) une base circulaire et un sommet ; c) six faces rectangulaires ; d) une surface courbe unique.<br><br>
+<strong>2.</strong> Explique la différence entre un polyèdre et un non-polyèdre.<br><br>
+<strong>3.</strong> Dans quelle unité exprime-t-on une aire ? un volume ? une longueur ?
+</div>
+
+<h3>B. Exercices “appliquer”</h3>
+<div class="exercise">
+<strong>4.</strong> Calcule le volume d’un parallélépipède rectangle de dimensions 8 cm, 5 cm et 3 cm.<br><br>
+<strong>5.</strong> Calcule le volume d’un cylindre de rayon 2 m et de hauteur 7 m.<br><br>
+<strong>6.</strong> Calcule l’aire totale d’un cube de côté 4 cm.<br><br>
+<strong>7.</strong> Un cylindre a un rayon de 3 cm et une hauteur de 8 cm. Donne les dimensions du rectangle de son patron.
+</div>
+
+<h3>C. Exercices “transférer”</h3>
+<div class="exercise">
+<strong>8.</strong> Une entreprise veut peindre une cuve cylindrique fermée de rayon 0,5 m et de longueur 3 m. Un pot de peinture couvre 4 m². Combien de pots faut-il acheter ?<br><br>
+<strong>9.</strong> Une pyramide à base carrée a une base de côté 6 cm et une hauteur de 10 cm. Calcule son volume et explique pourquoi on divise par 3.<br><br>
+<strong>10.</strong> Un objet est composé d’un cylindre de rayon 4 cm et de hauteur 10 cm surmonté d’un cône de même rayon et de hauteur 6 cm. Calcule le volume total.
+</div>
+
+<hr>
+<h2>13. Corrections détaillées des exercices</h2>
+
+<div class="correction">
+<strong>1.</strong> a) cylindre ; b) cône ; c) parallélépipède rectangle ; d) sphère.
+</div>
+<div class="correction">
+<strong>2.</strong> Un polyèdre est limité uniquement par des faces planes. Un non-polyèdre possède au moins une surface courbe. Exemple : cube = polyèdre ; cylindre = non-polyèdre.
+</div>
+<div class="correction">
+<strong>3.</strong> Longueur : m, cm, mm. Aire : m², cm². Volume : m³, cm³, L.
+</div>
+<div class="correction">
+<strong>4.</strong> <span class="formula">V = L × l × h = 8 × 5 × 3 = 120 cm³</span>.
+</div>
+<div class="correction">
+<strong>5.</strong> <span class="formula">V = πr²h = π × 2² × 7 = 28π ≈ 88,0 m³</span>.
+</div>
+<div class="correction">
+<strong>6.</strong> Cube : 6 faces carrées. <span class="formula">A = 6c² = 6 × 4² = 6 × 16 = 96 cm²</span>.
+</div>
+<div class="correction">
+<strong>7.</strong> Rectangle du patron : hauteur = 8 cm ; longueur = périmètre du disque = <span class="formula">2πr = 2π × 3 = 6π ≈ 18,8 cm</span>.
+</div>
+<div class="correction">
+<strong>8.</strong> Cuve fermée = cylindre fermé. <span class="formula">A = 2πr² + 2πrh</span><br>
+<span class="formula">A = 2π × 0,5² + 2π × 0,5 × 3 = 0,5π + 3π = 3,5π ≈ 11,0 m²</span>.<br>
+Un pot couvre 4 m² : <span class="formula">11,0 / 4 = 2,75</span>. Il faut acheter 3 pots, car on ne peut pas acheter 2,75 pots.
+</div>
+<div class="correction">
+<strong>9.</strong> Aire de la base : <span class="formula">6 × 6 = 36 cm²</span>.<br>
+Volume : <span class="formula">V = (A_base × h)/3 = (36 × 10)/3 = 120 cm³</span>.<br>
+On divise par 3 car une pyramide occupe un tiers du volume du prisme de même base et même hauteur.
+</div>
+<div class="correction">
+<strong>10.</strong> Cylindre : <span class="formula">V = π × 4² × 10 = 160π</span>.<br>
+Cône : <span class="formula">V = (π × 4² × 6)/3 = 32π</span>.<br>
+Total : <span class="formula">192π ≈ 603,2 cm³</span>.
+</div>
+
+<hr>
+<h2>14. Mini-test final type examen</h2>
+<div class="box warning">
+<strong>Consigne :</strong> toutes les réponses doivent être justifiées. Une réponse numérique sans méthode peut être refusée.
+</div>
+
+<div class="exercise">
+<strong>Question 1 – Connaître</strong><br>
+Complète le tableau.
+<table>
+<tr><th>Solide</th><th>Polyèdre ou non-polyèdre ?</th><th>Une caractéristique</th></tr>
+<tr><td>Cylindre</td><td></td><td></td></tr>
+<tr><td>Pyramide</td><td></td><td></td></tr>
+<tr><td>Sphère</td><td></td><td></td></tr>
+<tr><td>Prisme</td><td></td><td></td></tr>
+</table>
+</div>
+
+<div class="exercise">
+<strong>Question 2 – Appliquer</strong><br>
+Une cuve cylindrique a une longueur de 1,8 m et un diamètre de 1 m.<br>
+a) Calcule son volume en m³.<br>
+b) Convertis ce volume en litres.<br>
+c) Si elle est remplie à 90 %, combien de litres contient-elle ?
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 3 – Appliquer</strong><br>
+Un cube a une arête de 7 cm. Calcule son volume et son aire totale.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 4 – Transférer</strong><br>
+Une citerne est composée d’un cylindre de rayon 0,8 m et de longueur 2,5 m. Elle doit être peinte entièrement. Un pot couvre 5 m² et coûte 28 €. Calcule le coût minimum de peinture à prévoir.
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 5 – Représentation</strong><br>
+Explique comment construire la perspective cavalière d’un parallélépipède rectangle. Ta réponse doit mentionner la face frontale, les fuyantes, le coefficient de réduction et les arêtes cachées.
+<div class="answer-space"></div>
+</div>
+
+<h2>15. Correction du mini-test</h2>
+<div class="correction">
+<strong>Question 1</strong><br>
+Cylindre : non-polyèdre, deux bases circulaires et surface courbe.<br>
+Pyramide : polyèdre, une base et des faces triangulaires.<br>
+Sphère : non-polyèdre, surface courbe unique.<br>
+Prisme : polyèdre, deux bases identiques et parallèles.
+</div>
+<div class="correction">
+<strong>Question 2</strong><br>
+Rayon : 1 / 2 = 0,5 m.<br>
+Volume : <span class="formula">V = πr²h = π × 0,5² × 1,8 = 0,45π ≈ 1,4 m³</span>.<br>
+En litres : <span class="formula">1,4 × 1000 ≈ 1413,7 L</span>.<br>
+À 90 % : <span class="formula">1413,7 × 0,9 ≈ 1272,3 L</span>.
+</div>
+<div class="correction">
+<strong>Question 3</strong><br>
+Volume : <span class="formula">V = 7³ = 343 cm³</span>.<br>
+Aire totale : <span class="formula">A = 6 × 7² = 6 × 49 = 294 cm²</span>.
+</div>
+<div class="correction">
+<strong>Question 4</strong><br>
+Aire cylindre fermé : <span class="formula">A = 2πr² + 2πrh</span>.<br>
+<span class="formula">A = 2π × 0,8² + 2π × 0,8 × 2,5 = 1,28π + 4π = 5,28π ≈ 16,6 m²</span>.<br>
+Nombre de pots : <span class="formula">16,6 / 5 = 3,32</span>, donc 4 pots.<br>
+Coût : <span class="formula">4 × 28 = 112 €</span>.
+</div>
+<div class="correction">
+<strong>Question 5</strong><br>
+On dessine d’abord la face frontale en vraie grandeur. Depuis les sommets, on trace des fuyantes parallèles, souvent inclinées à 45°. Si un coefficient de réduction est donné, on réduit la longueur des fuyantes. On relie les extrémités pour former la face arrière. Les arêtes cachées sont tracées en pointillés.
+</div>
+
+<hr>
+<h2>16. Fiche mémo finale</h2>
+<div class="memo box">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Solide :</strong> objet en 3 dimensions.</li>
+<li><strong>Polyèdre :</strong> solide limité uniquement par des faces planes.</li>
+<li><strong>Patron :</strong> développement à plat d’un solide.</li>
+<li><strong>Perspective cavalière :</strong> représentation plane d’un solide avec face frontale en vraie grandeur et fuyantes parallèles.</li>
+<li><strong>Vues coordonnées :</strong> vues de face, de dessus et de profil.</li>
+</ul>
+
+<h3>Formules essentielles</h3>
+<table>
+<tr><th>Objet</th><th>Formule</th></tr>
+<tr><td>Disque</td><td>A = πr²</td></tr>
+<tr><td>Cercle</td><td>P = 2πr = πD</td></tr>
+<tr><td>Parallélépipède rectangle</td><td>V = L × l × h</td></tr>
+<tr><td>Prisme</td><td>V = aire de base × hauteur</td></tr>
+<tr><td>Cylindre</td><td>V = πr²h</td></tr>
+<tr><td>Pyramide</td><td>V = aire de base × hauteur / 3</td></tr>
+<tr><td>Cône</td><td>V = πr²h / 3</td></tr>
+<tr><td>Sphère</td><td>V = 4πr³ / 3 ; A = 4πr²</td></tr>
+</table>
+
+<h3>Procédure examen</h3>
+<ol>
+<li>Identifier le solide.</li>
+<li>Repérer les données utiles.</li>
+<li>Convertir les unités.</li>
+<li>Choisir la formule.</li>
+<li>Calculer proprement.</li>
+<li>Arrondir si nécessaire.</li>
+<li>Écrire une phrase-réponse avec unité.</li>
+<li>Vérifier la plausibilité du résultat.</li>
+</ol>
+</div>
+
+<h2>17. Ressources utiles pour réviser</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=volume+cylindre+c%C3%B4ne+sph%C3%A8re+exercices">YouTube – volumes cylindre, cône, sphère exercices</a></li>
+<li><a href="https://www.youtube.com/results?search_query=perspective+cavali%C3%A8re+maths">YouTube – perspective cavalière en mathématiques</a></li>
+<li><a href="https://www.youtube.com/results?search_query=patron+d%27un+solide+maths">YouTube – patrons de solides</a></li>
+<li><a href="https://fr.khanacademy.org/math/geometry/hs-geo-solids">Khan Academy – solides, volumes et aires</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-solides-m1251">Alloprof – les solides</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MB32 UAA2 – Géométrie. Les exercices et exemples sont centrés sur les solides, les représentations planes, les patrons, les vues coordonnées, les aires et les volumes.
+</div>
+
+</div>
+</body>
+</html>

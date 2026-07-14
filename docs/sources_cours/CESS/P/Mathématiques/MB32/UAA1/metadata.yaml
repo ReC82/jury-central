@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MB32"
+uaa: 1
+code: "MB32-UAA1"
+title: "Tableaux, graphiques, formules"
+slug: "mb32-uaa1-tableaux-graphiques-formules"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MB32_UAA1_tableaux_graphiques_formules.html"
+    sha256: "c7098612c48115d00a3caa1a067318bfbe7e34a5123e141722872780d1848810"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "Cours MB32 UAA1 – Tableaux, graphiques, formules.pdf"
+    sha256: "575273fed41ef674d6132c5403b3dfed7dcb52da7c86ab6a97f3186d35f2fc43"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:24.7041764+02:00"

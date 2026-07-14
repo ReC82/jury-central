@@ -1,5 +1,8 @@
 import json
 from dataclasses import dataclass, field
+from typing import Any
+
+from app.answer_checking import answers_match, parse_answer
 
 
 @dataclass
@@ -8,6 +11,10 @@ class QuizConfig:
     choices: list[str] = field(default_factory=list)
     correct_index: int = 0
     explanation: str = ""
+    answer_type: str = "choice"  # "choice" (QCM / vrai-faux) ou "numeric" (réponse chiffrée)
+    correct_value: str = ""  # utilisé seulement si answer_type == "numeric"
+    group: str = ""  # regroupe plusieurs blocs quiz en un seul parcours (score, une question à la fois)
+    order_in_group: int = 0
 
     def to_json(self) -> str:
         return json.dumps(
@@ -16,6 +23,10 @@ class QuizConfig:
                 "choices": self.choices,
                 "correct_index": self.correct_index,
                 "explanation": self.explanation,
+                "answer_type": self.answer_type,
+                "correct_value": self.correct_value,
+                "group": self.group,
+                "order_in_group": self.order_in_group,
             },
             ensure_ascii=False,
         )
@@ -31,7 +42,32 @@ class QuizConfig:
             choices=list(data.get("choices", [])),
             correct_index=int(data.get("correct_index", 0)),
             explanation=data.get("explanation", ""),
+            answer_type=data.get("answer_type", "choice"),
+            correct_value=data.get("correct_value", ""),
+            group=data.get("group", ""),
+            order_in_group=int(data.get("order_in_group", 0)),
         )
+
+    def check(self, submitted: str) -> bool:
+        """Vérifie une réponse soumise. Ne révèle jamais la bonne réponse."""
+        if self.answer_type == "numeric":
+            expected = parse_answer(self.correct_value)
+            if expected is None:
+                return False
+            return answers_match(expected, submitted)
+        try:
+            return int(submitted) == self.correct_index
+        except (TypeError, ValueError):
+            return False
+
+    def to_public_dict(self, block_id: int) -> dict[str, Any]:
+        """Données envoyées au navigateur : jamais la bonne réponse."""
+        return {
+            "block_id": block_id,
+            "question": self.question,
+            "choices": self.choices if self.answer_type == "choice" else [],
+            "answer_type": self.answer_type,
+        }
 
 
 def build_quiz_config(
@@ -40,7 +76,7 @@ def build_quiz_config(
     correct_raw_index: int,
     explanation: str = "",
 ) -> tuple[QuizConfig | None, str | None]:
-    """Construit un QuizConfig à partir de champs bruts (formulaire admin ou import CSV).
+    """Construit un QuizConfig QCM à partir de champs bruts (formulaire admin ou import CSV).
 
     `choices` peut contenir des entrées vides (elles sont filtrées). `correct_raw_index`
     est l'index (0-based) dans la liste brute `choices`, pas dans la liste filtrée.

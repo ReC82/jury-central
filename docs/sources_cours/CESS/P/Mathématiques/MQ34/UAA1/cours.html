@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Cours MQ34 UAA1 – Modèles de croissance – Jury CESS</title>
+<style>
+:root{--orange:#e67e22;--dark:#243447;--light:#f8f9fa;--green:#1f7a4d;--red:#b03a2e;--blue:#1f618d;--yellow:#fff8df}
+*{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#222;margin:0;background:#fff}.page{max-width:1120px;margin:auto;padding:28px}h1,h2,h3{color:var(--dark);margin-top:1.2em}h1{font-size:30px;border-bottom:5px solid var(--orange);padding-bottom:10px}h2{font-size:23px;border-left:8px solid var(--orange);padding-left:12px;background:#fff7ef;padding-top:7px;padding-bottom:7px}h3{font-size:18px;color:#8a4b08}.box{border:1px solid #ccc;background:var(--light);padding:14px 18px;border-radius:8px;margin:16px 0}.memo{border:2px solid var(--green);background:#f0fff6}.warning{border:2px solid var(--red);background:#fff5f3}.method{border:2px solid var(--blue);background:#f2f8fc}.exam{border:2px solid #b8860b;background:var(--yellow)}.exercise{border-left:5px solid var(--orange);background:#fffaf5;padding:12px 16px;margin:14px 0}.correction{border-left:5px solid var(--green);background:#f4fff7;padding:12px 16px;margin:14px 0}table{border-collapse:collapse;width:100%;margin:12px 0}th,td{border:1px solid #999;padding:8px;text-align:left;vertical-align:top}th{background:#eee}.formula{font-family:"Cambria Math","Times New Roman",serif;font-size:1.08em;background:#f7f7f7;border:1px solid #ddd;padding:8px;border-radius:6px;display:inline-block;margin:4px 0}.small{font-size:.92em;color:#555}hr{border:none;border-top:2px solid #ddd;margin:32px 0}ul{margin-top:6px}.answer-space{height:105px;border:1px dashed #aaa;background:#fff;margin:8px 0}@media print{.page{max-width:none;padding:12mm}a{color:#000;text-decoration:none}h2{break-after:avoid}.box,.exercise,.correction,table{break-inside:avoid}.no-print{display:none}}
+</style>
+</head>
+<body><div class="page">
+<h1>MQ34 UAA1 – Modèles de croissance<br><small>Cours complet imprimable – Jury CESS</small></h1>
+<div class="box"><strong>Objectif de l’UAA :</strong> traiter un problème avec un tableau de nombres, un graphique ou une formule, et identifier puis exploiter un modèle de croissance dans une situation concrète.<br><strong>Contenu ciblé :</strong> suites, fonctions puissances, exponentielles, logarithmes, échelles logarithmiques et intérêts.</div>
+<div class="box exam"><strong>À retenir :</strong> cette UAA compare plusieurs modèles de croissance. Il faut savoir reconnaître si une situation évolue par addition, par multiplication, par puissance, par exponentielle ou selon un logarithme, puis utiliser le bon outil.</div>
+
+<h2>1. Comprendre l’idée de modèle de croissance</h2>
+<div class="box">Un <strong>modèle de croissance</strong> décrit comment une grandeur évolue : capital, population, température, valeur d’une machine, volume, intensité sonore, etc.</div>
+<table><tr><th>Type</th><th>Idée</th><th>Exemple</th><th>Modèle fréquent</th></tr><tr><td>Linéaire</td><td>On ajoute toujours la même quantité.</td><td>+50 € par mois</td><td>suite arithmétique</td></tr><tr><td>Exponentiel</td><td>On multiplie toujours par le même facteur.</td><td>+5 % par an</td><td>suite géométrique, exponentielle</td></tr><tr><td>Puissance</td><td>Une grandeur dépend d’une puissance.</td><td>aire ou volume</td><td>x², x³, xⁿ</td></tr><tr><td>Logarithmique</td><td>On raisonne en ordres de grandeur.</td><td>décibels, pH, séismes</td><td>log(x)</td></tr></table>
+
+<h2>2. Suites arithmétiques</h2>
+<div class="box">Une suite est <strong>arithmétique</strong> lorsqu’on passe d’un terme au suivant en ajoutant toujours le même nombre, appelé <strong>raison</strong>.</div>
+<div class="box"><span class="formula">uₙ₊₁ = uₙ + r</span><br>Si la suite commence à <strong>u₀</strong> : <span class="formula">uₙ = u₀ + n×r</span><br>Si elle commence à <strong>u₁</strong> : <span class="formula">uₙ = u₁ + (n−1)×r</span></div>
+<h3>Exemple corrigé</h3><div class="exercise">Une entreprise produit 120 pièces le premier jour et augmente sa production de 15 pièces par jour. On note <span class="formula">u₁=120</span>. Combien produit-elle le 10e jour ?</div><div class="correction">On ajoute toujours 15 : suite arithmétique de raison <span class="formula">r=15</span>.<br><span class="formula">u₁₀ = 120 + (10−1)×15 = 255</span>.<br><strong>Réponse :</strong> le 10e jour, l’entreprise produit 255 pièces.</div>
+
+<h2>3. Suites géométriques</h2>
+<div class="box">Une suite est <strong>géométrique</strong> lorsqu’on passe d’un terme au suivant en multipliant toujours par le même nombre, appelé <strong>raison</strong>.</div>
+<div class="box"><span class="formula">uₙ₊₁ = uₙ × q</span><br>Si la suite commence à <strong>u₀</strong> : <span class="formula">uₙ = u₀ × qⁿ</span><br>Si elle commence à <strong>u₁</strong> : <span class="formula">uₙ = u₁ × qⁿ⁻¹</span></div>
+<h3>Exemple corrigé</h3><div class="exercise">Une population de bactéries vaut 500 au départ et augmente de 20 % par heure. Combien y en aura-t-il après 6 heures ?</div><div class="correction">Augmenter de 20 %, c’est multiplier par <span class="formula">1,20</span>.<br><span class="formula">u₆ = 500×1,20⁶ ≈ 1493</span>.<br><strong>Réponse :</strong> environ 1493 bactéries.</div>
+<div class="warning"><strong>Piège :</strong> “+20 %” ne veut pas dire “+20”. Cela signifie multiplier par 1,20.</div>
+
+<h2>4. Comparer croissance arithmétique et géométrique</h2>
+<table><tr><th>Critère</th><th>Arithmétique</th><th>Géométrique</th></tr><tr><td>Passage au terme suivant</td><td>on ajoute</td><td>on multiplie</td></tr><tr><td>Exemple</td><td>100 ; 120 ; 140 ; 160</td><td>100 ; 120 ; 144 ; 172,8</td></tr><tr><td>Finance</td><td>intérêt simple</td><td>intérêt composé</td></tr></table>
+<div class="exercise">Deux salaires évoluent pendant 5 ans. A : 1800 € au départ, +100 € par an. B : 1800 € au départ, +5 % par an. Compare après 5 ans.</div><div class="correction">A : <span class="formula">1800+5×100=2300 €</span>.<br>B : <span class="formula">1800×1,05⁵≈2297,7 €</span>.<br><strong>Conclusion :</strong> après 5 ans, A est légèrement supérieur, mais à long terme le modèle en pourcentage peut dépasser.</div>
+
+<h2>5. Fonctions puissances</h2>
+<div class="box">Une <strong>fonction puissance</strong> est du type <span class="formula">f(x)=a×xⁿ</span>.</div>
+<table><tr><th>Fonction</th><th>Situation typique</th></tr><tr><td><span class="formula">x²</span></td><td>aire d’un carré</td></tr><tr><td><span class="formula">x³</span></td><td>volume d’un cube</td></tr><tr><td><span class="formula">1/x</span></td><td>proportion inverse</td></tr><tr><td><span class="formula">√x</span></td><td>croissance ralentie</td></tr></table>
+<div class="exercise">L’aire d’un carré de côté x est <span class="formula">A(x)=x²</span>. Calcule A(3), A(5), A(10). Que remarques-tu ?</div><div class="correction"><span class="formula">A(3)=9</span>, <span class="formula">A(5)=25</span>, <span class="formula">A(10)=100</span>. Quand le côté double de 5 à 10, l’aire est multipliée par 4.</div>
+
+<h2>6. Fonctions exponentielles</h2>
+<div class="box">Une <strong>fonction exponentielle</strong> est du type <span class="formula">f(x)=b×aˣ</span>, où <strong>b</strong> est la valeur initiale et <strong>a</strong> le coefficient multiplicateur.</div>
+<table><tr><th>Coefficient a</th><th>Comportement</th></tr><tr><td><span class="formula">a &gt; 1</span></td><td>croissance exponentielle</td></tr><tr><td><span class="formula">0 &lt; a &lt; 1</span></td><td>décroissance exponentielle</td></tr></table>
+<div class="exercise">Une machine vaut 20 000 € et perd 15 % par an. Donne une formule et calcule sa valeur après 4 ans.</div><div class="correction">Perdre 15 %, c’est conserver 85 %, donc multiplier par <span class="formula">0,85</span>.<br><span class="formula">V(n)=20000×0,85ⁿ</span>.<br><span class="formula">V(4)=20000×0,85⁴≈10440,1 €</span>.</div>
+
+<h2>7. Logarithmes</h2>
+<div class="box">Un <strong>logarithme</strong> sert à retrouver un exposant. Exemple : <span class="formula">10³=1000</span>, donc <span class="formula">log(1000)=3</span>.</div>
+<table><tr><th>Propriété</th><th>Exemple</th></tr><tr><td><span class="formula">log(10)=1</span></td><td>car 10¹=10</td></tr><tr><td><span class="formula">log(100)=2</span></td><td>car 10²=100</td></tr><tr><td><span class="formula">log(1000)=3</span></td><td>car 10³=1000</td></tr><tr><td><span class="formula">log(aᵏ)=k×log(a)</span></td><td>utile pour les exponentielles</td></tr></table>
+<div class="method">Pour résoudre <span class="formula">b×aˣ=N</span> : diviser par b, puis utiliser <span class="formula">x = log(N/b) / log(a)</span>.</div>
+<div class="exercise">Une population de 8000 habitants augmente de 4 % par an. Après combien d’années dépassera-t-elle 12 000 habitants ?</div><div class="correction"><span class="formula">P(n)=8000×1,04ⁿ</span>.<br><span class="formula">1,04ⁿ≥1,5</span>.<br><span class="formula">n≥log(1,5)/log(1,04)≈10,3</span>.<br>Il faut donc 11 années complètes.</div>
+
+<h2>8. Échelles logarithmiques</h2>
+<div class="box">Une <strong>échelle logarithmique</strong> permet de représenter des valeurs très petites et très grandes sur un même graphique. Des distances égales correspondent à des multiplications égales.</div>
+<table><tr><th>Échelle classique</th><th>Échelle logarithmique</th></tr><tr><td>0, 10, 20, 30...</td><td>1, 10, 100, 1000...</td></tr><tr><td>Adaptée aux écarts réguliers.</td><td>Adaptée aux ordres de grandeur.</td></tr></table>
+<ul><li>Décibels</li><li>Échelle de Richter</li><li>pH</li><li>Graphiques de populations ou phénomènes rapides</li></ul>
+<div class="warning"><strong>Piège :</strong> sur une échelle logarithmique, l’écart visuel traduit souvent une multiplication, pas une simple addition.</div>
+
+<h2>9. Intérêts simples et composés</h2>
+<h3>9.1 Intérêts simples</h3><div class="box"><span class="formula">I=C₀×i×n</span><br><span class="formula">Cₙ=C₀×(1+i×n)</span></div>
+<div class="exercise">On place 3000 € à intérêt simple pendant 5 ans au taux annuel de 4 %. Calcule la valeur acquise.</div><div class="correction"><span class="formula">C₅=3000×(1+0,04×5)=3600 €</span>.</div>
+<h3>9.2 Intérêts composés</h3><div class="box"><span class="formula">Cₙ=C₀×(1+i)ⁿ</span></div>
+<div class="exercise">On place 3000 € à intérêts composés pendant 5 ans au taux annuel de 4 %. Calcule la valeur acquise.</div><div class="correction"><span class="formula">C₅=3000×1,04⁵≈3650,0 €</span>.</div>
+<h3>9.3 Trouver une durée</h3><div class="box"><span class="formula">n = log(Cₙ/C₀) / log(1+i)</span></div>
+<div class="exercise">Un capital de 5000 € est placé à intérêts composés au taux de 3 %. Après combien d’années atteindra-t-il 7000 € ?</div><div class="correction"><span class="formula">7000=5000×1,03ⁿ</span>, donc <span class="formula">n=log(1,4)/log(1,03)≈11,4</span>. Il faut 12 années complètes.</div>
+
+<h2>10. Choisir le bon modèle</h2>
+<div class="method"><ol><li>Repérer si on ajoute ou si on multiplie.</li><li>Addition constante : modèle linéaire / arithmétique.</li><li>Multiplication constante : modèle exponentiel / géométrique.</li><li>Dépendance en aire/volume : modèle puissance.</li><li>Ordres de grandeur : modèle logarithmique.</li><li>Vérifier les unités et interpréter.</li></ol></div>
+
+<h2>11. Exercices progressifs</h2>
+<h3>A. Connaître</h3><div class="exercise"><strong>1.</strong> Explique la différence entre suite arithmétique et suite géométrique.<br><strong>2.</strong> Donne un exemple de fonction puissance, exponentielle et logarithmique.<br><strong>3.</strong> Pourquoi les intérêts composés sont-ils exponentiels ?<br><strong>4.</strong> À quoi sert une échelle logarithmique ?</div>
+<h3>B. Appliquer</h3><div class="exercise"><strong>5.</strong> Suite arithmétique : <span class="formula">u₀=75</span>, <span class="formula">r=12</span>. Calcule <span class="formula">u₈</span>.<br><strong>6.</strong> Suite géométrique : <span class="formula">u₀=200</span>, <span class="formula">q=1,08</span>. Calcule <span class="formula">u₁₀</span>.<br><strong>7.</strong> Calcule <span class="formula">log(10000)</span> et explique.<br><strong>8.</strong> Place 4500 € pendant 6 ans à intérêts composés au taux de 2,5 %. Calcule la valeur acquise.</div>
+<h3>C. Transférer</h3><div class="exercise"><strong>9.</strong> Une substance perd 7 % de sa masse par jour. Elle pèse 120 g au départ. Donne une formule et calcule sa masse après 20 jours.<br><strong>10.</strong> Une ville compte 50 000 habitants et augmente de 1,8 % par an. Après combien d’années dépassera-t-elle 70 000 habitants ?<br><strong>11.</strong> Deux placements : A, 10 000 € à intérêt simple 5 % pendant 8 ans ; B, 10 000 € à intérêt composé 4,4 % pendant 8 ans. Lequel est meilleur ?<br><strong>12.</strong> Un graphique utilise une échelle logarithmique allant de 1 à 10 000. Explique pourquoi ce choix peut être pertinent.</div>
+
+<hr><h2>12. Corrections détaillées</h2>
+<div class="correction"><strong>1.</strong> Arithmétique : on ajoute toujours la même quantité. Géométrique : on multiplie toujours par le même facteur.</div>
+<div class="correction"><strong>2.</strong> Puissance : aire <span class="formula">A=x²</span>. Exponentielle : capital à intérêts composés. Logarithmique : décibels, pH ou Richter.</div>
+<div class="correction"><strong>3.</strong> Le capital est multiplié à chaque période par <span class="formula">1+i</span>. Les intérêts produisent eux-mêmes des intérêts.</div>
+<div class="correction"><strong>4.</strong> Elle représente lisiblement des valeurs d’ordres de grandeur très différents.</div>
+<div class="correction"><strong>5.</strong> <span class="formula">u₈=75+8×12=171</span>.</div>
+<div class="correction"><strong>6.</strong> <span class="formula">u₁₀=200×1,08¹⁰≈431,8</span>.</div>
+<div class="correction"><strong>7.</strong> <span class="formula">log(10000)=4</span>, car <span class="formula">10000=10⁴</span>.</div>
+<div class="correction"><strong>8.</strong> <span class="formula">C₆=4500×1,025⁶≈5218,7 €</span>.</div>
+<div class="correction"><strong>9.</strong> <span class="formula">M(n)=120×0,93ⁿ</span>. <span class="formula">M(20)≈28,2 g</span>.</div>
+<div class="correction"><strong>10.</strong> <span class="formula">P(n)=50000×1,018ⁿ</span>. <span class="formula">n≥log(1,4)/log(1,018)≈18,8</span>. Donc 19 années complètes.</div>
+<div class="correction"><strong>11.</strong> A : <span class="formula">10000×(1+0,05×8)=14000 €</span>. B : <span class="formula">10000×1,044⁸≈14113,5 €</span>. B est meilleur.</div>
+<div class="correction"><strong>12.</strong> L’échelle logarithmique permet de représenter 1, 10, 100, 1000, 10000 sans écraser les petites valeurs.</div>
+
+<hr><h2>13. Mini-test final type examen</h2>
+<div class="box exam"><strong>Consigne :</strong> justifie chaque réponse par une phrase, une formule ou un calcul détaillé. Arrondis raisonnablement et interprète dans le contexte.</div>
+<div class="exercise"><strong>Question 1 – Suites</strong><br>Une suite commence par 100 ; 130 ; 160 ; 190 ; ...<br>1) Type de suite ? 2) Raison ? 3) Formule avec <span class="formula">u₀=100</span>. 4) Calcule <span class="formula">u₁₂</span>.<div class="answer-space"></div></div>
+<div class="exercise"><strong>Question 2 – Exponentielle</strong><br>Une population de 12 000 individus augmente de 6 % par an.<br>1) Donne une formule. 2) Calcule la population après 9 ans. 3) Après combien d’années dépassera-t-elle 20 000 ?<div class="answer-space"></div></div>
+<div class="exercise"><strong>Question 3 – Puissances</strong><br>Le volume d’un cube d’arête x est <span class="formula">V(x)=x³</span>.<br>1) Calcule V(2), V(4), V(8). 2) Que se passe-t-il quand l’arête double ?<div class="answer-space"></div></div>
+<div class="exercise"><strong>Question 4 – Intérêts</strong><br>On place 8000 € pendant 7 ans. A : intérêt simple à 4,8 %. B : intérêt composé à 4,2 %. Calcule et compare.<div class="answer-space"></div></div>
+<div class="exercise"><strong>Question 5 – Logarithmes et échelle logarithmique</strong><br>1) Calcule <span class="formula">log(10)</span>, <span class="formula">log(100)</span>, <span class="formula">log(100000)</span>.<br>2) Explique pourquoi une échelle logarithmique est adaptée pour comparer 10, 1000 et 1 000 000.<div class="answer-space"></div></div>
+
+<h2>14. Correction du mini-test</h2>
+<div class="correction"><strong>Question 1.</strong> Suite arithmétique, raison 30. <span class="formula">uₙ=100+30n</span>. <span class="formula">u₁₂=460</span>.</div>
+<div class="correction"><strong>Question 2.</strong> <span class="formula">P(n)=12000×1,06ⁿ</span>. <span class="formula">P(9)≈20268</span>. <span class="formula">n≥log(20000/12000)/log(1,06)≈8,8</span>, donc 9 années complètes.</div>
+<div class="correction"><strong>Question 3.</strong> <span class="formula">V(2)=8</span>, <span class="formula">V(4)=64</span>, <span class="formula">V(8)=512</span>. Quand l’arête double, le volume est multiplié par 8.</div>
+<div class="correction"><strong>Question 4.</strong> A : <span class="formula">8000×(1+0,048×7)=10688 €</span>. B : <span class="formula">8000×1,042⁷≈10674,5 €</span>. A est très légèrement meilleur.</div>
+<div class="correction"><strong>Question 5.</strong> <span class="formula">log(10)=1</span>, <span class="formula">log(100)=2</span>, <span class="formula">log(100000)=5</span>. Une échelle logarithmique est adaptée pour comparer des valeurs séparées par de grands ordres de grandeur.</div>
+
+<hr><h2>15. Fiche mémo finale</h2>
+<div class="memo box"><h3>Suites</h3><ul><li>Arithmétique : <span class="formula">uₙ=u₀+n×r</span>.</li><li>Géométrique : <span class="formula">uₙ=u₀×qⁿ</span>.</li></ul><h3>Fonctions</h3><ul><li>Puissance : <span class="formula">f(x)=a×xⁿ</span>.</li><li>Exponentielle : <span class="formula">f(x)=b×aˣ</span>.</li><li>Logarithme : retrouve un exposant, <span class="formula">log(10ᵏ)=k</span>.</li></ul><h3>Intérêts</h3><ul><li>Simple : <span class="formula">Cₙ=C₀×(1+i×n)</span>.</li><li>Composé : <span class="formula">Cₙ=C₀×(1+i)ⁿ</span>.</li><li>Durée : <span class="formula">n=log(Cₙ/C₀)/log(1+i)</span>.</li></ul><h3>Échelles logarithmiques</h3><ul><li>Utiles pour les très grands écarts.</li><li>Reposent sur des multiplications ou puissances de 10.</li><li>Exemples : pH, décibels, séismes, ordres de grandeur.</li></ul></div>
+
+<h2>16. Ressources utiles pour réviser</h2>
+<ul><li><a href="https://www.youtube.com/results?search_query=suites+arithm%C3%A9tiques+g%C3%A9om%C3%A9triques+exercices">YouTube – suites arithmétiques et géométriques</a></li><li><a href="https://www.youtube.com/results?search_query=fonctions+puissances+exponentielles+logarithmes">YouTube – fonctions puissances, exponentielles et logarithmes</a></li><li><a href="https://www.youtube.com/results?search_query=%C3%A9chelle+logarithmique+explication">YouTube – échelles logarithmiques</a></li><li><a href="https://www.youtube.com/results?search_query=int%C3%A9r%C3%AAts+simples+compos%C3%A9s+logarithme">YouTube – intérêts simples, composés et logarithmes</a></li><li><a href="https://fr.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:exponential-and-logarithmic-functions">Khan Academy – exponentielles et logarithmes</a></li><li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-suites-arithmetiques-m1173">Alloprof – suites arithmétiques</a></li><li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-suites-geometriques-m1174">Alloprof – suites géométriques</a></li></ul>
+<div class="box small">Document conçu pour une révision ciblée de MQ34 UAA1 – Modèles de croissance, sans mélanger avec les autres UAA.</div>
+</div></body></html>

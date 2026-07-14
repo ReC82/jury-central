@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 2
+code: "MQ34-UAA2"
+title: "Statistique à deux variables"
+slug: "mq34-uaa2-statistique-a-deux-variables"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA2_statistique_deux_variables.html"
+    sha256: "9ba21d995f91047f3999b7a63cd9d8b725d572c93a50a18eb0c3733b50accbe4"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA2 – Statistique à deux variables.pdf"
+    sha256: "d59a47902af7bf1b0943d09967ba12932ce5895b68b7d5c18057f307d195ac0b"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.3321757+02:00"

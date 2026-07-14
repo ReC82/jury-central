@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Cours MQ32 UAA4 – Probabilité – Jury CESS</title>
+<style>
+:root{
+  --orange:#e67e22;--dark:#243447;--light:#f8f9fa;--gray:#e9ecef;
+  --green:#1f7a4d;--red:#b03a2e;--blue:#1f618d;--yellow:#fff8df;
+}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#222;margin:0;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1,h2,h3{color:var(--dark);margin-top:1.2em}
+h1{font-size:30px;border-bottom:5px solid var(--orange);padding-bottom:10px}
+h2{font-size:23px;border-left:8px solid var(--orange);padding-left:12px;background:#fff7ef;padding-top:7px;padding-bottom:7px}
+h3{font-size:18px;color:#8a4b08}
+.box{border:1px solid #ccc;background:var(--light);padding:14px 18px;border-radius:8px;margin:16px 0}
+.memo{border:2px solid var(--green);background:#f0fff6}
+.warning{border:2px solid var(--red);background:#fff5f3}
+.method{border:2px solid var(--blue);background:#f2f8fc}
+.exam{border:2px solid #b8860b;background:var(--yellow)}
+.exercise{border-left:5px solid var(--orange);background:#fffaf5;padding:12px 16px;margin:14px 0}
+.correction{border-left:5px solid var(--green);background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+th,td{border:1px solid #999;padding:8px;text-align:left;vertical-align:top}
+th{background:#eee}
+.formula{font-family:"Cambria Math","Times New Roman",serif;font-size:1.08em;background:#f7f7f7;border:1px solid #ddd;padding:8px;border-radius:6px;display:inline-block;margin:4px 0}
+.small{font-size:.92em;color:#555}
+hr{border:none;border-top:2px solid #ddd;margin:32px 0}
+ul{margin-top:6px}
+.answer-space{height:110px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.two-col{grid-template-columns:1fr}}
+@media print{
+  .page{max-width:none;padding:12mm}
+  a{color:#000;text-decoration:none}
+  h2{break-after:avoid}
+  .box,.exercise,.correction,table,svg{break-inside:avoid}
+  .no-print{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ32 UAA4 – Probabilité<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif de l’UAA :</strong> exploiter le calcul des probabilités pour analyser un phénomène aléatoire de la vie courante.<br>
+<strong>Contenu limité à cette UAA :</strong> approche fréquentiste, événements, unions, intersections, complémentaires, équiprobabilité, arbres, diagrammes de Venn, tableaux et probabilité conditionnelle.
+</div>
+
+<div class="box exam">
+<strong>Important :</strong> l’analyse combinatoire n’est pas au programme de cette UAA. Les exercices doivent rester centrés sur le calcul de probabilités simples ou conditionnelles à l’aide de représentations claires.
+</div>
+
+<h2>1. Ce qu’il faut savoir faire</h2>
+<table>
+<tr><th>Processus</th><th>Ce que cela veut dire</th><th>Exemples</th></tr>
+<tr><td><strong>Connaître</strong></td><td>Comprendre et interpréter une probabilité.</td><td>Expliquer une probabilité en termes de fréquence statistique.</td></tr>
+<tr><td><strong>Appliquer</strong></td><td>Calculer dans une situation connue.</td><td>Calculer une probabilité en équiprobabilité, dans un tableau ou un arbre.</td></tr>
+<tr><td><strong>Transférer</strong></td><td>Résoudre un problème contextualisé.</td><td>Choisir entre arbre, tableau ou Venn ; calculer une probabilité conditionnelle ; critiquer un jeu de hasard.</td></tr>
+</table>
+
+<h2>2. Approche fréquentiste de la probabilité</h2>
+
+<h3>2.1 Idée de base</h3>
+<div class="box">
+L’approche fréquentiste consiste à estimer la probabilité d’un événement en répétant une expérience un grand nombre de fois.<br>
+Plus on répète l’expérience, plus la fréquence observée peut se rapprocher de la probabilité théorique.
+</div>
+
+<div class="box">
+<span class="formula">fréquence observée = nombre de réalisations de l’événement / nombre total d’essais</span>
+</div>
+
+<h3>Exemple corrigé 1 : lancer une pièce</h3>
+<div class="exercise">
+On lance une pièce 200 fois. On obtient 106 fois “pile”. Estime la probabilité d’obtenir “pile”.
+</div>
+<div class="correction">
+On utilise la fréquence observée :<br>
+<span class="formula">P(pile) ≈ 106 / 200 = 53 / 100 = 0,53</span>.<br>
+<strong>Interprétation :</strong> dans cette simulation, “pile” est apparu dans 53 % des lancers. Cette valeur est proche de la probabilité théorique 1/2 pour une pièce équilibrée.
+</div>
+
+<h3>2.2 Simulation</h3>
+<div class="box">
+Une simulation peut être réalisée avec une calculatrice, un tableur ou un générateur de nombres aléatoires. Elle permet d’approcher une probabilité quand l’expérience réelle est longue ou difficile à répéter.
+</div>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> une fréquence observée n’est pas toujours exactement égale à la probabilité théorique. Sur peu d’essais, les écarts peuvent être importants.
+</div>
+
+<h2>3. Vocabulaire fondamental</h2>
+
+<table>
+<tr><th>Terme</th><th>Définition</th><th>Exemple avec un dé</th></tr>
+<tr><td><strong>Expérience aléatoire</strong></td><td>Expérience dont on ne connaît pas le résultat à l’avance.</td><td>Lancer un dé.</td></tr>
+<tr><td><strong>Issue</strong></td><td>Résultat possible.</td><td>Obtenir 4.</td></tr>
+<tr><td><strong>Univers Ω</strong></td><td>Ensemble de toutes les issues possibles.</td><td>{1,2,3,4,5,6}</td></tr>
+<tr><td><strong>Événement</strong></td><td>Ensemble d’issues.</td><td>A = “obtenir un nombre pair” = {2,4,6}</td></tr>
+<tr><td><strong>Événement élémentaire</strong></td><td>Événement avec une seule issue.</td><td>Obtenir 5.</td></tr>
+<tr><td><strong>Événement impossible</strong></td><td>Événement qui ne peut jamais arriver.</td><td>Obtenir 9 avec un dé classique.</td></tr>
+<tr><td><strong>Événement certain</strong></td><td>Événement qui arrive toujours.</td><td>Obtenir un nombre entre 1 et 6.</td></tr>
+</table>
+
+<h2>4. Probabilité d’un événement</h2>
+
+<h3>4.1 Valeurs possibles</h3>
+<div class="box">
+Une probabilité est toujours comprise entre 0 et 1.<br>
+<span class="formula">0 ≤ P(A) ≤ 1</span><br>
+0 signifie impossible. 1 signifie certain.
+</div>
+
+<h3>4.2 Équiprobabilité</h3>
+<div class="box">
+On parle d’<strong>équiprobabilité</strong> lorsque toutes les issues ont la même chance de se produire.<br>
+Dans ce cas :<br>
+<span class="formula">P(A) = nombre de cas favorables / nombre de cas possibles</span>
+</div>
+
+<h3>Exemple corrigé 2 : dé équilibré</h3>
+<div class="exercise">
+On lance un dé équilibré à 6 faces. Calcule la probabilité d’obtenir un nombre supérieur ou égal à 5.
+</div>
+<div class="correction">
+Cas possibles : 1, 2, 3, 4, 5, 6, donc 6 cas.<br>
+Cas favorables : 5 et 6, donc 2 cas.<br>
+<span class="formula">P(nombre ≥ 5) = 2/6 = 1/3</span>.<br>
+<strong>Réponse :</strong> la probabilité est 1/3.
+</div>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> vérifier que les issues sont bien équiprobables. Un dé truqué ou une roue avec des secteurs de tailles différentes ne donne pas forcément des issues équiprobables.
+</div>
+
+<h2>5. Événements : union, intersection, complémentaire</h2>
+
+<table>
+<tr><th>Notation</th><th>Lecture</th><th>Signification</th></tr>
+<tr><td><strong>A ∩ B</strong></td><td>A et B</td><td>A et B se réalisent en même temps.</td></tr>
+<tr><td><strong>A ∪ B</strong></td><td>A ou B</td><td>A se réalise, ou B se réalise, ou les deux.</td></tr>
+<tr><td><strong>A̅</strong></td><td>non A</td><td>A ne se réalise pas.</td></tr>
+<tr><td><strong>A \ B</strong></td><td>A sans B</td><td>A se réalise mais pas B.</td></tr>
+</table>
+
+<h3>5.1 Complémentaire</h3>
+<div class="box">
+La probabilité du complémentaire se calcule avec :<br>
+<span class="formula">P(A̅) = 1 − P(A)</span>
+</div>
+
+<h3>Exemple corrigé 3 : complémentaire</h3>
+<div class="exercise">
+La probabilité qu’un bus soit en retard est 0,18. Quelle est la probabilité qu’il ne soit pas en retard ?
+</div>
+<div class="correction">
+L’événement contraire de “être en retard” est “ne pas être en retard”.<br>
+<span class="formula">P(non retard) = 1 − 0,18 = 0,82</span>.<br>
+<strong>Réponse :</strong> la probabilité est 0,82, soit 82 %.
+</div>
+
+<h3>5.2 Union de deux événements</h3>
+<div class="box">
+Pour deux événements A et B :<br>
+<span class="formula">P(A ∪ B) = P(A) + P(B) − P(A ∩ B)</span><br>
+On soustrait l’intersection pour ne pas compter deux fois les cas communs.
+</div>
+
+<h3>5.3 Événements incompatibles</h3>
+<div class="box">
+Deux événements sont <strong>incompatibles</strong> s’ils ne peuvent pas se produire en même temps.<br>
+Dans ce cas : <span class="formula">P(A ∩ B) = 0</span>, donc <span class="formula">P(A ∪ B) = P(A) + P(B)</span>.
+</div>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> “A ou B” en probabilité signifie généralement “A ou B ou les deux”. C’est un “ou inclusif”.
+</div>
+
+<h2>6. Représentations utiles : arbre, Venn, tableau</h2>
+
+<h3>6.1 Diagramme de Venn</h3>
+<div class="box">
+Un diagramme de Venn est utile lorsqu’on travaille avec des ensembles : A, B, A et B, A ou B, ni A ni B.
+</div>
+
+<svg width="560" height="260" viewBox="0 0 560 260" role="img" aria-label="Diagramme de Venn">
+<rect x="20" y="20" width="520" height="210" fill="#fff" stroke="#222" stroke-width="2"/>
+<circle cx="230" cy="125" r="80" fill="#cfe2f3" stroke="#1f618d" stroke-width="3" opacity="0.85"/>
+<circle cx="330" cy="125" r="80" fill="#f9cb9c" stroke="#b45f06" stroke-width="3" opacity="0.85"/>
+<text x="185" y="120" font-size="24">A seul</text>
+<text x="285" y="125" font-size="20">A∩B</text>
+<text x="355" y="120" font-size="24">B seul</text>
+<text x="35" y="45" font-size="18">Ω</text>
+</svg>
+
+<h3>Exemple corrigé 4 : Venn</h3>
+<div class="exercise">
+Dans une classe de 30 élèves, 18 aiment les maths, 14 aiment les sciences et 8 aiment les deux. On choisit un élève au hasard.<br>
+Calcule la probabilité qu’il aime au moins une des deux matières.
+</div>
+<div class="correction">
+On cherche l’union : maths ou sciences.<br>
+<span class="formula">n(M ∪ S) = n(M) + n(S) − n(M ∩ S)</span><br>
+<span class="formula">n(M ∪ S) = 18 + 14 − 8 = 24</span>.<br>
+La probabilité vaut : <span class="formula">P(M ∪ S) = 24/30 = 4/5</span>.<br>
+<strong>Réponse :</strong> la probabilité est 4/5.
+</div>
+
+<h3>6.2 Tableaux</h3>
+<div class="box">
+Un tableau est utile quand les données sont classées selon deux critères : par exemple sexe/réussite, ancienneté/fonction, sport pratiqué/catégorie d’âge.
+</div>
+
+<h3>Exemple corrigé 5 : tableau</h3>
+<div class="exercise">
+Dans une entreprise, on a :
+<table>
+<tr><th></th><th>Ouvriers</th><th>Employés</th><th>Total</th></tr>
+<tr><td>Moins de 10 ans</td><td>35</td><td>15</td><td>50</td></tr>
+<tr><td>10 ans ou plus</td><td>45</td><td>5</td><td>50</td></tr>
+<tr><th>Total</th><th>80</th><th>20</th><th>100</th></tr>
+</table>
+On choisit une personne au hasard. Calcule P(employé) et P(employé et moins de 10 ans).
+</div>
+<div class="correction">
+Total : 100 personnes.<br>
+Employés : 20 personnes. Donc <span class="formula">P(E)=20/100=1/5</span>.<br>
+Employé et moins de 10 ans : case correspondante = 15. Donc <span class="formula">P(E ∩ M)=15/100=3/20</span>.
+</div>
+
+<h3>6.3 Arbres de probabilités</h3>
+<div class="box">
+Un arbre est utile pour une expérience en plusieurs étapes : tirer deux boules, lancer deux fois un dé, choisir une personne puis observer une caractéristique.
+</div>
+
+<div class="method">
+<strong>Règles de l’arbre :</strong><br>
+1. Les branches issues d’un même point doivent totaliser 1.<br>
+2. Pour suivre un chemin complet, on multiplie les probabilités des branches.<br>
+3. Si plusieurs chemins conviennent, on additionne les probabilités des chemins.
+</div>
+
+<h3>Exemple corrigé 6 : tirage sans remise</h3>
+<div class="exercise">
+Une urne contient 3 boules rouges et 2 boules bleues. On tire deux boules sans remise. Calcule la probabilité de tirer deux rouges.
+</div>
+<div class="correction">
+Premier tirage rouge : <span class="formula">3/5</span>.<br>
+Sans remise, il reste 2 rouges sur 4 boules.<br>
+Deuxième rouge sachant que le premier est rouge : <span class="formula">2/4 = 1/2</span>.<br>
+On multiplie : <span class="formula">P(R puis R)=3/5 × 2/4 = 6/20 = 3/10</span>.<br>
+<strong>Réponse :</strong> la probabilité est 3/10.
+</div>
+
+<h2>7. Probabilité conditionnelle</h2>
+
+<h3>7.1 Idée de base</h3>
+<div class="box">
+Une <strong>probabilité conditionnelle</strong> est une probabilité calculée sachant qu’une information est déjà connue.<br>
+On note : <span class="formula">P(A | B)</span><br>
+Cela se lit : “probabilité de A sachant B”.
+</div>
+
+<h3>7.2 Formule</h3>
+<div class="box">
+Si <span class="formula">P(B) ≠ 0</span>, alors :<br>
+<span class="formula">P(A | B) = P(A ∩ B) / P(B)</span>
+</div>
+
+<h3>7.3 Probabilité conditionnelle dans un tableau</h3>
+<div class="method">
+Pour calculer “A sachant B” dans un tableau :
+<ol>
+<li>On se limite à la ligne ou colonne correspondant à B.</li>
+<li>Le total de cette ligne/colonne devient le nouveau total.</li>
+<li>On compte parmi ce nouveau total les cas où A est vrai.</li>
+</ol>
+</div>
+
+<h3>Exemple corrigé 7 : conditionnelle dans un tableau</h3>
+<div class="exercise">
+On reprend le tableau :
+<table>
+<tr><th></th><th>Ouvriers</th><th>Employés</th><th>Total</th></tr>
+<tr><td>Moins de 10 ans</td><td>35</td><td>15</td><td>50</td></tr>
+<tr><td>10 ans ou plus</td><td>45</td><td>5</td><td>50</td></tr>
+<tr><th>Total</th><th>80</th><th>20</th><th>100</th></tr>
+</table>
+Calcule la probabilité qu’une personne soit employée sachant qu’elle a moins de 10 ans d’ancienneté.
+</div>
+<div class="correction">
+On sait déjà que la personne a moins de 10 ans d’ancienneté. On se limite donc à la première ligne, total 50.<br>
+Dans cette ligne, 15 personnes sont employées.<br>
+<span class="formula">P(E | M)=15/50=3/10</span>.<br>
+<strong>Réponse :</strong> sachant que la personne a moins de 10 ans d’ancienneté, la probabilité qu’elle soit employée est 3/10.
+</div>
+
+<h3>7.4 Probabilité conditionnelle dans un arbre</h3>
+<div class="box">
+Dans un arbre, la probabilité conditionnelle est souvent déjà écrite sur une branche après une première condition.
+</div>
+
+<div class="warning">
+<strong>Piège fréquent :</strong> ne pas confondre <span class="formula">P(A ∩ B)</span> et <span class="formula">P(A | B)</span>.<br>
+A ∩ B signifie “A et B”. A | B signifie “A sachant B”.
+</div>
+
+<h2>8. Avec ou sans remise</h2>
+
+<table>
+<tr><th>Situation</th><th>Ce qui change</th><th>Exemple</th></tr>
+<tr><td><strong>Avec remise</strong></td><td>On remet l’objet avant le tirage suivant. Les probabilités restent les mêmes.</td><td>Après avoir tiré une boule, on la remet dans l’urne.</td></tr>
+<tr><td><strong>Sans remise</strong></td><td>On ne remet pas l’objet. Le total change et les probabilités changent.</td><td>Après avoir tiré une boule, elle n’est plus disponible.</td></tr>
+</table>
+
+<h3>Exemple corrigé 8 : même couleur</h3>
+<div class="exercise">
+Une urne contient 4 boules rouges et 3 boules vertes. On tire deux boules sans remise. Calcule la probabilité de tirer deux boules de même couleur.
+</div>
+<div class="correction">
+Deux possibilités : rouge puis rouge, ou vert puis vert.<br>
+Rouge puis rouge : <span class="formula">4/7 × 3/6 = 12/42 = 2/7</span>.<br>
+Vert puis vert : <span class="formula">3/7 × 2/6 = 6/42 = 1/7</span>.<br>
+Même couleur : <span class="formula">2/7 + 1/7 = 3/7</span>.<br>
+<strong>Réponse :</strong> la probabilité est 3/7.
+</div>
+
+<h2>9. Traduire les mots de l’énoncé</h2>
+
+<table>
+<tr><th>Expression</th><th>Traduction probable</th><th>Attention</th></tr>
+<tr><td>au moins un</td><td>1 ou plus</td><td>Souvent plus facile avec le complémentaire : 1 − aucun.</td></tr>
+<tr><td>au plus deux</td><td>0, 1 ou 2</td><td>Inclut 2.</td></tr>
+<tr><td>exactement deux</td><td>2 uniquement</td><td>N’inclut pas 1 ni 3.</td></tr>
+<tr><td>A et B</td><td>A ∩ B</td><td>Intersection.</td></tr>
+<tr><td>A ou B</td><td>A ∪ B</td><td>Union inclusive.</td></tr>
+<tr><td>sachant que B</td><td>P(A | B)</td><td>Conditionnelle.</td></tr>
+<tr><td>ni A ni B</td><td>complémentaire de A ∪ B</td><td>1 − P(A ∪ B).</td></tr>
+</table>
+
+<h2>10. Vérifier la plausibilité d’un résultat</h2>
+
+<div class="method">
+Avant de finaliser :
+<ol>
+<li>La probabilité est-elle entre 0 et 1 ?</li>
+<li>La fraction est-elle simplifiée ?</li>
+<li>Le total utilisé est-il le bon total ?</li>
+<li>En conditionnelle, as-tu bien changé de total ?</li>
+<li>Dans un arbre, as-tu multiplié sur un chemin et additionné les chemins ?</li>
+<li>La réponse est-elle cohérente avec le contexte ?</li>
+</ol>
+</div>
+
+<h2>11. Exercices progressifs</h2>
+
+<h3>A. Exercices “connaître”</h3>
+<div class="exercise">
+<strong>1.</strong> Définis : expérience aléatoire, issue, univers, événement, événement contraire.<br><br>
+<strong>2.</strong> Explique la différence entre A ∩ B et A ∪ B.<br><br>
+<strong>3.</strong> Explique ce que signifie P(A | B).<br><br>
+<strong>4.</strong> Explique la différence entre approche fréquentiste et équiprobabilité.
+</div>
+
+<h3>B. Exercices “appliquer”</h3>
+<div class="exercise">
+<strong>5.</strong> On lance un dé équilibré. Calcule P(nombre pair), P(nombre supérieur à 4), P(nombre inférieur ou égal à 2), P(nombre égal à 9).<br><br>
+<strong>6.</strong> Dans une urne, il y a 5 rouges, 3 vertes et 2 noires. On tire une boule. Calcule P(rouge), P(non rouge), P(verte ou noire).<br><br>
+<strong>7.</strong> Dans un groupe de 40 personnes, 22 parlent néerlandais, 18 parlent anglais et 10 parlent les deux. Calcule P(parler au moins une des deux langues).
+</div>
+
+<h3>C. Exercices “transférer”</h3>
+<div class="exercise">
+<strong>8.</strong> Une urne contient 4 rouges et 2 bleues. On tire deux boules sans remise. Calcule P(deux rouges), P(deux bleues), P(couleurs différentes).<br><br>
+<strong>9.</strong> Dans une école, 60 élèves sont en option A, 40 en option B. Parmi les élèves de l’option A, 45 réussissent. Parmi les élèves de l’option B, 20 réussissent. On choisit un élève au hasard.<br>
+a) Calcule P(réussite).<br>
+b) Calcule P(option A sachant réussite).<br><br>
+<strong>10.</strong> Un jeu annonce “1 chance sur 3 de gagner”. Lors d’une simulation de 30 parties, on gagne 6 fois. Commente.
+</div>
+
+<hr>
+<h2>12. Corrections détaillées des exercices</h2>
+
+<div class="correction">
+<strong>1.</strong> Une expérience aléatoire est une expérience dont le résultat n’est pas connu à l’avance. Une issue est un résultat possible. L’univers est l’ensemble des issues. Un événement est un ensemble d’issues. L’événement contraire de A est l’événement “A ne se réalise pas”.
+</div>
+
+<div class="correction">
+<strong>2.</strong> A ∩ B signifie “A et B en même temps”. A ∪ B signifie “A ou B”, c’est-à-dire A, ou B, ou les deux.
+</div>
+
+<div class="correction">
+<strong>3.</strong> P(A | B) signifie la probabilité de A sachant que B est déjà réalisé. Le total de référence devient l’ensemble des cas où B est vrai.
+</div>
+
+<div class="correction">
+<strong>4.</strong> L’approche fréquentiste estime une probabilité à partir de fréquences observées lors de répétitions ou simulations. L’équiprobabilité utilise une formule quand toutes les issues ont la même chance.
+</div>
+
+<div class="correction">
+<strong>5.</strong> Dé équilibré : 6 cas possibles.<br>
+P(pair) = 3/6 = 1/2.<br>
+P(supérieur à 4) = {5,6} = 2/6 = 1/3.<br>
+P(inférieur ou égal à 2) = {1,2} = 2/6 = 1/3.<br>
+P(égal à 9) = 0, car c’est impossible.
+</div>
+
+<div class="correction">
+<strong>6.</strong> Total : 5 + 3 + 2 = 10.<br>
+P(rouge) = 5/10 = 1/2.<br>
+P(non rouge) = 5/10 = 1/2.<br>
+P(verte ou noire) = (3+2)/10 = 5/10 = 1/2.
+</div>
+
+<div class="correction">
+<strong>7.</strong> Au moins une langue = néerlandais ou anglais.<br>
+<span class="formula">n(N ∪ A)=22+18−10=30</span>.<br>
+<span class="formula">P(N ∪ A)=30/40=3/4</span>.
+</div>
+
+<div class="correction">
+<strong>8.</strong> Total : 6 boules.<br>
+Deux rouges : <span class="formula">4/6 × 3/5 = 12/30 = 2/5</span>.<br>
+Deux bleues : <span class="formula">2/6 × 1/5 = 2/30 = 1/15</span>.<br>
+Couleurs différentes : R puis B ou B puis R.<br>
+<span class="formula">4/6 × 2/5 + 2/6 × 4/5 = 8/30 + 8/30 = 16/30 = 8/15</span>.
+</div>
+
+<div class="correction">
+<strong>9.</strong> Total : 100 élèves. Réussites : 45 + 20 = 65.<br>
+a) <span class="formula">P(réussite)=65/100=13/20</span>.<br>
+b) Sachant réussite, le total devient 65. Parmi les réussites, 45 viennent de l’option A.<br>
+<span class="formula">P(option A | réussite)=45/65=9/13</span>.
+</div>
+
+<div class="correction">
+<strong>10.</strong> 1 chance sur 3 signifie une probabilité théorique d’environ 0,333. Sur 30 parties, on pourrait s’attendre à environ 10 gains. Ici, on observe 6 gains, soit 6/30 = 1/5 = 0,20. L’écart peut être dû au hasard si l’échantillon est petit, mais il peut aussi inciter à refaire une simulation plus longue ou à vérifier si le jeu est réellement équilibré.
+</div>
+
+<hr>
+<h2>13. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse. Les probabilités doivent être données sous forme de fractions irréductibles, avec une phrase d’interprétation quand c’est demandé.
+</div>
+
+<div class="exercise">
+<strong>Question 1 – Vocabulaire et équiprobabilité</strong><br>
+On lance un dé équilibré à 6 faces.<br>
+A = “obtenir un nombre pair”.<br>
+B = “obtenir un nombre supérieur ou égal à 4”.<br>
+1) Donne l’univers Ω.<br>
+2) Donne les issues de A et de B.<br>
+3) Calcule P(A), P(B), P(A ∩ B), P(A ∪ B).
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 2 – Diagramme de Venn</strong><br>
+Dans un groupe de 50 personnes, 28 aiment le football, 24 aiment le tennis et 12 aiment les deux.<br>
+1) Combien aiment seulement le football ?<br>
+2) Combien aiment seulement le tennis ?<br>
+3) Combien aiment au moins un des deux sports ?<br>
+4) Quelle est la probabilité qu’une personne choisie au hasard n’aime aucun des deux sports ?
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 3 – Tableau et conditionnelle</strong><br>
+Dans une entreprise :
+<table>
+<tr><th></th><th>Formation suivie</th><th>Formation non suivie</th><th>Total</th></tr>
+<tr><td>Réussite</td><td>36</td><td>24</td><td>60</td></tr>
+<tr><td>Échec</td><td>9</td><td>31</td><td>40</td></tr>
+<tr><th>Total</th><th>45</th><th>55</th><th>100</th></tr>
+</table>
+On choisit une personne au hasard.<br>
+1) Calcule P(réussite).<br>
+2) Calcule P(formation suivie et réussite).<br>
+3) Calcule P(réussite | formation suivie).<br>
+4) Calcule P(formation suivie | réussite).
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 4 – Arbre</strong><br>
+Une urne contient 5 boules rouges et 3 boules vertes. On tire deux boules sans remise.<br>
+1) Calcule P(rouge puis rouge).<br>
+2) Calcule P(verte puis verte).<br>
+3) Calcule P(deux boules de même couleur).<br>
+4) Calcule P(deux boules de couleurs différentes).
+<div class="answer-space"></div>
+</div>
+
+<div class="exercise">
+<strong>Question 5 – Approche fréquentiste et esprit critique</strong><br>
+Un site affirme qu’une roue donne un gain avec une probabilité de 25 %. Un utilisateur fait 80 essais et gagne 14 fois.<br>
+1) Calcule la fréquence observée de gain.<br>
+2) Compare avec l’annonce du site.<br>
+3) Peut-on conclure avec certitude que le site ment ? Justifie.
+<div class="answer-space"></div>
+</div>
+
+<h2>14. Correction du mini-test final</h2>
+
+<div class="correction">
+<strong>Question 1</strong><br>
+Ω = {1,2,3,4,5,6}.<br>
+A = {2,4,6}. B = {4,5,6}.<br>
+P(A)=3/6=1/2.<br>
+P(B)=3/6=1/2.<br>
+A ∩ B = {4,6}, donc P(A ∩ B)=2/6=1/3.<br>
+A ∪ B = {2,4,5,6}, donc P(A ∪ B)=4/6=2/3.
+</div>
+
+<div class="correction">
+<strong>Question 2</strong><br>
+Seulement football : 28 − 12 = 16.<br>
+Seulement tennis : 24 − 12 = 12.<br>
+Au moins un sport : 28 + 24 − 12 = 40.<br>
+Aucun des deux : 50 − 40 = 10.<br>
+Probabilité : <span class="formula">10/50 = 1/5</span>.
+</div>
+
+<div class="correction">
+<strong>Question 3</strong><br>
+1) P(réussite)=60/100=3/5.<br>
+2) P(formation suivie et réussite)=36/100=9/25.<br>
+3) Sachant formation suivie, le total est 45. Réussites parmi eux : 36.<br>
+<span class="formula">P(réussite | formation suivie)=36/45=4/5</span>.<br>
+4) Sachant réussite, le total est 60. Parmi les réussites, 36 ont suivi la formation.<br>
+<span class="formula">P(formation suivie | réussite)=36/60=3/5</span>.
+</div>
+
+<div class="correction">
+<strong>Question 4</strong><br>
+Total : 8 boules.<br>
+1) Rouge puis rouge : <span class="formula">5/8 × 4/7 = 20/56 = 5/14</span>.<br>
+2) Verte puis verte : <span class="formula">3/8 × 2/7 = 6/56 = 3/28</span>.<br>
+3) Même couleur : <span class="formula">5/14 + 3/28 = 10/28 + 3/28 = 13/28</span>.<br>
+4) Couleurs différentes : complémentaire de même couleur.<br>
+<span class="formula">1 − 13/28 = 15/28</span>.
+</div>
+
+<div class="correction">
+<strong>Question 5</strong><br>
+1) Fréquence observée : <span class="formula">14/80 = 7/40 = 0,175</span>, soit 17,5 %.<br>
+2) L’annonce du site est 25 %. La fréquence observée est plus faible.<br>
+3) On ne peut pas conclure avec certitude que le site ment à partir de 80 essais seulement. Il peut y avoir une fluctuation due au hasard. Il faudrait davantage d’essais ou une analyse plus poussée, mais le résultat peut éveiller un doute.
+</div>
+
+<hr>
+<h2>15. Fiche mémo finale</h2>
+
+<div class="memo box">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Expérience aléatoire :</strong> résultat non connu à l’avance.</li>
+<li><strong>Issue :</strong> résultat possible.</li>
+<li><strong>Univers Ω :</strong> ensemble de toutes les issues.</li>
+<li><strong>Événement :</strong> ensemble d’issues.</li>
+<li><strong>Équiprobabilité :</strong> toutes les issues ont la même chance.</li>
+<li><strong>Probabilité conditionnelle :</strong> probabilité sachant qu’une condition est déjà réalisée.</li>
+</ul>
+
+<h3>Formules</h3>
+<ul>
+<li><span class="formula">fréquence = nombre de réalisations / nombre d’essais</span></li>
+<li><span class="formula">P(A)=cas favorables/cas possibles</span> en équiprobabilité.</li>
+<li><span class="formula">P(A̅)=1−P(A)</span></li>
+<li><span class="formula">P(A∪B)=P(A)+P(B)−P(A∩B)</span></li>
+<li><span class="formula">P(A|B)=P(A∩B)/P(B)</span>, si <span class="formula">P(B)≠0</span></li>
+</ul>
+
+<h3>Représentations</h3>
+<ul>
+<li><strong>Venn :</strong> utile pour A, B, A∩B, A∪B, aucun des deux.</li>
+<li><strong>Tableau :</strong> utile pour croiser deux critères et calculer des conditionnelles.</li>
+<li><strong>Arbre :</strong> utile pour les expériences en plusieurs étapes.</li>
+</ul>
+
+<h3>Procédures</h3>
+<ol>
+<li>Identifier l’expérience aléatoire.</li>
+<li>Définir les événements.</li>
+<li>Choisir la représentation : arbre, tableau ou Venn.</li>
+<li>Repérer le bon total.</li>
+<li>Calculer la probabilité.</li>
+<li>Simplifier la fraction.</li>
+<li>Vérifier que le résultat est entre 0 et 1.</li>
+<li>Écrire une phrase d’interprétation.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Confondre “et” et “ou”.</li>
+<li>Oublier de soustraire l’intersection dans une union.</li>
+<li>Oublier que le total change dans une probabilité conditionnelle.</li>
+<li>Utiliser l’équiprobabilité alors que les issues ne le sont pas.</li>
+<li>Dans un tirage sans remise, oublier que le total diminue.</li>
+<li>Confondre fréquence observée et probabilité théorique.</li>
+</ul>
+</div>
+
+<h2>16. Ressources utiles pour réviser</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=probabilit%C3%A9s+%C3%A9v%C3%A9nements+union+intersection+compl%C3%A9mentaire">YouTube – union, intersection, complémentaire</a></li>
+<li><a href="https://www.youtube.com/results?search_query=probabilit%C3%A9+conditionnelle+tableau+arbre+exercices">YouTube – probabilité conditionnelle avec tableaux et arbres</a></li>
+<li><a href="https://www.youtube.com/results?search_query=diagramme+de+Venn+probabilit%C3%A9s+exercices">YouTube – diagrammes de Venn en probabilités</a></li>
+<li><a href="https://www.youtube.com/results?search_query=arbres+de+probabilit%C3%A9s+tirage+sans+remise">YouTube – arbres de probabilités et tirages sans remise</a></li>
+<li><a href="https://fr.khanacademy.org/math/statistics-probability/probability-library">Khan Academy – probabilités</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-probabilites-m1320">Alloprof – les probabilités</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ32 UAA4 – Probabilité. Le cours se limite aux probabilités simples et conditionnelles, avec approche fréquentiste et représentations adaptées.
+</div>
+
+</div>
+</body>
+</html>

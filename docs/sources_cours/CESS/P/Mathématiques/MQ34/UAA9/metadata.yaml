@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 9
+code: "MQ34-UAA9"
+title: "Intégrale"
+slug: "mq34-uaa9-integrale"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA9_integrale.html"
+    sha256: "c1729996cdd244532c49dfe710f3cd62504a7c501425cb7c36b325754c389d0e"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA9 – Intégrale.pdf"
+    sha256: "9713d2d33a8cc23014165288920b14fd4c50a978dc2a9270f7aa2c8a48a65edf"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.8771465+02:00"

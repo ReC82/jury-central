@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 8
+code: "MQ34-UAA8"
+title: "Fonctions trigonométriques"
+slug: "mq34-uaa8-fonctions-trigonometriques"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA8_fonctions_trigonometriques.html"
+    sha256: "efade468a25828514c5ec2e5fbea41991be0f99001f573f0ec2bf46a874a4245"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA8 – Fonctions trigonométriques.pdf"
+    sha256: "b330c643b1ad3546dd31dd2527ccde9ad61aed6208b33c65307287e950b4cb32"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.7842406+02:00"

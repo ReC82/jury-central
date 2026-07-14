@@ -1,8 +1,9 @@
 from generators.base import ExerciseGenerator
-from generators.maths import equations
+from generators.maths import constant_function, equations
 
 REGISTRY: dict[str, ExerciseGenerator] = {
     "maths.equations.linear_equation": equations.generate,
+    "maths.functions.constant_function": constant_function.generate,
 }
 
 

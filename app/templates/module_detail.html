@@ -14,7 +14,7 @@
 <h1 class="h3 mb-4">{{ module.code }}</h1>
 
 <div class="list-group">
-    {% for uaa in module.uaas %}
+    {% for uaa in module.uaas if uaa.is_published %}
     <a
         href="/uaa/{{ uaa.slug }}"
         class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">

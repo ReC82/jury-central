@@ -10,18 +10,52 @@
     </ol>
 </nav>
 
-<h1 class="h3 mb-4">Matières</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Matières</h1>
+    <a href="/admin/subjects/new" class="btn btn-dark btn-sm">+ Nouvelle matière</a>
+</div>
 
-<div class="list-group">
-    {% for subject in subjects %}
-    <a
-        href="/admin/subjects/{{ subject.id }}"
-        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-        {{ subject.name }}
-        <span class="badge text-bg-secondary">{{ subject.modules|length }} module(s)</span>
-    </a>
-    {% else %}
-    <p class="text-muted">Aucune matière.</p>
-    {% endfor %}
+<div class="table-responsive">
+    <table class="table bg-white align-middle">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Slug</th>
+                <th>Modules</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in summaries %}
+            <tr>
+                <td>
+                    <a href="/admin/subjects/{{ item.subject.id }}">{{ item.subject.name }}</a>
+                </td>
+                <td><code>{{ item.subject.slug }}</code></td>
+                <td>{{ item.module_count }} module(s), {{ item.uaa_count }} UAA, {{ item.block_count }} bloc(s)</td>
+                <td class="text-end">
+                    <a
+                        href="/subjects/{{ item.subject.slug }}"
+                        class="btn btn-outline-secondary btn-sm"
+                        target="_blank">
+                        Voir
+                    </a>
+                    <a href="/admin/subjects/{{ item.subject.id }}/edit" class="btn btn-outline-secondary btn-sm">
+                        Modifier
+                    </a>
+                    <form
+                        method="post"
+                        action="/admin/subjects/{{ item.subject.id }}/delete"
+                        class="d-inline"
+                        onsubmit="return confirm('Supprimer « {{ item.subject.name }} » ? Cela supprimera aussi {{ item.module_count }} module(s), {{ item.uaa_count }} UAA et {{ item.block_count }} bloc(s) de contenu. Cette action est irréversible.');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted">Aucune matière.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

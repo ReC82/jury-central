@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MB32"
+uaa: 2
+code: "MB32-UAA2"
+title: "Géométrie"
+slug: "mb32-uaa2-geometrie"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MB32_UAA2_geometrie.html"
+    sha256: "e079be2ba9661cd94ea3587b83c27d7066f3ea5ff50a2c1bcf15190745b1b25f"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "Cours MB32 UAA2 – Géométrie – Jury CESS Professionnel.pdf"
+    sha256: "27185077834933c765e9b7919c59a1fc26f797e153b0bbe38185cd9999a9f00a"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:24.7871763+02:00"

@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 3
+code: "MQ34-UAA3"
+title: "Probabilité"
+slug: "mq34-uaa3-probabilite"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA3_probabilite.html"
+    sha256: "9c165e0debbd75fae6ac59611679839240d7090cbe0fc8fd7de5a475f3899c62"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA3 – Probabilité.pdf"
+    sha256: "578fb57ea0cb1a22a6409ceef70ec7aea0bacac0fabb7d73607d7e402684e5d1"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.4026509+02:00"

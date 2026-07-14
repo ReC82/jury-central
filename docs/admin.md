@@ -1,133 +1,173 @@
-# Panneau admin — Jury Central
+# Jury Central - Administration
 
-## Accès
+Ce document décrit le rôle de l'interface d'administration.
 
-1. Configurer `ADMIN_USERNAME` et `ADMIN_PASSWORD` dans `.env` (voir `.env.example`) —
-   c'est l'unique compte admin, il n'y a pas de gestion multi-utilisateurs.
-2. Démarrer le serveur : `uvicorn app.main:app --reload`.
-3. Ouvrir http://127.0.0.1:8000/admin/login et se connecter avec ces identifiants.
+L'administration permet de gérer le contenu existant.
 
-L'authentification repose sur une session cookie signée (`SECRET_KEY` dans `.env`), sans
-hachage de mot de passe côté base — les identifiants viennent uniquement des variables
-d'environnement, comparés en temps constant (`hmac.compare_digest`). Toutes les routes
-`/admin/*` sont protégées, sauf `/admin/login`. Se déconnecter via `/admin/logout` ou le
-bouton "Se déconnecter" du tableau de bord.
+La création complète des cours est réalisée automatiquement à partir des sources officielles.
 
-## Fonctionnalités disponibles
+---
 
-Depuis `/admin/dashboard` :
+# Objectif
 
-- **Compteurs** : nombre de matières, modules, UAA en base.
-- **Navigation en lecture seule** : Matières (`/admin/subjects`) → Modules
-  (`/admin/subjects/{id}`) → UAA (`/admin/modules/{id}`) → Blocs de leçon
-  (`/admin/uaa/{id}`). Il n'existe **pas** de formulaire pour créer/modifier/supprimer une
-  matière, un module ou une UAA — seul le contenu des UAA (les `LessonBlock`) est éditable.
-- **CRUD complet sur les blocs de leçon** (`LessonBlock`), depuis la page d'une UAA :
-  - Créer un bloc (`+ Ajouter un bloc`).
-  - Modifier un bloc (titre, type, contenu, position, publié).
-  - Supprimer un bloc (confirmation JS avant envoi).
-- **Formulaire unique multi-type** (`admin_block_form.html`) qui s'adapte selon le type
-  choisi dans le `<select>` :
-  - `markdown` / `youtube` / `image` / `pdf` / `exercise` → champ "Contenu" (texte libre).
-  - `generated_exercise` → fieldset dédié : générateur (liste des générateurs enregistrés
-    dans `generators/registry.py`), difficulté par défaut (1-3), nombre d'exercices à
-    afficher, tags pédagogiques (séparés par des virgules).
-  - `quiz` → fieldset dédié : question, 4 champs de réponse + case radio pour désigner la
-    bonne réponse, explication. Validation serveur : question obligatoire, au moins 2
-    réponses non vides, la réponse cochée doit correspondre à un champ rempli (sinon `400`).
-  - Champs communs à tous les types : **position** (ordre d'affichage dans l'UAA, entier
-    libre — pas de réorganisation automatique des autres blocs) et **publié** (case à
-    cocher ; seuls les blocs publiés apparaissent sur la page publique de l'UAA).
+L'administration est destinée à :
 
-## Import de quiz par CSV
+- corriger un contenu ;
+- compléter un contenu ;
+- gérer les utilisateurs (à terme) ;
+- gérer les quiz ;
+- gérer les exercices ;
+- effectuer des opérations de maintenance.
 
-Page dédiée : `/admin/quiz` (lien "Importer des quiz (CSV)" depuis le tableau de bord).
-Permet de créer plusieurs blocs `quiz` en une fois, sans passer par le formulaire un par un.
+Elle n'est pas destinée à créer manuellement un cours complet.
 
-Il n'existe pas de table `Quiz`/`Question` dédiée en base — un quiz reste un `LessonBlock`
-de type `quiz` dont le contenu JSON (`QuizConfig`) est identique à celui produit par le
-formulaire manuel. L'import CSV et le formulaire manuel partagent la même fonction de
-validation (`app/quiz.py::build_quiz_config`), donc les mêmes règles s'appliquent aux deux.
+---
 
-### Étapes
+# Accès
 
-1. Cliquer sur **"Télécharger le template CSV"** — télécharge
-   `docs/templates/quiz_template.csv`, qui contient l'en-tête attendu et deux exemples déjà
-   remplis (utilisables tels quels avec les données de démonstration du seed).
-2. Remplir une ligne par question dans un tableur (Excel, LibreOffice, Google Sheets...) et
-   exporter en CSV (UTF-8).
-3. Sur `/admin/quiz`, choisir le fichier et cliquer **"Importer"**.
-4. Le résultat s'affiche immédiatement : nombre de quiz importés, et liste détaillée des
-   lignes rejetées (numéro de ligne + raison).
+Configurer dans le fichier `.env` :
 
-### Colonnes du CSV
+- ADMIN_USERNAME
+- ADMIN_PASSWORD
+- SECRET_KEY
 
-| Colonne | Obligatoire | Contenu |
-|---|---|---|
-| `subject_slug` | Oui | Slug de la matière cible (ex. `mathematiques`) |
-| `module_slug` | Oui | Slug du module cible (ex. `mb32`) |
-| `uaa_slug` | Oui | Slug de l'UAA cible (ex. `mb32-uaa1`) |
-| `title` | Oui | Titre du bloc de leçon (affiché comme titre de section sur la page UAA) |
-| `question` | Oui | Texte de la question |
-| `choice_1`, `choice_2` | Oui | Au moins 2 réponses non vides requises |
-| `choice_3`, `choice_4` | Non | Réponses supplémentaires (jusqu'à 4 au total) ; les cases vides sont ignorées |
-| `correct_choice` | Oui | Numéro (1 à 4) du champ `choice_N` contenant la bonne réponse |
-| `explanation` | Non | Texte affiché après la réponse de l'étudiant |
-| `position` | Non | Ordre d'affichage dans l'UAA ; si vide, calculé automatiquement (après le dernier bloc existant, incrémenté ligne par ligne pour une même UAA dans le même fichier) |
-| `is_published` | Non | `oui`/`true`/`1` pour publier immédiatement ; toute autre valeur (ou vide) = non publié |
+Démarrer ensuite l'application.
 
-Les slugs se trouvent dans l'URL des pages publiques correspondantes (ex. `/uaa/mb32-uaa1`
-→ `uaa_slug = mb32-uaa1`), ou via la navigation en lecture seule de l'admin.
+Accès :
 
-### Règles de validation
+```
+/admin/login
+```
 
-Pour chaque ligne, dans cet ordre :
+---
 
-1. Toutes les colonnes obligatoires doivent être non vides.
-2. `subject_slug`, `module_slug`, `uaa_slug` doivent exister **et être correctement
-   imbriqués** (le module doit appartenir à la matière indiquée, l'UAA au module indiqué —
-   pas seulement exister quelque part en base).
-3. `correct_choice` doit être un nombre entre 1 et 4, pointant vers un champ `choice_N` non
-   vide.
-4. Au moins 2 réponses non vides au total.
-5. `position` (si renseigné) doit être un entier.
+# Authentification
 
-Si l'en-tête du fichier ne contient pas toutes les colonnes obligatoires, l'import s'arrête
-immédiatement avec un message listant les colonnes manquantes (aucune ligne n'est lue).
+L'administration est protégée.
 
-**Import partiel assumé** : les lignes valides sont importées même si d'autres lignes du même
-fichier sont invalides. Chaque ligne rejetée est signalée avec son numéro (ligne 1 = en-tête,
-donc la première ligne de données est la ligne 2) et la raison précise. Aucune ligne
-invalide n'est importée silencieusement.
+Toutes les routes `/admin/*` nécessitent une authentification.
 
-### Limites actuelles de l'import
+---
 
-- CSV uniquement (encodage UTF-8, avec ou sans BOM). **Pas de support XLSX pour l'instant** —
-  prévu pour une évolution future, non codé à ce stade.
-- Une seule bonne réponse par question (pas de QCM à réponses multiples), comme pour le
-  formulaire manuel.
-- Pas d'aperçu avant import : les lignes valides sont importées directement en base dès la
-  soumission du formulaire (pas d'étape de confirmation intermédiaire).
-- Pas de mise à jour de quiz existants par CSV : chaque import crée de nouveaux blocs, il ne
-  peut pas modifier un quiz déjà importé (à faire manuellement via le formulaire d'édition si
-  besoin).
+# Contenu
 
-## Limites connues
+L'administration permet de gérer :
 
-- **Pas de gestion des matières/modules/UAA** dans l'admin : leur création passe
-  uniquement par `app/seed.py` (script Python) ou une insertion manuelle en base. À faire
-  si le projet a besoin d'ajouter du contenu au-delà du jeu de données de démonstration.
-- **Pas de gestion multi-utilisateurs** : un seul compte admin défini par variables
-  d'environnement ; pas de rôles, pas d'historique des modifications (qui a changé quoi).
-- **Pas d'éditeur WYSIWYG** : le contenu Markdown est un textarea brut (voulu à ce stade,
-  cf. consigne initiale).
-- **Pas de prévisualisation** avant publication : il faut ouvrir la page publique dans un
-  autre onglet pour voir le rendu réel d'un bloc.
-- **Pas de protection CSRF** sur les formulaires admin (acceptable pour un compte unique en
-  usage interne, mais à revoir avant toute exposition plus large).
-- **Types `image`, `pdf`, `exercise` non implémentés** : sélectionnables dans le formulaire
-  mais sans champs dédiés ni rendu public particulier (juste un textarea générique côté
-  admin, et un message « type non pris en charge » côté page publique).
-- **Position en doublon possible** : rien n'empêche d'attribuer la même position à deux
-  blocs (l'ordre d'affichage suit alors l'ordre d'insertion en base pour les valeurs
-  égales).
+- les matières ;
+- les modules ;
+- les UAA ;
+- les leçons ;
+- les blocs de contenu.
+
+---
+
+# Blocs disponibles
+
+Types actuellement pris en charge :
+
+- markdown
+- generated_exercise
+- quiz
+
+D'autres types pourront être ajoutés progressivement.
+
+---
+
+# Quiz
+
+L'administration permet :
+
+- créer un quiz ;
+- modifier un quiz ;
+- supprimer un quiz ;
+- importer un quiz depuis un fichier CSV.
+
+Le fonctionnement détaillé des quiz est documenté dans :
+
+```
+docs/exercise_generators.md
+```
+
+---
+
+# Exercices générés
+
+L'administration permet :
+
+- choisir un générateur ;
+- configurer sa difficulté ;
+- tester son fonctionnement.
+
+Les générateurs sont documentés dans :
+
+```
+docs/exercise_generators.md
+```
+
+---
+
+# Import des cours
+
+Les cours ne sont plus créés depuis l'administration.
+
+Le workflow officiel est décrit dans :
+
+```
+docs/IMPORT_WORKFLOW.md
+```
+
+Une fois une UAA importée, l'administration permet uniquement d'effectuer des corrections ponctuelles.
+
+---
+
+# Publication
+
+Une UAA peut être :
+
+- publiée ;
+- dépubliée.
+
+Une UAA non publiée n'est pas visible par les étudiants.
+
+---
+
+# Validation
+
+L'administration vérifie notamment :
+
+- les champs obligatoires ;
+- l'unicité des slugs ;
+- la cohérence de la hiérarchie.
+
+---
+
+# Bonnes pratiques
+
+Utiliser l'administration uniquement pour :
+
+- corriger une erreur ;
+- compléter un contenu ;
+- importer un quiz ;
+- tester un générateur.
+
+Éviter de créer manuellement une UAA complète.
+
+Le contenu officiel doit toujours provenir des sources présentes dans :
+
+```
+docs/sources_cours/
+```
+
+---
+
+# Évolutions prévues
+
+L'administration évoluera progressivement.
+
+À terme, elle permettra notamment :
+
+- gérer les utilisateurs ;
+- suivre la progression des étudiants ;
+- gérer les examens ;
+- visualiser les statistiques ;
+- corriger les contenus importés automatiquement.

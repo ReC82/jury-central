@@ -6,19 +6,30 @@ automatiquement en Python, quiz interactifs et suivi de progression local (navig
 
 ## Statut
 
-En développement actif. Étapes 1 à 9 du plan initial terminées (voir
-[docs/current_state.md](docs/current_state.md) pour le détail complet). Docker n'est pas
-encore utilisé dans ce projet.
+En développement actif, en tranches verticales (une leçon complète à la fois plutôt qu'une
+UAA entière d'un coup). Dernières tranches terminées :
+
+- **MB32 UAA1 → Fonction constante** : expérience étudiante complète (cours, graphique
+  interactif, exercices générés à l'infini, quiz de 10 questions avec score, fiche mémo
+  imprimable). Voir [docs/mb32-uaa1.md](docs/mb32-uaa1.md).
+- **Gestion complète de la hiérarchie de contenu depuis l'admin** : créer/modifier/supprimer
+  une matière, un module ou une UAA se fait entièrement depuis `/admin`, sans plus jamais
+  toucher à `app/seed.py` ni relancer `seed-db`. Voir
+  [docs/content_workflow.md](docs/content_workflow.md).
+
+Voir [docs/changelog.md](docs/changelog.md) pour l'historique daté complet. Docker n'est pas
+utilisé dans ce projet.
 
 ## Stack technique
 
 - **Langage** : Python 3.12+
 - **Framework web** : [FastAPI](https://fastapi.tiangolo.com/) + [Starlette](https://www.starlette.io/) (sessions)
-- **Templates** : Jinja2 + [Bootstrap 5](https://getbootstrap.com/) (CDN) + [MathJax 3](https://www.mathjax.org/) (CDN)
+- **Templates** : Jinja2 + [Bootstrap 5](https://getbootstrap.com/) (CDN) + [MathJax 3](https://www.mathjax.org/) (CDN) + [Plotly](https://plotly.com/javascript/) (CDN, chargé uniquement sur les pages avec un graphique interactif)
 - **Base de données** : SQLAlchemy 2.0 (style déclaratif `Mapped`) + SQLite (fichier local, pas de migrations Alembic)
 - **Génération d'exercices** : [SymPy](https://www.sympy.org/) pour la résolution/vérification, générateurs 100 % Python (pas d'IA)
+- **Validation des réponses** : côté serveur (`app/answer_checking.py`), jamais de réponse stockée dans le HTML, jamais d'`eval()`
 - **JavaScript** : vanilla JS uniquement (aucun framework, aucune dépendance npm)
-- **Tests** : pytest (19 tests, tous dans `tests/`)
+- **Tests** : pytest (87 tests, tous dans `tests/`), y compris des tests `TestClient` sur une base SQLite isolée (jamais `jury_central.db`)
 
 ## Structure du projet
 
@@ -26,25 +37,26 @@ encore utilisé dans ce projet.
 jury-central/
 ├── app/                    # Application FastAPI
 │   ├── main.py              # Point d'entrée + routes publiques (accueil, matières, modules, UAA)
-│   ├── admin.py              # Panneau admin (auth + CRUD des blocs de leçon)
+│   ├── admin.py              # Panneau admin (auth + CRUD matière/module/UAA/blocs de leçon)
 │   ├── auth.py                # Vérification des identifiants + dépendance require_admin
 │   ├── config.py               # Settings (pydantic-settings, lit .env)
 │   ├── database.py              # Engine SQLAlchemy / SessionLocal / Base / get_db
 │   ├── models.py                 # Modèles : Subject, Module, UAA, LessonBlock
-│   ├── practice.py                # Page d'entraînement libre + API JSON de génération
-│   ├── exercise_blocks.py          # Config JSON des blocs "generated_exercise"
-│   ├── quiz.py                      # Config JSON des blocs "quiz"
-│   ├── content.py                    # Rendu Markdown + extraction d'ID YouTube
-│   ├── slugify.py                     # Génération de slugs (accents retirés, etc.)
-│   ├── templating.py                   # Instance Jinja2Templates partagée
-│   ├── seed.py                          # Script de données de démonstration
-│   ├── templates/                        # Templates Jinja2 (voir docs/current_state.md)
-│   └── static/{css,js}/                   # CSS custom + JS vanilla (exercise.js, quiz.js, progress.js)
+│   ├── practice.py                # Entraînement libre + API JSON génération/vérification/correction
+│   ├── answer_checking.py          # Parsing/comparaison normalisée des réponses (validation serveur)
+│   ├── exercise_blocks.py           # Config JSON des blocs "generated_exercise"
+│   ├── quiz.py                       # Config JSON des blocs "quiz" (QCM, vrai/faux, numérique, groupes)
+│   ├── content.py                     # Rendu Markdown + extraction d'ID YouTube
+│   ├── slugify.py                      # Génération de slugs (accents retirés, etc.)
+│   ├── templating.py                    # Instance Jinja2Templates partagée
+│   ├── seed.py                           # Données de démonstration + contenu réel MB32 UAA1
+│   ├── templates/                         # Templates Jinja2 (voir docs/current_state.md)
+│   └── static/{css,js}/                    # CSS custom + JS vanilla (exercise.js, quiz.js, progress.js, interactive_graph.js)
 ├── generators/               # Moteur de génération d'exercices — indépendant de FastAPI
 │   ├── base.py                 # GeneratedExercise (dataclass) + interface ExerciseGenerator
 │   ├── registry.py              # Registre id → fonction generate()
-│   └── maths/equations.py        # Générateur : équations du premier degré ax + b = c
-├── tests/                    # Tests pytest (19 tests)
+│   └── maths/{equations,constant_function}.py  # Générateurs implémentés
+├── tests/                    # Tests pytest (87 tests, dont TestClient — voir tests/conftest.py)
 ├── docs/                      # Documentation (ce dossier)
 ├── .env.example                # Modèle des variables d'environnement
 ├── pyproject.toml               # Dépendances et configuration du projet
@@ -78,7 +90,7 @@ gestion multi-utilisateurs à ce stade).
 ## Lancer le projet
 
 ```bash
-# 1. Charger des données de démonstration (Mathématiques, MB32/MQ32/MQ34, une UAA d'exemple)
+# 1. Charger des données de démonstration (Mathématiques, MB32/MQ32/MQ34, UAA1 complète)
 seed-db
 # ou : python -m app.seed
 
@@ -86,7 +98,10 @@ seed-db
 uvicorn app.main:app --reload
 ```
 
-L'application est alors disponible sur http://127.0.0.1:8000.
+L'application est alors disponible sur http://127.0.0.1:8000. Pour repartir d'une base
+locale vide (destructif, jamais automatique) : `reset-db` — voir
+[docs/development.md](docs/development.md). Toute nouvelle matière/module/UAA se crée
+ensuite depuis l'admin, pas dans le code (voir [docs/content_workflow.md](docs/content_workflow.md)).
 
 ## Accéder au panneau admin
 
@@ -114,6 +129,9 @@ pytest
   automatiques d'exercices, comment en ajouter un nouveau.
 - [docs/content_workflow.md](docs/content_workflow.md) — comment ajouter une nouvelle UAA
   et structurer son contenu.
+- [docs/mb32-uaa1.md](docs/mb32-uaa1.md) — détail de la leçon "Fonction constante" (objectifs,
+  générateur, quiz, données initiales, limites).
+- [docs/changelog.md](docs/changelog.md) — historique des tranches livrées.
 
 ## Licence
 

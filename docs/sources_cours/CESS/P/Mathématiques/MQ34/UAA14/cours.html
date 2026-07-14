@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA14 – Géométrie dans l’espace</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}
+h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:115px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.small{font-size:.92em;color:#555}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table,svg{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ34 UAA14 – Géométrie dans l’espace<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> apprendre à visualiser dans l’espace, représenter dans le plan une configuration spatiale, identifier les positions relatives de droites, de plans et de faces, puis justifier une construction à l’aide de propriétés géométriques.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> il faut surtout raisonner sur des représentations de solides : parallélépipède rectangle, cube, tétraèdre, sections planes, points de percée, droites gauches, parallélisme, orthogonalité, coplanarité et représentation en perspective cavalière.
+</div>
+
+<div class="warn box">
+<strong>Limite importante de l’UAA :</strong> pour les constructions de points de percée et les sections planes, le niveau de difficulté est limité. Le document précise que les sections planes se limitent au parallélépipède rectangle et au tétraèdre.
+</div>
+
+<h2>1. Repartir des bases : voir un objet en 3D</h2>
+
+<div class="box">
+En géométrie dans l’espace, on travaille avec des objets à trois dimensions. Un solide possède :
+<ul>
+<li>des <strong>sommets</strong> ;</li>
+<li>des <strong>arêtes</strong> ;</li>
+<li>des <strong>faces</strong> ;</li>
+<li>un <strong>volume</strong>.</li>
+</ul>
+</div>
+
+<table>
+<tr><th>Mot</th><th>Définition</th><th>Exemple</th></tr>
+<tr><td>Sommet</td><td>Point où plusieurs arêtes se rencontrent.</td><td>Coin d’un cube.</td></tr>
+<tr><td>Arête</td><td>Segment commun à deux faces.</td><td>Bord d’une boîte.</td></tr>
+<tr><td>Face</td><td>Surface plane qui limite le solide.</td><td>Face rectangulaire d’un parallélépipède.</td></tr>
+<tr><td>Plan</td><td>Surface plane illimitée.</td><td>Plan d’une table prolongé à l’infini.</td></tr>
+</table>
+
+<h2>2. Les solides à connaître</h2>
+
+<h3>2.1 Parallélépipède rectangle</h3>
+<div class="box">
+Un <strong>parallélépipède rectangle</strong> est une boîte rectangulaire. Ses faces sont des rectangles.
+</div>
+
+<table>
+<tr><th>Élément</th><th>Nombre</th></tr>
+<tr><td>Sommets</td><td>8</td></tr>
+<tr><td>Arêtes</td><td>12</td></tr>
+<tr><td>Faces</td><td>6</td></tr>
+</table>
+
+<h3>2.2 Cube</h3>
+<div class="box">
+Un cube est un parallélépipède rectangle particulier : toutes ses arêtes ont la même longueur et toutes ses faces sont des carrés.
+</div>
+
+<h3>2.3 Tétraèdre</h3>
+<div class="box">
+Un <strong>tétraèdre</strong> est un solide formé de quatre faces triangulaires.
+</div>
+
+<table>
+<tr><th>Solide</th><th>Faces</th><th>Utilité dans cette UAA</th></tr>
+<tr><td>Parallélépipède rectangle</td><td>Rectangles</td><td>Visualiser parallélisme, orthogonalité, sections planes.</td></tr>
+<tr><td>Cube</td><td>Carrés</td><td>Cas particulier facile à représenter.</td></tr>
+<tr><td>Tétraèdre</td><td>Triangles</td><td>Travailler les faces, arêtes, plans et sections simples.</td></tr>
+</table>
+
+<h2>3. Représentation en perspective cavalière</h2>
+
+<div class="box">
+La <strong>perspective cavalière</strong> est une représentation plane d’un objet de l’espace. Elle permet de dessiner un solide sur une feuille.
+</div>
+
+<div class="method box">
+<strong>Règles importantes :</strong>
+<ol>
+<li>La face frontale est dessinée en vraie grandeur.</li>
+<li>Les arêtes parallèles dans l’espace restent parallèles sur le dessin.</li>
+<li>Les arêtes fuyantes sont inclinées.</li>
+<li>Les longueurs dans la profondeur sont souvent réduites.</li>
+<li>Les angles ne sont pas toujours conservés.</li>
+</ol>
+</div>
+
+<svg width="700" height="420" viewBox="0 0 700 420">
+<polygon points="150,290 430,290 430,120 150,120" fill="#fff" stroke="#222" stroke-width="3"/>
+<polygon points="250,210 530,210 530,40 250,40" fill="#f8f8f8" stroke="#222" stroke-width="3"/>
+<line x1="150" y1="120" x2="250" y2="40" stroke="#222" stroke-width="3"/>
+<line x1="430" y1="120" x2="530" y2="40" stroke="#222" stroke-width="3"/>
+<line x1="430" y1="290" x2="530" y2="210" stroke="#222" stroke-width="3"/>
+<line x1="150" y1="290" x2="250" y2="210" stroke="#222" stroke-width="3"/>
+<text x="235" y="325" font-size="18">face frontale</text>
+<text x="455" y="105" font-size="18">arêtes fuyantes</text>
+<text x="170" y="110" font-size="16">A</text><text x="435" y="110" font-size="16">B</text><text x="435" y="310" font-size="16">C</text><text x="130" y="310" font-size="16">D</text>
+<text x="255" y="35" font-size="16">E</text><text x="535" y="35" font-size="16">F</text><text x="535" y="230" font-size="16">G</text><text x="235" y="230" font-size="16">H</text>
+</svg>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> une représentation en perspective n’est pas une photographie exacte. Le parallélisme est conservé, mais les angles et certaines longueurs ne le sont pas forcément.
+</div>
+
+<h2>4. Vues coordonnées</h2>
+
+<div class="box">
+Pour comprendre un solide, on peut aussi utiliser plusieurs vues : vue de face, vue de dessus, vue de droite. Ces vues sont fréquentes en architecture, dessin technique et fabrication.
+</div>
+
+<table>
+<tr><th>Vue</th><th>Ce qu’elle montre</th></tr>
+<tr><td>Vue de face</td><td>Largeur et hauteur.</td></tr>
+<tr><td>Vue de dessus</td><td>Largeur et profondeur.</td></tr>
+<tr><td>Vue de droite</td><td>Profondeur et hauteur.</td></tr>
+</table>
+
+<h2>5. Positions relatives de deux droites dans l’espace</h2>
+
+<div class="box">
+Dans l’espace, deux droites peuvent avoir plusieurs positions relatives.
+</div>
+
+<table>
+<tr><th>Position</th><th>Définition</th><th>Exemple dans une boîte</th></tr>
+<tr><td>Sécantes</td><td>Elles se coupent en un point.</td><td>Deux arêtes qui se rencontrent en un sommet.</td></tr>
+<tr><td>Parallèles</td><td>Elles ont la même direction et ne se coupent pas.</td><td>Deux arêtes opposées d’une même face.</td></tr>
+<tr><td>Confondues</td><td>Elles sont exactement la même droite.</td><td>Deux noms différents pour la même arête.</td></tr>
+<tr><td>Gauches</td><td>Elles ne se coupent pas et ne sont pas parallèles.</td><td>Deux arêtes non parallèles et non coplanaires d’un cube.</td></tr>
+</table>
+
+<div class="ex">
+Dans un cube ABCD-EFGH, avec ABCD face avant et EFGH face arrière, les droites AB et CD sont-elles parallèles ? Et AB et CG ?
+</div>
+
+<div class="corr">
+AB et CD sont deux arêtes opposées de la même face ABCD. Elles sont donc parallèles.<br>
+AB et CG ne sont pas dans une même face, ne sont pas parallèles et ne se coupent pas. Elles sont donc gauches.
+</div>
+
+<h2>6. Positions relatives d’une droite et d’un plan</h2>
+
+<table>
+<tr><th>Position</th><th>Définition</th><th>Exemple</th></tr>
+<tr><td>Droite incluse dans le plan</td><td>Tous les points de la droite appartiennent au plan.</td><td>Une arête appartient au plan de sa face.</td></tr>
+<tr><td>Droite sécante au plan</td><td>La droite coupe le plan en un point.</td><td>Une tige traverse une plaque.</td></tr>
+<tr><td>Droite parallèle au plan</td><td>La droite ne coupe pas le plan.</td><td>Une arête parallèle à une face opposée.</td></tr>
+</table>
+
+<h3>Point de percée</h3>
+<div class="box">
+Le <strong>point de percée</strong> est le point où une droite coupe un plan.
+</div>
+
+<div class="ex">
+Une droite traverse le plan d’une face d’un cube en un seul point P. Comment appelle-t-on ce point ?
+</div>
+<div class="corr">
+Ce point est le <strong>point de percée</strong> de la droite dans le plan.
+</div>
+
+<h2>7. Positions relatives de deux plans</h2>
+
+<table>
+<tr><th>Position</th><th>Définition</th><th>Exemple</th></tr>
+<tr><td>Plans sécants</td><td>Ils se coupent selon une droite.</td><td>Deux faces voisines d’un cube.</td></tr>
+<tr><td>Plans parallèles</td><td>Ils ne se coupent pas.</td><td>Deux faces opposées d’un cube.</td></tr>
+<tr><td>Plans confondus</td><td>Ils sont le même plan.</td><td>Deux descriptions de la même face.</td></tr>
+</table>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> deux plans sécants ne se coupent pas en un point, mais selon une droite.
+</div>
+
+<h2>8. Incidence, parallélisme et orthogonalité</h2>
+
+<h3>8.1 Incidence</h3>
+<div class="box">
+L’<strong>incidence</strong> décrit l’appartenance : un point appartient à une droite, une droite appartient à un plan, un point appartient à un plan.
+</div>
+
+<table>
+<tr><th>Phrase</th><th>Notation possible</th></tr>
+<tr><td>Le point A appartient à la droite d.</td><td><span class="formula">A ∈ d</span></td></tr>
+<tr><td>La droite d est contenue dans le plan α.</td><td><span class="formula">d ⊂ α</span></td></tr>
+<tr><td>Le point B n’appartient pas au plan α.</td><td><span class="formula">B ∉ α</span></td></tr>
+</table>
+
+<h3>8.2 Parallélisme</h3>
+<div class="box">
+Deux droites, deux plans, ou une droite et un plan peuvent être parallèles. Dans une perspective cavalière, les droites parallèles restent dessinées parallèles.
+</div>
+
+<h3>8.3 Orthogonalité et perpendicularité</h3>
+<div class="box">
+Deux droites sont <strong>perpendiculaires</strong> lorsqu’elles se coupent en formant un angle droit. On parle aussi d’<strong>orthogonalité</strong> pour exprimer l’idée d’angle droit dans l’espace.
+</div>
+
+<table>
+<tr><th>Situation</th><th>Interprétation</th></tr>
+<tr><td>Droite perpendiculaire à un plan</td><td>Elle est perpendiculaire à toutes les droites du plan qui passent par le point d’intersection.</td></tr>
+<tr><td>Faces voisines d’un parallélépipède rectangle</td><td>Elles sont perpendiculaires.</td></tr>
+<tr><td>Arêtes issues d’un même sommet dans un parallélépipède rectangle</td><td>Elles sont perpendiculaires deux à deux.</td></tr>
+</table>
+
+<h2>9. Coplanarité</h2>
+
+<div class="box">
+Des points ou des droites sont <strong>coplanaires</strong> s’ils appartiennent à un même plan.
+</div>
+
+<div class="method box">
+<strong>Pour justifier une coplanarité :</strong>
+<ol>
+<li>Repérer une face connue du solide.</li>
+<li>Vérifier si les points appartiennent à cette face.</li>
+<li>Si nécessaire, montrer que trois points non alignés déterminent un plan.</li>
+<li>Pour quatre points, vérifier qu’ils appartiennent au même plan ou à une même section plane.</li>
+</ol>
+</div>
+
+<div class="ex">
+Dans un cube ABCD-EFGH, les points A, B, C et D sont-ils coplanaires ?
+</div>
+<div class="corr">
+Oui. Les points A, B, C et D appartiennent à la même face du cube, donc ils sont coplanaires.
+</div>
+
+<h2>10. Sections planes d’un solide</h2>
+
+<div class="box">
+Une <strong>section plane</strong> est la figure obtenue lorsqu’un plan coupe un solide.
+</div>
+
+<table>
+<tr><th>Solide</th><th>Sections étudiées dans cette UAA</th></tr>
+<tr><td>Parallélépipède rectangle</td><td>Sections simples obtenues par un plan.</td></tr>
+<tr><td>Tétraèdre</td><td>Sections simples avec des triangles ou quadrilatères.</td></tr>
+</table>
+
+<div class="method box">
+<strong>Principe de construction d’une section plane :</strong>
+<ol>
+<li>Repérer les points connus où le plan coupe le solide.</li>
+<li>Sur une même face, relier uniquement des points qui appartiennent à cette face.</li>
+<li>Prolonger si nécessaire dans le plan d’une face pour trouver un point de percée.</li>
+<li>Utiliser le parallélisme quand le plan coupe deux faces parallèles.</li>
+<li>Ne jamais relier deux points s’ils ne sont pas dans une même face visible ou dans un même plan justifié.</li>
+</ol>
+</div>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> on ne joint pas automatiquement deux points d’une section. On ne les joint que s’ils sont dans une même face du solide.
+</div>
+
+<h3>Exemple simple</h3>
+<div class="ex">
+Un plan coupe trois arêtes issues de trois faces différentes d’un tétraèdre en trois points M, N et P. Quelle forme peut avoir la section ?
+</div>
+<div class="corr">
+Si les trois points appartiennent chacun à une arête du tétraèdre et déterminent le plan de coupe, la section peut être un triangle MNP. Il faut ensuite vérifier que les segments MN, NP et PM sont bien situés dans les faces correspondantes du tétraèdre.
+</div>
+
+<h2>11. Distances dans l’espace</h2>
+
+<div class="box">
+Les distances dans l’espace se calculent souvent en ramenant le problème à un triangle rectangle.
+</div>
+
+<h3>11.1 Diagonale d’un rectangle</h3>
+<div class="box">
+Dans un rectangle de côtés <span class="formula">a</span> et <span class="formula">b</span>, la diagonale vaut :
+<br><span class="formula">d = √(a²+b²)</span>
+</div>
+
+<h3>11.2 Diagonale d’un parallélépipède rectangle</h3>
+<div class="box">
+Pour un parallélépipède rectangle de dimensions <span class="formula">L</span>, <span class="formula">l</span> et <span class="formula">h</span>, la grande diagonale vaut :
+<br><span class="formula">D = √(L²+l²+h²)</span>
+</div>
+
+<div class="ex">
+Une boîte mesure 6 cm de long, 4 cm de large et 3 cm de haut. Calcule sa grande diagonale.
+</div>
+<div class="corr">
+<span class="formula">D=√(6²+4²+3²)=√(36+16+9)=√61≈7,81</span>.<br>
+La grande diagonale mesure environ <strong>7,81 cm</strong>.
+</div>
+
+<h2>12. Angles dans l’espace</h2>
+
+<div class="box">
+Pour calculer ou reconnaître un angle dans l’espace, on cherche souvent un triangle rectangle ou une face dans laquelle l’angle est visible.
+</div>
+
+<table>
+<tr><th>Angle</th><th>Méthode</th></tr>
+<tr><td>Angle entre deux arêtes d’une même face</td><td>Raisonner dans la face.</td></tr>
+<tr><td>Angle entre une diagonale et une arête</td><td>Construire un triangle rectangle adapté.</td></tr>
+<tr><td>Angle droit dans un parallélépipède rectangle</td><td>Utiliser les propriétés des arêtes et faces perpendiculaires.</td></tr>
+</table>
+
+<div class="ex">
+Dans une boîte rectangulaire, la longueur, la largeur et la hauteur partent d’un même sommet. Que peut-on dire des angles entre ces trois directions ?
+</div>
+<div class="corr">
+Dans un parallélépipède rectangle, les trois arêtes issues d’un même sommet sont perpendiculaires deux à deux. Les angles sont donc des angles droits.
+</div>
+
+<h2>13. Coordonnées dans l’espace</h2>
+
+<div class="box">
+Dans un repère de l’espace, un point est repéré par trois coordonnées :
+<br><span class="formula">A(x ; y ; z)</span>
+</div>
+
+<table>
+<tr><th>Coordonnée</th><th>Sens possible</th></tr>
+<tr><td><span class="formula">x</span></td><td>largeur / axe horizontal</td></tr>
+<tr><td><span class="formula">y</span></td><td>profondeur</td></tr>
+<tr><td><span class="formula">z</span></td><td>hauteur</td></tr>
+</table>
+
+<div class="box">
+Distance entre deux points de l’espace :
+<br><span class="formula">AB = √((x_B−x_A)² + (y_B−y_A)² + (z_B−z_A)²)</span>
+</div>
+
+<div class="ex">
+Soient <span class="formula">A(1 ; 2 ; 3)</span> et <span class="formula">B(5 ; 5 ; 15)</span>. Calcule la distance AB.
+</div>
+<div class="corr">
+<span class="formula">AB=√((5−1)²+(5−2)²+(15−3)²)</span><br>
+<span class="formula">AB=√(4²+3²+12²)=√(16+9+144)=√169=13</span>.<br>
+La distance AB vaut <strong>13</strong>.
+</div>
+
+<h2>14. Applications techniques</h2>
+
+<h3>14.1 Architecture et plans</h3>
+<div class="box">
+La géométrie dans l’espace intervient dans la lecture de plans, la représentation de bâtiments, l’identification de vues de face, de dessus et de côté, ainsi que dans le dessin de pièces.
+</div>
+
+<h3>14.2 Notice de montage</h3>
+<div class="box">
+Assembler un meuble nécessite de visualiser des faces, des arêtes, des plans parallèles, des perçages et des positions relatives.
+</div>
+
+<h3>14.3 Modélisation technique</h3>
+<div class="box">
+Les logiciels de géométrie dynamique ou de modélisation 3D aident à vérifier une construction, visualiser une section ou comprendre l’intersection d’une droite et d’un plan.
+</div>
+
+<h2>15. Exercices progressifs</h2>
+
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : sommet, arête, face, plan, droite gauche, point de percée, section plane.<br>
+2. Donne les positions relatives possibles de deux droites dans l’espace.<br>
+3. Donne les positions relatives possibles d’une droite et d’un plan.<br>
+4. Explique pourquoi les angles ne sont pas toujours conservés en perspective cavalière.
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+5. Dans un parallélépipède rectangle, combien y a-t-il de sommets, d’arêtes et de faces ?<br><br>
+6. Une boîte mesure 8 cm, 6 cm et 2 cm. Calcule sa grande diagonale.<br><br>
+7. Soient <span class="formula">A(0 ; 0 ; 0)</span> et <span class="formula">B(3 ; 4 ; 12)</span>. Calcule AB.<br><br>
+8. Dans un cube, deux faces opposées sont-elles sécantes, parallèles ou confondues ?
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+9. Dans un cube, explique comment reconnaître deux droites gauches à partir de deux arêtes.<br><br>
+10. Un plan coupe un parallélépipède rectangle. Pourquoi ne peut-on pas relier deux points de section n’importe comment ?<br><br>
+11. Une pièce de menuiserie est représentée par une boîte de 120 cm × 60 cm × 40 cm. Calcule la longueur maximale d’une tige droite pouvant entrer dans la boîte.<br><br>
+12. Explique comment une vue de dessus et une vue de face peuvent aider à reconstruire mentalement un objet.
+</div>
+
+<h2>16. Corrections détaillées</h2>
+
+<div class="corr">
+1. Un sommet est un coin du solide. Une arête est un segment commun à deux faces. Une face est une surface plane du solide. Un plan est une surface plane illimitée. Deux droites gauches ne sont ni parallèles ni sécantes. Un point de percée est l’intersection d’une droite et d’un plan. Une section plane est la figure obtenue quand un plan coupe un solide.
+</div>
+<div class="corr">
+2. Deux droites peuvent être sécantes, parallèles, confondues ou gauches.
+</div>
+<div class="corr">
+3. Une droite peut être incluse dans un plan, sécante au plan ou parallèle au plan.
+</div>
+<div class="corr">
+4. La perspective cavalière est une représentation plane. Elle conserve notamment le parallélisme, mais pas nécessairement les angles ni toutes les longueurs.
+</div>
+<div class="corr">
+5. Un parallélépipède rectangle possède 8 sommets, 12 arêtes et 6 faces.
+</div>
+<div class="corr">
+6. <span class="formula">D=√(8²+6²+2²)=√(64+36+4)=√104≈10,20</span> cm.
+</div>
+<div class="corr">
+7. <span class="formula">AB=√(3²+4²+12²)=√(9+16+144)=√169=13</span>.
+</div>
+<div class="corr">
+8. Deux faces opposées d’un cube sont parallèles.
+</div>
+<div class="corr">
+9. Deux arêtes sont gauches si elles ne se coupent pas, ne sont pas parallèles et n’appartiennent pas à un même plan. Dans un cube, on peut choisir deux arêtes non parallèles situées sur des faces différentes et sans sommet commun.
+</div>
+<div class="corr">
+10. Une section plane est contenue dans le plan de coupe. Deux points ne peuvent être reliés par un segment de section que si ce segment appartient à une face du solide ou si l’appartenance au plan est justifiée. Sinon, on risque de tracer un segment qui traverse le solide sans correspondre à la vraie section.
+</div>
+<div class="corr">
+11. La longueur maximale est la grande diagonale : <span class="formula">D=√(120²+60²+40²)=√(14400+3600+1600)=√19600=140</span> cm.
+</div>
+<div class="corr">
+12. La vue de face donne largeur et hauteur, tandis que la vue de dessus donne largeur et profondeur. En combinant les deux, on peut retrouver la forme générale de l’objet dans l’espace.
+</div>
+
+<h2>17. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse avec du vocabulaire géométrique précis : incidence, parallélisme, orthogonalité, coplanarité, section, point de percée, etc.
+</div>
+
+<div class="ex">
+<strong>Question 1.</strong> Dans un parallélépipède rectangle, explique les positions relatives possibles de deux arêtes. Donne un exemple pour chaque cas : sécantes, parallèles, gauches.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 2.</strong> Une boîte rectangulaire mesure 10 cm × 6 cm × 2 cm.<br>
+1) Calcule la diagonale de la base.<br>
+2) Calcule la grande diagonale de la boîte.<br>
+3) Interprète le résultat.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 3.</strong> Soient <span class="formula">A(1 ; 2 ; 0)</span> et <span class="formula">B(4 ; 6 ; 12)</span>.<br>
+Calcule la distance AB.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 4.</strong> Dans un cube, deux faces voisines sont-elles parallèles ou sécantes ? Si elles sont sécantes, selon quoi se coupent-elles ?
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 5.</strong> Lors de la construction d’une section plane d’un tétraèdre, on connaît trois points situés sur trois arêtes. Explique pourquoi il faut vérifier dans quelles faces les points se trouvent avant de les relier.
+<div class="answer"></div>
+</div>
+
+<h2>18. Correction du mini-test</h2>
+
+<div class="corr">
+<strong>Q1.</strong> Deux arêtes peuvent être sécantes si elles ont un sommet commun ; parallèles si elles ont la même direction et ne se coupent pas ; gauches si elles ne sont ni parallèles ni sécantes et ne sont pas coplanaires.
+</div>
+
+<div class="corr">
+<strong>Q2.</strong> Diagonale de la base : <span class="formula">d=√(10²+6²)=√136≈11,66</span> cm.<br>
+Grande diagonale : <span class="formula">D=√(10²+6²+2²)=√140≈11,83</span> cm.<br>
+Cela représente la longueur maximale d’un segment reliant deux sommets opposés de la boîte.
+</div>
+
+<div class="corr">
+<strong>Q3.</strong> <span class="formula">AB=√((4−1)²+(6−2)²+(12−0)²)</span><br>
+<span class="formula">AB=√(3²+4²+12²)=√169=13</span>.
+</div>
+
+<div class="corr">
+<strong>Q4.</strong> Deux faces voisines d’un cube sont sécantes. Elles se coupent selon une arête commune.
+</div>
+
+<div class="corr">
+<strong>Q5.</strong> On ne peut relier deux points que s’ils appartiennent à une même face ou si leur appartenance au plan de section est justifiée. Sinon, le segment tracé ne correspond pas forcément à une vraie partie de la section plane.
+</div>
+
+<h2>19. Fiche mémo finale</h2>
+
+<div class="box memo">
+<h3>Définitions</h3>
+<ul>
+<li><strong>Sommet :</strong> coin d’un solide.</li>
+<li><strong>Arête :</strong> segment commun à deux faces.</li>
+<li><strong>Face :</strong> surface plane délimitant le solide.</li>
+<li><strong>Plan :</strong> surface plane illimitée.</li>
+<li><strong>Droites gauches :</strong> droites non parallèles, non sécantes et non coplanaires.</li>
+<li><strong>Point de percée :</strong> point où une droite coupe un plan.</li>
+<li><strong>Section plane :</strong> figure obtenue par l’intersection d’un solide avec un plan.</li>
+<li><strong>Coplanarité :</strong> appartenance à un même plan.</li>
+</ul>
+
+<h3>Positions relatives</h3>
+<ul>
+<li>Deux droites : sécantes, parallèles, confondues ou gauches.</li>
+<li>Droite et plan : droite incluse, droite sécante ou droite parallèle au plan.</li>
+<li>Deux plans : sécants, parallèles ou confondus.</li>
+</ul>
+
+<h3>Formules utiles</h3>
+<ul>
+<li>Diagonale d’un rectangle : <span class="formula">d=√(a²+b²)</span>.</li>
+<li>Grande diagonale d’un parallélépipède rectangle : <span class="formula">D=√(L²+l²+h²)</span>.</li>
+<li>Distance entre deux points de l’espace : <span class="formula">AB=√((x_B−x_A)²+(y_B−y_A)²+(z_B−z_A)²)</span>.</li>
+</ul>
+
+<h3>Procédures</h3>
+<ol>
+<li>Identifier le solide : cube, parallélépipède, tétraèdre.</li>
+<li>Repérer les faces et les arêtes concernées.</li>
+<li>Déterminer les positions relatives.</li>
+<li>Justifier avec le vocabulaire : incidence, parallélisme, orthogonalité, coplanarité.</li>
+<li>Pour une section, relier seulement les points appartenant à une même face.</li>
+<li>Pour une distance, chercher un triangle rectangle ou utiliser les coordonnées.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Confondre droites parallèles et droites gauches.</li>
+<li>Penser que deux droites qui ne se coupent pas sont toujours parallèles.</li>
+<li>Oublier que deux plans sécants se coupent selon une droite.</li>
+<li>Relier deux points de section sans vérifier qu’ils sont dans une même face.</li>
+<li>Faire confiance aux angles dessinés en perspective cavalière.</li>
+<li>Confondre vue de face, vue de dessus et perspective.</li>
+</ul>
+</div>
+
+<h2>20. Ressources utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=g%C3%A9om%C3%A9trie+dans+l%27espace+positions+relatives+droites+plans">YouTube – positions relatives de droites et plans</a></li>
+<li><a href="https://www.youtube.com/results?search_query=perspective+cavali%C3%A8re+cube+parall%C3%A9l%C3%A9pip%C3%A8de">YouTube – perspective cavalière</a></li>
+<li><a href="https://www.youtube.com/results?search_query=section+plane+cube+t%C3%A9tra%C3%A8dre">YouTube – sections planes de solides</a></li>
+<li><a href="https://www.youtube.com/results?search_query=diagonale+parall%C3%A9l%C3%A9pip%C3%A8de+rectangle+exercices">YouTube – diagonale d’un parallélépipède rectangle</a></li>
+<li><a href="https://www.youtube.com/results?search_query=geogebra+3d+g%C3%A9om%C3%A9trie+dans+l%27espace">YouTube – utiliser GeoGebra 3D</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/la-geometrie-dans-l-espace-m1187">Alloprof – géométrie dans l’espace</a></li>
+<li><a href="https://www.geogebra.org/3d">GeoGebra 3D – outil de visualisation</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ34 UAA14 – Géométrie dans l’espace.
+</div>
+
+</div>
+</body>
+</html>

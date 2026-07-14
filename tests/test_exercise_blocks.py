@@ -1,6 +1,7 @@
 import pytest
 
-from app.exercise_blocks import ExerciseBlockConfig, generate_exercises
+from app.exercise_blocks import ExerciseBlockConfig, exercise_to_dict, generate_exercises
+from generators.registry import get_generator
 
 
 def test_config_round_trips_through_json():
@@ -34,11 +35,27 @@ def test_generate_exercises_returns_requested_count():
     assert len(exercises) == 3
     for exercise in exercises:
         assert exercise["statement"]
-        assert "answer_value" in exercise
-        assert "answer_display" in exercise
+        assert "seed" in exercise
+
+
+def test_generate_exercises_never_exposes_the_answer():
+    config = ExerciseBlockConfig(generator="maths.equations.linear_equation", difficulty=1, count=1)
+    exercise = generate_exercises(config)[0]
+    assert "answer_value" not in exercise
+    assert "answer_display" not in exercise
+    assert "solution_steps" not in exercise
 
 
 def test_generate_exercises_raises_for_unknown_generator():
     config = ExerciseBlockConfig(generator="unknown.generator")
     with pytest.raises(KeyError):
         generate_exercises(config)
+
+
+def test_exercise_to_dict_includes_full_answer_for_admin_debug():
+    generator = get_generator("maths.equations.linear_equation")
+    exercise = generator(difficulty=1, seed=1)
+    data = exercise_to_dict(exercise)
+    assert "answer_value" in data
+    assert "answer_display" in data
+    assert "solution_steps" in data

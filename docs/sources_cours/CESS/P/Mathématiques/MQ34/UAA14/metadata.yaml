@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 14
+code: "MQ34-UAA14"
+title: "Géométrie dans l’espace"
+slug: "mq34-uaa14-geometrie-dans-l-espace"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA14_geometrie_dans_espace.html"
+    sha256: "c94690ec120752cb6b12252a113bed9f42408598baf514663d25b4cf528a6565"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA14 – Géométrie dans l’espace.pdf"
+    sha256: "778f0242f8080e3ec7271484ee34c3bb357700e38490697b14bacc3e1a9b4595"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:26.2870113+02:00"

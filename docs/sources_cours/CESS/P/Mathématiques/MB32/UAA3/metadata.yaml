@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MB32"
+uaa: 3
+code: "MB32-UAA3"
+title: "Statistique et probabilité"
+slug: "mb32-uaa3-statistique-et-probabilite"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MB32_UAA3_statistique_probabilite.html"
+    sha256: "fa2a40cec3ec9871e87a2da357b4577014f4b9bd31c4710579d7ba35aab331f3"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "Cours MB32 UAA3 – Statistique et probabilité – Jury CESS Professionnel.pdf"
+    sha256: "98c730f9f0eb4d237a3e5ce12c153a5132bc81d6d7e3ebaedfbfb2f7f754a5fb"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:24.8641729+02:00"

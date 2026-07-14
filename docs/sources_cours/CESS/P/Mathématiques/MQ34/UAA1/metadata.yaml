@@ -1,0 +1,31 @@
+schema_version: 1
+level: "CESS"
+orientation: "P"
+subject: "Mathématiques"
+module: "MQ34"
+uaa: 1
+code: "MQ34-UAA1"
+title: "Modèles de croissance"
+slug: "mq34-uaa1-modeles-de-croissance"
+status: "ready"
+source_priority:
+  - "cours.html"
+  - "cours.pdf"
+files:
+  html:
+    present: true
+    path: "cours.html"
+    original_name: "cours_MQ34_UAA1_modeles_de_croissance.html"
+    sha256: "df15de2e6c53297c672804b48ce63ca912ffd22c8cae2fd7626ef0423874d2ac"
+  pdf:
+    present: true
+    path: "cours.pdf"
+    original_name: "MQ34 UAA1 – Modèles de croissance – Jury CESS.pdf"
+    sha256: "8e0839c546e14dad1bd4ed5cb7846153781c6c9ad2fecf60d671ce194e508608"
+import_rules:
+  primary_source: "cours.html"
+  validation_source: "cours.pdf"
+  preserve_existing_project_conventions: true
+  ask_for_confirmation: false
+  original_sources_are_read_only: true
+generated_at: "2026-07-14T10:32:25.2641737+02:00"

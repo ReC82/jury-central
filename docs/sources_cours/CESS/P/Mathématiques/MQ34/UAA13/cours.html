@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MQ34 UAA13 – Géométrie vectorielle</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.55;margin:0;color:#222;background:#fff}
+.page{max-width:1120px;margin:auto;padding:28px}
+h1{color:#243447;border-bottom:5px solid #e67e22;padding-bottom:10px}
+h2{color:#243447;border-left:8px solid #e67e22;background:#fff7ef;padding:8px 12px}
+h3{color:#8a4b08}
+.box{border:1px solid #ccc;background:#f8f9fa;padding:14px 18px;border-radius:8px;margin:16px 0}
+.warn{border:2px solid #b03a2e;background:#fff5f3}
+.method{border:2px solid #1f618d;background:#f2f8fc}
+.memo{border:2px solid #1f7a4d;background:#f0fff6}
+.exam{border:2px solid #b8860b;background:#fff8df}
+.ex{border-left:5px solid #e67e22;background:#fffaf5;padding:12px 16px;margin:14px 0}
+.corr{border-left:5px solid #1f7a4d;background:#f4fff7;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{border:1px solid #999;padding:8px;vertical-align:top}
+th{background:#eee}
+.formula{font-family:'Cambria Math','Times New Roman',serif;background:#f7f7f7;border:1px solid #ddd;border-radius:6px;padding:5px 8px;display:inline-block}
+.answer{height:115px;border:1px dashed #aaa;background:#fff;margin:8px 0}
+svg{max-width:100%;height:auto;border:1px solid #ddd;background:#fff;margin:10px 0}
+.small{font-size:.92em;color:#555}
+@media print{.page{max-width:none;padding:12mm}.box,.ex,.corr,table,svg{break-inside:avoid}a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MQ34 UAA13 – Géométrie vectorielle<br><small>Cours complet imprimable – Jury CESS</small></h1>
+
+<div class="box">
+<strong>Objectif :</strong> utiliser l’outil vectoriel dans une application pratique. Cette UAA travaille la géométrie vectorielle <strong>dans le plan</strong> : vecteurs, coordonnées, norme, opérations, translations, alignement, parallélisme, rotations d’un quart de tour autour de l’origine et résolution de problèmes géométriques.
+</div>
+
+<div class="box exam">
+<strong>À l’examen :</strong> il faut reconnaître des vecteurs égaux ou colinéaires, calculer des coordonnées de vecteurs, additionner des vecteurs, multiplier un vecteur par un réel, utiliser une translation ou une rotation, et justifier un alignement ou un parallélisme avec des coordonnées.
+</div>
+
+<div class="warn box">
+<strong>Limite de l’UAA :</strong> le document indique que l’étude se limite au plan. Les droites du plan peuvent être abordées via vecteurs directeurs, alignement et parallélisme. Les plans de l’espace ne sont pas développés dans ce cours.
+</div>
+
+<h2>1. Repartir des bases : point, repère, coordonnées</h2>
+
+<div class="box">
+Dans un repère du plan, un point est repéré par deux coordonnées : <span class="formula">A(x_A ; y_A)</span>.
+</div>
+
+<table>
+<tr><th>Notation</th><th>Signification</th></tr>
+<tr><td><span class="formula">A(2 ; 5)</span></td><td>Point A d’abscisse 2 et d’ordonnée 5.</td></tr>
+<tr><td><span class="formula">x_A</span></td><td>Abscisse du point A.</td></tr>
+<tr><td><span class="formula">y_A</span></td><td>Ordonnée du point A.</td></tr>
+<tr><td><span class="formula">O(0 ; 0)</span></td><td>Origine du repère.</td></tr>
+</table>
+
+<h2>2. Qu’est-ce qu’un vecteur ?</h2>
+
+<div class="box">
+Un <strong>vecteur</strong> représente un déplacement. Il possède :
+<ul>
+<li>une direction ;</li>
+<li>un sens ;</li>
+<li>une longueur, appelée <strong>norme</strong>.</li>
+</ul>
+</div>
+
+<table>
+<tr><th>Objet</th><th>Exemple</th><th>Interprétation</th></tr>
+<tr><td>Point</td><td><span class="formula">A(1 ; 2)</span></td><td>Position dans le plan.</td></tr>
+<tr><td>Vecteur</td><td><span class="formula">→u = (3 ; -1)</span></td><td>Déplacement de 3 vers la droite et 1 vers le bas.</td></tr>
+<tr><td>Vecteur entre deux points</td><td><span class="formula">→AB</span></td><td>Déplacement de A vers B.</td></tr>
+</table>
+
+<svg width="720" height="390" viewBox="0 0 720 390">
+<line x1="60" y1="310" x2="680" y2="310" stroke="#222" stroke-width="2"/>
+<line x1="110" y1="350" x2="110" y2="40" stroke="#222" stroke-width="2"/>
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L9,3 z" fill="#1f618d"/>
+</marker>
+</defs>
+<g stroke="#e5e5e5">
+<line x1="170" y1="40" x2="170" y2="350"/><line x1="230" y1="40" x2="230" y2="350"/><line x1="290" y1="40" x2="290" y2="350"/><line x1="350" y1="40" x2="350" y2="350"/><line x1="410" y1="40" x2="410" y2="350"/><line x1="470" y1="40" x2="470" y2="350"/><line x1="530" y1="40" x2="530" y2="350"/>
+<line x1="60" y1="250" x2="680" y2="250"/><line x1="60" y1="190" x2="680" y2="190"/><line x1="60" y1="130" x2="680" y2="130"/><line x1="60" y1="70" x2="680" y2="70"/>
+</g>
+<line x1="170" y1="250" x2="410" y2="130" stroke="#1f618d" stroke-width="4" marker-end="url(#arrow)"/>
+<circle cx="170" cy="250" r="6" fill="#b03a2e"/><circle cx="410" cy="130" r="6" fill="#b03a2e"/>
+<text x="150" y="275" font-size="16">A</text><text x="420" y="125" font-size="16">B</text>
+<text x="270" y="155" font-size="18" fill="#1f618d">→AB</text>
+</svg>
+
+<h2>3. Coordonnées d’un vecteur</h2>
+
+<div class="box">
+Si <span class="formula">A(x_A ; y_A)</span> et <span class="formula">B(x_B ; y_B)</span>, alors :
+<br><span class="formula">→AB = (x_B − x_A ; y_B − y_A)</span>
+</div>
+
+<div class="ex">
+Soient <span class="formula">A(2 ; 3)</span> et <span class="formula">B(7 ; 1)</span>. Calcule les coordonnées de <span class="formula">→AB</span>.
+</div>
+
+<div class="corr">
+<span class="formula">→AB = (x_B−x_A ; y_B−y_A)</span><br>
+<span class="formula">→AB = (7−2 ; 1−3)</span><br>
+<span class="formula">→AB = (5 ; -2)</span><br>
+Cela signifie qu’on va de A vers B en avançant de 5 horizontalement et en descendant de 2 verticalement.
+</div>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> <span class="formula">→AB</span> et <span class="formula">→BA</span> ne sont pas les mêmes vecteurs. Ils sont opposés.
+</div>
+
+<h2>4. Norme d’un vecteur</h2>
+
+<div class="box">
+La <strong>norme</strong> d’un vecteur est sa longueur.
+</div>
+
+<div class="box">
+Si <span class="formula">→u=(a ; b)</span>, alors :
+<br><span class="formula">||→u|| = √(a² + b²)</span>
+</div>
+
+<div class="ex">
+Calcule la norme du vecteur <span class="formula">→u=(3 ; 4)</span>.
+</div>
+
+<div class="corr">
+<span class="formula">||→u|| = √(3²+4²)=√(9+16)=√25=5</span>.<br>
+La norme du vecteur est <strong>5</strong>.
+</div>
+
+<h2>5. Vecteurs égaux et vecteurs opposés</h2>
+
+<table>
+<tr><th>Situation</th><th>Condition</th><th>Exemple</th></tr>
+<tr><td>Vecteurs égaux</td><td>Mêmes coordonnées.</td><td><span class="formula">(2 ; -1) = (2 ; -1)</span></td></tr>
+<tr><td>Vecteurs opposés</td><td>Coordonnées opposées.</td><td><span class="formula">(2 ; -1)</span> et <span class="formula">(-2 ; 1)</span></td></tr>
+</table>
+
+<div class="ex">
+Soient <span class="formula">A(1 ; 2)</span>, <span class="formula">B(4 ; 6)</span>, <span class="formula">C(-2 ; 0)</span> et <span class="formula">D(1 ; 4)</span>. Les vecteurs <span class="formula">→AB</span> et <span class="formula">→CD</span> sont-ils égaux ?
+</div>
+
+<div class="corr">
+<span class="formula">→AB=(4−1 ; 6−2)=(3 ; 4)</span>.<br>
+<span class="formula">→CD=(1−(-2) ; 4−0)=(3 ; 4)</span>.<br>
+Les deux vecteurs ont les mêmes coordonnées, donc ils sont égaux.
+</div>
+
+<h2>6. Addition de vecteurs</h2>
+
+<div class="box">
+Pour additionner deux vecteurs, on additionne leurs composantes.
+</div>
+
+<div class="box">
+Si <span class="formula">→u=(a ; b)</span> et <span class="formula">→v=(c ; d)</span>, alors :
+<br><span class="formula">→u + →v = (a+c ; b+d)</span>
+</div>
+
+<div class="ex">
+Calcule <span class="formula">→u+→v</span> avec <span class="formula">→u=(3 ; -2)</span> et <span class="formula">→v=(5 ; 4)</span>.
+</div>
+
+<div class="corr">
+<span class="formula">→u+→v=(3+5 ; -2+4)=(8 ; 2)</span>.
+</div>
+
+<h3>Relation de Chasles</h3>
+<div class="box">
+La relation de Chasles permet d’enchaîner des déplacements :
+<br><span class="formula">→AB + →BC = →AC</span>
+</div>
+
+<div class="ex">
+Si on va de A à B, puis de B à C, le déplacement total est-il <span class="formula">→AC</span> ?
+</div>
+<div class="corr">
+Oui. C’est exactement la relation de Chasles : <span class="formula">→AB+→BC=→AC</span>.
+</div>
+
+<h2>7. Multiplication d’un vecteur par un réel</h2>
+
+<div class="box">
+Multiplier un vecteur par un nombre réel change sa longueur et parfois son sens.
+</div>
+
+<div class="box">
+Si <span class="formula">→u=(a ; b)</span>, alors :
+<br><span class="formula">k→u = (ka ; kb)</span>
+</div>
+
+<table>
+<tr><th>Valeur de k</th><th>Effet</th></tr>
+<tr><td><span class="formula">k&gt;1</span></td><td>vecteur plus long, même sens</td></tr>
+<tr><td><span class="formula">0&lt;k&lt;1</span></td><td>vecteur plus court, même sens</td></tr>
+<tr><td><span class="formula">k&lt;0</span></td><td>sens opposé</td></tr>
+<tr><td><span class="formula">k=0</span></td><td>vecteur nul</td></tr>
+</table>
+
+<div class="ex">
+Soit <span class="formula">→u=(-2 ; 5)</span>. Calcule <span class="formula">3→u</span> et <span class="formula">-2→u</span>.
+</div>
+<div class="corr">
+<span class="formula">3→u=(3×(-2) ; 3×5)=(-6 ; 15)</span>.<br>
+<span class="formula">-2→u=(-2×(-2) ; -2×5)=(4 ; -10)</span>.
+</div>
+
+<h2>8. Colinéarité, alignement et parallélisme</h2>
+
+<div class="box">
+Deux vecteurs sont <strong>colinéaires</strong> s’ils ont la même direction. L’un est un multiple de l’autre.
+</div>
+
+<div class="box">
+Si <span class="formula">→u=(a ; b)</span> et <span class="formula">→v=(c ; d)</span>, alors ils sont colinéaires si :
+<br><span class="formula">a×d − b×c = 0</span>
+</div>
+
+<table>
+<tr><th>Utilisation</th><th>Idée</th></tr>
+<tr><td>Alignement de points</td><td>A, B et C sont alignés si <span class="formula">→AB</span> et <span class="formula">→AC</span> sont colinéaires.</td></tr>
+<tr><td>Parallélisme de droites</td><td>Les droites AB et CD sont parallèles si <span class="formula">→AB</span> et <span class="formula">→CD</span> sont colinéaires.</td></tr>
+</table>
+
+<div class="ex">
+Les points <span class="formula">A(1 ; 2)</span>, <span class="formula">B(3 ; 6)</span> et <span class="formula">C(4 ; 8)</span> sont-ils alignés ?
+</div>
+
+<div class="corr">
+<span class="formula">→AB=(3−1 ; 6−2)=(2 ; 4)</span>.<br>
+<span class="formula">→AC=(4−1 ; 8−2)=(3 ; 6)</span>.<br>
+On vérifie la colinéarité : <span class="formula">2×6 − 4×3 = 12 − 12 = 0</span>.<br>
+Les vecteurs sont colinéaires, donc les points A, B et C sont alignés.
+</div>
+
+<div class="warn box">
+<strong>Piège fréquent :</strong> des vecteurs peuvent être colinéaires sans être égaux. Par exemple <span class="formula">(2;4)</span> et <span class="formula">(3;6)</span> ont la même direction, mais pas la même longueur.
+</div>
+
+<h2>9. Translation d’un point</h2>
+
+<div class="box">
+Une translation déplace tous les points selon un même vecteur.
+</div>
+
+<div class="box">
+Si <span class="formula">A(x ; y)</span> et <span class="formula">→u=(a ; b)</span>, alors l’image <span class="formula">A'</span> de A par la translation de vecteur <span class="formula">→u</span> est :
+<br><span class="formula">A'(x+a ; y+b)</span>
+</div>
+
+<div class="ex">
+Le point <span class="formula">A(2 ; -1)</span> est translaté par le vecteur <span class="formula">→u=(5 ; 3)</span>. Calcule les coordonnées de son image <span class="formula">A'</span>.
+</div>
+
+<div class="corr">
+<span class="formula">A'=(2+5 ; -1+3)=(7 ; 2)</span>.<br>
+L’image du point A est <span class="formula">A'(7 ; 2)</span>.
+</div>
+
+<h2>10. Rotation d’un quart de tour autour de l’origine</h2>
+
+<div class="box">
+Le document de l’UAA demande aussi de déterminer les coordonnées de l’image d’un point par une rotation d’un quart de tour autour de l’origine.
+</div>
+
+<table>
+<tr><th>Rotation autour de O</th><th>Formule</th></tr>
+<tr><td>Quart de tour dans le sens trigonométrique, +90°</td><td><span class="formula">(x ; y) → (-y ; x)</span></td></tr>
+<tr><td>Quart de tour dans le sens horaire, -90°</td><td><span class="formula">(x ; y) → (y ; -x)</span></td></tr>
+</table>
+
+<div class="ex">
+Calcule l’image de <span class="formula">A(3 ; 5)</span> par une rotation d’un quart de tour dans le sens trigonométrique autour de l’origine.
+</div>
+
+<div class="corr">
+Pour une rotation de +90° : <span class="formula">(x ; y) → (-y ; x)</span>.<br>
+Donc <span class="formula">A(3 ; 5) → A'(-5 ; 3)</span>.
+</div>
+
+<h2>11. Produit scalaire dans le plan</h2>
+
+<div class="box">
+Le <strong>produit scalaire</strong> est un outil permettant notamment d’étudier les angles et la perpendicularité entre deux vecteurs.
+</div>
+
+<div class="box">
+Si <span class="formula">→u=(a ; b)</span> et <span class="formula">→v=(c ; d)</span>, alors :
+<br><span class="formula">→u · →v = ac + bd</span>
+</div>
+
+<table>
+<tr><th>Résultat</th><th>Interprétation</th></tr>
+<tr><td><span class="formula">→u · →v = 0</span></td><td>Les vecteurs sont perpendiculaires.</td></tr>
+<tr><td><span class="formula">→u · →v &gt; 0</span></td><td>L’angle entre les vecteurs est aigu.</td></tr>
+<tr><td><span class="formula">→u · →v &lt; 0</span></td><td>L’angle entre les vecteurs est obtus.</td></tr>
+</table>
+
+<div class="ex">
+Les vecteurs <span class="formula">→u=(2 ; 3)</span> et <span class="formula">→v=(6 ; -4)</span> sont-ils perpendiculaires ?
+</div>
+
+<div class="corr">
+<span class="formula">→u · →v = 2×6 + 3×(-4) = 12 − 12 = 0</span>.<br>
+Le produit scalaire est nul, donc les deux vecteurs sont perpendiculaires.
+</div>
+
+<div class="warn box">
+<strong>Remarque :</strong> le produit scalaire est utile, mais l’UAA insiste surtout sur les vecteurs dans le plan, leurs composantes, leurs opérations, l’alignement, le parallélisme, les translations et les rotations.
+</div>
+
+<h2>12. Droites dans le plan avec vecteurs</h2>
+
+<div class="box">
+Une droite peut être décrite à l’aide d’un point et d’un vecteur directeur. Le vecteur directeur indique la direction de la droite.
+</div>
+
+<div class="box">
+Si une droite passe par <span class="formula">A(x_A ; y_A)</span> et a pour vecteur directeur <span class="formula">→u=(a ; b)</span>, alors ses points peuvent s’écrire :
+<br><span class="formula">(x ; y) = (x_A ; y_A) + t(a ; b)</span>
+</div>
+
+<div class="ex">
+La droite d passe par <span class="formula">A(1 ; 2)</span> et a pour vecteur directeur <span class="formula">→u=(3 ; 1)</span>. Donne trois points de la droite.
+</div>
+
+<div class="corr">
+On utilise <span class="formula">(x ; y)=(1 ; 2)+t(3 ; 1)</span>.<br>
+Pour <span class="formula">t=0</span> : <span class="formula">(1 ; 2)</span>.<br>
+Pour <span class="formula">t=1</span> : <span class="formula">(4 ; 3)</span>.<br>
+Pour <span class="formula">t=2</span> : <span class="formula">(7 ; 4)</span>.<br>
+Ces trois points appartiennent à la droite.
+</div>
+
+<h2>13. Applications pratiques</h2>
+
+<h3>13.1 Vérifier un parallélisme</h3>
+<div class="ex">
+Soient <span class="formula">A(0 ; 1)</span>, <span class="formula">B(4 ; 3)</span>, <span class="formula">C(2 ; -1)</span> et <span class="formula">D(10 ; 3)</span>. Les droites AB et CD sont-elles parallèles ?
+</div>
+<div class="corr">
+<span class="formula">→AB=(4−0 ; 3−1)=(4 ; 2)</span>.<br>
+<span class="formula">→CD=(10−2 ; 3−(-1))=(8 ; 4)</span>.<br>
+On remarque que <span class="formula">→CD=2→AB</span>.<br>
+Les vecteurs sont colinéaires, donc les droites AB et CD sont parallèles.
+</div>
+
+<h3>13.2 Résultante de forces</h3>
+<div class="ex">
+Deux forces sont représentées par les vecteurs <span class="formula">→F₁=(12 ; 5)</span> et <span class="formula">→F₂=(-4 ; 7)</span>. Calcule la force résultante.
+</div>
+<div class="corr">
+La résultante est la somme des forces :<br>
+<span class="formula">→R=→F₁+→F₂=(12−4 ; 5+7)=(8 ; 12)</span>.<br>
+La force résultante est <span class="formula">→R=(8 ; 12)</span>.
+</div>
+
+<h2>14. Exercices progressifs</h2>
+
+<h3>Connaître</h3>
+<div class="ex">
+1. Définis : vecteur, coordonnées d’un vecteur, norme, vecteurs colinéaires, vecteurs égaux.<br>
+2. Donne la formule des coordonnées de <span class="formula">→AB</span> à partir de A et B.<br>
+3. Donne la formule de la norme d’un vecteur <span class="formula">(a ; b)</span>.<br>
+4. Donne les formules d’une rotation d’un quart de tour autour de l’origine.
+</div>
+
+<h3>Appliquer</h3>
+<div class="ex">
+5. Soient <span class="formula">A(2 ; -3)</span> et <span class="formula">B(8 ; 5)</span>. Calcule <span class="formula">→AB</span> et sa norme.<br><br>
+6. Calcule <span class="formula">→u+→v</span> et <span class="formula">3→u−2→v</span> avec <span class="formula">→u=(1 ; 4)</span> et <span class="formula">→v=(5 ; -2)</span>.<br><br>
+7. Les vecteurs <span class="formula">→u=(6 ; 9)</span> et <span class="formula">→v=(2 ; 3)</span> sont-ils colinéaires ?<br><br>
+8. Calcule l’image de <span class="formula">A(-2 ; 7)</span> par la translation de vecteur <span class="formula">(4 ; -3)</span>.
+</div>
+
+<h3>Transférer</h3>
+<div class="ex">
+9. Les points <span class="formula">A(1 ; 1)</span>, <span class="formula">B(4 ; 7)</span> et <span class="formula">C(6 ; 11)</span> sont-ils alignés ? Justifie par les vecteurs.<br><br>
+10. Les droites AB et CD sont-elles parallèles avec <span class="formula">A(0 ; 0)</span>, <span class="formula">B(3 ; 6)</span>, <span class="formula">C(2 ; 1)</span>, <span class="formula">D(5 ; 7)</span> ?<br><br>
+11. Deux forces <span class="formula">→F₁=(10 ; -2)</span> et <span class="formula">→F₂=(3 ; 8)</span> agissent sur un objet. Calcule la résultante et sa norme.<br><br>
+12. Les vecteurs <span class="formula">→u=(4 ; -2)</span> et <span class="formula">→v=(1 ; 2)</span> sont-ils perpendiculaires ? Justifie avec le produit scalaire.
+</div>
+
+<h2>15. Corrections détaillées</h2>
+
+<div class="corr">
+1. Un vecteur représente un déplacement avec direction, sens et norme. Les coordonnées d’un vecteur indiquent ses composantes horizontale et verticale. La norme est sa longueur. Deux vecteurs sont colinéaires s’ils ont la même direction. Deux vecteurs sont égaux s’ils ont les mêmes coordonnées.
+</div>
+<div class="corr">
+2. Si <span class="formula">A(x_A ; y_A)</span> et <span class="formula">B(x_B ; y_B)</span>, alors <span class="formula">→AB=(x_B−x_A ; y_B−y_A)</span>.
+</div>
+<div class="corr">
+3. Si <span class="formula">→u=(a ; b)</span>, alors <span class="formula">||→u||=√(a²+b²)</span>.
+</div>
+<div class="corr">
+4. Quart de tour +90° : <span class="formula">(x ; y)→(-y ; x)</span>. Quart de tour -90° : <span class="formula">(x ; y)→(y ; -x)</span>.
+</div>
+<div class="corr">
+5. <span class="formula">→AB=(8−2 ; 5−(-3))=(6 ; 8)</span>. Norme : <span class="formula">√(6²+8²)=√100=10</span>.
+</div>
+<div class="corr">
+6. <span class="formula">→u+→v=(1+5 ; 4−2)=(6 ; 2)</span>.<br>
+<span class="formula">3→u=(3 ; 12)</span> et <span class="formula">2→v=(10 ; -4)</span>.<br>
+<span class="formula">3→u−2→v=(3−10 ; 12−(-4))=(-7 ; 16)</span>.
+</div>
+<div class="corr">
+7. <span class="formula">6×3−9×2=18−18=0</span>. Les vecteurs sont colinéaires. On peut aussi voir que <span class="formula">(6 ; 9)=3(2 ; 3)</span>.
+</div>
+<div class="corr">
+8. <span class="formula">A'=(-2+4 ; 7−3)=(2 ; 4)</span>.
+</div>
+<div class="corr">
+9. <span class="formula">→AB=(3 ; 6)</span> et <span class="formula">→AC=(5 ; 10)</span>. Vérification : <span class="formula">3×10−6×5=30−30=0</span>. Les vecteurs sont colinéaires, donc les points sont alignés.
+</div>
+<div class="corr">
+10. <span class="formula">→AB=(3 ; 6)</span> et <span class="formula">→CD=(3 ; 6)</span>. Les vecteurs sont égaux, donc les droites AB et CD sont parallèles.
+</div>
+<div class="corr">
+11. <span class="formula">→R=(10+3 ; -2+8)=(13 ; 6)</span>. Norme : <span class="formula">||→R||=√(13²+6²)=√205≈14,32</span>.
+</div>
+<div class="corr">
+12. Produit scalaire : <span class="formula">4×1+(-2)×2=4−4=0</span>. Les vecteurs sont perpendiculaires.
+</div>
+
+<h2>16. Mini-test final type examen</h2>
+
+<div class="box exam">
+<strong>Consigne :</strong> justifie chaque réponse avec les calculs vectoriels. Quand il s’agit d’un problème géométrique, conclus par une phrase claire : alignés, parallèles, perpendiculaires, image du point, résultante, etc.
+</div>
+
+<div class="ex">
+<strong>Question 1.</strong> Soient <span class="formula">A(-1 ; 4)</span> et <span class="formula">B(5 ; -2)</span>.<br>
+1) Calcule <span class="formula">→AB</span>.<br>
+2) Calcule <span class="formula">||→AB||</span>.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 2.</strong> Soient <span class="formula">→u=(2 ; -3)</span> et <span class="formula">→v=(-5 ; 4)</span>.<br>
+Calcule <span class="formula">→u+→v</span>, <span class="formula">2→u</span> et <span class="formula">3→v−→u</span>.<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 3.</strong> Les points <span class="formula">A(2 ; 1)</span>, <span class="formula">B(6 ; 9)</span> et <span class="formula">C(8 ; 13)</span> sont-ils alignés ? Justifie.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 4.</strong> Calcule l’image de <span class="formula">P(4 ; -6)</span> :<br>
+1) par la translation de vecteur <span class="formula">(-3 ; 5)</span> ;<br>
+2) par une rotation de +90° autour de l’origine.
+<div class="answer"></div>
+</div>
+
+<div class="ex">
+<strong>Question 5.</strong> Soient <span class="formula">→u=(7 ; 2)</span> et <span class="formula">→v=(-4 ; 14)</span>.<br>
+1) Calcule <span class="formula">→u·→v</span>.<br>
+2) Les vecteurs sont-ils perpendiculaires ?<br>
+3) Que peux-tu conclure sur l’angle entre eux ?
+<div class="answer"></div>
+</div>
+
+<h2>17. Correction du mini-test</h2>
+
+<div class="corr">
+<strong>Q1.</strong> <span class="formula">→AB=(5−(-1) ; -2−4)=(6 ; -6)</span>.<br>
+<span class="formula">||→AB||=√(6²+(-6)²)=√72=6√2≈8,49</span>.
+</div>
+
+<div class="corr">
+<strong>Q2.</strong> <span class="formula">→u+→v=(2−5 ; -3+4)=(-3 ; 1)</span>.<br>
+<span class="formula">2→u=(4 ; -6)</span>.<br>
+<span class="formula">3→v=(-15 ; 12)</span>, donc <span class="formula">3→v−→u=(-15−2 ; 12−(-3))=(-17 ; 15)</span>.
+</div>
+
+<div class="corr">
+<strong>Q3.</strong> <span class="formula">→AB=(6−2 ; 9−1)=(4 ; 8)</span>.<br>
+<span class="formula">→AC=(8−2 ; 13−1)=(6 ; 12)</span>.<br>
+Test : <span class="formula">4×12−8×6=48−48=0</span>.<br>
+Les vecteurs sont colinéaires, donc les points A, B et C sont alignés.
+</div>
+
+<div class="corr">
+<strong>Q4.</strong> Translation : <span class="formula">P'=(4−3 ; -6+5)=(1 ; -1)</span>.<br>
+Rotation +90° : <span class="formula">(x ; y)→(-y ; x)</span>, donc <span class="formula">P(4 ; -6)→P''(6 ; 4)</span>.
+</div>
+
+<div class="corr">
+<strong>Q5.</strong> <span class="formula">→u·→v=7×(-4)+2×14=-28+28=0</span>.<br>
+Le produit scalaire est nul, donc les vecteurs sont perpendiculaires. L’angle entre eux est un angle droit.
+</div>
+
+<h2>18. Fiche mémo finale</h2>
+
+<div class="box memo">
+<h3>Formules indispensables</h3>
+<ul>
+<li><span class="formula">→AB=(x_B−x_A ; y_B−y_A)</span></li>
+<li><span class="formula">||→u||=√(a²+b²)</span> pour <span class="formula">→u=(a ; b)</span></li>
+<li><span class="formula">→u+→v=(a+c ; b+d)</span></li>
+<li><span class="formula">k→u=(ka ; kb)</span></li>
+<li>Colinéarité : <span class="formula">a×d−b×c=0</span></li>
+<li>Produit scalaire : <span class="formula">→u·→v=ac+bd</span></li>
+<li>Perpendicularité : <span class="formula">→u·→v=0</span></li>
+<li>Translation : <span class="formula">(x ; y)→(x+a ; y+b)</span></li>
+<li>Rotation +90° : <span class="formula">(x ; y)→(-y ; x)</span></li>
+<li>Rotation -90° : <span class="formula">(x ; y)→(y ; -x)</span></li>
+</ul>
+
+<h3>Procédures</h3>
+<ol>
+<li>Pour un vecteur entre deux points : arrivée moins départ.</li>
+<li>Pour une norme : racine de la somme des carrés.</li>
+<li>Pour aligner trois points : tester la colinéarité de deux vecteurs.</li>
+<li>Pour prouver un parallélisme : tester la colinéarité des vecteurs directeurs.</li>
+<li>Pour prouver une perpendicularité : calculer le produit scalaire.</li>
+<li>Pour une translation : ajouter les composantes du vecteur.</li>
+<li>Pour une rotation de quart de tour : appliquer la formule adaptée.</li>
+</ol>
+
+<h3>Pièges fréquents</h3>
+<ul>
+<li>Inverser <span class="formula">→AB</span> et <span class="formula">→BA</span>.</li>
+<li>Confondre point et vecteur.</li>
+<li>Oublier que la norme est toujours positive.</li>
+<li>Dire que deux vecteurs colinéaires sont forcément égaux.</li>
+<li>Se tromper de signe dans une rotation de +90° ou -90°.</li>
+<li>Utiliser une formule de l’espace alors que cette UAA reste dans le plan.</li>
+</ul>
+</div>
+
+<h2>19. Ressources utiles</h2>
+<ul>
+<li><a href="https://www.youtube.com/results?search_query=vecteurs+coordonn%C3%A9es+norme+exercices">YouTube – vecteurs, coordonnées et norme</a></li>
+<li><a href="https://www.youtube.com/results?search_query=addition+vecteurs+multiplication+par+un+r%C3%A9el">YouTube – addition de vecteurs et multiplication par un réel</a></li>
+<li><a href="https://www.youtube.com/results?search_query=colin%C3%A9arit%C3%A9+alignement+vecteurs">YouTube – colinéarité et alignement</a></li>
+<li><a href="https://www.youtube.com/results?search_query=produit+scalaire+vecteurs+perpendicularit%C3%A9">YouTube – produit scalaire et perpendicularité</a></li>
+<li><a href="https://www.youtube.com/results?search_query=translation+rotation+quart+de+tour+coordonn%C3%A9es">YouTube – translations et rotations dans le plan</a></li>
+<li><a href="https://fr.khanacademy.org/math/linear-algebra/vectors-and-spaces">Khan Academy – vecteurs</a></li>
+<li><a href="https://www.alloprof.qc.ca/fr/eleves/bv/mathematiques/les-vecteurs-m1313">Alloprof – les vecteurs</a></li>
+</ul>
+
+<div class="box small">
+Document conçu pour une révision ciblée de MQ34 UAA13 – Géométrie vectorielle, limitée au plan.
+</div>
+
+</div>
+</body>
+</html>
