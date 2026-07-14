@@ -109,10 +109,11 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
 ## Intégré
 
 - MB32 UAA1
+- MB32 UAA2 (Géométrie — 6 leçons : Solides, Perspective cavalière, Patrons, Vues
+  coordonnées, Aires, Volumes)
 
 ## En attente d'import
 
-- MB32 UAA2
 - MB32 UAA3
 - MQ32
 - MQ34
@@ -155,6 +156,6 @@ Les améliorations suivantes sont prévues mais ne sont pas prioritaires :
 
 # Prochaine étape
 
-Importer complètement MB32 UAA2 en utilisant exclusivement les sources présentes dans :
+Importer complètement MB32 UAA3 en utilisant exclusivement les sources présentes dans :
 
 docs/sources_cours/

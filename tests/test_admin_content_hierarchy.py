@@ -1,5 +1,5 @@
 from app.models import UAA, BlockType, LessonBlock, Module, Subject
-from app.seed import UAA1_BLOCKS, UAA1_TITLE, seed
+from app.seed import UAA1_BLOCKS, UAA1_TITLE, UAA2_BLOCKS, seed
 
 
 def test_create_subject_via_admin(admin_client, db_session):
@@ -236,8 +236,8 @@ def test_seed_is_idempotent(db_session):
 
     assert db_session.query(Subject).count() == 1
     assert db_session.query(Module).count() == 3
-    assert db_session.query(UAA).count() == 1
-    assert db_session.query(LessonBlock).count() == len(UAA1_BLOCKS)
+    assert db_session.query(UAA).count() == 2
+    assert db_session.query(LessonBlock).count() == len(UAA1_BLOCKS) + len(UAA2_BLOCKS)
 
 
 def test_seed_does_not_overwrite_a_manually_edited_uaa_title(db_session):

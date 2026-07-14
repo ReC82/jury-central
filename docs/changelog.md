@@ -2,6 +2,46 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-07-14 — Import complet de MB32 UAA2 (Géométrie)
+
+Import de la première UAA via le nouveau workflow décrit dans `docs/IMPORT_WORKFLOW.md`, à
+partir de la source officielle unique
+`docs/sources_cours/CESS/P/Mathématiques/MB32/UAA2/cours.html` (non modifiée). Contrairement à
+MB32 UAA1 (une seule leçon détaillée, le reste en placeholders non publiés), UAA2 est intégrée
+**intégralement** : aucune section du cours source n'est omise, résumée ni reformulée.
+
+**Contenu**
+- UAA `mb32-uaa2` (position 2 dans MB32, publiée), 38 blocs de leçon répartis en 6 leçons
+  conformes à `docs/content_workflow.md` et `docs/REFERENCE_UAA.md` : Solides, Perspective
+  cavalière, Patrons, Vues coordonnées, Aires, Volumes.
+- Chaque leçon reprend, quand la source le permet : présentation, cours (vocabulaire, tableaux,
+  formules), exemples résolus, exercices rédigés avec correction détaillée, et un court quiz
+  auto-corrigé (2 à 3 questions par leçon, regroupées via `QuizConfig.group`) repris directement
+  des exercices déjà présents dans le cours plutôt que d'un contenu inventé.
+- Le schéma SVG de la perspective cavalière est repris tel quel (le rendu markdown laisse
+  passer le HTML brut, comme pour `<div class="jc-graph-constant">` dans UAA1).
+- Contenu transversal placé en fin d'UAA (comme dans la source) : mini-test final type examen
+  avec sa correction, fiche mémo récapitulative, liste de ressources externes.
+- Formules converties en LaTeX (`$...$`) pour un rendu MathJax cohérent avec UAA1 ; le texte du
+  cours (théorie, énoncés, corrections) n'est ni résumé ni reformulé.
+
+**Décision technique** : les questions de quiz numériques n'utilisent que des réponses exactes
+(ex. `96`, `120`) car `answer_checking.py` compare des `Fraction` exactes sans tolérance ; les
+résultats impliquant π (arrondis dans la source, ex. ≈791,7 cm²) sont posés en QCM plutôt qu'en
+question numérique, pour éviter un quiz où la valeur exacte attendue diffère de l'arrondi
+affiché.
+
+**Code**
+- `app/seed.py` : ajout de `UAA2_CODE`/`UAA2_TITLE`/`UAA2_BLOCKS` (même convention que UAA1).
+  `seed()` refactorée pour appeler un helper `_seed_uaa()` commun aux deux UAA plutôt que de
+  dupliquer la logique de création — reste strictement additif et idempotent.
+- `tests/test_admin_content_hierarchy.py` : `test_seed_is_idempotent` mis à jour (2 UAA et
+  `len(UAA1_BLOCKS) + len(UAA2_BLOCKS)` blocs désormais attendus après un seed).
+- 87 tests au total (inchangé), `ruff check .` sans erreur.
+- Vérifié manuellement : `/uaa/mb32-uaa2` (200, 30 sections, tableaux et SVG rendus, MathJax
+  actif), `/modules/mb32` (liste UAA1 et UAA2), admin (`/admin/modules/1` liste les deux UAA),
+  API `/practice/api/quiz/{id}/verify` (réponses correctes/incorrectes, QCM et numérique).
+
 ## 2026-07-14 — Gestion complète de la hiérarchie de contenu depuis l'admin
 
 Objectif : supprimer la dépendance fonctionnelle à `app/seed.py` pour créer du contenu
