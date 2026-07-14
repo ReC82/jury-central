@@ -9,6 +9,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app import models
 from app.admin import router as admin_router
+from app.card_kind import card_meta, classify_block_title
 from app.config import settings
 from app.content import extract_youtube_id, render_markdown
 from app.database import Base, engine, get_db
@@ -96,6 +97,7 @@ async def uaa_detail(
             "exercises": None,
             "quiz": None,
             "quiz_run": None,
+            "card": card_meta(classify_block_title(block.title)),
         }
 
     rendered_blocks: list[dict] = []
@@ -114,6 +116,7 @@ async def uaa_detail(
                 "questions_json": json.dumps(questions, ensure_ascii=False),
                 "count": len(pending_group_entries),
             }
+            item["card"] = card_meta("quiz")
             rendered_blocks.append(item)
         pending_group_name = None
         pending_group_entries = []
@@ -133,6 +136,7 @@ async def uaa_detail(
             flush_group()
             item = empty_item(block)
             item["quiz"] = config
+            item["card"] = card_meta("quiz")
             rendered_blocks.append(item)
             continue
 
@@ -146,6 +150,7 @@ async def uaa_detail(
         elif block.type == models.BlockType.GENERATED_EXERCISE:
             config = ExerciseBlockConfig.from_json(block.content)
             item["config"] = config
+            item["card"] = card_meta("exercise")
             try:
                 item["exercises"] = generate_exercises(config)
             except KeyError:

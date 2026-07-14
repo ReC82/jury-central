@@ -16,6 +16,11 @@ UAA entière d'un coup). Dernières tranches terminées :
   une matière, un module ou une UAA se fait entièrement depuis `/admin`, sans plus jamais
   toucher à `app/seed.py` ni relancer `seed-db`. Voir
   [docs/content_workflow.md](docs/content_workflow.md).
+- **MB32 UAA2 → Géométrie**, importée intégralement depuis la source officielle
+  (`docs/sources_cours/`), et **Design System réutilisable** (cartes Théorie/Exemple/
+  Exercice/Quiz/Attention/Résumé, exercices rédigés interactifs, tableaux éditables, quiz
+  avec explication systématique) appliqué à toutes les UAA affichées. Voir
+  [docs/UI_GUIDELINES.md](docs/UI_GUIDELINES.md) et [docs/changelog.md](docs/changelog.md).
 
 Voir [docs/changelog.md](docs/changelog.md) pour l'historique daté complet. Docker n'est pas
 utilisé dans ce projet.
@@ -47,11 +52,12 @@ jury-central/
 │   ├── exercise_blocks.py           # Config JSON des blocs "generated_exercise"
 │   ├── quiz.py                       # Config JSON des blocs "quiz" (QCM, vrai/faux, numérique, groupes)
 │   ├── content.py                     # Rendu Markdown + extraction d'ID YouTube
+│   ├── card_kind.py                    # Classe un bloc de leçon en type de carte (Design System)
 │   ├── slugify.py                      # Génération de slugs (accents retirés, etc.)
 │   ├── templating.py                    # Instance Jinja2Templates partagée
-│   ├── seed.py                           # Données de démonstration + contenu réel MB32 UAA1
-│   ├── templates/                         # Templates Jinja2 (voir docs/current_state.md)
-│   └── static/{css,js}/                    # CSS custom + JS vanilla (exercise.js, quiz.js, progress.js, interactive_graph.js)
+│   ├── seed.py                           # Données de démonstration + contenu réel MB32 UAA1/UAA2
+│   ├── templates/                         # Templates Jinja2 (voir docs/current_state.md), dont _cards.html (Design System)
+│   └── static/{css,js}/                    # CSS custom (dont design-system.css) + JS vanilla (exercise.js, quiz.js, progress.js, design_system.js, interactive_graph.js)
 ├── generators/               # Moteur de génération d'exercices — indépendant de FastAPI
 │   ├── base.py                 # GeneratedExercise (dataclass) + interface ExerciseGenerator
 │   ├── registry.py              # Registre id → fonction generate()

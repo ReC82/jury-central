@@ -4,8 +4,8 @@ async function submitQuizAnswer(blockId, answer) {
 
 function showQuizFeedback(widget, result) {
     const feedback = widget.querySelector(".quiz-feedback");
-    feedback.textContent = result.correct ? "Bonne réponse !" : "Ce n'est pas la bonne réponse.";
-    feedback.className = "quiz-feedback small mb-2 " + (result.correct ? "text-success" : "text-danger");
+    feedback.textContent = result.correct ? "✅ Correct" : "❌ Incorrect";
+    feedback.className = "quiz-feedback small mb-2 fw-semibold " + (result.correct ? "text-success" : "text-danger");
 
     const explanation = widget.querySelector(".quiz-explanation");
     if (explanation && result.explanation) {
@@ -60,6 +60,23 @@ document.addEventListener("click", (event) => {
 });
 
 /* --- Parcours de quiz groupé : une question à la fois, score, recommencer --- */
+
+function renderQuizRunFeedback(feedback, result) {
+    feedback.innerHTML = "";
+    feedback.className = "quiz-run-feedback small mb-2 " + (result.correct ? "text-success" : "text-danger");
+
+    const verdict = document.createElement("p");
+    verdict.className = "fw-semibold mb-1";
+    verdict.textContent = result.correct ? "✅ Correct" : "❌ Incorrect";
+    feedback.appendChild(verdict);
+
+    if (result.explanation) {
+        const explanation = document.createElement("p");
+        explanation.className = "text-muted mb-0";
+        explanation.textContent = result.explanation;
+        feedback.appendChild(explanation);
+    }
+}
 
 function appendNextButton(runEl, questionBox) {
     const state = runEl.quizState;
@@ -142,9 +159,7 @@ function renderQuizRunQuestion(runEl) {
             if (result.correct) {
                 state.score += 1;
             }
-            feedback.textContent = result.correct ? "Correct !" : "Incorrect.";
-            feedback.className =
-                "quiz-run-feedback small mb-2 " + (result.correct ? "text-success" : "text-danger");
+            renderQuizRunFeedback(feedback, result);
             appendNextButton(runEl, questionBox);
         });
 
@@ -181,9 +196,7 @@ function renderQuizRunQuestion(runEl) {
                 if (result.correct) {
                     state.score += 1;
                 }
-                feedback.textContent = result.correct ? "Correct !" : "Incorrect.";
-                feedback.className =
-                    "quiz-run-feedback small mb-2 " + (result.correct ? "text-success" : "text-danger");
+                renderQuizRunFeedback(feedback, result);
                 appendNextButton(runEl, questionBox);
             });
             list.appendChild(choiceBtn);

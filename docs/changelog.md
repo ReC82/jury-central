@@ -2,6 +2,61 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-07-14 — Design System réutilisable (cartes, exercices interactifs, tableaux éditables)
+
+Mise en œuvre de `docs/UI_GUIDELINES.md`. Objectif : transformer l'affichage d'une UAA — un
+mur de blocs Markdown identiques — en une véritable expérience d'apprentissage, sans toucher
+au contenu pédagogique existant (MB32 UAA1 et UAA2), uniquement sa présentation et son
+interaction.
+
+**Composants (`app/templates/_cards.html`)**
+- Macro générique `card(meta, title)` + alias nommés `TheoryCard`, `ExampleCard`,
+  `ExerciseCard`, `QuizCard`, `WarningCard`, `SummaryCard` — icône, libellé et couleur par
+  type, conformes au code couleur de `UI_GUIDELINES.md` (bleu=information, vert=réussite,
+  orange=méthode/exercice, rouge=attention, or=mémo).
+- `app/card_kind.py` : classe un bloc de leçon en type de carte à partir de son **titre
+  uniquement** (ex. « Solides — Cours » → théorie, « Solides — Exercices » → exercice,
+  « Mini-test final » → exam, « Fiche mémo » → résumé) — aucune lecture ni modification du
+  contenu.
+- `app/static/css/design-system.css` : styles des cartes, tableaux, citations, champs
+  éditables ; responsive (padding réduit en mobile) ; règles d'impression (cartes aplaties
+  pour la fiche mémo imprimable existante).
+
+**Interactions (`app/static/js/design_system.js`)**
+- Citations Markdown (`> Piège...`) transformées automatiquement en WarningCard.
+- Tableaux enveloppés dans `.table-responsive` (défilement horizontal) + classes Bootstrap.
+- Cellules de tableau vides rendues éditables (`<input>` injecté) — couvre notamment le
+  tableau à compléter du mini-test UAA2, sans marquage spécial dans le contenu.
+- Exercices rédigés (blocs classés « exercice » ou « exam ») : la correction (repérée par un
+  paragraphe `**Correction :**` ou un titre `## Correction...`) est déplacée dans un conteneur
+  masqué, remplacée par un champ de réponse libre et un bouton « Afficher la correction ».
+  Fonctionne aussi bien sur le nouveau contenu UAA2 (« Correction : » inline) que sur l'ancien
+  contenu UAA1 (« ## Correction détaillée ») sans aucune modification de texte.
+- Barre de progression de lecture de la leçon (scroll), sticky en haut du contenu.
+
+**`app/static/js/quiz.js`**
+- Le parcours de quiz groupé (`quiz-run`, utilisé par tous les quiz de UAA1 et UAA2)
+  n'affichait que « Correct. »/« Incorrect. » après chaque réponse ; il affiche désormais
+  systématiquement l'explication retournée par le serveur, comme le fait déjà le widget de
+  quiz isolé. Feedback aligné sur `UI_GUIDELINES.md` (✅ Correct / ❌ Incorrect).
+
+**`app/main.py` / `app/templates/uaa_detail.html`**
+- Chaque bloc rendu (markdown, exercice généré, quiz, quiz groupé) est désormais enveloppé
+  dans le composant carte correspondant, plutôt que dans une simple `<section>` Bootstrap.
+
+**Décisions volontairement limitées à cette tranche**
+- Les exercices rédigés restent en auto-évaluation (comparaison libre avec la correction) et
+  non en correction automatique : la plupart n'ont pas de réponse unique vérifiable, et
+  extraire une réponse par analyse de texte aurait été peu fiable. `answer_checking.py`
+  continue d'être utilisé tel quel pour les quiz et exercices générés.
+- Le mini-test reste un seul bloc à correction masquée plutôt qu'un parcours paginé
+  question par question (Précédent/Suivant/Terminer) — voir `current_state.md`, Points
+  ouverts.
+
+**Tests** : 87 tests inchangés (aucune modification de logique métier), `ruff check .` sans
+erreur. Vérifié manuellement sur `/uaa/mb32-uaa2` et `/uaa/mb32-uaa1` (aucune régression),
+ainsi que `/`, `/subjects`, `/modules/mb32`, `/admin/login`, `/practice/equations`.
+
 ## 2026-07-14 — Import complet de MB32 UAA2 (Géométrie)
 
 Import de la première UAA via le nouveau workflow décrit dans `docs/IMPORT_WORKFLOW.md`, à

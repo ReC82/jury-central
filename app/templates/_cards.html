@@ -1,0 +1,68 @@
+{#
+Design System — composants "carte" réutilisables (voir docs/UI_GUIDELINES.md).
+
+Une carte = icône + libellé de type + titre optionnel + contenu. Le type (theory, example,
+exercise, exam, quiz, summary, info, warning) pilote la couleur et l'icône via CSS
+(app/static/css/design-system.css, classes .jc-card--<kind>).
+
+Usage :
+    {% import "_cards.html" as cards %}
+    {% call cards.card(item.card, title=item.block.title) %}
+        ...contenu...
+    {% endcall %}
+#}
+{% macro card(meta, title=None, extra_class="") %}
+<div class="jc-card jc-card--{{ meta.kind }} {{ extra_class }}">
+    <div class="jc-card-header">
+        <span class="jc-card-icon" aria-hidden="true">{{ meta.icon }}</span>
+        <span class="jc-card-label">{{ meta.label }}</span>
+    </div>
+    {% if title %}<h2 class="jc-card-title h5">{{ title }}</h2>{% endif %}
+    <div class="jc-card-body">
+        {{ caller() }}
+    </div>
+</div>
+{% endmacro %}
+
+{#
+Alias nommés du composant générique `card()` ci-dessus, un par type de carte du Design
+System (voir docs/UI_GUIDELINES.md). Purement pour la lisibilité des templates qui les
+appellent — même rendu, même CSS.
+
+    {% call cards.TheoryCard("Fonction constante — Cours") %}...{% endcall %}
+#}
+{% macro TheoryCard(title=None) %}
+{% call card({"kind": "theory", "icon": "📘", "label": "Théorie"}, title=title) %}{{ caller() }}{% endcall %}
+{% endmacro %}
+
+{% macro ExampleCard(title=None) %}
+{% call card({"kind": "example", "icon": "💡", "label": "Exemple"}, title=title) %}{{ caller() }}{% endcall %}
+{% endmacro %}
+
+{% macro ExerciseCard(title=None) %}
+{% call card({"kind": "exercise", "icon": "📝", "label": "Exercice"}, title=title) %}{{ caller() }}{% endcall %}
+{% endmacro %}
+
+{% macro QuizCard(title=None) %}
+{% call card({"kind": "quiz", "icon": "🎯", "label": "Quiz"}, title=title) %}{{ caller() }}{% endcall %}
+{% endmacro %}
+
+{% macro WarningCard(title=None) %}
+{% call card({"kind": "warning", "icon": "⚠️", "label": "Attention"}, title=title) %}{{ caller() }}{% endcall %}
+{% endmacro %}
+
+{% macro SummaryCard(title=None) %}
+{% call card({"kind": "summary", "icon": "📌", "label": "À retenir"}, title=title) %}{{ caller() }}{% endcall %}
+{% endmacro %}
+
+{% macro ExamCard(title=None) %}
+{% call card({"kind": "exam", "icon": "🎓", "label": "Mini-test"}, title=title) %}{{ caller() }}{% endcall %}
+{% endmacro %}
+
+{% macro DefinitionCard(title=None) %}
+{% call card({"kind": "theory", "icon": "📘", "label": "Définition"}, title=title) %}{{ caller() }}{% endcall %}
+{% endmacro %}
+
+{% macro MethodCard(title=None) %}
+{% call card({"kind": "method", "icon": "🧭", "label": "Méthode"}, title=title) %}{{ caller() }}{% endcall %}
+{% endmacro %}

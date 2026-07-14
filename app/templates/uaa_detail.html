@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_cards.html" as cards %}
 
 {% block title %}{{ uaa.title }} — Jury Central{% endblock %}
 
@@ -23,33 +24,38 @@
     </button>
 </div>
 
+<div class="jc-lesson-progress d-print-none mb-4" aria-hidden="true">
+    <div class="jc-lesson-progress-bar"></div>
+</div>
+
 {% for item in rendered_blocks %}
-<section class="mb-4 p-3 p-md-4 bg-white rounded shadow-sm">
-    {% if item.quiz_run %}
-    <h2 class="h5 mb-3">Quiz — {{ item.quiz_run.count }} questions</h2>
-    {% else %}
-    <h2 class="h5 mb-3">{{ item.block.title }}</h2>
-    {% endif %}
 
     {% if item.quiz_run %}
+    {% call cards.card(item.card, title="Quiz — " ~ item.quiz_run.count ~ " questions") %}
     <div class="quiz-run" data-questions="{{ item.quiz_run.questions_json }}">
         <div class="quiz-run-progress small text-muted mb-2"></div>
         <div class="quiz-run-question"></div>
         <div class="quiz-run-result d-none"></div>
     </div>
+    {% endcall %}
 
     {% elif item.block.type.value == "markdown" %}
+    {% call cards.card(item.card, title=item.block.title) %}
     <div class="content-markdown">{{ item.html | safe }}</div>
+    {% endcall %}
 
     {% elif item.block.type.value == "youtube" and item.youtube_id %}
+    {% call cards.card(item.card, title=item.block.title) %}
     <div class="ratio ratio-16x9">
         <iframe
             src="https://www.youtube.com/embed/{{ item.youtube_id }}"
             title="{{ item.block.title }}"
             allowfullscreen></iframe>
     </div>
+    {% endcall %}
 
     {% elif item.block.type.value == "generated_exercise" %}
+    {% call cards.card(item.card, title=item.block.title) %}
     {% if item.config and item.config.tags %}
     <div class="mb-3">
         {% for tag in item.config.tags %}
@@ -95,8 +101,10 @@
         <p class="text-muted">Aucun exercice disponible (générateur introuvable).</p>
         {% endfor %}
     </div>
+    {% endcall %}
 
     {% elif item.block.type.value == "quiz" and item.quiz %}
+    {% call cards.card(item.card, title=item.block.title) %}
     <div
         class="quiz-widget"
         data-block-id="{{ item.block.id }}"
@@ -124,13 +132,16 @@
         <div class="quiz-feedback small mb-2"></div>
         <div class="quiz-explanation small text-muted d-none"></div>
     </div>
+    {% endcall %}
 
     {% else %}
+    {% call cards.card(item.card, title=item.block.title) %}
     <p class="text-muted">
         Type de contenu « {{ item.block.type.value }} » pas encore pris en charge à l'affichage.
     </p>
+    {% endcall %}
     {% endif %}
-</section>
+
 {% else %}
 <p class="text-muted">Aucun contenu publié pour cette UAA.</p>
 {% endfor %}

@@ -1,0 +1,186 @@
+/*
+ * Jury Central — Design System
+ *
+ * Composants de carte réutilisables par toutes les UAA (voir docs/UI_GUIDELINES.md).
+ * Code couleur : bleu = information, vert = réussite, orange = méthode/exercice,
+ * rouge = attention/erreur, gris = information secondaire.
+ */
+
+:root {
+    --jc-blue: #1565c0;
+    --jc-blue-bg: #eaf4ff;
+    --jc-green: #1e7e45;
+    --jc-green-bg: #eafaf1;
+    --jc-orange: #bf5b13;
+    --jc-orange-bg: #fff6ec;
+    --jc-red: #b02a37;
+    --jc-red-bg: #fdecea;
+    --jc-purple: #6f42c1;
+    --jc-purple-bg: #f3eefc;
+    --jc-gold: #97740c;
+    --jc-gold-bg: #fffaeb;
+    --jc-gray: #55606b;
+    --jc-gray-bg: #f1f3f5;
+}
+
+/* --- Cartes --- */
+
+.jc-card {
+    background: #fff;
+    border: 1px solid #e3e6ea;
+    border-left-width: 5px;
+    border-left-style: solid;
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.jc-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.jc-card-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.jc-card-label {
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+.jc-card-title {
+    margin: 0 0 0.75rem;
+    font-weight: 600;
+}
+
+.jc-card-body :last-child {
+    margin-bottom: 0;
+}
+
+.jc-card-body p,
+.jc-card-body ul,
+.jc-card-body ol {
+    line-height: 1.65;
+}
+
+.jc-card--theory { border-left-color: var(--jc-blue); }
+.jc-card--theory .jc-card-label { color: var(--jc-blue); }
+
+.jc-card--example { border-left-color: var(--jc-green); }
+.jc-card--example .jc-card-label { color: var(--jc-green); }
+
+.jc-card--exercise { border-left-color: var(--jc-orange); }
+.jc-card--exercise .jc-card-label { color: var(--jc-orange); }
+
+.jc-card--method { border-left-color: var(--jc-orange); background: var(--jc-orange-bg); }
+.jc-card--method .jc-card-label { color: var(--jc-orange); }
+
+.jc-card--exam { border-left-color: var(--jc-orange); background: var(--jc-orange-bg); }
+.jc-card--exam .jc-card-label { color: var(--jc-orange); }
+
+.jc-card--quiz { border-left-color: var(--jc-purple); }
+.jc-card--quiz .jc-card-label { color: var(--jc-purple); }
+
+.jc-card--warning { border-left-color: var(--jc-red); background: var(--jc-red-bg); }
+.jc-card--warning .jc-card-label { color: var(--jc-red); }
+
+.jc-card--summary {
+    border-left-color: var(--jc-gold);
+    background: var(--jc-gold-bg);
+    padding: 1rem 1.25rem;
+}
+.jc-card--summary .jc-card-label { color: var(--jc-gold); }
+.jc-card--summary .jc-card-body { font-size: 0.95rem; }
+
+.jc-card--info { border-left-color: var(--jc-gray); background: var(--jc-gray-bg); }
+.jc-card--info .jc-card-label { color: var(--jc-gray); }
+
+/* Carte "inline" générée automatiquement à partir des citations (> Piège…) du contenu
+   Markdown : mêmes couleurs que .jc-card--warning mais plus compacte. */
+.jc-card--inline {
+    padding: 0.85rem 1.1rem;
+    margin: 1rem 0;
+}
+.jc-card--inline .jc-card-header { margin-bottom: 0.25rem; }
+
+@media (max-width: 576px) {
+    .jc-card { padding: 1rem; }
+}
+
+@media print {
+    .jc-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        break-inside: avoid;
+    }
+}
+
+/* --- Contenu Markdown : tableaux, citations, cellules à compléter --- */
+
+.content-markdown table {
+    margin: 1rem 0;
+}
+
+.content-markdown blockquote {
+    /* Filet de sécurité si le JS n'a pas encore transformé la citation en WarningCard. */
+    border-left: 4px solid var(--jc-red);
+    background: var(--jc-red-bg);
+    padding: 0.6rem 1rem;
+    margin: 1rem 0;
+}
+
+.jc-fill-input {
+    width: 100%;
+    min-width: 4rem;
+    border: none;
+    border-bottom: 2px solid var(--jc-blue);
+    background: transparent;
+    padding: 2px 4px;
+    font: inherit;
+}
+.jc-fill-input:focus {
+    outline: none;
+    border-bottom-color: var(--jc-green);
+    background: var(--jc-green-bg);
+}
+
+/* --- Exercices interactifs (correction masquée jusqu'à demande explicite) --- */
+
+.jc-exercise-controls {
+    margin: 0.75rem 0 1.25rem;
+}
+
+.jc-exercise-answer {
+    min-height: 70px;
+}
+
+.jc-exercise-correction {
+    border-top: 1px dashed #ced4da;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+/* --- Progression de lecture de la leçon --- */
+
+.jc-lesson-progress {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: 4px;
+    background: var(--jc-gray-bg);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.jc-lesson-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--jc-blue);
+    transition: width 0.15s ease-out;
+}

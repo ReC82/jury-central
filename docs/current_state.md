@@ -82,7 +82,28 @@ Les quiz sont intégrés au contenu pédagogique.
 
 Disponible.
 
-Progression locale de l'étudiant.
+Progression locale de l'étudiant, complétée par une barre de progression de lecture par
+leçon.
+
+---
+
+## Design System
+
+Disponible.
+
+Composants de carte réutilisables (voir `docs/UI_GUIDELINES.md`) : TheoryCard, ExampleCard,
+ExerciseCard, QuizCard, WarningCard, SummaryCard — `app/templates/_cards.html`,
+`app/static/css/design-system.css`, `app/static/js/design_system.js`. Le type de carte d'un
+bloc de leçon est déduit de son titre (`app/card_kind.py`), sans jamais lire ni modifier le
+contenu pédagogique.
+
+Rendu par ce système : tableaux responsives, cellules de tableau vides rendues éditables,
+citations (pièges) transformées en WarningCard, exercices rédigés dont la correction reste
+masquée jusqu'à demande explicite, quiz group affichant toujours une explication après
+chaque réponse.
+
+Appliqué automatiquement à toute UAA affichée via `/uaa/{slug}` (MB32 UAA1 et UAA2 à ce
+jour).
 
 ---
 
@@ -146,7 +167,12 @@ Une fois validé :
 
 Les améliorations suivantes sont prévues mais ne sont pas prioritaires :
 
-- amélioration du rendu des cours ;
+- mini-test en parcours paginé (une question à la fois, Précédent/Suivant/Terminer) plutôt
+  qu'un seul bloc à correction masquée ;
+- vérification automatique des réponses des exercices rédigés (actuellement : comparaison
+  libre avec la correction, pas de correction machine) ;
+- CourseCard : appliquer le Design System aux pages de listing (matière, module), qui
+  affichent encore de simples liens ;
 - nouveaux types de blocs ;
 - amélioration des générateurs d'exercices ;
 - nouvelles statistiques ;
