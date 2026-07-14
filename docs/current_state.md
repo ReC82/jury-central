@@ -76,8 +76,8 @@ Disponible. Deux moteurs coexistent (voir `docs/EXERCISE_TYPES.md`) :
   `app/value_table.py`, `app/static/js/value_table.js`, route
   `/practice/api/value-table/verify`. Utilisé par `maths.functions.constant_function`
   depuis VS003 : les exercices générés de MB32 UAA1 (« Fonction constante — Exercices
-  automatiques ») affichent un vrai tableau interactif sur la page publique, plus un simple
-  énoncé texte.
+  automatiques ») affichent un vrai tableau interactif sur la page publique, plutôt qu'un
+  simple énoncé texte.
 
 `generate_exercises()` (`app/exercise_blocks.py`) retourne les objets bruts (l'un ou l'autre
 type) ; c'est l'appelant (route `uaa_detail`, outil `/admin/generators`) qui détecte le type
@@ -91,7 +91,33 @@ générateur réel (exercice fixe).
 
 Disponible.
 
-Les quiz sont intégrés au contenu pédagogique.
+Les quiz sont intégrés au contenu pédagogique. Question et explication passent par le
+renderer de contenu riche (voir plus bas) : un tableau ou une formule dans une question de
+quiz s'affiche correctement plutôt qu'en texte brut.
+
+---
+
+## Renderer de contenu riche (VS003.1)
+
+Disponible.
+
+Un seul renderer (`app/content.py::render_markdown` côté serveur,
+`app/static/js/rich_content.js::renderRichContent()` côté client) est utilisé partout où du
+texte pédagogique est affiché : cours, quiz (question et explication), exercices générés
+(énoncé, indice, correction), value_table (question, indice, explication). Reconnaît
+automatiquement tableaux Markdown, listes, citations (→ WarningCard), et laisse passer les
+formules MathJax (`$...$`), retypesettées côté client après toute insertion dynamique
+(MathJax ne rescane pas seul le contenu inséré après le chargement initial de la page).
+
+Le HTML est toujours rendu côté serveur et transmis tel quel (champs `*_html` en plus des
+champs texte bruts, ex. `question_html`, `statement_html`, `explanation_html`,
+`solution_steps_html`) ; aucun parseur Markdown côté client, conforme à « aucune dépendance
+JS externe ».
+
+`app/static/js/design_system.js::enhanceRichContent(root)` (tableaux responsives, cellules
+éditables, citations → WarningCard) est appliqué une fois au chargement de la page à tout
+`.content-markdown`, et ré-appliqué par `renderRichContent()` à tout contenu inséré
+ensuite — même traitement partout, aucune duplication.
 
 ---
 
@@ -115,9 +141,10 @@ bloc de leçon est déduit de son titre (`app/card_kind.py`), sans jamais lire n
 contenu pédagogique.
 
 Rendu par ce système : tableaux responsives, cellules de tableau vides rendues éditables,
-citations (pièges) transformées en WarningCard, exercices rédigés dont la correction reste
-masquée jusqu'à demande explicite, quiz group affichant toujours une explication après
-chaque réponse.
+citations (pièges) transformées en WarningCard (voir « Renderer de contenu riche »
+ci-dessus, dont ce système est maintenant un consommateur comme les autres écrans),
+exercices rédigés dont la correction reste masquée jusqu'à demande explicite, quiz group
+affichant toujours une explication après chaque réponse.
 
 Appliqué automatiquement à toute UAA affichée via `/uaa/{slug}` (MB32 UAA1 et UAA2 à ce
 jour).

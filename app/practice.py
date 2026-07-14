@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.answer_checking import answers_match
+from app.content import render_markdown
 from app.database import get_db
 from app.exercise_blocks import exercise_to_public_dict
 from app.quiz import QuizConfig
@@ -100,7 +101,11 @@ async def api_reveal_exercise(payload: RevealExerciseRequest) -> JSONResponse:
         generator_fn(difficulty=payload.difficulty, seed=payload.seed)
     )
     return JSONResponse(
-        {"solution_steps": exercise.solution_steps, "answer_display": str(exercise.answer)}
+        {
+            "solution_steps": exercise.solution_steps,
+            "solution_steps_html": [render_markdown(step) for step in exercise.solution_steps],
+            "answer_display": str(exercise.answer),
+        }
     )
 
 
@@ -135,6 +140,7 @@ async def api_verify_quiz(
         {
             "correct": correct,
             "explanation": config.explanation,
+            "explanation_html": render_markdown(config.explanation) if config.explanation else "",
             "correct_index": config.correct_index if config.answer_type == "choice" else None,
         }
     )

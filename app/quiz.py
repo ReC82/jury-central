@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.answer_checking import answers_match, parse_answer
+from app.content import render_markdown
 
 
 @dataclass
@@ -61,10 +62,17 @@ class QuizConfig:
             return False
 
     def to_public_dict(self, block_id: int) -> dict[str, Any]:
-        """Données envoyées au navigateur : jamais la bonne réponse."""
+        """Données envoyées au navigateur : jamais la bonne réponse.
+
+        `question_html` est le rendu du même contenu du Design System que le cours
+        (`app/content.py::render_markdown`, voir docs/UI_GUIDELINES.md) : tableaux,
+        listes et formules MathJax dans une question de quiz s'affichent correctement,
+        au lieu d'une phrase brute.
+        """
         return {
             "block_id": block_id,
             "question": self.question,
+            "question_html": render_markdown(self.question),
             "choices": self.choices if self.answer_type == "choice" else [],
             "answer_type": self.answer_type,
         }

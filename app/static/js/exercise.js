@@ -44,7 +44,7 @@ async function checkExerciseAnswer(button) {
 function showExerciseHint(button) {
     const widget = button.closest(".exercise-widget");
     const hintBox = widget.querySelector(".exercise-hint");
-    hintBox.textContent = button.dataset.hint;
+    renderRichContent(hintBox, button.dataset.hintHtml || button.dataset.hint);
     hintBox.classList.remove("d-none");
 }
 
@@ -58,10 +58,11 @@ async function revealExerciseCorrection(button) {
     }
 
     stepsList.innerHTML = "";
-    result.solution_steps.forEach((step) => {
+    const steps = result.solution_steps_html || result.solution_steps;
+    steps.forEach((step) => {
         const li = document.createElement("li");
-        li.textContent = step;
         stepsList.appendChild(li);
+        renderRichContent(li, step);
     });
     stepsList.classList.remove("d-none");
     button.disabled = true;
@@ -81,7 +82,7 @@ async function newExercise(button) {
     const data = await response.json();
 
     widget.dataset.seed = data.seed;
-    widget.querySelector(".exercise-statement").textContent = data.statement;
+    renderRichContent(widget.querySelector(".exercise-statement"), data.statement_html || data.statement);
     widget.querySelector(".exercise-answer-input").value = "";
 
     const feedback = widget.querySelector(".exercise-feedback");
@@ -91,11 +92,12 @@ async function newExercise(button) {
     const hintButton = widget.querySelector(".exercise-hint-btn");
     if (hintButton) {
         hintButton.dataset.hint = data.hint || "";
+        hintButton.dataset.hintHtml = data.hint_html || "";
     }
     const hintBox = widget.querySelector(".exercise-hint");
     if (hintBox) {
         hintBox.classList.add("d-none");
-        hintBox.textContent = "";
+        hintBox.innerHTML = "";
     }
 
     const stepsList = widget.querySelector(".exercise-steps");

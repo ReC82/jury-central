@@ -74,6 +74,11 @@ par `app/main.py` en un seul item `quiz_run`) :
     `UI_GUIDELINES.md` (« Ne jamais se limiter à Correct ou Incorrect »).
 - Toujours affichés dans un parcours groupé : numéro de la question, progression, score
   final, bouton Recommencer — conforme à `UI_GUIDELINES.md`.
+- La question et l'explication sont rendues via le renderer de contenu riche unique
+  (`app/content.py::render_markdown` côté serveur, `renderRichContent()` côté client —
+  voir `app/static/js/rich_content.js`) plutôt qu'affichées comme texte brut : un tableau
+  Markdown dans une question de quiz s'affiche comme un vrai tableau, pas comme une phrase
+  (VS003.1).
 
 ---
 

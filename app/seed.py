@@ -265,7 +265,12 @@ _CONSTANT_FUNCTION_QUIZ_QUESTIONS = [
         "explanation": "Le prix ne dépend pas du nombre d'arrêts : f(x) = 2, donc f(7) = 2.",
     },
     {
-        "question": "Le tableau x : -1, 0, 1 → f(x) : 4, 4, 4 correspond à quelle fonction ?",
+        "question": (
+            "Le tableau suivant correspond à quelle fonction ?\n\n"
+            "| $x$ | -1 | 0 | 1 |\n"
+            "|---|---|---|---|\n"
+            "| $f(x)$ | 4 | 4 | 4 |"
+        ),
         "choices": ["f(x) = x + 4", "f(x) = 4", "f(x) = 4x", "f(x) = -4"],
         "correct_index": 1,
         "explanation": "f(x) reste égal à 4 quel que soit x : c'est f(x) = 4.",

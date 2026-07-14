@@ -7,8 +7,8 @@
  * réutilisable par toute future UAA qui suit les mêmes conventions Markdown.
  */
 
-function wrapBlockquotesAsWarningCards() {
-    document.querySelectorAll(".content-markdown blockquote").forEach((blockquote) => {
+function wrapBlockquotesAsWarningCards(root) {
+    root.querySelectorAll("blockquote").forEach((blockquote) => {
         const card = document.createElement("div");
         card.className = "jc-card jc-card--warning jc-card--inline";
 
@@ -30,8 +30,11 @@ function wrapBlockquotesAsWarningCards() {
     });
 }
 
-function wrapTablesResponsively() {
-    document.querySelectorAll(".content-markdown table").forEach((table) => {
+function wrapTablesResponsively(root) {
+    root.querySelectorAll("table").forEach((table) => {
+        if (table.closest(".table-responsive")) {
+            return;
+        }
         // Bordures, padding et alignement des cellules sont gérés par design-system.css
         // (.content-markdown table ...) plutôt que par les classes utilitaires Bootstrap,
         // pour un rendu homogène indépendant de la version de Bootstrap chargée par CDN.
@@ -43,8 +46,8 @@ function wrapTablesResponsively() {
     });
 }
 
-function makeEmptyCellsEditable() {
-    document.querySelectorAll(".content-markdown table td").forEach((cell) => {
+function makeEmptyCellsEditable(root) {
+    root.querySelectorAll("table td").forEach((cell) => {
         if (cell.children.length > 0 || cell.textContent.trim() !== "") {
             return;
         }
@@ -54,6 +57,19 @@ function makeEmptyCellsEditable() {
         input.setAttribute("aria-label", "Complète cette cellule");
         cell.appendChild(input);
     });
+}
+
+/*
+ * Point d'entrée unique du rendu de contenu riche (voir app/static/js/rich_content.js) :
+ * habille tout le HTML déjà présent dans `root` (rendu Markdown côté serveur — tableaux,
+ * citations, cellules à compléter), qu'il s'agisse du contenu d'un cours affiché au
+ * chargement de la page, ou de contenu inséré dynamiquement ensuite (question de quiz,
+ * énoncé d'exercice généré, correction) — même traitement partout, aucune duplication.
+ */
+function enhanceRichContent(root) {
+    wrapBlockquotesAsWarningCards(root);
+    wrapTablesResponsively(root);
+    makeEmptyCellsEditable(root);
 }
 
 /* --- Exercices rédigés : ne jamais afficher la correction immédiatement --- */
@@ -171,9 +187,7 @@ function initLessonProgress() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    wrapBlockquotesAsWarningCards();
+    document.querySelectorAll(".content-markdown").forEach(enhanceRichContent);
     splitExerciseCorrections();
-    wrapTablesResponsively();
-    makeEmptyCellsEditable();
     initLessonProgress();
 });

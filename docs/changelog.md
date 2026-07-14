@@ -2,6 +2,60 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-07-14 — VS003.1 : renderer de contenu riche unique
+
+Plusieurs écrans affichaient encore du texte brut (question de quiz, énoncé d'exercice
+généré, indice, correction) même quand le contenu source contenait un tableau, une liste ou
+une formule — par exemple une question de quiz décrivant un tableau en une phrase :
+« Le tableau x : -1, 0, 1 → f(x) : 4, 4, 4 correspond à quelle fonction ? ». Cette tranche
+fait passer tous ces écrans par le même renderer que les cours
+(`app/content.py::render_markdown`), et convertit ce cas concret en un vrai tableau
+Markdown.
+
+**Serveur — un champ `*_html` ajouté à chaque endroit qui envoyait du texte brut** :
+- `app/quiz.py` : `QuizConfig.to_public_dict()` ajoute `question_html`.
+- `app/exercise_blocks.py` : `exercise_to_public_dict()`/`exercise_to_dict()` ajoutent
+  `statement_html`, `hint_html`, `solution_steps_html`.
+- `app/value_table.py` : nouvelle fonction `value_table_public_dict()` (`question_html`,
+  `hint_html` — ne peut pas vivre dans `generators/exercise_types.py`, qui doit rester
+  indépendant de FastAPI) ; `ValueTableCorrection.to_dict()` ajoute `explanation_html`.
+- `app/practice.py` : `/api/reveal` et `/api/quiz/{id}/verify` renvoient aussi le HTML
+  rendu de la correction/explication.
+- `app/main.py` : le widget de quiz isolé utilise désormais `QuizConfig.to_public_dict()`
+  (déjà utilisé par le parcours groupé) au lieu d'accéder directement au dataclass — même
+  représentation partout, une seule méthode de rendu.
+
+**Client — un seul point d'entrée pour insérer du contenu riche** :
+- Nouveau `app/static/js/rich_content.js` : `renderRichContent(container, html)` — injecte
+  le HTML déjà rendu, ré-applique les mêmes traitements que les cours (tableaux
+  responsives, citations → WarningCard, cellules éditables) et relance MathJax scopé au
+  conteneur (MathJax ne rescane pas seul le contenu inséré après le chargement initial).
+- `app/static/js/design_system.js` : `wrapBlockquotesAsWarningCards`,
+  `wrapTablesResponsively`, `makeEmptyCellsEditable` acceptent maintenant un `root` et sont
+  regroupées dans `enhanceRichContent(root)`, appelée au chargement de la page **et** par
+  `renderRichContent()` — plus de duplication entre le traitement initial et le traitement
+  du contenu inséré dynamiquement.
+- `quiz.js`, `exercise.js`, `value_table.js` : toute insertion de texte (`textContent`)
+  remplacée par `renderRichContent()` avec le champ `*_html` correspondant.
+
+**Contenu** : la question de quiz « Le tableau x : -1, 0, 1 → f(x) : 4, 4, 4 correspond à
+quelle fonction ? » (`app/seed.py`, quiz Fonction constante) reformulée en question courte +
+tableau Markdown (`| $x$ | -1 | 0 | 1 |` / `| $f(x)$ | 4 | 4 | 4 |`) — mêmes valeurs, même
+bonne réponse, même explication, uniquement la présentation change.
+
+**Tests** : 14 nouveaux tests (`tests/test_rich_content.py`) couvrant chaque champ `*_html`
+ajouté, le rendu Markdown d'une question de quiz (tableau, liste, texte simple), et — cas
+concret demandé — la vérification que cette question précise produit un `<table>` avec
+`<td>4</td>` sur la page publique de MB32 UAA1 —, ainsi que les routes `/api/reveal` et
+`/api/quiz/{id}/verify`. Un test existant (`test_quiz.py`) mis à jour pour le nouveau champ.
+142 tests au total, `ruff check .` sans erreur.
+
+Vérifié manuellement après `reset-db` : la question du quiz Fonction constante s'affiche
+comme un vrai tableau (extrait et vérifié depuis le JSON `data-questions` de la page), les
+routes `/api/reveal`, `/api/quiz/{id}/verify`, `/admin/value-table-demo/verify` renvoient
+toutes leur champ `*_html`, `/admin/generators` bascule toujours correctement entre les deux
+rendus, aucune régression sur les autres pages.
+
 ## 2026-07-14 — VS003 (suite) : branchement du composant value_table sur la fonction constante
 
 Le composant `value_table` livré précédemment n'était utilisé nulle part (seulement une

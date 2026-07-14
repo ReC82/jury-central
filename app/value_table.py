@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.answer_checking import answers_match, parse_answer
+from app.content import render_markdown
 from generators.exercise_types import InteractiveExercise
 from generators.value_table import ValueTableData
 
@@ -37,12 +38,30 @@ class ValueTableCorrection:
     hint: str
 
     def to_dict(self) -> dict[str, Any]:
+        """`explanation_html` est le rendu du même Design System que le cours (voir
+        `app/content.py::render_markdown`) : tableaux, listes et formules MathJax dans une
+        correction s'affichent correctement, au lieu d'une phrase brute."""
         return {
             "all_correct": self.all_correct,
             "cells": [cell.to_dict() for cell in self.cells],
             "explanation": self.explanation,
+            "explanation_html": render_markdown(self.explanation) if self.explanation else "",
             "hint": self.hint,
         }
+
+
+def value_table_public_dict(exercise: InteractiveExercise) -> dict[str, Any]:
+    """Représentation publique enrichie du HTML rendu, pour le composant frontend
+    (`app/static/js/value_table.js`) : jamais la réponse.
+
+    `InteractiveExercise` (generators/exercise_types.py) reste indépendant de FastAPI et ne
+    rend donc rien lui-même ; cette fonction, côté application, ajoute `question_html` et
+    `hint_html` (voir `app/content.py::render_markdown`) à sa représentation publique.
+    """
+    public = exercise.to_public_dict()
+    public["question_html"] = render_markdown(public["question"])
+    public["hint_html"] = render_markdown(public["hint"]) if public["hint"] else ""
+    return public
 
 
 def check_value_table_answers(

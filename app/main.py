@@ -17,6 +17,7 @@ from app.exercise_blocks import ExerciseBlockConfig, exercise_to_public_dict, ge
 from app.practice import router as practice_router
 from app.quiz import QuizConfig
 from app.templating import templates
+from app.value_table import value_table_public_dict
 from generators.base import GeneratedExercise
 from generators.exercise_types import InteractiveExercise
 
@@ -138,7 +139,7 @@ async def uaa_detail(
                 continue
             flush_group()
             item = empty_item(block)
-            item["quiz"] = config
+            item["quiz"] = config.to_public_dict(block.id)
             item["card"] = card_meta("quiz")
             rendered_blocks.append(item)
             continue
@@ -166,7 +167,9 @@ async def uaa_detail(
             ]
             item["value_table_exercises"] = [
                 {
-                    "exercise_json": exercise.to_public_json(),
+                    "exercise_json": json.dumps(
+                        value_table_public_dict(exercise), ensure_ascii=False
+                    ),
                     "generator": config.generator,
                     "difficulty": exercise.difficulty,
                     "seed": exercise.seed,

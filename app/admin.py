@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -14,7 +15,8 @@ from app.quiz import QuizConfig, build_quiz_config
 from app.quiz_import import ImportResult, ImportRowError, import_quiz_csv
 from app.slugify import slugify
 from app.templating import templates
-from app.value_table import check_value_table_answers
+from app.value_table import check_value_table_answers, value_table_public_dict
+from generators.exercise_types import InteractiveExercise
 from generators.registry import available_generators, get_generator
 from generators.value_table import ValueTableRow, build_value_table_exercise
 
@@ -775,6 +777,7 @@ async def admin_generators(
     seed: int | None = None,
 ) -> HTMLResponse:
     exercise = None
+    exercise_json = None
     error = None
 
     if generator:
@@ -784,6 +787,8 @@ async def admin_generators(
             error = f"Générateur « {generator} » introuvable."
         else:
             exercise = generator_fn(difficulty=difficulty, seed=seed)
+            if isinstance(exercise, InteractiveExercise) and exercise.type == "value_table":
+                exercise_json = json.dumps(value_table_public_dict(exercise), ensure_ascii=False)
 
     return templates.TemplateResponse(
         request=request,
@@ -794,6 +799,7 @@ async def admin_generators(
             "difficulty": difficulty,
             "seed": seed,
             "exercise": exercise,
+            "exercise_json": exercise_json,
             "error": error,
         },
     )
@@ -830,7 +836,7 @@ async def admin_value_table_demo(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request=request,
         name="admin_value_table_demo.html",
-        context={"exercise_json": exercise.to_public_json()},
+        context={"exercise_json": json.dumps(value_table_public_dict(exercise), ensure_ascii=False)},
     )
 
 

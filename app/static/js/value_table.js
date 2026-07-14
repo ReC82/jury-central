@@ -103,12 +103,10 @@ function applyCorrection(root, correction) {
     feedback.appendChild(verdict);
 
     const correctionBox = root.querySelector(".value-table-correction");
-    correctionBox.innerHTML = "";
     if (correction.explanation) {
-        const explanationP = document.createElement("p");
-        explanationP.className = "mb-1";
-        explanationP.textContent = correction.explanation;
-        correctionBox.appendChild(explanationP);
+        renderRichContent(correctionBox, correction.explanation_html || correction.explanation);
+    } else {
+        correctionBox.innerHTML = "";
     }
     correctionBox.classList.remove("d-none");
 }
@@ -156,12 +154,12 @@ async function verifyValueTable(root, exercise, verifyUrl) {
     applyCorrection(root, correction);
 }
 
-function showValueTableHint(root, hint) {
+function showValueTableHint(root, hintHtml) {
     const hintBox = root.querySelector(".value-table-hint");
     if (!hintBox) {
         return;
     }
-    hintBox.textContent = hint;
+    renderRichContent(hintBox, hintHtml);
     hintBox.classList.remove("d-none");
 }
 
@@ -174,10 +172,10 @@ function initValueTableExercise(root) {
     }
     const verifyUrl = root.dataset.verifyUrl;
 
-    const question = document.createElement("p");
+    const question = document.createElement("div");
     question.className = "value-table-question fw-semibold mb-3";
-    question.textContent = exercise.question;
     root.appendChild(question);
+    renderRichContent(question, exercise.question_html || exercise.question);
 
     root.appendChild(buildValueTableElement(exercise));
 
@@ -196,7 +194,9 @@ function initValueTableExercise(root) {
         hintButton.type = "button";
         hintButton.className = "btn btn-link btn-sm value-table-hint-btn";
         hintButton.textContent = "Indice";
-        hintButton.addEventListener("click", () => showValueTableHint(root, exercise.hint));
+        hintButton.addEventListener("click", () =>
+            showValueTableHint(root, exercise.hint_html || exercise.hint)
+        );
         controls.appendChild(hintButton);
     }
 

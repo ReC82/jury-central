@@ -69,9 +69,23 @@ def test_to_public_dict_never_exposes_the_answer():
     assert public == {
         "block_id": 42,
         "question": "Q",
+        "question_html": "<p>Q</p>",
         "choices": ["a", "b"],
         "answer_type": "choice",
     }
     assert "correct_index" not in public
     assert "correct_value" not in public
     assert "secret" not in str(public)
+
+
+def test_to_public_dict_renders_question_as_markdown():
+    """Une question de quiz peut contenir un vrai tableau Markdown plutôt qu'une phrase qui
+    le décrit — voir docs/UI_GUIDELINES.md (renderer de contenu riche, VS003.1)."""
+    config = QuizConfig(
+        question="| $x$ | -1 | 0 | 1 |\n|---|---|---|---|\n| $f(x)$ | 4 | 4 | 4 |",
+        choices=["a", "b"],
+        correct_index=0,
+    )
+    public = config.to_public_dict(block_id=1)
+    assert "<table>" in public["question_html"]
+    assert "<th>" in public["question_html"] or "<td>" in public["question_html"]

@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.content import render_markdown
 from generators.base import GeneratedExercise
 from generators.exercise_types import InteractiveExercise
 from generators.registry import get_generator
@@ -43,10 +44,13 @@ def exercise_to_dict(exercise: GeneratedExercise) -> dict[str, Any]:
     """Représentation complète, y compris la réponse. Réservé à l'admin (debug)."""
     return {
         "statement": exercise.statement,
+        "statement_html": render_markdown(exercise.statement),
         "solution_steps": exercise.solution_steps,
+        "solution_steps_html": [render_markdown(step) for step in exercise.solution_steps],
         "answer_value": float(exercise.answer),
         "answer_display": str(exercise.answer),
         "hint": exercise.hint,
+        "hint_html": render_markdown(exercise.hint) if exercise.hint else "",
     }
 
 
@@ -55,8 +59,18 @@ def exercise_to_public_dict(exercise: GeneratedExercise) -> dict[str, Any]:
 
     La vérification et la correction se font via un second appel serveur
     (`/practice/api/verify` et `/practice/api/reveal`) en fournissant le seed.
+
+    `statement_html`/`hint_html` sont le rendu du même Design System que le cours (voir
+    `app/content.py::render_markdown`) : tableaux, listes et formules MathJax dans un énoncé
+    généré s'affichent correctement, au lieu d'une phrase brute.
     """
-    return {"statement": exercise.statement, "seed": exercise.seed, "hint": exercise.hint}
+    return {
+        "statement": exercise.statement,
+        "statement_html": render_markdown(exercise.statement),
+        "seed": exercise.seed,
+        "hint": exercise.hint,
+        "hint_html": render_markdown(exercise.hint) if exercise.hint else "",
+    }
 
 
 def generate_exercises(

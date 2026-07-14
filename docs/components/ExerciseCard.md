@@ -78,7 +78,10 @@ Design System (voir Comportement) :
 - **Exercice généré** : interactif dès le rendu serveur (`app/static/js/exercise.js`) —
   champ de réponse + bouton Vérifier (`/practice/api/verify`), indice, correction affichée
   uniquement sur demande (`/practice/api/reveal`), jamais de réponse envoyée au navigateur
-  avant validation (voir `app/answer_checking.py`).
+  avant validation (voir `app/answer_checking.py`). Énoncé, indice et étapes de correction
+  passent par le même renderer de contenu riche que les cours et les quiz
+  (`app/content.py::render_markdown` / `app/static/js/rich_content.js`) : un tableau ou une
+  formule MathJax dans un énoncé généré s'affiche correctement (VS003.1).
 - **Exercice rédigé** : rendu interactif côté client, sans aucune modification du texte
   pédagogique (`app/static/js/design_system.js`, fonction `splitExerciseCorrections()`) : la
   correction — repérée par un paragraphe commençant par `**Correction :**` ou un titre

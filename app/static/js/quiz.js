@@ -9,7 +9,7 @@ function showQuizFeedback(widget, result) {
 
     const explanation = widget.querySelector(".quiz-explanation");
     if (explanation && result.explanation) {
-        explanation.textContent = result.explanation;
+        renderRichContent(explanation, result.explanation_html || result.explanation);
         explanation.classList.remove("d-none");
     }
 }
@@ -71,10 +71,10 @@ function renderQuizRunFeedback(feedback, result) {
     feedback.appendChild(verdict);
 
     if (result.explanation) {
-        const explanation = document.createElement("p");
-        explanation.className = "text-muted mb-0";
-        explanation.textContent = result.explanation;
+        const explanation = document.createElement("div");
+        explanation.className = "text-muted";
         feedback.appendChild(explanation);
+        renderRichContent(explanation, result.explanation_html || result.explanation);
     }
 }
 
@@ -123,10 +123,10 @@ function renderQuizRunQuestion(runEl) {
     state.answered = false;
 
     questionBox.innerHTML = "";
-    const questionP = document.createElement("p");
-    questionP.className = "fw-semibold mb-3";
-    questionP.textContent = question.question;
-    questionBox.appendChild(questionP);
+    const questionEl = document.createElement("div");
+    questionEl.className = "fw-semibold mb-3";
+    questionBox.appendChild(questionEl);
+    renderRichContent(questionEl, question.question_html || question.question);
 
     const feedback = document.createElement("div");
     feedback.className = "quiz-run-feedback small mb-2";
