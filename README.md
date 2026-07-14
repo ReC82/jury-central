@@ -11,7 +11,8 @@ UAA entière d'un coup). Dernières tranches terminées :
 
 - **MB32 UAA1 → Fonction constante** : expérience étudiante complète (cours, graphique
   interactif, exercices générés à l'infini, quiz de 10 questions avec score, fiche mémo
-  imprimable). Voir [docs/mb32-uaa1.md](docs/mb32-uaa1.md).
+  imprimable). Sert d'UAA de référence, voir [docs/REFERENCE_UAA.md](docs/REFERENCE_UAA.md)
+  (détail technique dans [docs/changelog.md](docs/changelog.md), entrée du 2026-07-13).
 - **Gestion complète de la hiérarchie de contenu depuis l'admin** : créer/modifier/supprimer
   une matière, un module ou une UAA se fait entièrement depuis `/admin`, sans plus jamais
   toucher à `app/seed.py` ni relancer `seed-db`. Voir
@@ -135,8 +136,11 @@ pytest
   automatiques d'exercices, comment en ajouter un nouveau.
 - [docs/content_workflow.md](docs/content_workflow.md) — comment ajouter une nouvelle UAA
   et structurer son contenu.
-- [docs/mb32-uaa1.md](docs/mb32-uaa1.md) — détail de la leçon "Fonction constante" (objectifs,
-  générateur, quiz, données initiales, limites).
+- [docs/REFERENCE_UAA.md](docs/REFERENCE_UAA.md) — UAA de référence (MB32 UAA1) que toute
+  nouvelle UAA doit respecter en structure et en qualité.
+- [docs/UI_GUIDELINES.md](docs/UI_GUIDELINES.md) — règles d'interface utilisateur (cartes,
+  couleurs, interactivité) ; chaque composant est détaillé dans
+  [docs/components/INDEX.md](docs/components/INDEX.md).
 - [docs/changelog.md](docs/changelog.md) — historique des tranches livrées.
 
 ## Licence

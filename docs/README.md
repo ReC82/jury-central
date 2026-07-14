@@ -92,6 +92,18 @@ Décrit :
 
 ---
 
+## UI_GUIDELINES.md
+
+Règles d'interface utilisateur : cartes, couleurs, icônes, interactivité des exercices et
+des quiz, responsive, accessibilité.
+
+À consulter avant toute modification du rendu ou de l'interaction d'une page.
+
+Les composants concrets qui implémentent ces règles sont documentés un par un dans
+`docs/components/` (voir `docs/components/INDEX.md`).
+
+---
+
 ## admin.md
 
 Documentation de l'administration.
