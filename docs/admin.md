@@ -106,6 +106,21 @@ docs/exercise_generators.md
 
 ---
 
+# Composants d'exercices interactifs
+
+Le moteur d'exercices interactifs (`value_table`, et d'autres types à venir) est documenté
+dans :
+
+```
+docs/EXERCISE_TYPES.md
+```
+
+`/admin/value-table-demo` permet de prévisualiser le composant `value_table` avec un
+exercice fixe, indépendamment de tout générateur — utile pour tester le rendu et la
+vérification cellule par cellule avant de le brancher à un vrai générateur.
+
+---
+
 # Import des cours
 
 Les cours ne sont plus créés depuis l'administration.

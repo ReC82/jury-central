@@ -6,6 +6,7 @@ Si la tâche concerne...
 - interface / composants graphiques → UI_GUIDELINES.md, components/INDEX.md
 - administration → admin.md
 - générateurs → exercise_generators.md
+- exercices interactifs (format JSON, types, correction) → EXERCISE_TYPES.md
 - Git → git_workflow.md
 - état du projet → current_state.md
 - règles générales → PROJECT_RULES.md

@@ -104,6 +104,15 @@ Les composants concrets qui implémentent ces règles sont documentés un par un
 
 ---
 
+## EXERCISE_TYPES.md
+
+Format officiel des exercices interactifs (structure JSON générateur → frontend, types
+d'exercices, correction, impression).
+
+À consulter avant de créer ou modifier un générateur, ou un composant d'exercice.
+
+---
+
 ## admin.md
 
 Documentation de l'administration.

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — Démo value_table{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Démo value_table</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">Composant d'exercice interactif — value_table</h1>
+
+<div class="bg-white p-4 rounded shadow-sm mb-4">
+    <p class="text-muted mb-0">
+        Outil de debug : prévisualise le composant <code>value_table</code>
+        (voir <code>docs/EXERCISE_TYPES.md</code>) avec un exercice fixe, avant de le
+        brancher à un vrai générateur. Complète les cellules éditables puis clique sur
+        « Vérifier ».
+    </p>
+</div>
+
+<div class="jc-card jc-card--exercise">
+    <div class="jc-card-header">
+        <span class="jc-card-icon" aria-hidden="true">📝</span>
+        <span class="jc-card-label">Exercice</span>
+    </div>
+    <div class="jc-card-body">
+        <div
+            class="value-table-exercise"
+            data-exercise="{{ exercise_json }}"
+            data-verify-url="/admin/value-table-demo/verify"></div>
+    </div>
+</div>
+{% endblock %}

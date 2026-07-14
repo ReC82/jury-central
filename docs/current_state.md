@@ -66,7 +66,23 @@ La création complète d'un cours ne passe plus par l'administration.
 
 Disponible.
 
-Le moteur de génération Python est fonctionnel.
+Le moteur de génération Python (`generators/`) est fonctionnel.
+
+---
+
+## Exercices interactifs (nouveau moteur, VS003)
+
+En cours (voir `docs/ROADMAP.md`).
+
+Format officiel décrit dans `docs/EXERCISE_TYPES.md` : un générateur produit uniquement des
+données JSON, le composant frontend construit entièrement l'affichage. Premier type
+implémenté : `value_table` (tableau de valeurs à compléter, vérifié cellule par cellule) —
+`generators/exercise_types.py`, `generators/value_table.py`, `app/value_table.py`,
+`app/static/js/value_table.js`. Prévisualisable sur `/admin/value-table-demo` (admin
+uniquement), sans être encore relié à un générateur réel ni à une UAA.
+
+Ce moteur est distinct du moteur d'exercices générés existant (`generators/base.py`,
+`app/exercise_blocks.py`) : les deux coexistent, aucun générateur existant n'a été modifié.
 
 ---
 

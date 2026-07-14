@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app import models
@@ -13,7 +14,9 @@ from app.quiz import QuizConfig, build_quiz_config
 from app.quiz_import import ImportResult, ImportRowError, import_quiz_csv
 from app.slugify import slugify
 from app.templating import templates
+from app.value_table import check_value_table_answers
 from generators.registry import available_generators, get_generator
+from generators.value_table import ValueTableRow, build_value_table_exercise
 
 QUIZ_TEMPLATE_PATH = (
     Path(__file__).resolve().parent.parent / "docs" / "templates" / "quiz_template.csv"
@@ -794,6 +797,51 @@ async def admin_generators(
             "error": error,
         },
     )
+
+
+def _value_table_demo_exercise():
+    """Exercice fixe de démonstration pour le composant `value_table` (docs/EXERCISE_TYPES.md).
+
+    Aucun générateur réel n'y est associé pour le moment (voir docs/ROADMAP.md, VS003) :
+    cette fonction sert uniquement à tester l'architecture du composant (rendu, saisie,
+    vérification cellule par cellule, correction) de bout en bout, sans modifier les
+    générateurs existants.
+    """
+    return build_value_table_exercise(
+        question="Complète le tableau de valeurs de f(x) = 2x + 1.",
+        columns=[-2, 0, 3],
+        rows=[
+            ValueTableRow(label="2x", values=[-4, 0, 6], editable=[False, False, False]),
+            ValueTableRow(label="f(x) = 2x + 1", editable=[True, True, True]),
+        ],
+        answer_cells=[-3, 1, 7],
+        hint="Ajoute 1 à la valeur de la ligne « 2x ».",
+        explanation="f(x) = 2x + 1 : on multiplie x par 2 (ligne « 2x »), puis on ajoute 1.",
+    )
+
+
+class ValueTableVerifyRequest(BaseModel):
+    answers: list[str]
+
+
+@protected_router.get("/value-table-demo", response_class=HTMLResponse)
+async def admin_value_table_demo(request: Request) -> HTMLResponse:
+    exercise = _value_table_demo_exercise()
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_value_table_demo.html",
+        context={"exercise_json": exercise.to_public_json()},
+    )
+
+
+@protected_router.post("/value-table-demo/verify")
+async def admin_value_table_demo_verify(payload: ValueTableVerifyRequest) -> JSONResponse:
+    exercise = _value_table_demo_exercise()
+    try:
+        correction = check_value_table_answers(exercise, payload.answers)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return JSONResponse(correction.to_dict())
 
 
 router = APIRouter()

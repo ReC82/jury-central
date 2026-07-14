@@ -2,6 +2,54 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-07-14 — VS003 : premier composant d'exercice interactif officiel (value_table)
+
+Démarrage de VS003 (voir `docs/ROADMAP.md`). Implémente le format officiel décrit dans
+`docs/EXERCISE_TYPES.md` : « le générateur ne produit jamais de HTML, uniquement des
+données ; le rendu appartient exclusivement au frontend. » Premier type construit :
+`value_table` (tableau de valeurs à compléter, vérifié cellule par cellule). Aucun
+générateur existant n'a été modifié — uniquement la nouvelle architecture, son renderer et
+ses tests.
+
+**`generators/exercise_types.py`** (nouveau) — `InteractiveExercise` : enveloppe générique
+`{type, question, data, answer, hint, explanation, difficulty, seed}` commune à tous les
+futurs types d'exercices interactifs. `to_public_dict()` exclut toujours `answer` ; seul
+`to_full_dict()` (serveur / debug admin) l'inclut.
+
+**`generators/value_table.py`** (nouveau) — `ValueTableRow`, `ValueTableData`
+(colonnes + lignes, cellules éditables ou non), `build_value_table_exercise()`. La position
+des cellules éditables (`editable_positions()`, ordre lignes puis colonnes) définit l'ordre
+attendu de `answer["cells"]` — une liste à plat, conforme à l'exemple officiel du document
+(une seule ligne éditable) et généralisée aux tableaux multi-lignes.
+
+**`app/value_table.py`** (nouveau) — `check_value_table_answers()` : vérification cellule
+par cellule, réutilise `app/answer_checking.py` (comparaison exacte via `Fraction`, aucun
+`eval()`) comme les quiz et exercices générés existants.
+
+**`app/static/js/value_table.js`** (nouveau) — construit entièrement le tableau (aucun HTML
+reçu du serveur), champs de saisie sur les cellules éditables, bouton Vérifier, indice
+optionnel, coloration verte/rouge cellule par cellule après vérification, correction
+détaillée (explication, jamais un simple Correct/Incorrect). Aucune dépendance JS externe.
+
+**`app/static/css/design-system.css`** — `.value-table` réutilise le style des tableaux de
+VS002.1 (bordures, padding, en-tête ombré) pour rester homogène ; états `.jc-fill-input
+--correct`/`--incorrect` ; règle d'impression dédiée (`@media print`) qui vide visuellement
+les cellules de saisie sans afficher texte, couleur ni correction — conforme à
+`docs/EXERCISE_TYPES.md` (« Mode impression : zones vides, aucune correction, aucune
+interaction »).
+
+**Outil de debug** : `/admin/value-table-demo` (admin uniquement) prévisualise le composant
+avec un exercice fixe (`f(x) = 2x + 1`, une ligne donnée + une ligne à compléter), sans être
+relié à un générateur — sert à tester l'architecture de bout en bout avant la prochaine
+étape (brancher un vrai générateur, hors périmètre de cette tranche).
+
+**Tests** : 28 nouveaux tests (`tests/test_value_table.py`) — structures de données,
+validation, ordre des cellules éditables sur tableaux multi-lignes, vérification correcte/
+incorrecte/partielle, formats numériques (virgule et point), `to_public_dict()` ne contient
+jamais `answer`, protection admin de la démo. 115 tests au total, `ruff check .` sans
+erreur. Vérifié manuellement : page de démo (aucune trace de la réponse dans le HTML
+généré), vérification cellule par cellule via l'API, aucune régression sur les autres pages.
+
 ## 2026-07-14 — VS002.1 : véritables tableaux pédagogiques
 
 Première petite fonctionnalité de la fin de VS002 (voir `docs/ROADMAP.md`). Objectif :

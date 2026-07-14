@@ -129,34 +129,46 @@
    volontairement évité : son padding réduit rend les tableaux de formules/valeurs trop
    denses). Le défilement horizontal (tableaux larges) est géré par le wrapper
    .table-responsive ajouté par app/static/js/design_system.js. */
-.content-markdown table {
+.content-markdown table,
+table.value-table {
     margin: 1.25rem 0;
     width: 100%;
     border-collapse: collapse;
 }
 
 .content-markdown table th,
-.content-markdown table td {
+.content-markdown table td,
+table.value-table th,
+table.value-table td {
     padding: 0.55rem 0.75rem;
     text-align: left;
     vertical-align: middle;
     border: 1px solid #d7dce1;
 }
 
-.content-markdown table thead th {
+.content-markdown table thead th,
+table.value-table thead th {
     background: var(--jc-gray-bg);
     font-weight: 700;
     color: #1f2933;
     white-space: nowrap;
 }
 
-.content-markdown table tbody tr:nth-child(even) {
+.content-markdown table tbody tr:nth-child(even),
+table.value-table tbody tr:nth-child(even) {
     background: #fafbfc;
+}
+
+table.value-table tbody th {
+    background: var(--jc-gray-bg);
+    text-align: left;
 }
 
 @media (max-width: 576px) {
     .content-markdown table th,
-    .content-markdown table td {
+    .content-markdown table td,
+    table.value-table th,
+    table.value-table td {
         padding: 0.4rem 0.5rem;
         font-size: 0.92rem;
     }
@@ -191,6 +203,53 @@
     outline: none;
     border-bottom-color: var(--jc-green);
     background: var(--jc-green-bg);
+}
+
+.jc-fill-input--correct {
+    border-bottom-color: var(--jc-green);
+    background: var(--jc-green-bg);
+    color: var(--jc-green);
+    font-weight: 600;
+}
+
+.jc-fill-input--incorrect {
+    border-bottom-color: var(--jc-red);
+    background: var(--jc-red-bg);
+    color: var(--jc-red);
+    font-weight: 600;
+}
+
+/* --- Exercice interactif value_table (docs/EXERCISE_TYPES.md) --- */
+
+.value-table-exercise .value-table-correct-value {
+    display: inline-block;
+    margin-left: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--jc-green);
+    white-space: nowrap;
+}
+
+.value-table-exercise .value-table-hint,
+.value-table-exercise .value-table-feedback,
+.value-table-exercise .value-table-correction {
+    font-size: 0.95rem;
+}
+
+.value-table-exercise .value-table-correction {
+    border-top: 1px dashed #ced4da;
+    padding-top: 0.75rem;
+}
+
+@media print {
+    .value-table-exercise .value-table-input {
+        color: transparent !important;
+        background: transparent !important;
+        border-bottom: 1px solid #999 !important;
+    }
+    .value-table-exercise .value-table-correct-value {
+        display: none !important;
+    }
 }
 
 /* --- Exercices interactifs (correction masquée jusqu'à demande explicite) --- */
