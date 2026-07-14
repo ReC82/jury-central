@@ -97,9 +97,21 @@
 
             <button type="button" class="btn btn-dark btn-sm exercise-new-btn">Nouvel exercice</button>
         </div>
-        {% else %}
-        <p class="text-muted">Aucun exercice disponible (générateur introuvable).</p>
         {% endfor %}
+
+        {% for vt in item.value_table_exercises %}
+        <div
+            class="border rounded p-3 value-table-exercise"
+            data-exercise="{{ vt.exercise_json }}"
+            data-verify-url="/practice/api/value-table/verify"
+            data-generator="{{ vt.generator }}"
+            data-difficulty="{{ vt.difficulty }}"
+            data-seed="{{ vt.seed }}"></div>
+        {% endfor %}
+
+        {% if not item.exercises and not item.value_table_exercises %}
+        <p class="text-muted">Aucun exercice disponible (générateur introuvable).</p>
+        {% endif %}
     </div>
     {% endcall %}
 

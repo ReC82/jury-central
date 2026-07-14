@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from generators.base import GeneratedExercise
+from generators.exercise_types import InteractiveExercise
 from generators.registry import get_generator
 
 
@@ -58,10 +59,15 @@ def exercise_to_public_dict(exercise: GeneratedExercise) -> dict[str, Any]:
     return {"statement": exercise.statement, "seed": exercise.seed, "hint": exercise.hint}
 
 
-def generate_exercises(config: ExerciseBlockConfig) -> list[dict[str, Any]]:
-    """Génère `count` exercices publics (sans réponse) pour l'affichage d'un bloc."""
+def generate_exercises(
+    config: ExerciseBlockConfig,
+) -> list[GeneratedExercise | InteractiveExercise]:
+    """Génère `count` exercices bruts pour un bloc `generated_exercise`.
+
+    Retourne les objets tels que produits par le générateur (jamais convertis en dict ici) :
+    un générateur donné renvoie toujours la même forme (`GeneratedExercise` ou
+    `InteractiveExercise`), mais l'appelant (rendu de leçon) doit détecter laquelle avant de
+    choisir le composant d'affichage — voir docs/EXERCISE_TYPES.md.
+    """
     generator = get_generator(config.generator)
-    return [
-        exercise_to_public_dict(generator(difficulty=config.difficulty))
-        for _ in range(config.count)
-    ]
+    return [generator(difficulty=config.difficulty) for _ in range(config.count)]

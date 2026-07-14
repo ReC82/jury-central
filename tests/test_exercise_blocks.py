@@ -1,6 +1,13 @@
 import pytest
 
-from app.exercise_blocks import ExerciseBlockConfig, exercise_to_dict, generate_exercises
+from app.exercise_blocks import (
+    ExerciseBlockConfig,
+    exercise_to_dict,
+    exercise_to_public_dict,
+    generate_exercises,
+)
+from generators.base import GeneratedExercise
+from generators.exercise_types import InteractiveExercise
 from generators.registry import get_generator
 
 
@@ -34,16 +41,30 @@ def test_generate_exercises_returns_requested_count():
     exercises = generate_exercises(config)
     assert len(exercises) == 3
     for exercise in exercises:
-        assert exercise["statement"]
-        assert "seed" in exercise
+        assert isinstance(exercise, GeneratedExercise)
+        assert exercise.statement
+        assert exercise.seed is not None
+
+
+def test_generate_exercises_returns_raw_objects_not_dicts():
+    """generate_exercises() ne convertit plus en dict : c'est à l'appelant (rendu de
+    leçon) de choisir la représentation selon le type retourné (GeneratedExercise vs
+    InteractiveExercise) — voir docs/EXERCISE_TYPES.md."""
+    config = ExerciseBlockConfig(generator="maths.functions.constant_function", difficulty=1, count=2)
+    exercises = generate_exercises(config)
+    assert len(exercises) == 2
+    for exercise in exercises:
+        assert isinstance(exercise, InteractiveExercise)
+        assert exercise.type == "value_table"
 
 
 def test_generate_exercises_never_exposes_the_answer():
     config = ExerciseBlockConfig(generator="maths.equations.linear_equation", difficulty=1, count=1)
     exercise = generate_exercises(config)[0]
-    assert "answer_value" not in exercise
-    assert "answer_display" not in exercise
-    assert "solution_steps" not in exercise
+    public = exercise_to_public_dict(exercise)
+    assert "answer_value" not in public
+    assert "answer_display" not in public
+    assert "solution_steps" not in public
 
 
 def test_generate_exercises_raises_for_unknown_generator():

@@ -113,6 +113,20 @@ function applyCorrection(root, correction) {
     correctionBox.classList.remove("d-none");
 }
 
+function buildVerifyPayload(root, answers) {
+    const payload = { answers };
+    // Présent uniquement quand le tableau vient d'un générateur (page publique, outil de
+    // debug /admin/generators) : le serveur régénère l'exercice à partir de ces valeurs
+    // pour vérifier, sans jamais avoir stocké la réponse côté client. Absent pour un
+    // exercice fixe (ex. /admin/value-table-demo), qui n'en a pas besoin.
+    if (root.dataset.generator) {
+        payload.generator = root.dataset.generator;
+        payload.difficulty = Number(root.dataset.difficulty);
+        payload.seed = Number(root.dataset.seed);
+    }
+    return payload;
+}
+
 async function verifyValueTable(root, exercise, verifyUrl) {
     const { inputs, answers } = collectSubmittedAnswers(root);
     if (answers.some((value) => value.trim() === "")) {
@@ -124,7 +138,7 @@ async function verifyValueTable(root, exercise, verifyUrl) {
     const response = await fetch(verifyUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify(buildVerifyPayload(root, answers)),
     });
     if (!response.ok) {
         return;

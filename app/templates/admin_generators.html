@@ -61,7 +61,22 @@
 <div class="alert alert-danger">{{ error }}</div>
 {% endif %}
 
-{% if exercise %}
+{% if exercise and exercise.type == "value_table" %}
+<div class="bg-white p-4 rounded shadow-sm">
+    <h2 class="h5 mb-3">Résultat — value_table</h2>
+    <p class="text-muted small">
+        Seed utilisé : <code>{{ exercise.seed }}</code> (réutiliser cette valeur dans le
+        champ « Seed » ci-dessus reproduit exactement le même exercice).
+    </p>
+    <div
+        class="value-table-exercise"
+        data-exercise="{{ exercise.to_public_json() }}"
+        data-verify-url="/practice/api/value-table/verify"
+        data-generator="{{ selected_generator }}"
+        data-difficulty="{{ exercise.difficulty }}"
+        data-seed="{{ exercise.seed }}"></div>
+</div>
+{% elif exercise %}
 <div class="bg-white p-4 rounded shadow-sm">
     <h2 class="h5 mb-3">Résultat</h2>
 

@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
+from generators.exercise_types import InteractiveExercise
+
 
 @dataclass
 class GeneratedExercise:
@@ -14,6 +16,15 @@ class GeneratedExercise:
 
 
 class ExerciseGenerator(Protocol):
-    """Interface commune que chaque générateur doit exposer."""
+    """Interface commune que chaque générateur doit exposer.
 
-    def __call__(self, difficulty: int, seed: int | None = None) -> GeneratedExercise: ...
+    Un générateur retourne soit un `GeneratedExercise` (ancien moteur : énoncé texte, une
+    seule réponse), soit un `InteractiveExercise` (nouveau moteur, voir
+    docs/EXERCISE_TYPES.md — ex. `value_table`). Les deux formes coexistent : chaque appelant
+    (rendu de leçon, routes /practice/api, outils de debug admin) doit détecter le type
+    retourné plutôt que de supposer une forme fixe.
+    """
+
+    def __call__(
+        self, difficulty: int, seed: int | None = None
+    ) -> GeneratedExercise | InteractiveExercise: ...

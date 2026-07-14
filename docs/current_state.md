@@ -64,25 +64,26 @@ La création complète d'un cours ne passe plus par l'administration.
 
 ## Exercices générés
 
-Disponible.
+Disponible. Deux moteurs coexistent (voir `docs/EXERCISE_TYPES.md`) :
 
-Le moteur de génération Python (`generators/`) est fonctionnel.
+- **Ancien moteur** (`GeneratedExercise`, énoncé texte + une réponse) : utilisé par
+  `maths.equations.linear_equation`. Widget `.exercise-widget`
+  (`app/static/js/exercise.js`), routes `/practice/api/generate`, `/verify`, `/reveal`.
+- **Nouveau moteur** (`InteractiveExercise`, voir `docs/EXERCISE_TYPES.md`) : un générateur
+  produit uniquement des données JSON, le composant frontend construit entièrement
+  l'affichage. Premier type : `value_table` (tableau de valeurs à compléter, vérifié
+  cellule par cellule) — `generators/exercise_types.py`, `generators/value_table.py`,
+  `app/value_table.py`, `app/static/js/value_table.js`, route
+  `/practice/api/value-table/verify`. Utilisé par `maths.functions.constant_function`
+  depuis VS003 : les exercices générés de MB32 UAA1 (« Fonction constante — Exercices
+  automatiques ») affichent un vrai tableau interactif sur la page publique, plus un simple
+  énoncé texte.
 
----
-
-## Exercices interactifs (nouveau moteur, VS003)
-
-En cours (voir `docs/ROADMAP.md`).
-
-Format officiel décrit dans `docs/EXERCISE_TYPES.md` : un générateur produit uniquement des
-données JSON, le composant frontend construit entièrement l'affichage. Premier type
-implémenté : `value_table` (tableau de valeurs à compléter, vérifié cellule par cellule) —
-`generators/exercise_types.py`, `generators/value_table.py`, `app/value_table.py`,
-`app/static/js/value_table.js`. Prévisualisable sur `/admin/value-table-demo` (admin
-uniquement), sans être encore relié à un générateur réel ni à une UAA.
-
-Ce moteur est distinct du moteur d'exercices générés existant (`generators/base.py`,
-`app/exercise_blocks.py`) : les deux coexistent, aucun générateur existant n'a été modifié.
+`generate_exercises()` (`app/exercise_blocks.py`) retourne les objets bruts (l'un ou l'autre
+type) ; c'est l'appelant (route `uaa_detail`, outil `/admin/generators`) qui détecte le type
+retourné et choisit le composant d'affichage — un générateur donné renvoie toujours la même
+forme. `/admin/value-table-demo` reste disponible pour prévisualiser le composant sans
+générateur réel (exercice fixe).
 
 ---
 

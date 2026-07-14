@@ -13,10 +13,12 @@ from app.card_kind import card_meta, classify_block_title
 from app.config import settings
 from app.content import extract_youtube_id, render_markdown
 from app.database import Base, engine, get_db
-from app.exercise_blocks import ExerciseBlockConfig, generate_exercises
+from app.exercise_blocks import ExerciseBlockConfig, exercise_to_public_dict, generate_exercises
 from app.practice import router as practice_router
 from app.quiz import QuizConfig
 from app.templating import templates
+from generators.base import GeneratedExercise
+from generators.exercise_types import InteractiveExercise
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -95,6 +97,7 @@ async def uaa_detail(
             "youtube_id": None,
             "config": None,
             "exercises": None,
+            "value_table_exercises": None,
             "quiz": None,
             "quiz_run": None,
             "card": card_meta(classify_block_title(block.title)),
@@ -152,9 +155,25 @@ async def uaa_detail(
             item["config"] = config
             item["card"] = card_meta("exercise")
             try:
-                item["exercises"] = generate_exercises(config)
+                raw_exercises = generate_exercises(config)
             except KeyError:
-                item["exercises"] = []
+                raw_exercises = []
+
+            item["exercises"] = [
+                exercise_to_public_dict(exercise)
+                for exercise in raw_exercises
+                if isinstance(exercise, GeneratedExercise)
+            ]
+            item["value_table_exercises"] = [
+                {
+                    "exercise_json": exercise.to_public_json(),
+                    "generator": config.generator,
+                    "difficulty": exercise.difficulty,
+                    "seed": exercise.seed,
+                }
+                for exercise in raw_exercises
+                if isinstance(exercise, InteractiveExercise) and exercise.type == "value_table"
+            ]
 
         rendered_blocks.append(item)
 

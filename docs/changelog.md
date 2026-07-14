@@ -2,6 +2,60 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-07-14 — VS003 (suite) : branchement du composant value_table sur la fonction constante
+
+Le composant `value_table` livré précédemment n'était utilisé nulle part (seulement une
+démo admin fixe). Cette tranche le branche réellement : les exercices générés de la
+fonction constante (MB32 UAA1) affichent désormais un vrai tableau interactif sur la page
+publique, au lieu d'un énoncé texte à réponse unique.
+
+**`generators/maths/constant_function.py`** — réécrit : retourne un `InteractiveExercise`
+(`value_table`) au lieu d'un `GeneratedExercise`. Les quatre anciens types d'exercice
+(image/table/find_p/match) sont unifiés en un seul format « tableau de valeurs de f(x) = p à
+compléter » — la logique de difficulté (plage de p, `_random_p`) et le déterminisme par seed
+sont inchangés. `find_p`/`match` (trouver p à partir d'un point/graphique) restent couverts
+par le quiz et les exemples du cours, déjà présents dans MB32 UAA1.
+
+**`generators/base.py`** — `ExerciseGenerator.__call__` retourne désormais
+`GeneratedExercise | InteractiveExercise` : les deux moteurs coexistent, chaque appelant
+détecte le type retourné plutôt que d'en supposer un seul. `maths.equations.linear_equation`
+n'a pas été modifié.
+
+**Suppression de la duplication** entre les deux moteurs :
+- `generate_exercises()` (`app/exercise_blocks.py`) retourne désormais les objets bruts
+  (plus de conversion en dict interne) : un seul endroit (la route `uaa_detail`) décide
+  comment afficher chaque type, au lieu de dupliquer cette décision.
+- `/practice/api/value-table/verify` (nouveau, générique) régénère l'exercice depuis
+  `(generator, difficulty, seed)` et vérifie cellule par cellule — même principe que
+  `/api/verify` pour l'ancien moteur, réutilise `check_value_table_answers()` déjà écrit
+  pour la démo admin.
+- `/admin/generators` (outil de debug) détecte le type retourné et affiche soit le composant
+  interactif `value_table` (réutilisation totale de `value_table.js`), soit l'ancienne vue
+  `<dl>` — un seul outil pour les deux moteurs plutôt que deux outils séparés.
+- `app/static/js/value_table.js` : le payload de vérification inclut
+  `generator`/`difficulty`/`seed` uniquement quand ces attributs sont présents sur le
+  conteneur — un seul renderer sert à la fois la démo fixe et les exercices générés.
+- Garde-fous ajoutés sur les routes de l'ancien moteur (`/api/generate`, `/verify`,
+  `/reveal`) : erreur claire (400) si un générateur `value_table` y est appelé par erreur,
+  plutôt qu'un plantage.
+
+**Tests** : 13 nouveaux tests d'intégration
+(`tests/test_practice_value_table.py`) couvrant la page publique de MB32 UAA1 (widget
+value_table présent, ancien widget absent, aucune fuite de réponse), l'endpoint générique de
+vérification (correct/incorrect), les garde-fous croisés entre les deux moteurs, et la
+non-régression complète de `maths.equations.linear_equation` (génération, vérification,
+outil admin). Tests existants adaptés : `tests/generators/test_constant_function.py`
+(entièrement réécrit pour le nouveau format), `tests/generators/test_architecture.py` (le
+test de contrat accepte maintenant les deux types), `tests/test_exercise_blocks.py`
+(`generate_exercises()` retourne des objets, plus des dicts). 128 tests au total, `ruff
+check .` sans erreur.
+
+Vérifié manuellement après `reset-db` : `/uaa/mb32-uaa1` affiche 3 tableaux interactifs pour
+la fonction constante (aucune trace de `exercise-widget` ni de réponse dans le HTML),
+vérification cellule par cellule fonctionnelle avec un vrai seed extrait de la page,
+`/admin/generators` bascule correctement entre les deux rendus selon le générateur choisi,
+`/admin/value-table-demo` toujours fonctionnel, aucune régression sur les autres pages.
+
 ## 2026-07-14 — VS003 : premier composant d'exercice interactif officiel (value_table)
 
 Démarrage de VS003 (voir `docs/ROADMAP.md`). Implémente le format officiel décrit dans

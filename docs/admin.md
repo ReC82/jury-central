@@ -117,7 +117,12 @@ docs/EXERCISE_TYPES.md
 
 `/admin/value-table-demo` permet de prévisualiser le composant `value_table` avec un
 exercice fixe, indépendamment de tout générateur — utile pour tester le rendu et la
-vérification cellule par cellule avant de le brancher à un vrai générateur.
+vérification cellule par cellule sans dépendre d'un générateur réel.
+
+Depuis VS003, `maths.functions.constant_function` produit un exercice `value_table` : le
+sélectionner dans `/admin/generators` affiche le même composant interactif que la démo,
+avec vérification réelle. Les autres générateurs (ex. `maths.equations.linear_equation`)
+continuent d'utiliser l'ancien affichage (énoncé + réponse).
 
 ---
 
