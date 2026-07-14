@@ -588,19 +588,23 @@ _SOLIDES_EXERCISES = r"""## Exercice — connaître
 
 Pour chaque description, indique le solide :
 
-a) Une seule base circulaire et un sommet.
-b) Une seule surface courbe, aucun sommet, aucune arête.
-c) Deux bases triangulaires parallèles et trois faces rectangulaires.
-d) Une base carrée et quatre faces triangulaires.
+<ol class="jc-list-alpha">
+<li>Une seule base circulaire et un sommet.</li>
+<li>Une seule surface courbe, aucun sommet, aucune arête.</li>
+<li>Deux bases triangulaires parallèles et trois faces rectangulaires.</li>
+<li>Une base carrée et quatre faces triangulaires.</li>
+</ol>
 
 ## Exercice 1 — connaître
 
 Donne le nom du solide :
 
-a) deux bases circulaires parallèles ;
-b) une base circulaire et un sommet ;
-c) six faces rectangulaires ;
-d) une surface courbe unique.
+<ol class="jc-list-alpha">
+<li>deux bases circulaires parallèles ;</li>
+<li>une base circulaire et un sommet ;</li>
+<li>six faces rectangulaires ;</li>
+<li>une surface courbe unique.</li>
+</ol>
 
 **Correction :** a) cylindre ; b) cône ; c) parallélépipède rectangle ; d) sphère.
 
@@ -1070,9 +1074,11 @@ Complète le tableau.
 
 Une cuve cylindrique a une longueur de 1,8 m et un diamètre de 1 m.
 
-a) Calcule son volume en m³.
-b) Convertis ce volume en litres.
-c) Si elle est remplie à 90 %, combien de litres contient-elle ?
+<ol class="jc-list-alpha">
+<li>Calcule son volume en m³.</li>
+<li>Convertis ce volume en litres.</li>
+<li>Si elle est remplie à 90 %, combien de litres contient-elle ?</li>
+</ol>
 
 ## Question 3 — Appliquer
 

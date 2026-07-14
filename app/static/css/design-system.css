@@ -124,8 +124,50 @@
 
 /* --- Contenu Markdown : tableaux, citations, cellules à compléter --- */
 
+/* Tableaux pédagogiques : bordures, padding, alignement et homogénéité garantis par ces
+   règles plutôt que par les seules classes utilitaires Bootstrap (table-sm notamment est
+   volontairement évité : son padding réduit rend les tableaux de formules/valeurs trop
+   denses). Le défilement horizontal (tableaux larges) est géré par le wrapper
+   .table-responsive ajouté par app/static/js/design_system.js. */
 .content-markdown table {
-    margin: 1rem 0;
+    margin: 1.25rem 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.content-markdown table th,
+.content-markdown table td {
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    vertical-align: middle;
+    border: 1px solid #d7dce1;
+}
+
+.content-markdown table thead th {
+    background: var(--jc-gray-bg);
+    font-weight: 700;
+    color: #1f2933;
+    white-space: nowrap;
+}
+
+.content-markdown table tbody tr:nth-child(even) {
+    background: #fafbfc;
+}
+
+@media (max-width: 576px) {
+    .content-markdown table th,
+    .content-markdown table td {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.92rem;
+    }
+}
+
+/* Listes lettrées (a, b, c...) : utilisées quand le cours source numérote ses sous-questions
+   par lettre plutôt que par chiffre (souvent référencées ainsi dans la correction). Rendu en
+   HTML natif (<ol><li>) pour l'accessibilité et la cohérence visuelle, la lettre étant un
+   simple style CSS sur un <ol> ordinaire. */
+.content-markdown ol.jc-list-alpha {
+    list-style-type: lower-alpha;
 }
 
 .content-markdown blockquote {

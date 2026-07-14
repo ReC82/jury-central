@@ -2,6 +2,39 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-07-14 — VS002.1 : véritables tableaux pédagogiques
+
+Première petite fonctionnalité de la fin de VS002 (voir `docs/ROADMAP.md`). Objectif :
+tous les tableaux de Jury Central doivent être lisibles, homogènes et utilisables sur
+mobile, sans toucher aux quiz, à la navigation ni à l'impression.
+
+**`app/static/css/design-system.css`**
+- Style de tableau propre à Jury Central (bordures, padding `0.55rem 0.75rem`, en-tête
+  ombré, lignes zébrées, padding réduit en mobile) plutôt que la classe utilitaire
+  `table-sm` de Bootstrap, jugée trop dense pour des tableaux de formules/valeurs.
+- Nouvelle classe `.jc-list-alpha` : liste `<ol>` stylée en `a, b, c...`
+  (`list-style-type: lower-alpha`) pour les sous-questions numérotées par lettre.
+
+**`app/static/js/design_system.js`**
+- `wrapTablesResponsively()` n'ajoute plus `table-bordered`/`table-sm` (remplacés par le
+  CSS ci-dessus) ; le défilement horizontal (`table-responsive`) est inchangé.
+
+**`app/seed.py`**
+- Trois exercices de MB32 UAA2 (Solides — Exercice « connaître », Solides — Exercice 1,
+  Mini-test Question 2) énuméraient leurs sous-questions en `a) ... b) ... c) ...` dans un
+  seul paragraphe Markdown (aucun marqueur de liste reconnu par le moteur Markdown). Reformatés
+  en `<ol class="jc-list-alpha">` (HTML direct dans le Markdown, même procédé que le
+  graphique SVG de la perspective cavalière) : mêmes lettres affichées, vraie liste HTML
+  accessible. Texte inchangé, uniquement la structure de présentation.
+- Audit du contenu : aucun autre exercice « à compléter » sans tableau réel, aucune autre
+  liste lettrée orpheline.
+
+**Tests** : 87 tests inchangés (aucune modification de logique métier), `ruff check .`
+sans erreur. Vérifié manuellement après `reset-db` sur `/uaa/mb32-uaa1` et `/uaa/mb32-uaa2` :
+les trois listes converties s'affichent en `<ol class="jc-list-alpha"><li>...`, le tableau à
+compléter du mini-test garde ses 8 cellules éditables, aucune régression sur les quiz
+(`quiz-run` inchangé) ni sur les autres pages.
+
 ## 2026-07-14 — Design System réutilisable (cartes, exercices interactifs, tableaux éditables)
 
 Mise en œuvre de `docs/UI_GUIDELINES.md`. Objectif : transformer l'affichage d'une UAA — un

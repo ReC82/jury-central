@@ -32,7 +32,10 @@ function wrapBlockquotesAsWarningCards() {
 
 function wrapTablesResponsively() {
     document.querySelectorAll(".content-markdown table").forEach((table) => {
-        table.classList.add("table", "table-bordered", "table-sm", "align-middle");
+        // Bordures, padding et alignement des cellules sont gérés par design-system.css
+        // (.content-markdown table ...) plutôt que par les classes utilitaires Bootstrap,
+        // pour un rendu homogène indépendant de la version de Bootstrap chargée par CDN.
+        table.classList.add("table", "align-middle");
         const wrapper = document.createElement("div");
         wrapper.className = "table-responsive";
         table.parentNode.insertBefore(wrapper, table);
