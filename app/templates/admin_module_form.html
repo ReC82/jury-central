@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — {% if module %}Modifier{% else %}Nouveau{% endif %} module{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item"><a href="/admin/subjects">Matières</a></li>
+        <li class="breadcrumb-item">
+            <a href="/admin/subjects/{{ subject.id }}">{{ subject.name }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if module %}Modifier{% else %}Nouveau{% endif %}
+        </li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">{% if module %}Modifier le module{% else %}Nouveau module{% endif %}</h1>
+
+<form
+    method="post"
+    action="{% if module %}/admin/modules/{{ module.id }}/edit{% else %}/admin/subjects/{{ subject.id }}/modules/new{% endif %}"
+    class="bg-white p-4 rounded shadow-sm"
+    style="max-width: 32rem;">
+
+    <div class="mb-3">
+        <label for="code" class="form-label">Code</label>
+        <input
+            type="text"
+            class="form-control"
+            id="code"
+            name="code"
+            placeholder="ex. MB32"
+            value="{{ module.code if module else '' }}"
+            required>
+    </div>
+
+    <div class="mb-3">
+        <label for="slug" class="form-label">Slug</label>
+        <input
+            type="text"
+            class="form-control"
+            id="slug"
+            name="slug"
+            placeholder="laisser vide pour générer à partir du code"
+            value="{{ module.slug if module else '' }}">
+        <div class="form-text">
+            Utilisé dans l'URL publique (<code>/modules/&lt;slug&gt;</code>). Laisser vide
+            pour le générer automatiquement à partir du code.
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-dark">{% if module %}Enregistrer{% else %}Créer{% endif %}</button>
+    <a href="/admin/subjects/{{ subject.id }}" class="btn btn-outline-secondary">Annuler</a>
+</form>
+{% endblock %}

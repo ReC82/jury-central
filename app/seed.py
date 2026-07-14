@@ -1,4 +1,6 @@
-from app.database import Base, SessionLocal, engine
+from pathlib import Path
+
+from app.database import DATABASE_URL, Base, SessionLocal, engine
 from app.exercise_blocks import ExerciseBlockConfig
 from app.models import UAA, BlockType, LessonBlock, Module, Subject
 from app.quiz import QuizConfig
@@ -490,6 +492,22 @@ UAA1_BLOCKS = [
 
 
 def seed() -> None:
+    """Charge les données de développement/démonstration.
+
+    Idempotent et strictement additif : une matière/module/UAA/bloc déjà présent (identifié
+    par son code, ou son titre pour les blocs) n'est jamais modifié ni supprimé — en
+    particulier, un contenu édité depuis l'admin après le premier seed n'est jamais écrasé
+    par un second appel. Seule exception, ponctuelle et documentée : les anciens blocs de
+    démonstration listés dans `OBSOLETE_DEMO_BLOCK_TITLES` sont retirés une fois pour toutes
+    (migration de contenu obsolète, pas un comportement général).
+
+    N'effectue jamais de suppression de matière/module/UAA existants. Pour repartir d'une
+    base vide, utiliser `reset()` (commande `reset-db`) explicitement.
+    """
+    created = {"subjects": 0, "modules": 0, "uaas": 0, "blocks": 0}
+    kept = {"subjects": 0, "modules": 0, "uaas": 0, "blocks": 0}
+    removed_obsolete = 0
+
     Base.metadata.create_all(engine)
     db = SessionLocal()
     try:
@@ -498,11 +516,17 @@ def seed() -> None:
             subject = Subject(name=SUBJECT_NAME, slug=slugify(SUBJECT_NAME))
             db.add(subject)
             db.flush()
+            created["subjects"] += 1
+        else:
+            kept["subjects"] += 1
 
         existing_codes = {module.code for module in subject.modules}
         for code in MODULE_CODES:
             if code not in existing_codes:
                 db.add(Module(code=code, slug=slugify(code), subject=subject))
+                created["modules"] += 1
+            else:
+                kept["modules"] += 1
         db.flush()
 
         mb32 = next(module for module in subject.modules if module.code == "MB32")
@@ -512,27 +536,58 @@ def seed() -> None:
                 code=UAA1_CODE,
                 title=UAA1_TITLE,
                 slug=slugify(f"{mb32.code}-{UAA1_CODE}"),
+                position=1,
+                is_published=True,
                 module=mb32,
             )
             db.add(uaa)
             db.flush()
-        elif uaa.title != UAA1_TITLE:
-            uaa.title = UAA1_TITLE
+            created["uaas"] += 1
+        else:
+            kept["uaas"] += 1
 
         for block in list(uaa.lesson_blocks):
             if block.title in OBSOLETE_DEMO_BLOCK_TITLES:
                 db.delete(block)
+                removed_obsolete += 1
         db.flush()
 
         existing_titles = {block.title for block in uaa.lesson_blocks}
         for block_data in UAA1_BLOCKS:
             if block_data["title"] not in existing_titles:
                 db.add(LessonBlock(uaa=uaa, **block_data))
+                created["blocks"] += 1
+            else:
+                kept["blocks"] += 1
 
         db.commit()
+
         print(f"Seed terminé : {SUBJECT_NAME} ({', '.join(MODULE_CODES)})")
+        print(
+            f"  Créé   : {created['subjects']} matière(s), {created['modules']} module(s), "
+            f"{created['uaas']} UAA, {created['blocks']} bloc(s)"
+        )
+        print(
+            f"  Conservé (déjà présent, non modifié) : {kept['subjects']} matière(s), "
+            f"{kept['modules']} module(s), {kept['uaas']} UAA, {kept['blocks']} bloc(s)"
+        )
+        if removed_obsolete:
+            print(f"  Retiré : {removed_obsolete} bloc(s) de démonstration obsolète(s)")
     finally:
         db.close()
+
+
+def reset() -> None:
+    """Supprime la base SQLite locale puis relance `seed()`.
+
+    Action explicite et destructive, jamais appelée automatiquement par `seed()` ni au
+    démarrage de l'application. Réservée au développement local (commande `reset-db`).
+    """
+    db_path = Path(DATABASE_URL.removeprefix("sqlite:///"))
+    if db_path.exists() and db_path != Path(":memory:"):
+        db_path.unlink()
+        print(f"Base supprimée : {db_path}")
+    seed()
 
 
 if __name__ == "__main__":

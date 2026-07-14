@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — {% if uaa %}Modifier{% else %}Nouvelle{% endif %} UAA{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item"><a href="/admin/subjects">Matières</a></li>
+        <li class="breadcrumb-item">
+            <a href="/admin/subjects/{{ module.subject.id }}">{{ module.subject.name }}</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="/admin/modules/{{ module.id }}">{{ module.code }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if uaa %}Modifier{% else %}Nouvelle{% endif %}
+        </li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">{% if uaa %}Modifier l'UAA{% else %}Nouvelle UAA{% endif %}</h1>
+
+<form
+    method="post"
+    action="{% if uaa %}/admin/uaa/{{ uaa.id }}/edit{% else %}/admin/modules/{{ module.id }}/uaa/new{% endif %}"
+    class="bg-white p-4 rounded shadow-sm"
+    style="max-width: 32rem;">
+
+    <div class="mb-3">
+        <label for="code" class="form-label">Code</label>
+        <input
+            type="text"
+            class="form-control"
+            id="code"
+            name="code"
+            placeholder="ex. UAA1"
+            value="{{ uaa.code if uaa else '' }}"
+            required>
+    </div>
+
+    <div class="mb-3">
+        <label for="title" class="form-label">Titre</label>
+        <input
+            type="text"
+            class="form-control"
+            id="title"
+            name="title"
+            value="{{ uaa.title if uaa else '' }}"
+            required>
+    </div>
+
+    <div class="mb-3">
+        <label for="slug" class="form-label">Slug</label>
+        <input
+            type="text"
+            class="form-control"
+            id="slug"
+            name="slug"
+            placeholder="laisser vide pour générer à partir du module et du code"
+            value="{{ uaa.slug if uaa else '' }}">
+        <div class="form-text">
+            Utilisé dans l'URL publique (<code>/uaa/&lt;slug&gt;</code>). Laisser vide pour
+            le générer automatiquement (ex. <code>mb32-uaa1</code>).
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="position" class="form-label">Position dans le module</label>
+        <input
+            type="number"
+            class="form-control"
+            id="position"
+            name="position"
+            value="{{ uaa.position if uaa else next_position }}"
+            style="max-width: 8rem;">
+    </div>
+
+    <div class="form-check mb-4">
+        <input
+            type="checkbox"
+            class="form-check-input"
+            id="is_published"
+            name="is_published"
+            {% if uaa and uaa.is_published %}checked{% endif %}>
+        <label class="form-check-label" for="is_published">Publiée</label>
+        <div class="form-text">
+            Une UAA non publiée n'apparaît pas dans la liste publique du module et sa page
+            (<code>/uaa/&lt;slug&gt;</code>) renvoie une erreur 404.
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-dark">{% if uaa %}Enregistrer{% else %}Créer{% endif %}</button>
+    <a href="/admin/modules/{{ module.id }}" class="btn btn-outline-secondary">Annuler</a>
+    {% if uaa %}
+    <a href="/uaa/{{ uaa.slug }}" class="btn btn-outline-dark" target="_blank">Voir la page publique</a>
+    {% endif %}
+</form>
+{% endblock %}

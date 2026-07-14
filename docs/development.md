@@ -21,9 +21,27 @@ uvicorn app.main:app --reload    # http://127.0.0.1:8000
 Le schéma SQLite (`jury_central.db`, à la racine, non versionné) est créé automatiquement
 au démarrage via `Base.metadata.create_all()` (voir `app/main.py` et `app/seed.py`). **Il
 n'y a pas de système de migration (pas d'Alembic)** : toute modification d'un modèle
-existant (ajout/renommage de colonne) nécessite de supprimer `jury_central.db` en local et
-de relancer `seed-db`, sous peine d'incohérence entre le modèle Python et le fichier SQLite
-déjà créé.
+existant (ajout/renommage de colonne) nécessite de supprimer `jury_central.db` en local (ou
+`reset-db`, voir plus bas), sous peine d'incohérence entre le modèle Python et le fichier
+SQLite déjà créé.
+
+### Réinitialiser la base locale
+
+```bash
+reset-db      # supprime jury_central.db puis relance seed()
+```
+
+Commande **distincte et explicite** de `seed-db` — `seed()` seul ne supprime jamais rien.
+`reset-db` est destructif (efface tout contenu, y compris ce qui a été créé/édité depuis
+l'admin) et n'est **jamais** déclenché automatiquement (ni au démarrage de l'app, ni par
+`seed()`). Voir `app/seed.py::reset()`.
+
+### `DATABASE_URL` (configurable)
+
+`app/database.py` lit la variable d'environnement `DATABASE_URL` si elle est définie, sinon
+retombe sur `sqlite:///<racine du projet>/jury_central.db` (comportement historique,
+inchangé par défaut). Utilisé principalement par `tests/conftest.py` pour pointer les tests
+vers un fichier SQLite temporaire, séparé de la base de développement réelle.
 
 ## Lancer les tests
 
@@ -31,15 +49,37 @@ déjà créé.
 pytest
 ```
 
-70 tests actuellement, tous dans `tests/` :
+87 tests actuellement, tous dans `tests/` :
 - `tests/generators/` — le moteur de génération d'exercices (`generators/`), 28 tests.
 - `tests/test_answer_checking.py` — parsing/comparaison normalisée des réponses, 11 tests.
 - `tests/test_exercise_blocks.py` — sérialisation JSON + séparation public/complet, 7 tests.
 - `tests/test_quiz.py` — sérialisation JSON, modes choix/numérique, `to_public_dict`, 8 tests.
 - `tests/test_quiz_import.py` — import CSV de quiz, 16 tests.
+- `tests/test_admin_content_hierarchy.py` — CRUD matière/module/UAA via `TestClient`,
+  protections admin, suppression en cascade, publication, idempotence et non-régression du
+  seed, 17 tests.
 
-Aucun test automatisé ne couvre encore les routes FastAPI elles-mêmes (pas de `TestClient`)
-— les routes ont été vérifiées manuellement (curl) à chaque étape de développement.
+### Base de test isolée (`tests/conftest.py`)
+
+`tests/test_admin_content_hierarchy.py` est le premier ensemble de tests à utiliser
+`fastapi.testclient.TestClient` (requêtes HTTP réelles contre l'application, sans lancer de
+serveur). **Ne touche jamais `jury_central.db`** : `conftest.py` fixe `DATABASE_URL` sur un
+fichier SQLite temporaire *avant* le premier import de `app.database`/`app.main`, donc
+l'engine applicatif entier (y compris `Base.metadata.create_all()` exécuté au chargement de
+`app.main`) est déjà lié à ce fichier de test dès le départ.
+
+Fixtures disponibles :
+- `client` — `TestClient` connecté à la base de test, tables recréées à neuf avant chaque
+  test qui l'utilise.
+- `admin_client` — `client`, déjà authentifié (identifiants `test-admin` / `test-password`,
+  indépendants de `.env`).
+- `db_session` — session SQLAlchemy directe sur la base de test, pour préparer des
+  données ou vérifier un état sans passer par HTTP.
+
+Piège classique en écrivant un nouveau test : après une action HTTP qui modifie la base
+(passée par la session de la requête, pas celle du test), appeler
+`db_session.expire_all()` avant de relire un objet déjà chargé dans `db_session`, sinon
+SQLAlchemy renvoie la version encore en cache plutôt que l'état réel en base.
 
 ## Lint
 
@@ -87,11 +127,17 @@ Configuration dans `pyproject.toml` (`[tool.ruff]`), ligne à 100 caractères, c
   `app/main.py::uaa_detail`), suivant le même principe que MathJax/Bootstrap. Un contenu
   Markdown active un graphique en y collant un marqueur HTML (`<div class="jc-graph-...">`) —
   voir `docs/admin.md`.
+- **`seed()` n'écrase jamais un contenu édité depuis l'admin** : additif et idempotent par
+  construction (vérifie l'existence par `code`/`name` avant de créer une matière/module/UAA,
+  par `title` avant de créer un bloc — ne touche jamais un objet déjà existant, sauf la
+  création initiale). Voir `tests/test_admin_content_hierarchy.py::test_seed_does_not_...`
+  pour la garantie testée. Seule exception ponctuelle : `OBSOLETE_DEMO_BLOCK_TITLES`, une
+  migration de contenu de démonstration désormais obsolète, pas un mécanisme général.
 
 ## Commandes utiles
 
 ```bash
-# Réinitialiser la base locale
+# Réinitialiser la base locale (équivalent à reset-db)
 rm jury_central.db && seed-db
 
 # Lancer un serveur sur un port différent (utile pour tester en parallèle)
@@ -105,7 +151,8 @@ db = SessionLocal(); [print(b.id, b.type, b.content) for b in db.query(LessonBlo
 ## Ce qui n'est pas encore fait (hors périmètre de cette étape)
 
 - Docker (explicitement hors périmètre pour l'instant).
-- Migrations de schéma (Alembic ou équivalent).
+- Migrations de schéma (Alembic ou équivalent) — toujours `rm jury_central.db && seed-db` /
+  `reset-db` en local à chaque changement de modèle.
 - Comptes étudiants / scoring global.
-- Gestion des matières/modules/UAA depuis l'admin (actuellement : script `seed.py` uniquement).
-- Tests automatisés sur les routes FastAPI (`TestClient`).
+- Réorganisation par glisser-déposer (position saisie manuellement, voir `docs/admin.md`).
+- Protection CSRF sur les formulaires admin.

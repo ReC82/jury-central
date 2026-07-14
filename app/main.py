@@ -84,7 +84,7 @@ async def uaa_detail(
     uaa_slug: str, request: Request, db: Session = Depends(get_db)
 ) -> HTMLResponse:
     uaa = db.query(models.UAA).filter_by(slug=uaa_slug).first()
-    if uaa is None:
+    if uaa is None or not uaa.is_published:
         raise HTTPException(status_code=404, detail="UAA introuvable")
 
     def empty_item(block: models.LessonBlock) -> dict:

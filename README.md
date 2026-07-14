@@ -7,11 +7,18 @@ automatiquement en Python, quiz interactifs et suivi de progression local (navig
 ## Statut
 
 En développement actif, en tranches verticales (une leçon complète à la fois plutôt qu'une
-UAA entière d'un coup). Première tranche terminée : **MB32 UAA1 → Fonction constante**,
-expérience étudiante complète (cours, graphique interactif, exercices générés à l'infini,
-quiz de 10 questions avec score, fiche mémo imprimable). Voir
-[docs/mb32-uaa1.md](docs/mb32-uaa1.md) et [docs/changelog.md](docs/changelog.md).
-Docker n'est pas utilisé dans ce projet.
+UAA entière d'un coup). Dernières tranches terminées :
+
+- **MB32 UAA1 → Fonction constante** : expérience étudiante complète (cours, graphique
+  interactif, exercices générés à l'infini, quiz de 10 questions avec score, fiche mémo
+  imprimable). Voir [docs/mb32-uaa1.md](docs/mb32-uaa1.md).
+- **Gestion complète de la hiérarchie de contenu depuis l'admin** : créer/modifier/supprimer
+  une matière, un module ou une UAA se fait entièrement depuis `/admin`, sans plus jamais
+  toucher à `app/seed.py` ni relancer `seed-db`. Voir
+  [docs/content_workflow.md](docs/content_workflow.md).
+
+Voir [docs/changelog.md](docs/changelog.md) pour l'historique daté complet. Docker n'est pas
+utilisé dans ce projet.
 
 ## Stack technique
 
@@ -22,7 +29,7 @@ Docker n'est pas utilisé dans ce projet.
 - **Génération d'exercices** : [SymPy](https://www.sympy.org/) pour la résolution/vérification, générateurs 100 % Python (pas d'IA)
 - **Validation des réponses** : côté serveur (`app/answer_checking.py`), jamais de réponse stockée dans le HTML, jamais d'`eval()`
 - **JavaScript** : vanilla JS uniquement (aucun framework, aucune dépendance npm)
-- **Tests** : pytest (70 tests, tous dans `tests/`)
+- **Tests** : pytest (87 tests, tous dans `tests/`), y compris des tests `TestClient` sur une base SQLite isolée (jamais `jury_central.db`)
 
 ## Structure du projet
 
@@ -30,7 +37,7 @@ Docker n'est pas utilisé dans ce projet.
 jury-central/
 ├── app/                    # Application FastAPI
 │   ├── main.py              # Point d'entrée + routes publiques (accueil, matières, modules, UAA)
-│   ├── admin.py              # Panneau admin (auth + CRUD des blocs de leçon)
+│   ├── admin.py              # Panneau admin (auth + CRUD matière/module/UAA/blocs de leçon)
 │   ├── auth.py                # Vérification des identifiants + dépendance require_admin
 │   ├── config.py               # Settings (pydantic-settings, lit .env)
 │   ├── database.py              # Engine SQLAlchemy / SessionLocal / Base / get_db
@@ -49,7 +56,7 @@ jury-central/
 │   ├── base.py                 # GeneratedExercise (dataclass) + interface ExerciseGenerator
 │   ├── registry.py              # Registre id → fonction generate()
 │   └── maths/{equations,constant_function}.py  # Générateurs implémentés
-├── tests/                    # Tests pytest (70 tests)
+├── tests/                    # Tests pytest (87 tests, dont TestClient — voir tests/conftest.py)
 ├── docs/                      # Documentation (ce dossier)
 ├── .env.example                # Modèle des variables d'environnement
 ├── pyproject.toml               # Dépendances et configuration du projet
@@ -83,7 +90,7 @@ gestion multi-utilisateurs à ce stade).
 ## Lancer le projet
 
 ```bash
-# 1. Charger des données de démonstration (Mathématiques, MB32/MQ32/MQ34, une UAA d'exemple)
+# 1. Charger des données de démonstration (Mathématiques, MB32/MQ32/MQ34, UAA1 complète)
 seed-db
 # ou : python -m app.seed
 
@@ -91,7 +98,10 @@ seed-db
 uvicorn app.main:app --reload
 ```
 
-L'application est alors disponible sur http://127.0.0.1:8000.
+L'application est alors disponible sur http://127.0.0.1:8000. Pour repartir d'une base
+locale vide (destructif, jamais automatique) : `reset-db` — voir
+[docs/development.md](docs/development.md). Toute nouvelle matière/module/UAA se crée
+ensuite depuis l'admin, pas dans le code (voir [docs/content_workflow.md](docs/content_workflow.md)).
 
 ## Accéder au panneau admin
 

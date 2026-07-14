@@ -2,6 +2,50 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-07-14 — Gestion complète de la hiérarchie de contenu depuis l'admin
+
+Objectif : supprimer la dépendance fonctionnelle à `app/seed.py` pour créer du contenu
+pédagogique réel. Il est désormais possible de créer MB32 UAA2 (ou toute autre
+matière/module/UAA) **entièrement depuis l'administration**, sans modifier de code ni
+relancer `seed-db` — vérifié manuellement de bout en bout. Voir `docs/admin.md`, section
+"Gérer la hiérarchie de contenu", et `docs/content_workflow.md`.
+
+**Modèles (changement de schéma, nécessite `reset-db` en local)**
+- `UAA.position` (entier, ordre d'affichage dans un module) et `UAA.is_published` (bool,
+  défaut `False`) — mêmes conventions que sur `LessonBlock`.
+- `Module.uaas` trié par `position` (comme `UAA.lesson_blocks` l'est déjà par `position`).
+
+**Admin — nouvelles routes (15), réutilisant entièrement le panneau existant**
+- Matières : créer, modifier, supprimer (`/admin/subjects/new`, `/admin/subjects/{id}/edit`,
+  `/admin/subjects/{id}/delete`).
+- Modules : créer, modifier, supprimer, imbriqués sous une matière.
+- UAA : créer, modifier, supprimer, avec position et case "Publiée".
+- Validation serveur : champs obligatoires, longueurs alignées sur les colonnes de la base,
+  unicité des slugs et des noms vérifiée explicitement avant écriture (message clair plutôt
+  qu'une erreur SQL brute), slug vide impossible. Aucun `eval()`.
+- Suppression avec confirmation affichant le **nombre exact** d'éléments supprimés en
+  cascade (modules/UAA/blocs), calculé côté serveur.
+- Une UAA non publiée disparaît de la liste publique de son module et sa page renvoie 404.
+
+**`app/seed.py` — rôle clarifié, plus jamais destructif silencieusement**
+- Ne modifie plus le titre d'une UAA existante à chaque exécution (régression corrigée :
+  cela aurait écrasé un titre édité depuis l'admin).
+- Affiche un résumé clair (créé / conservé / retiré) à chaque exécution.
+- Nouvelle commande **distincte et explicite** `reset-db` (supprime la base puis reseed) —
+  jamais appelée automatiquement.
+- `app/database.py` lit `DATABASE_URL` depuis l'environnement si définie (base de
+  développement inchangée par défaut) — permet aux tests de ne jamais toucher
+  `jury_central.db`.
+
+**Tests — première suite `TestClient`**
+- `tests/conftest.py` : base SQLite temporaire isolée, fixtures `client`/`admin_client`/
+  `db_session`.
+- `tests/test_admin_content_hierarchy.py` (17 tests) : CRUD des 3 niveaux, rejet de slug
+  dupliqué, protections admin (redirection sans session), suppression en cascade,
+  publication/dépublication, idempotence du seed, et garantie que le seed ne modifie jamais
+  un titre ou un contenu édité manuellement.
+- 87 tests au total (+17). `ruff check .` sans erreur.
+
 ## 2026-07-13 — Tranche verticale : MB32 UAA1 → Fonction constante
 
 Première expérience étudiante complète de bout en bout (cours, graphique interactif,

@@ -11,6 +11,7 @@ from app.database import get_db
 from app.exercise_blocks import ExerciseBlockConfig
 from app.quiz import QuizConfig, build_quiz_config
 from app.quiz_import import ImportResult, ImportRowError, import_quiz_csv
+from app.slugify import slugify
 from app.templating import templates
 from generators.registry import available_generators, get_generator
 
@@ -70,14 +71,86 @@ async def dashboard(request: Request, db: Session = Depends(get_db)) -> HTMLResp
     )
 
 
+def _clean_required_text(raw: str, *, field_label: str, max_length: int) -> str:
+    value = raw.strip()
+    if not value:
+        raise HTTPException(status_code=400, detail=f"Le champ « {field_label} » est obligatoire.")
+    if len(value) > max_length:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Le champ « {field_label} » dépasse {max_length} caractères.",
+        )
+    return value
+
+
+def _clean_slug(raw: str, fallback_source: str) -> str:
+    value = (raw or "").strip() or slugify(fallback_source)
+    if not value:
+        raise HTTPException(status_code=400, detail="Impossible de générer un slug non vide.")
+    if len(value) > 120:
+        raise HTTPException(status_code=400, detail="Le slug dépasse 120 caractères.")
+    return value
+
+
+def _ensure_unique(
+    db: Session,
+    model: type,
+    field,
+    value: str,
+    *,
+    field_label: str,
+    exclude_id: int | None = None,
+) -> None:
+    query = db.query(model).filter(field == value)
+    if exclude_id is not None:
+        query = query.filter(model.id != exclude_id)
+    if query.first() is not None:
+        raise HTTPException(status_code=400, detail=f"{field_label} « {value} » est déjà utilisé(e).")
+
+
 @protected_router.get("/subjects", response_class=HTMLResponse)
 async def admin_list_subjects(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
     subjects = db.query(models.Subject).order_by(models.Subject.name).all()
+    summaries = [
+        {
+            "subject": subject,
+            "module_count": len(subject.modules),
+            "uaa_count": sum(len(module.uaas) for module in subject.modules),
+            "block_count": sum(
+                len(uaa.lesson_blocks) for module in subject.modules for uaa in module.uaas
+            ),
+        }
+        for subject in subjects
+    ]
     return templates.TemplateResponse(
         request=request,
         name="admin_subjects.html",
-        context={"subjects": subjects},
+        context={"summaries": summaries},
     )
+
+
+@protected_router.get("/subjects/new", response_class=HTMLResponse)
+async def admin_new_subject_form(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_subject_form.html",
+        context={"subject": None},
+    )
+
+
+@protected_router.post("/subjects/new")
+async def admin_create_subject(
+    name: str = Form(...), slug: str = Form(""), db: Session = Depends(get_db)
+) -> RedirectResponse:
+    clean_name = _clean_required_text(name, field_label="Nom", max_length=100)
+    clean_slug = _clean_slug(slug, clean_name)
+    _ensure_unique(db, models.Subject, models.Subject.name, clean_name, field_label="Ce nom")
+    _ensure_unique(db, models.Subject, models.Subject.slug, clean_slug, field_label="Ce slug")
+
+    subject = models.Subject(name=clean_name, slug=clean_slug)
+    db.add(subject)
+    db.commit()
+    return RedirectResponse(url="/admin/subjects", status_code=303)
 
 
 @protected_router.get("/subjects/{subject_id}", response_class=HTMLResponse)
@@ -87,11 +160,100 @@ async def admin_subject_modules(
     subject = db.get(models.Subject, subject_id)
     if subject is None:
         raise HTTPException(status_code=404, detail="Matière introuvable")
+    summaries = [
+        {
+            "module": module,
+            "uaa_count": len(module.uaas),
+            "block_count": sum(len(uaa.lesson_blocks) for uaa in module.uaas),
+        }
+        for module in subject.modules
+    ]
     return templates.TemplateResponse(
         request=request,
         name="admin_modules.html",
+        context={"subject": subject, "summaries": summaries},
+    )
+
+
+@protected_router.get("/subjects/{subject_id}/edit", response_class=HTMLResponse)
+async def admin_edit_subject_form(
+    subject_id: int, request: Request, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    subject = db.get(models.Subject, subject_id)
+    if subject is None:
+        raise HTTPException(status_code=404, detail="Matière introuvable")
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_subject_form.html",
         context={"subject": subject},
     )
+
+
+@protected_router.post("/subjects/{subject_id}/edit")
+async def admin_update_subject(
+    subject_id: int, name: str = Form(...), slug: str = Form(""), db: Session = Depends(get_db)
+) -> RedirectResponse:
+    subject = db.get(models.Subject, subject_id)
+    if subject is None:
+        raise HTTPException(status_code=404, detail="Matière introuvable")
+
+    clean_name = _clean_required_text(name, field_label="Nom", max_length=100)
+    clean_slug = _clean_slug(slug, clean_name)
+    _ensure_unique(
+        db, models.Subject, models.Subject.name, clean_name,
+        field_label="Ce nom", exclude_id=subject_id,
+    )
+    _ensure_unique(
+        db, models.Subject, models.Subject.slug, clean_slug,
+        field_label="Ce slug", exclude_id=subject_id,
+    )
+
+    subject.name = clean_name
+    subject.slug = clean_slug
+    db.commit()
+    return RedirectResponse(url=f"/admin/subjects/{subject_id}", status_code=303)
+
+
+@protected_router.post("/subjects/{subject_id}/delete")
+async def admin_delete_subject(subject_id: int, db: Session = Depends(get_db)) -> RedirectResponse:
+    subject = db.get(models.Subject, subject_id)
+    if subject is None:
+        raise HTTPException(status_code=404, detail="Matière introuvable")
+    db.delete(subject)
+    db.commit()
+    return RedirectResponse(url="/admin/subjects", status_code=303)
+
+
+@protected_router.get("/subjects/{subject_id}/modules/new", response_class=HTMLResponse)
+async def admin_new_module_form(
+    subject_id: int, request: Request, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    subject = db.get(models.Subject, subject_id)
+    if subject is None:
+        raise HTTPException(status_code=404, detail="Matière introuvable")
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_module_form.html",
+        context={"subject": subject, "module": None},
+    )
+
+
+@protected_router.post("/subjects/{subject_id}/modules/new")
+async def admin_create_module(
+    subject_id: int, code: str = Form(...), slug: str = Form(""), db: Session = Depends(get_db)
+) -> RedirectResponse:
+    subject = db.get(models.Subject, subject_id)
+    if subject is None:
+        raise HTTPException(status_code=404, detail="Matière introuvable")
+
+    clean_code = _clean_required_text(code, field_label="Code", max_length=20)
+    clean_slug = _clean_slug(slug, clean_code)
+    _ensure_unique(db, models.Module, models.Module.slug, clean_slug, field_label="Ce slug")
+
+    module = models.Module(code=clean_code, slug=clean_slug, subject=subject)
+    db.add(module)
+    db.commit()
+    return RedirectResponse(url=f"/admin/subjects/{subject_id}", status_code=303)
 
 
 @protected_router.get("/modules/{module_id}", response_class=HTMLResponse)
@@ -101,11 +263,105 @@ async def admin_module_uaas(
     module = db.get(models.Module, module_id)
     if module is None:
         raise HTTPException(status_code=404, detail="Module introuvable")
+    summaries = [{"uaa": uaa, "block_count": len(uaa.lesson_blocks)} for uaa in module.uaas]
     return templates.TemplateResponse(
         request=request,
         name="admin_uaa_list.html",
-        context={"module": module},
+        context={"module": module, "summaries": summaries},
     )
+
+
+@protected_router.get("/modules/{module_id}/edit", response_class=HTMLResponse)
+async def admin_edit_module_form(
+    module_id: int, request: Request, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    module = db.get(models.Module, module_id)
+    if module is None:
+        raise HTTPException(status_code=404, detail="Module introuvable")
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_module_form.html",
+        context={"subject": module.subject, "module": module},
+    )
+
+
+@protected_router.post("/modules/{module_id}/edit")
+async def admin_update_module(
+    module_id: int, code: str = Form(...), slug: str = Form(""), db: Session = Depends(get_db)
+) -> RedirectResponse:
+    module = db.get(models.Module, module_id)
+    if module is None:
+        raise HTTPException(status_code=404, detail="Module introuvable")
+
+    clean_code = _clean_required_text(code, field_label="Code", max_length=20)
+    clean_slug = _clean_slug(slug, clean_code)
+    _ensure_unique(
+        db, models.Module, models.Module.slug, clean_slug,
+        field_label="Ce slug", exclude_id=module_id,
+    )
+
+    module.code = clean_code
+    module.slug = clean_slug
+    db.commit()
+    return RedirectResponse(url=f"/admin/modules/{module_id}", status_code=303)
+
+
+@protected_router.post("/modules/{module_id}/delete")
+async def admin_delete_module(module_id: int, db: Session = Depends(get_db)) -> RedirectResponse:
+    module = db.get(models.Module, module_id)
+    if module is None:
+        raise HTTPException(status_code=404, detail="Module introuvable")
+    subject_id = module.subject_id
+    db.delete(module)
+    db.commit()
+    return RedirectResponse(url=f"/admin/subjects/{subject_id}", status_code=303)
+
+
+@protected_router.get("/modules/{module_id}/uaa/new", response_class=HTMLResponse)
+async def admin_new_uaa_form(
+    module_id: int, request: Request, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    module = db.get(models.Module, module_id)
+    if module is None:
+        raise HTTPException(status_code=404, detail="Module introuvable")
+    next_position = max((uaa.position for uaa in module.uaas), default=0) + 1
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_uaa_form.html",
+        context={"module": module, "uaa": None, "next_position": next_position},
+    )
+
+
+@protected_router.post("/modules/{module_id}/uaa/new")
+async def admin_create_uaa(
+    module_id: int,
+    code: str = Form(...),
+    title: str = Form(...),
+    slug: str = Form(""),
+    position: int = Form(0),
+    is_published: bool = Form(False),
+    db: Session = Depends(get_db),
+) -> RedirectResponse:
+    module = db.get(models.Module, module_id)
+    if module is None:
+        raise HTTPException(status_code=404, detail="Module introuvable")
+
+    clean_code = _clean_required_text(code, field_label="Code", max_length=20)
+    clean_title = _clean_required_text(title, field_label="Titre", max_length=150)
+    clean_slug = _clean_slug(slug, f"{module.code}-{clean_code}")
+    _ensure_unique(db, models.UAA, models.UAA.slug, clean_slug, field_label="Ce slug")
+
+    uaa = models.UAA(
+        code=clean_code,
+        title=clean_title,
+        slug=clean_slug,
+        position=position,
+        is_published=is_published,
+        module=module,
+    )
+    db.add(uaa)
+    db.commit()
+    return RedirectResponse(url=f"/admin/modules/{module_id}", status_code=303)
 
 
 @protected_router.get("/uaa/{uaa_id}", response_class=HTMLResponse)
@@ -120,6 +376,62 @@ async def admin_uaa_blocks(
         name="admin_uaa_blocks.html",
         context={"uaa": uaa},
     )
+
+
+@protected_router.get("/uaa/{uaa_id}/edit", response_class=HTMLResponse)
+async def admin_edit_uaa_form(
+    uaa_id: int, request: Request, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    uaa = db.get(models.UAA, uaa_id)
+    if uaa is None:
+        raise HTTPException(status_code=404, detail="UAA introuvable")
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_uaa_form.html",
+        context={"module": uaa.module, "uaa": uaa, "next_position": uaa.position},
+    )
+
+
+@protected_router.post("/uaa/{uaa_id}/edit")
+async def admin_update_uaa(
+    uaa_id: int,
+    code: str = Form(...),
+    title: str = Form(...),
+    slug: str = Form(""),
+    position: int = Form(0),
+    is_published: bool = Form(False),
+    db: Session = Depends(get_db),
+) -> RedirectResponse:
+    uaa = db.get(models.UAA, uaa_id)
+    if uaa is None:
+        raise HTTPException(status_code=404, detail="UAA introuvable")
+
+    clean_code = _clean_required_text(code, field_label="Code", max_length=20)
+    clean_title = _clean_required_text(title, field_label="Titre", max_length=150)
+    clean_slug = _clean_slug(slug, f"{uaa.module.code}-{clean_code}")
+    _ensure_unique(
+        db, models.UAA, models.UAA.slug, clean_slug,
+        field_label="Ce slug", exclude_id=uaa_id,
+    )
+
+    uaa.code = clean_code
+    uaa.title = clean_title
+    uaa.slug = clean_slug
+    uaa.position = position
+    uaa.is_published = is_published
+    db.commit()
+    return RedirectResponse(url=f"/admin/uaa/{uaa_id}", status_code=303)
+
+
+@protected_router.post("/uaa/{uaa_id}/delete")
+async def admin_delete_uaa(uaa_id: int, db: Session = Depends(get_db)) -> RedirectResponse:
+    uaa = db.get(models.UAA, uaa_id)
+    if uaa is None:
+        raise HTTPException(status_code=404, detail="UAA introuvable")
+    module_id = uaa.module_id
+    db.delete(uaa)
+    db.commit()
+    return RedirectResponse(url=f"/admin/modules/{module_id}", status_code=303)
 
 
 def _build_quiz_content(

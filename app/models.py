@@ -38,7 +38,9 @@ class Module(Base):
 
     subject: Mapped["Subject"] = relationship(back_populates="modules")
     uaas: Mapped[list["UAA"]] = relationship(
-        back_populates="module", cascade="all, delete-orphan"
+        back_populates="module",
+        cascade="all, delete-orphan",
+        order_by="UAA.position",
     )
 
 
@@ -49,6 +51,8 @@ class UAA(Base):
     code: Mapped[str] = mapped_column(String(20))
     title: Mapped[str] = mapped_column(String(150))
     slug: Mapped[str] = mapped_column(String(120), unique=True, index=True)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    is_published: Mapped[bool] = mapped_column(Boolean, default=False)
     module_id: Mapped[int] = mapped_column(ForeignKey("modules.id"))
 
     module: Mapped["Module"] = relationship(back_populates="uaas")

@@ -18,10 +18,11 @@ bouton "Se déconnecter" du tableau de bord.
 Depuis `/admin/dashboard` :
 
 - **Compteurs** : nombre de matières, modules, UAA en base.
-- **Navigation en lecture seule** : Matières (`/admin/subjects`) → Modules
-  (`/admin/subjects/{id}`) → UAA (`/admin/modules/{id}`) → Blocs de leçon
-  (`/admin/uaa/{id}`). Il n'existe **pas** de formulaire pour créer/modifier/supprimer une
-  matière, un module ou une UAA — seul le contenu des UAA (les `LessonBlock`) est éditable.
+- **Navigation** : Matières (`/admin/subjects`) → Modules (`/admin/subjects/{id}`) → UAA
+  (`/admin/modules/{id}`) → Blocs de leçon (`/admin/uaa/{id}`).
+- **CRUD complet à tous les niveaux de la hiérarchie** — matière, module, UAA, bloc de
+  leçon — entièrement depuis l'interface, sans jamais toucher au code ni relancer `seed-db`
+  (voir "Gérer la hiérarchie de contenu" ci-dessous).
 - **CRUD complet sur les blocs de leçon** (`LessonBlock`), depuis la page d'une UAA :
   - Créer un bloc (`+ Ajouter un bloc`).
   - Modifier un bloc (titre, type, contenu, position, publié).
@@ -41,6 +42,64 @@ Depuis `/admin/dashboard` :
   - Champs communs à tous les types : **position** (ordre d'affichage dans l'UAA, entier
     libre — pas de réorganisation automatique des autres blocs) et **publié** (case à
     cocher ; seuls les blocs publiés apparaissent sur la page publique de l'UAA).
+
+## Gérer la hiérarchie de contenu (matière → module → UAA)
+
+Depuis cette version, **créer MB32 UAA2 (ou n'importe quelle matière/module/UAA) ne nécessite
+plus de modifier `app/seed.py` ni de relancer `seed-db`.** Tout se fait depuis l'admin.
+
+### Matières — `/admin/subjects`
+
+- **Créer** : bouton "+ Nouvelle matière" → nom + slug (le slug se génère automatiquement à
+  partir du nom si laissé vide).
+- **Modifier** : bouton "Modifier" sur la liste → mêmes champs.
+- **Supprimer** : bouton "Supprimer", avec une **confirmation qui indique le nombre exact**
+  de modules, UAA et blocs de contenu qui seront supprimés en cascade (calculé côté serveur,
+  affiché dans la boîte de dialogue de confirmation du navigateur). Suppression irréversible
+  — pas de corbeille.
+- La liste affiche, pour chaque matière : nom, slug, et un décompte
+  (modules / UAA / blocs) pour visualiser l'impact avant de supprimer.
+
+### Modules — depuis la page d'une matière (`/admin/subjects/{id}`)
+
+- **Créer** : bouton "+ Nouveau module" → code (ex. `MQ32`) + slug (auto-généré depuis le
+  code si vide).
+- **Modifier** / **Supprimer** : mêmes principes que pour les matières (confirmation avec
+  décompte UAA + blocs en cascade).
+
+### UAA — depuis la page d'un module (`/admin/modules/{id}`)
+
+- **Créer** : bouton "+ Nouvelle UAA" → code (ex. `UAA2`), titre, slug (auto-généré depuis
+  `{code_module}-{code_uaa}`, ex. `mb32-uaa2`), **position** dans le module (ordre
+  d'affichage), et case **"Publiée"**.
+- **Modifier** / **Supprimer** : mêmes principes, avec décompte des blocs en cascade à la
+  suppression.
+- **Publier / dépublier** : une UAA non publiée (`is_published = False`, valeur par défaut
+  à la création) n'apparaît **pas** dans la liste publique de son module
+  (`/modules/{slug}`), et sa page publique (`/uaa/{slug}`) renvoie une **erreur 404** même
+  si on connaît l'URL exacte. Utile pour préparer une UAA sans la montrer aux étudiants
+  avant qu'elle soit prête. Les blocs de leçon publiés/non publiés à l'intérieur restent
+  gérés indépendamment (une UAA publiée peut très bien n'avoir aucun bloc publié pour
+  l'instant).
+
+### Validation serveur (tous niveaux)
+
+- Champs obligatoires (nom/code/titre) : rejetés vides après nettoyage des espaces (`400`).
+- Longueur maximale alignée sur les colonnes de la base (nom ≤ 100, code ≤ 20, titre ≤ 150,
+  slug ≤ 120 caractères) — évite une erreur de troncature silencieuse en base.
+- **Unicité des slugs** vérifiée explicitement avant écriture (message clair, `400`) plutôt
+  que de laisser remonter une erreur SQL brute.
+- Unicité du **nom** de matière également vérifiée (contrainte déjà présente en base).
+- Un slug qui se réduirait à une chaîne vide après nettoyage (ex. nom composé uniquement de
+  caractères spéciaux) est rejeté.
+- Aucun `eval()` nulle part dans le projet.
+
+### Fil d'Ariane et liens vers le site public
+
+Chaque page admin (liste, formulaire) affiche le fil d'Ariane complet
+(Admin → Matière → Module → UAA) et un bouton "Voir la page publique" / "Voir" pointant
+directement vers l'URL publique correspondante (nouvel onglet), pour vérifier immédiatement
+le rendu après une modification.
 
 ### Regrouper plusieurs quiz en un seul parcours (score + une question à la fois)
 
@@ -136,9 +195,8 @@ invalide n'est importée silencieusement.
 
 ## Limites connues
 
-- **Pas de gestion des matières/modules/UAA** dans l'admin : leur création passe
-  uniquement par `app/seed.py` (script Python) ou une insertion manuelle en base. À faire
-  si le projet a besoin d'ajouter du contenu au-delà du jeu de données de démonstration.
+- **Pas de réorganisation par glisser-déposer** : la position (blocs comme UAA) se règle en
+  tapant un nombre, pas visuellement.
 - **Pas de gestion multi-utilisateurs** : un seul compte admin défini par variables
   d'environnement ; pas de rôles, pas d'historique des modifications (qui a changé quoi).
 - **Pas d'éditeur WYSIWYG** : le contenu Markdown est un textarea brut (voulu à ce stade,
@@ -151,8 +209,11 @@ invalide n'est importée silencieusement.
   mais sans champs dédiés ni rendu public particulier (juste un textarea générique côté
   admin, et un message « type non pris en charge » côté page publique).
 - **Position en doublon possible** : rien n'empêche d'attribuer la même position à deux
-  blocs (l'ordre d'affichage suit alors l'ordre d'insertion en base pour les valeurs
-  égales).
+  blocs, ou à deux UAA d'un même module (l'ordre d'affichage suit alors l'ordre d'insertion
+  en base pour les valeurs égales).
+- **Suppression définitive, pas de corbeille** : supprimer une matière/module/UAA/bloc est
+  irréversible. La confirmation affiche le nombre d'éléments supprimés en cascade, mais il
+  n'y a pas de récupération possible après coup (pas de sauvegarde automatique).
 
 ## Insérer un graphique interactif dans un bloc markdown
 

@@ -15,42 +15,34 @@ Chaque niveau a un `slug` unique utilisé dans les URLs publiques
 partir du code du module et du code de l'UAA (ex. module `MB32` + UAA `UAA1` →
 `mb32-uaa1`), voir `app/slugify.py`.
 
-## Ce que l'admin peut faire aujourd'hui, et ce qu'il ne peut pas
+## Ce que l'admin peut faire aujourd'hui
 
-- **Créer/modifier/supprimer une matière, un module ou une UAA : pas possible depuis
-  l'admin** (voir `docs/admin.md`, section Limites connues). C'est une limite connue,
-  pas un oubli de ce document.
-- **Créer/modifier/supprimer les blocs de leçon (`LessonBlock`) d'une UAA existante : oui**,
-  entièrement depuis `/admin/uaa/{id}` une fois l'UAA créée (titre, type, contenu, position,
-  publié — voir `docs/admin.md`).
+**Tout, depuis l'interface web** — matières, modules, UAA et blocs de leçon se créent,
+modifient et suppriment entièrement depuis `/admin`, sans jamais toucher au code ni relancer
+`seed-db`. Voir `docs/admin.md`, section "Gérer la hiérarchie de contenu", pour le détail
+précis des formulaires et de la validation.
 
-Conséquence pratique : la création d'une UAA se fait aujourd'hui **par script Python**
-(`app/seed.py`), pas depuis l'interface web. Une fois l'UAA créée, tout son contenu se
-gère normalement depuis l'admin.
+Ça n'a pas toujours été le cas : jusqu'à l'introduction de cette gestion complète, seule la
+création de `LessonBlock` était possible depuis l'admin, et créer une matière/module/UAA
+nécessitait de modifier `app/seed.py`. Ce n'est plus nécessaire.
 
-## Ajouter une nouvelle UAA — étape par étape
+## Créer une nouvelle UAA (ex. MB32 UAA2) — étape par étape, sans toucher au code
 
-1. **Vérifier si la matière/module existent déjà** dans `app/seed.py` (`SUBJECT_NAME`,
-   `MODULE_CODES`). S'ils n'existent pas encore, les ajouter suit le même principe que pour
-   l'UAA (voir le bloc `seed()` : `Subject(...)`, `Module(...)`, créés seulement s'ils
-   n'existent pas déjà, avec un `slug` généré via `slugify()`).
+1. Se connecter à `/admin/login`.
+2. `/admin/subjects` → ouvrir la matière (ex. Mathématiques) — ou "+ Nouvelle matière" si
+   elle n'existe pas encore.
+3. Sur la page de la matière → ouvrir le module (ex. MB32) — ou "+ Nouveau module" si
+   nécessaire.
+4. Sur la page du module → "+ Nouvelle UAA" → code, titre, slug (laisser vide pour le
+   générer automatiquement, ex. `mb32-uaa2`), position, et cocher "Publiée" quand elle est
+   prête à être vue par les étudiants (la laisser décochée pendant la préparation du
+   contenu : la page restera en 404 côté public jusqu'à publication).
+5. L'UAA créée apparaît immédiatement dans `/admin/uaa/{id}` pour y ajouter ses blocs de
+   contenu (voir section suivante), exactement comme pour une UAA créée par le seed.
 
-2. **Créer l'UAA** avec son code, son titre et son slug :
+## Structurer le contenu d'une UAA (blocs de leçon)
 
-   ```python
-   uaa = next((u for u in module.uaas if u.code == "UAA2"), None)
-   if uaa is None:
-       uaa = UAA(
-           code="UAA2",
-           title="Titre de la nouvelle UAA",
-           slug=slugify(f"{module.code}-UAA2"),
-           module=module,
-       )
-       db.add(uaa)
-       db.flush()
-   ```
-
-3. **Développer une leçon à la fois (tranche verticale), pas toute l'UAA d'un coup.** Deux
+1. **Développer une leçon à la fois (tranche verticale), pas toute l'UAA d'un coup.** Deux
    états possibles pour une section :
 
    **a) Placeholder** (section pas encore développée) : **1 bloc markdown, non publié**,
@@ -80,43 +72,48 @@ gère normalement depuis l'admin.
    **1 bloc "Plan de l'UAA"** en tête de l'UAA (markdown, toujours publié) sert de sommaire
    général listant toutes les sections, complètes ou non.
 
-4. **Regrouper un quiz de plusieurs questions en un seul parcours.** Créer un bloc `quiz`
-   par question (comme d'habitude, un `LessonBlock` = une question), mais donner la **même
-   valeur non vide au champ `group`** de `QuizConfig` sur tous les blocs concernés, avec un
-   `order_in_group` croissant (1, 2, 3...). Le rendu public (`app/main.py::uaa_detail`)
-   détecte les blocs `quiz` consécutifs partageant un `group` et les fusionne en un seul
-   widget "parcours" (une question à la fois, score, recommencer) au lieu de N widgets QCM
-   isolés. Voir `_CONSTANT_FUNCTION_QUIZ_QUESTIONS` dans `app/seed.py` pour un exemple à 10
-   questions mêlant QCM, vrai/faux et réponses numériques (`answer_type="numeric"`).
-   Laisser `group` vide garde le comportement historique (un quiz autonome par bloc).
+2. **Regrouper un quiz de plusieurs questions en un seul parcours.** Créer un bloc `quiz`
+   par question (comme d'habitude, un `LessonBlock` = une question, depuis
+   `/admin/uaa/{id}/blocks/new`), mais donner la **même valeur non vide au champ « Groupe de
+   quiz »** sur tous les blocs concernés, avec un « Ordre dans le groupe » croissant
+   (1, 2, 3...). Le rendu public (`app/main.py::uaa_detail`) détecte les blocs `quiz`
+   consécutifs partageant un groupe et les fusionne en un seul widget "parcours" (une
+   question à la fois, score, recommencer) au lieu de N widgets QCM isolés. Voir
+   `_CONSTANT_FUNCTION_QUIZ_QUESTIONS` dans `app/seed.py` pour un exemple à 10 questions
+   mêlant QCM, vrai/faux et réponses numériques. Laisser le groupe vide garde le
+   comportement par défaut (un quiz autonome par bloc).
 
-5. **Lancer le seed** :
+3. **Publier au fur et à mesure** : chaque bloc a sa propre case "Publié"
+   (`/admin/uaa/{id}` → Modifier) — rédiger et tester un bloc avant de le publier, puis
+   cocher "Publié" quand il est prêt. Aucun rechargement de code ni de base nécessaire.
 
-   ```bash
-   seed-db
-   # ou : python -m app.seed
-   ```
+## Rôle de `app/seed.py` maintenant que l'admin gère tout
 
-   `seed()` est additif et idempotent par défaut (ne recrée pas ce qui existe déjà, se
-   base sur le `code` pour les matières/modules/UAA et sur le `title` pour les blocs).
-   Aucune suppression de base nécessaire pour ajouter du contenu nouveau.
+`seed-db` reste utile, mais pour un usage différent de la création de contenu au quotidien :
 
-   Cas particulier : remplacer un ensemble de blocs existants (comme lors du remplacement
-   des blocs de démonstration d'UAA1 par sa vraie structure) demande une étape de nettoyage
-   explicite dans `seed()` — voir `OBSOLETE_DEMO_BLOCK_TITLES` dans `app/seed.py` pour
-   l'exemple : les anciens blocs sont supprimés par leur titre avant l'insertion des
-   nouveaux, pour ne pas mélanger ancien et nouveau contenu.
+- **initialiser une base de développement vide** (nouveau clone du dépôt, GitHub Codespaces) ;
+- **fournir des données de démonstration reproductibles** pour les tests manuels et le
+  développement (la matière Mathématiques, MB32/MQ32/MQ34, et la leçon "Fonction constante"
+  complète) ;
+- **servir de fixture pour les tests automatisés** (`tests/test_admin_content_hierarchy.py`
+  appelle directement `seed()` contre une base de test isolée).
 
-6. **Compléter le contenu progressivement depuis l'admin** : une fois l'UAA et ses blocs
-   squelettes créés par le seed, un enseignant/créateur de contenu peut modifier chaque
-   bloc (`/admin/uaa/{id}` → Modifier), rédiger la théorie, ajouter des exemples, configurer
-   les exercices générés, écrire les quiz, puis cocher "Publié" section par section quand
-   c'est prêt — sans avoir besoin de relancer le seed ni de toucher au code.
+`seed-db` **n'est pas** un outil de création de contenu réel : passe par l'admin pour ça.
+`seed()` est strictement additif et idempotent — il ne modifie ni ne supprime jamais un
+contenu déjà créé ou édité depuis l'admin (voir `docs/development.md` pour le détail exact
+de cette garantie et ses tests). Une exception ponctuelle et documentée existe
+(`OBSOLETE_DEMO_BLOCK_TITLES` dans `app/seed.py`), réservée à la migration ponctuelle
+d'anciens blocs de démonstration désormais obsolètes — pas un mécanisme à réutiliser pour
+du contenu réel.
+
+Pour repartir d'une base strictement vide (efface tout, y compris le contenu créé depuis
+l'admin) : `reset-db`, une commande **distincte et explicite**, jamais déclenchée
+automatiquement — voir `docs/development.md`.
 
 ## Rappel : pas de migration de schéma
 
 `app/seed.py` ne fait que des `INSERT`/`UPDATE` de données, pas de changement de schéma.
 Si un jour un nouveau **type** de bloc ou un nouveau **champ** est nécessaire (schéma
-modifié dans `app/models.py`), il faudra supprimer `jury_central.db` en local et relancer
-`seed-db` — voir `docs/development.md`. Ce n'était pas nécessaire pour créer UAA1 : aucun
-changement de modèle, seulement de nouvelles lignes de données.
+modifié dans `app/models.py` — c'était le cas pour `UAA.position` et `UAA.is_published`,
+ajoutés pour la gestion admin de la hiérarchie), il faut supprimer `jury_central.db` en
+local (ou lancer `reset-db`) — voir `docs/development.md`.

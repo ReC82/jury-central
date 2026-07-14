@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — {% if subject %}Modifier{% else %}Nouvelle{% endif %} matière{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item"><a href="/admin/subjects">Matières</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if subject %}Modifier{% else %}Nouvelle{% endif %}
+        </li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">{% if subject %}Modifier la matière{% else %}Nouvelle matière{% endif %}</h1>
+
+<form
+    method="post"
+    action="{% if subject %}/admin/subjects/{{ subject.id }}/edit{% else %}/admin/subjects/new{% endif %}"
+    class="bg-white p-4 rounded shadow-sm"
+    style="max-width: 32rem;">
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Nom</label>
+        <input
+            type="text"
+            class="form-control"
+            id="name"
+            name="name"
+            value="{{ subject.name if subject else '' }}"
+            required>
+    </div>
+
+    <div class="mb-3">
+        <label for="slug" class="form-label">Slug</label>
+        <input
+            type="text"
+            class="form-control"
+            id="slug"
+            name="slug"
+            placeholder="laisser vide pour générer à partir du nom"
+            value="{{ subject.slug if subject else '' }}">
+        <div class="form-text">
+            Utilisé dans l'URL publique (<code>/subjects/&lt;slug&gt;</code>). Laisser vide
+            pour le générer automatiquement à partir du nom.
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-dark">{% if subject %}Enregistrer{% else %}Créer{% endif %}</button>
+    <a href="/admin/subjects" class="btn btn-outline-secondary">Annuler</a>
+</form>
+{% endblock %}
