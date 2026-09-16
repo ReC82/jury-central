@@ -15,6 +15,7 @@ class BlockType(str, enum.Enum):
     QUIZ = "quiz"
     GENERATED_EXERCISE = "generated_exercise"
     AI_EXERCISE = "ai_exercise"
+    EDITORIAL_EXERCISE = "editorial_exercise"
 
 
 class Subject(Base):

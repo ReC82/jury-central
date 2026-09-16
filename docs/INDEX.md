@@ -14,3 +14,4 @@ Si la tâche concerne...
 - priorité Informatique/Français, cartographie, prochains tickets d'import → content_plan_informatique_francais.md
 - déploiement staging, script de déploiement, diagnostic serveur → deployment_staging.md
 - génération d'exercices par IA, correction IA, sécurité (clé API, injection) → ai_exercise_engine.md
+- exercices éditoriaux interactifs (single_choice/true_false/short_answer, correction locale) → editorial_exercise_engine.md

@@ -15,6 +15,7 @@ from app.card_kind import card_meta, classify_block_title
 from app.config import settings
 from app.content import extract_youtube_id, render_markdown
 from app.database import Base, engine, get_db
+from app.editorial_exercise import EditorialExerciseBlockConfig
 from app.exercise_blocks import ExerciseBlockConfig, exercise_to_public_dict, generate_exercises
 from app.practice import router as practice_router
 from app.quiz import QuizConfig
@@ -104,6 +105,7 @@ async def uaa_detail(
             "quiz": None,
             "quiz_run": None,
             "ai_exercise": None,
+            "editorial_exercise": None,
             "card": card_meta(classify_block_title(block.title)),
         }
 
@@ -189,6 +191,15 @@ async def uaa_detail(
                     "block_id": block.id,
                     "intro_html": render_markdown(ai_config.intro) if ai_config.intro else "",
                 }
+        elif block.type == models.BlockType.EDITORIAL_EXERCISE:
+            editorial_config = EditorialExerciseBlockConfig.from_json(block.content)
+            item["card"] = card_meta("exercise")
+            item["editorial_exercise"] = {
+                "verify_url": f"/practice/api/editorial/{block.id}/verify",
+                "items_json": json.dumps(
+                    editorial_config.to_public_dict()["items"], ensure_ascii=False
+                ),
+            }
 
         rendered_blocks.append(item)
 
