@@ -2,6 +2,37 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Cadrage Informatique AMPCR et Français CESS P (ticket #4)
+
+Changement de priorité produit : Informatique (AMPCR) devient la priorité n°1, Français
+(CESS Professionnel) la priorité n°2, passant devant la suite des mathématiques (MB32
+UAA3, MQ32, MQ34). Ticket de cadrage uniquement — **aucun import de contenu, aucun
+changement fonctionnel**.
+
+**Constat de l'inventaire** : ni source officielle ni brouillon ChatGPT pour ces deux
+matières ne sont présents dans le dépôt (`docs/sources_cours/` ne contient que
+Mathématiques ; `app/seed.py` ne définit que la matière Mathématiques). Les suites de
+mini-cours Informatique et de 10 cours Français mentionnées comme déjà préparées avec
+ChatGPT existent uniquement hors du dépôt à ce stade.
+
+**Documentation**
+- Nouveau `docs/content_plan_informatique_francais.md` : inventaire détaillé, cartographie
+  proposée (structure Subject/Module/UAA à confirmer par les référentiels officiels
+  manquants) pour Informatique puis Français, écarts/sources manquantes, règle de
+  traçabilité officiel/brouillon ChatGPT (champ `source_type` proposé, emplacement dédié
+  aux brouillons distinct de `docs/sources_cours/`), et neuf tickets atomiques proposés
+  (A à I) avec dépendances explicites.
+- `docs/current_state.md` et `docs/ROADMAP.md` : priorité et statuts VS004/VS007 mis à
+  jour pour refléter ce nouvel ordre et renvoyer vers le plan.
+- `docs/INDEX.md` et `docs/README.md` : référencement du nouveau document de planification.
+
+**Tests** : aucune modification de code applicatif ; suite complète toujours verte
+(`pytest -q`).
+
+**Point à clarifier** (signalé, non tranché — voir `docs/PROJECT_RULES.md` § 11) : la
+suite Français ChatGPT est décrite comme « 10 cours » mais seuls 9 intitulés sont donnés
+dans le ticket #4 ; à vérifier dès que les fichiers seront fournis.
+
 ## 2026-09-16 — Assainissement de la gouvernance documentaire (ticket #2)
 
 Un audit de reprise a mis en évidence plusieurs contradictions documentaires (deux

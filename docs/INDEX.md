@@ -11,3 +11,4 @@ Si la tâche concerne...
 - état du projet → current_state.md
 - règles générales → PROJECT_RULES.md
 - exemple d'UAA → REFERENCE_UAA.md
+- priorité Informatique/Français, cartographie, prochains tickets d'import → content_plan_informatique_francais.md
