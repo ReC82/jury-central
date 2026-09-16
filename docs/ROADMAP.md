@@ -44,45 +44,49 @@ Comprend notamment :
 
 🔄 En cours
 
+Livré : cartes réutilisables (Théorie/Exemple/Exercice/Quiz/Attention/Résumé, voir
+`docs/UI_GUIDELINES.md` et `docs/components/INDEX.md`), tableaux pédagogiques éditables,
+exercices rédigés interactifs, quiz avec explication systématique — appliqué aux pages
+UAA (`/uaa/{slug}`).
+
+Restant : les pages de listing (matière, module) affichent encore de simples liens plutôt
+que des `CourseCard` (voir `docs/current_state.md`, section « Points ouverts »).
+
 ---
 
-# VS003 - Import Engine V2
+# VS003 - Composants d'exercices interactifs
 
 ## Objectifs
 
-Transformer le moteur d'import.
+Remplacer l'affichage texte brut des exercices par une structure de données que le
+frontend transforme en composant interactif, plutôt qu'un générateur qui produirait du
+HTML.
 
-Aujourd'hui :
+Générateur Python → JSON → composant frontend → interface interactive.
 
-HTML
-
-↓
-
-Page
-
-Demain :
-
-HTML
-
-↓
-
-Analyse sémantique
-
-↓
-
-Composants UI
-
-↓
-
-Page
-
-L'import ne doit plus afficher directement le HTML.
-
-Il doit construire des composants Jury Central.
+Voir `docs/EXERCISE_TYPES.md` pour le format complet.
 
 ## Statut
 
-⏳ À faire
+🔄 En cours
+
+Livré (VS003, VS003.1) : moteur `InteractiveExercise`, premier composant `value_table`
+(tableau de valeurs vérifié cellule par cellule), câblé sur le générateur
+`maths.functions.constant_function` ; renderer de contenu riche unique
+(`app/content.py` + `app/static/js/rich_content.js`) utilisé par les cours, quiz et
+exercices générés.
+
+Restant : sur les 10 types d'exercices décrits dans `docs/EXERCISE_TYPES.md`, seul
+`value_table` est implémenté (numeric, text, QCM, vrai/faux, equation, matching,
+drag & drop, geometry, graph restent à faire). L'ancien moteur `GeneratedExercise`
+(texte + réponse unique, utilisé par `maths.equations.linear_equation`) coexiste encore
+sans plan de dépréciation.
+
+Distinct de VS003 : l'automatisation de l'**import** d'une UAA depuis `docs/sources_cours/`
+(analyse du HTML source, génération de composants sans intervention manuelle) n'est pas
+implémentée — aucun script d'import n'existe à ce jour (voir `docs/current_state.md`).
+Les UAA importées (MB32 UAA1, UAA2) l'ont été manuellement. Si ce chantier redémarre, il
+doit faire l'objet d'un ticket dédié plutôt que d'être confondu avec VS003.
 
 ---
 

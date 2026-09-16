@@ -2,6 +2,51 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Assainissement de la gouvernance documentaire (ticket #2)
+
+Un audit de reprise a mis en évidence plusieurs contradictions documentaires (deux
+fichiers de règles concurrents, roadmap désynchronisée, nombre de tests obsolète,
+fichiers vides). Ce ticket fixe une source unique de vérité et le workflow
+ChatGPT (chef de projet, tickets) → GitHub (source de vérité des tâches) → Claude Code
+(développement), avant toute nouvelle fonctionnalité. Aucun changement fonctionnel de
+l'application.
+
+**Documentation**
+- `docs/PROJECT_RULES.md` : source unique des règles du projet. Fusion du contenu
+  pertinent et non contradictoire de l'ancien fichier fantôme `(PROJECT_RULES.md`
+  (sécurité, UX, vertical slice, interdits explicites) ; § 6 (pilotage) et § 8 (Git)
+  réécrits pour le workflow tickets GitHub ; § 7 et § 11 complétés (tests manuels,
+  signalement des décisions produit). Numérotation des règles existantes préservée
+  (§ 2 notamment, référencée depuis `docs/components/INDEX.md`).
+- Suppression du fichier fantôme `./(PROJECT_RULES.md`, tracké à la racine et
+  contradictoire avec `docs/PROJECT_RULES.md` (vision produit, stack, workflow Git
+  différents). Contenu utile récupéré ci-dessus ; ce qui contredisait le stack réel
+  (Python 3.13, Alembic, HTMX) n'a pas été repris — voir points ouverts.
+- `docs/git_workflow.md` réécrit : branches `feature/<ticket>-<slug>` /
+  `fix/<ticket>-<slug>` depuis `develop`, commit + push autorisés après tests et
+  documentation, aucun merge ni déploiement sans validation explicite.
+- `docs/ROADMAP.md` : statuts VS002 et VS003 corrigés pour refléter l'état réel du code
+  (Design System livré sur les pages UAA, restant sur les listings ; composant
+  `value_table` livré, 9 des 10 types de `EXERCISE_TYPES.md` restants ; automatisation de
+  l'import de contenu non implémentée, distinguée de VS003).
+- `README.md` : retrait du nombre de tests figé (« 87 tests ») au profit d'un renvoi à
+  `pytest -q`, pour éviter une référence à maintenir manuellement à chaque évolution.
+- Suppression de `TODO.md` et `docs/SEMANTIC_IMPORT_ENGINE.md` : fichiers vides, sans
+  fonction actuelle ni référence ailleurs dans le projet (vérifié par recherche globale).
+
+**Tests** : aucune modification de code applicatif ; suite complète toujours verte
+(`pytest -q`).
+
+**Points restant à valider** (signalés plutôt que tranchés, voir `docs/PROJECT_RULES.md`
+§ 11) :
+- Le fichier fantôme mentionnait HTMX et Alembic comme orientations techniques et
+  Python 3.13 comme version cible ; non repris car contredits par le stack réellement
+  implémenté et documenté (vanilla JS, pas de migrations, Python 3.12+). À confirmer que
+  ce n'est pas une intention produit oubliée.
+- `docs/README.md` (index du dossier `docs/`) décrit `development.md` comme la
+  « roadmap du projet » et n'y mentionne pas `docs/ROADMAP.md` — incohérence préexistante,
+  hors périmètre strict de ce ticket, à traiter séparément.
+
 ## 2026-07-14 — VS003.1 : renderer de contenu riche unique
 
 Plusieurs écrans affichaient encore du texte brut (question de quiz, énoncé d'exercice
