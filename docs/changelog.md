@@ -2,6 +2,50 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Correction bug mobile : menu hamburger inerte (ticket #18)
+
+Constaté sur le staging public depuis Chrome Android : le bouton hamburger de la navbar
+était visible mais ne réagissait pas au toucher.
+
+**Cause exacte** : l'attribut `integrity` (Subresource Integrity) du `<script>` chargeant
+le bundle JS Bootstrap (`app/templates/base.html`) ne correspondait pas au contenu réel du
+fichier servi par le CDN. Un navigateur qui détecte cet écart bloque **silencieusement**
+l'exécution du script (aucune erreur visible pour l'utilisateur, uniquement dans la
+console développeur) : le CSS Bootstrap (chargé séparément, intégrité vérifiée correcte)
+affichait bien le bouton hamburger, mais son comportement (`data-bs-toggle="collapse"`)
+ne s'activait jamais, faute de JS Bootstrap exécuté. Diagnostic confirmé en recalculant le
+hash réel du fichier (`openssl dgst -sha384`) depuis l'URL exacte versionnée
+(`bootstrap@5.3.3`, immuable) et en le comparant octet pour octet à celui du template —
+écart net à partir du même préfixe. Le hash du CSS Bootstrap, vérifié par la même méthode,
+était lui correct.
+
+**Correction** : une seule ligne modifiée dans `app/templates/base.html` — l'attribut
+`integrity` du bundle JS corrigé avec la valeur réellement calculée. Aucune modification
+du markup navbar/collapse (déjà syntaxiquement correct), aucun second menu mobile
+parallèle, aucune dépendance ajoutée.
+
+**Tests** : +5 tests (`tests/test_navbar_mobile_menu.py`) — hash d'intégrité figé et
+vérifié (régression directe sur la cause), absence de `defer`/`async` sur le script
+Bootstrap, cohérence `data-bs-toggle`/`data-bs-target`/`aria-controls`/id du collapse, un
+seul hamburger et une seule cible collapse (garde-fou contre un contournement par menu
+parallèle), breakpoint `navbar-expand-md` confirmé (couvre les largeurs mobiles 360/390/
+430 px demandées, toutes < 768px). 241 tests au total, tous verts. `ruff check .` : 36
+erreurs, identiques à `develop` (comparé via worktree isolé) — aucune nouvelle erreur.
+
+**Vérifié manuellement** : HTML servi par le serveur réel (plusieurs pages) contient
+désormais le hash corrigé ; markup hamburger intact et cohérent
+(`data-bs-target="#navbarNav"` = `aria-controls="navbarNav"` = `id="navbarNav"`) ; toutes
+les pages clés (accueil, matières, MC01–MC03, Mathématiques) toujours 200. **Limite** :
+aucun navigateur/outil d'automatisation n'étant disponible dans cet environnement serveur,
+le clic réel sur les viewports 360/390/430 px n'a pas pu être vérifié visuellement — la
+correction agit néanmoins exactement sur le mécanisme que le navigateur utilise
+(vérification SRI octet pour octet), et le comportement d'ouverture/fermeture lui-même est
+celui, déjà éprouvé, du composant Collapse de Bootstrap 5.3.3, non modifié par ce ticket.
+Validation visuelle réelle recommandée sur staging après déploiement.
+
+**Documentation** : `docs/claude-reports/2026-09-16_ticket-18_mobile-menu.md` (rapport de
+ticket).
+
 ## 2026-09-16 — Socle générique des exercices éditoriaux interactifs (ticket #17)
 
 Suite à l'audit UX/technique du même jour
