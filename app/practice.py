@@ -187,7 +187,7 @@ def _resolve_pedagogical_context(config: AIExerciseBlockConfig):
 
 @router.post("/api/ai/generate")
 async def api_generate_ai_exercise(
-    payload: GenerateAIExerciseRequest, db: Session = Depends(get_db)
+    payload: GenerateAIExerciseRequest, db: Session = Depends(get_db)  # noqa: B008
 ) -> JSONResponse:
     """Génère un exercice à la demande, borné au contexte pédagogique du cours (voir
     app/ai/context.py). Ne stocke jamais l'exercice : l'énoncé est signé (HMAC) et renvoyé
@@ -221,7 +221,7 @@ async def api_generate_ai_exercise(
 
 @router.post("/api/ai/correct")
 async def api_correct_ai_exercise(
-    payload: CorrectAIExerciseRequest, db: Session = Depends(get_db)
+    payload: CorrectAIExerciseRequest, db: Session = Depends(get_db)  # noqa: B008
 ) -> JSONResponse:
     """Corrige une réponse via l'IA. La réponse du candidat est transmise au fournisseur
     comme une donnée à évaluer, jamais comme une instruction (voir app/ai/prompts.py) ;
