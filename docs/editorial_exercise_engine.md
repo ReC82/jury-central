@@ -2,10 +2,12 @@
 
 Ce document décrit le socle générique `editorial_exercise`, introduit par le ticket #17
 suite à l'audit UX/technique du 2026-09-16
-(`docs/claude-reports/2026-09-16_audit_interactivite.md`). Objectif : transformer les
-exercices éditoriaux (aujourd'hui du texte Markdown avec correction masquée/affichée côté
-client) en véritables activités interactives, avec saisie, vérification serveur et score —
-sans dupliquer l'architecture existante (value_table, quiz, ai_exercise).
+(`docs/claude-reports/2026-09-16_audit_interactivite.md`), et étendu par le ticket #21
+(`docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md`) avec les types
+`classification` et `ordering`. Objectif : transformer les exercices éditoriaux
+(aujourd'hui du texte Markdown avec correction masquée/affichée côté client) en véritables
+activités interactives, avec saisie, vérification serveur et score — sans dupliquer
+l'architecture existante (value_table, quiz, ai_exercise).
 
 Ne remplace ni les exercices générés par un générateur Python (`docs/EXERCISE_TYPES.md`)
 ni les exercices générés/corrigés par IA (`docs/ai_exercise_engine.md`) : les trois
@@ -53,6 +55,11 @@ EditorialExerciseItem
     choices: list[str]             # single_choice / true_false
     correct_index: int
     accepted_answers: list[str]    # short_answer
+    categories: list[str]          # classification — public (proposé à l'étudiant)
+    elements: list[str]            # classification — public (proposé à l'étudiant)
+    correct_categories: list[int]  # classification — jamais public, un index par élément
+    order_items: list[str]         # ordering — public (ordre de présentation initial)
+    correct_order: list[int]       # ordering — jamais public, permutation d'order_items
     explanation: str
 ```
 
@@ -66,13 +73,15 @@ EditorialExerciseItem
   `app/seed.py` et les tests) reste, elle, strictement validée (`__post_init__` lève
   `EditorialExerciseValidationError`) — les erreurs d'auteur sont détectées tôt.
 
-## Types pris en charge (première tranche, ticket #17)
+## Types pris en charge
 
 | Type | Correction | Détail |
 |---|---|---|
 | `single_choice` | Locale, déterministe | Index de la réponse choisie comparé à `correct_index` |
 | `true_false` | Locale, déterministe | Même mécanisme que `single_choice`, avec `choices: ["Vrai", "Faux"]` |
 | `short_answer` | Locale, déterministe | Comparaison textuelle normalisée (casse, espaces, accents) à une liste `accepted_answers` — voir `app/answer_checking.py::text_answer_matches` |
+| `classification` (#21) | Locale, déterministe | Réponse `list[int]` : un index de catégorie par élément (même ordre que `elements`), comparée telle quelle à `correct_categories` — pas de correction partielle |
+| `ordering` (#21) | Locale, déterministe | Réponse `list[int]` : une permutation des index de `order_items` dans l'ordre proposé, comparée à `correct_order` ; une réponse qui n'est pas une permutation valide (doublon, valeur hors bornes, longueur incorrecte) est traitée comme incorrecte, jamais comme une erreur serveur |
 
 `short_answer` n'est utilisé que lorsqu'une règle de correction déterministe **fiable**
 existe (une réponse courte, sans ambiguïté formulable comme une liste de variantes
@@ -81,11 +90,16 @@ n'est **jamais** forcé dans ce type — voir
 `docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md` pour la liste précise
 des exercices MC01 qui en ont besoin.
 
+`classification`/`ordering` envoient une réponse structurée (`list[int]`), pas une chaîne
+— voir la route ci-dessous (`answer: Any`). La correction reste binaire (correct/incorrect
+sur l'ensemble de l'item), sans note partielle, pour rester cohérente avec les autres
+types du socle.
+
 ## Types non encore pris en charge (tickets suivants)
 
 - `long_answer` (réponse rédigée) — nécessite une correction IA, ticket séparé.
-- `classification`, `ordering`, `matching` — nécessitent chacun leur propre logique de
-  correction locale et leur propre composant d'interaction, tickets séparés.
+- `matching` (appariement) — nécessite sa propre logique de correction locale et son
+  propre composant d'interaction, ticket séparé.
 - `mode: "exam"` — correction différée jusqu'à une soumission finale groupée, ticket
   séparé (voir l'audit, section G).
 
@@ -93,7 +107,9 @@ des exercices MC01 qui en ont besoin.
 
 # Route (`app/practice.py`)
 
-`POST /practice/api/editorial/{block_id}/verify` — payload `{"exercise_id": str, "answer": str}`.
+`POST /practice/api/editorial/{block_id}/verify` — payload `{"exercise_id": str, "answer": Any}`.
+`answer` est une `str` pour `single_choice`/`true_false`/`short_answer`, et une `list[int]`
+pour `classification`/`ordering` (ticket #21) — voir la table des types ci-dessus.
 
 Réponse :
 
@@ -133,6 +149,19 @@ impression : prompt visible, contrôles interactifs masqués — même conventio
 actions principales, pas de largeur fixe (seulement un `max-width` plafond sur le champ
 `short_answer`, sans risque de débordement sur petit écran).
 
+`classification` (`buildClassificationControl`) et `ordering` (`buildOrderingControl`,
+ticket #21) sont exclusivement pilotés au clic — aucun glisser-déposer requis, utilisables
+au tactile comme au clavier (chaque bouton est un `<button>` natif, focusable, avec
+`aria-label` explicite pour monter/descendre) :
+
+- **classification** : un groupe de boutons de catégorie par élément à classer ; le bouton
+  actif se met en surbrillance (`.active`), le bouton « Vérifier » ne s'active que lorsque
+  chaque élément a une catégorie choisie ; la réponse envoyée est la liste des index de
+  catégorie, dans l'ordre de `elements`.
+- **ordering** : une liste `<ol>` numérotée, chaque ligne avec deux boutons « ↑ »/« ↓ »
+  (désactivés en butée haute/basse) qui échangent la ligne avec sa voisine ; la réponse
+  envoyée est la permutation courante des index de `order_items`.
+
 ---
 
 # Démonstration (`/admin/editorial-exercise-demo`)
@@ -156,7 +185,12 @@ dépendre d'un cours migré.
   extension de la même logique de normalisation déjà utilisée pour les réponses
   numériques).
 - Aucun appel réseau externe, aucun appel IA : correction 100 % locale et déterministe
-  pour cette tranche de types.
+  pour tous les types actuels.
+- `classification`/`ordering` (#21) : une réponse malformée (mauvais type, mauvaise
+  longueur, valeurs non entières, ou — pour `ordering` — une liste qui n'est pas une
+  permutation valide des index de `order_items`) est explicitement traitée comme une
+  réponse incorrecte (`correct: false`), jamais comme une exception serveur — testé
+  explicitement (`tests/test_editorial_exercise.py`).
 
 ---
 
@@ -171,8 +205,14 @@ dépendre d'un cours migré.
   invalides, bloc non publié, mauvais type de bloc, absence de fuite dans le HTML de
   `/uaa/{slug}`, route de démonstration admin (page + vérification + authentification
   requise).
-- `tests/test_ticket17_no_regression.py` — confirme que `app/seed.py` n'est pas modifié
-  par ce ticket : MC01/MC02/MC03/Mathématiques strictement inchangés.
+- `tests/test_ticket17_no_regression.py` — confirme que `app/seed.py` n'était pas modifié
+  par le ticket #17 (mis à jour au #21, voir docstring du module) : MC02/MC03/Mathématiques
+  strictement inchangés, MC01 conserve ses 12 exercices accessibles quel que soit leur
+  type de bloc.
+- `tests/test_ticket21_no_regression.py` — migration MC01 (exercices 1/2/9/11), absence
+  de doublon avec l'ancien texte Markdown, exercices 3/4/5/6/7/8/10/12 strictement
+  inchangés, idempotence du seed après migration, et scénario explicite de migration d'un
+  staging déjà seedé avant le ticket #21 (sans `reset-db`).
 
 ---
 
@@ -185,4 +225,13 @@ dépendre d'un cours migré.
 3. Ajouter la fonction de construction du composant correspondant dans
    `editorial_exercise.js` (une fonction par type, pas de refonte du fichier).
 4. Aucune modification de route ni de modèle de données n'est nécessaire pour un type à
-   correction locale supplémentaire — tout passe par la même route `/verify` existante.
+   correction locale supplémentaire — tout passe par la même route `/verify` existante,
+   à condition que la réponse reste sérialisable en JSON (`answer: Any` côté serveur
+   depuis le ticket #21 : `str` pour un type existant, `list[int]` pour
+   `classification`/`ordering` — un futur type pourrait réutiliser l'une de ces deux
+   formes ou introduire la sienne sans casser les types déjà en place, chacun étant
+   discriminé par son propre `if self.type == "...":` dans `check()`).
+
+Cette recette a été suivie sans modification pour `classification`/`ordering` (ticket
+#21) après une première validation avec `single_choice`/`true_false`/`short_answer`
+(ticket #17) — le socle est donc confirmé réellement extensible, pas seulement en théorie.

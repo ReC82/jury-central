@@ -1,12 +1,18 @@
 /*
- * Jury Central — widget générique des exercices éditoriaux structurés (ticket #17).
+ * Jury Central — widget générique des exercices éditoriaux structurés (ticket #17,
+ * étendu au #21).
  *
  * Un bloc `.editorial-exercise-block` porte `data-verify-url` (POST accepte
  * {exercise_id, answer}, voir app/practice.py et app/editorial_exercise.py) et
  * `data-items` (JSON, représentation publique — jamais la réponse correcte). Ce fichier
- * construit un composant par item selon son `type` : première tranche (ticket #17) :
- * single_choice, true_false, short_answer. Aucune correction n'est présente dans le DOM
- * avant l'appel de vérification ; aucun rechargement de page.
+ * construit un composant par item selon son `type` : single_choice, true_false,
+ * short_answer (ticket #17), classification, ordering (ticket #21). Aucune correction
+ * n'est présente dans le DOM avant l'appel de vérification ; aucun rechargement de page.
+ *
+ * classification/ordering envoient une réponse `list[int]` (et non une chaîne) : voir
+ * `answer: Any` côté serveur (app/practice.py). L'interaction est exclusivement au clic
+ * (boutons de catégorie pour classification, boutons monter/descendre pour ordering) —
+ * aucun glisser-déposer requis, pour rester utilisable au clavier comme au tactile.
  */
 
 async function submitEditorialAnswer(verifyUrl, exerciseId, answer) {
@@ -15,7 +21,10 @@ async function submitEditorialAnswer(verifyUrl, exerciseId, answer) {
         response = await fetch(verifyUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ exercise_id: exerciseId, answer: String(answer) }),
+            body: JSON.stringify({
+                exercise_id: exerciseId,
+                answer: Array.isArray(answer) ? answer : String(answer),
+            }),
         });
     } catch (networkError) {
         return null;
@@ -112,6 +121,144 @@ function buildShortAnswerControl(item, onAnswer) {
     return controls;
 }
 
+function buildClassificationControl(item, onAnswer) {
+    const controls = document.createElement("div");
+    controls.className = "mb-2 d-print-none";
+
+    const assignment = item.elements.map(() => null);
+
+    const verifyButton = document.createElement("button");
+    verifyButton.type = "button";
+    verifyButton.className = "btn btn-outline-primary editorial-verify-btn mt-1";
+    verifyButton.textContent = "Vérifier";
+    verifyButton.disabled = true;
+
+    item.elements.forEach((element, elementIndex) => {
+        const row = document.createElement("div");
+        row.className = "mb-3";
+
+        const label = document.createElement("p");
+        label.className = "fw-semibold small mb-1";
+        label.textContent = element;
+        row.appendChild(label);
+
+        const group = document.createElement("div");
+        group.className = "d-flex flex-wrap gap-2";
+        group.setAttribute("role", "group");
+        group.setAttribute("aria-label", "Catégorie pour " + element);
+
+        item.categories.forEach((category, categoryIndex) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "btn btn-outline-secondary btn-sm classification-category-btn";
+            button.textContent = category;
+            button.addEventListener("click", () => {
+                Array.from(group.children).forEach((sibling) => {
+                    sibling.classList.remove("active");
+                });
+                button.classList.add("active");
+                assignment[elementIndex] = categoryIndex;
+                verifyButton.disabled = assignment.some((value) => value === null);
+            });
+            group.appendChild(button);
+        });
+
+        row.appendChild(group);
+        controls.appendChild(row);
+    });
+
+    verifyButton.addEventListener("click", () => {
+        controls.querySelectorAll("button").forEach((btn) => {
+            btn.disabled = true;
+        });
+        onAnswer(assignment);
+    });
+    controls.appendChild(verifyButton);
+
+    return controls;
+}
+
+function buildOrderingControl(item, onAnswer) {
+    const controls = document.createElement("div");
+    controls.className = "mb-2 d-print-none";
+
+    const list = document.createElement("ol");
+    list.className = "list-group list-group-numbered mb-2 editorial-ordering-list";
+    controls.appendChild(list);
+
+    // Ordre courant : index originaux dans item.order_items, dans l'ordre affiché.
+    let currentOrder = item.order_items.map((_, index) => index);
+
+    function renderList() {
+        list.innerHTML = "";
+        currentOrder.forEach((originalIndex, position) => {
+            const row = document.createElement("li");
+            row.className =
+                "list-group-item d-flex justify-content-between align-items-center gap-2 flex-wrap";
+
+            const label = document.createElement("span");
+            label.className = "flex-grow-1";
+            label.textContent = item.order_items[originalIndex];
+            row.appendChild(label);
+
+            const buttonGroup = document.createElement("div");
+            buttonGroup.className = "btn-group";
+
+            const upButton = document.createElement("button");
+            upButton.type = "button";
+            upButton.className = "btn btn-outline-secondary btn-sm";
+            upButton.textContent = "↑";
+            upButton.setAttribute("aria-label", "Monter : " + item.order_items[originalIndex]);
+            upButton.disabled = position === 0;
+            upButton.addEventListener("click", () => {
+                [currentOrder[position - 1], currentOrder[position]] = [
+                    currentOrder[position],
+                    currentOrder[position - 1],
+                ];
+                renderList();
+            });
+
+            const downButton = document.createElement("button");
+            downButton.type = "button";
+            downButton.className = "btn btn-outline-secondary btn-sm";
+            downButton.textContent = "↓";
+            downButton.setAttribute(
+                "aria-label",
+                "Descendre : " + item.order_items[originalIndex]
+            );
+            downButton.disabled = position === currentOrder.length - 1;
+            downButton.addEventListener("click", () => {
+                [currentOrder[position], currentOrder[position + 1]] = [
+                    currentOrder[position + 1],
+                    currentOrder[position],
+                ];
+                renderList();
+            });
+
+            buttonGroup.appendChild(upButton);
+            buttonGroup.appendChild(downButton);
+            row.appendChild(buttonGroup);
+            list.appendChild(row);
+        });
+    }
+    renderList();
+
+    const verifyButton = document.createElement("button");
+    verifyButton.type = "button";
+    verifyButton.className = "btn btn-outline-primary editorial-verify-btn";
+    verifyButton.textContent = "Vérifier";
+    verifyButton.addEventListener("click", () => {
+        list.querySelectorAll("button").forEach((btn) => {
+            btn.disabled = true;
+        });
+        verifyButton.disabled = true;
+        onAnswer(currentOrder);
+    });
+    controls.appendChild(verifyButton);
+
+    return controls;
+}
+
 function initEditorialExerciseItem(container, verifyUrl, item) {
     const card = document.createElement("div");
     card.className = "border rounded p-3 mb-3 editorial-exercise-item";
@@ -135,9 +282,13 @@ function initEditorialExerciseItem(container, verifyUrl, item) {
         card.appendChild(buildChoiceControl(item, onAnswer));
     } else if (item.type === "short_answer") {
         card.appendChild(buildShortAnswerControl(item, onAnswer));
+    } else if (item.type === "classification") {
+        card.appendChild(buildClassificationControl(item, onAnswer));
+    } else if (item.type === "ordering") {
+        card.appendChild(buildOrderingControl(item, onAnswer));
     } else {
-        // Type non pris en charge par cette version du widget (ex. long_answer,
-        // classification, ordering — tickets suivants) : pas de contrôle, pas d'appel.
+        // Type non pris en charge par cette version du widget (ex. long_answer —
+        // ticket suivant) : pas de contrôle, pas d'appel.
         return;
     }
 

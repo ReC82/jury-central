@@ -1,9 +1,16 @@
-"""Non-régression du ticket #17 (socle editorial_exercise) : `app/seed.py` n'est pas
-modifié par ce ticket — aucun des 12 exercices existants de MC01 ne peut être migré sans
+"""Non-régression du ticket #17 (socle editorial_exercise) : `app/seed.py` n'était pas
+modifié par ce ticket — aucun des 12 exercices existants de MC01 ne pouvait être migré sans
 le dénaturer avec la première tranche de types (voir
-docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md). Ces tests confirment que
-MC01, MC02, MC03 et Mathématiques restent strictement inchangés, et que le seed reste
-additif et idempotent."""
+docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md). MC02, MC03 et
+Mathématiques restent strictement inchangés, et le seed reste additif et idempotent.
+
+Mise à jour ticket #21 : 4 des 12 exercices de MC01 (1, 2, 9, 11) sont désormais migrés
+vers des blocs `editorial_exercise` (classification/ordering) — voir
+docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md et
+tests/test_ticket21_no_regression.py pour la non-régression spécifique à ce ticket. Le
+test ci-dessous est ajusté en conséquence (4 blocs editorial_exercise attendus, et non 0)
+mais conserve son rôle : vérifier que les 12 exercices restent tous accessibles sur la
+page MC01, quel que soit leur type de bloc."""
 
 from app.models import UAA, BlockType, LessonBlock
 from app.seed import MC01_BLOCKS, MC02_BLOCKS, MC03_BLOCKS, seed
@@ -21,7 +28,8 @@ def test_mc01_content_is_untouched_by_ticket_17(client, db_session):
         .filter_by(uaa_id=uaa.id, type=BlockType.EDITORIAL_EXERCISE)
         .count()
     )
-    assert editorial_blocks == 0  # aucun exercice MC01 migré dans ce ticket
+    # 4 exercices MC01 (1, 2, 9, 11) migrés par le ticket #21 — voir docstring du module.
+    assert editorial_blocks == 4
 
     response = client.get("/uaa/ampcr-mc01")
     assert response.status_code == 200

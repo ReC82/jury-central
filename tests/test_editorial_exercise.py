@@ -49,6 +49,33 @@ def _short_answer_item(**overrides):
     return EditorialExerciseItem(**defaults)
 
 
+def _classification_item(**overrides):
+    defaults = {
+        "exercise_id": "q4",
+        "type": "classification",
+        "prompt": "Classe chaque composant.",
+        "categories": ["Matériel", "Logiciel"],
+        "elements": ["Carte graphique", "Navigateur", "RAM"],
+        "correct_categories": [0, 1, 0],
+        "explanation": "Le matériel est physique, le logiciel est un programme.",
+    }
+    defaults.update(overrides)
+    return EditorialExerciseItem(**defaults)
+
+
+def _ordering_item(**overrides):
+    defaults = {
+        "exercise_id": "q5",
+        "type": "ordering",
+        "prompt": "Remets les étapes dans l'ordre.",
+        "order_items": ["Affichage", "Lecture SSD", "Exécution CPU", "Chargement RAM"],
+        "correct_order": [1, 3, 2, 0],
+        "explanation": "Lecture, chargement, exécution, affichage.",
+    }
+    defaults.update(overrides)
+    return EditorialExerciseItem(**defaults)
+
+
 # --- Validation de configuration ---------------------------------------------------------
 
 
@@ -89,6 +116,38 @@ def test_short_answer_requires_accepted_answers():
         _short_answer_item(accepted_answers=[])
 
 
+def test_classification_requires_at_least_two_categories():
+    with pytest.raises(EditorialExerciseValidationError):
+        _classification_item(categories=["Matériel"])
+
+
+def test_classification_requires_at_least_two_elements():
+    with pytest.raises(EditorialExerciseValidationError):
+        _classification_item(elements=["Seul élément"], correct_categories=[0])
+
+
+def test_classification_requires_correct_categories_matching_elements_length():
+    with pytest.raises(EditorialExerciseValidationError):
+        _classification_item(correct_categories=[0, 1])  # 3 éléments, 2 réponses
+
+
+def test_classification_rejects_out_of_range_category_index():
+    with pytest.raises(EditorialExerciseValidationError):
+        _classification_item(correct_categories=[0, 5, 0])
+
+
+def test_ordering_requires_at_least_two_items():
+    with pytest.raises(EditorialExerciseValidationError):
+        _ordering_item(order_items=["Seul élément"], correct_order=[0])
+
+
+def test_ordering_rejects_non_permutation_correct_order():
+    with pytest.raises(EditorialExerciseValidationError):
+        _ordering_item(correct_order=[0, 1, 2, 2])  # doublon, 3 absent
+    with pytest.raises(EditorialExerciseValidationError):
+        _ordering_item(correct_order=[0, 1, 2])  # longueur incorrecte
+
+
 def test_block_rejects_duplicate_exercise_ids():
     with pytest.raises(EditorialExerciseValidationError):
         EditorialExerciseBlockConfig(
@@ -107,14 +166,22 @@ def test_block_rejects_unknown_mode():
 def test_to_json_from_json_roundtrip():
     config = EditorialExerciseBlockConfig(
         mode="practice",
-        items=[_single_choice_item(), _true_false_item(), _short_answer_item()],
+        items=[
+            _single_choice_item(),
+            _true_false_item(),
+            _short_answer_item(),
+            _classification_item(),
+            _ordering_item(),
+        ],
     )
     restored = EditorialExerciseBlockConfig.from_json(config.to_json())
 
     assert restored.mode == "practice"
-    assert [item.exercise_id for item in restored.items] == ["q1", "q2", "q3"]
+    assert [item.exercise_id for item in restored.items] == ["q1", "q2", "q3", "q4", "q5"]
     assert restored.get_item("q1").correct_index == 0
     assert restored.get_item("q3").accepted_answers == ["RAM", "Random Access Memory"]
+    assert restored.get_item("q4").correct_categories == [0, 1, 0]
+    assert restored.get_item("q5").correct_order == [1, 3, 2, 0]
 
 
 def test_from_json_empty_or_malformed_returns_empty_config():
@@ -146,21 +213,50 @@ def test_from_json_falls_back_to_practice_for_invalid_mode():
 
 
 def test_item_public_dict_never_leaks_solution():
-    for item in (_single_choice_item(), _true_false_item(), _short_answer_item()):
+    for item in (
+        _single_choice_item(),
+        _true_false_item(),
+        _short_answer_item(),
+        _classification_item(),
+        _ordering_item(),
+    ):
         public = item.to_public_dict()
         assert "correct_index" not in public
         assert "accepted_answers" not in public
+        assert "correct_categories" not in public
+        assert "correct_order" not in public
         assert "explanation" not in public
+
+
+def test_classification_public_dict_includes_categories_and_elements_but_not_answer():
+    public = _classification_item().to_public_dict()
+    assert public["categories"] == ["Matériel", "Logiciel"]
+    assert public["elements"] == ["Carte graphique", "Navigateur", "RAM"]
+    assert "correct_categories" not in public
+
+
+def test_ordering_public_dict_includes_order_items_but_not_correct_order():
+    public = _ordering_item().to_public_dict()
+    assert public["order_items"] == ["Affichage", "Lecture SSD", "Exécution CPU", "Chargement RAM"]
+    assert "correct_order" not in public
 
 
 def test_block_public_dict_never_leaks_solution():
     config = EditorialExerciseBlockConfig(
-        items=[_single_choice_item(), _true_false_item(), _short_answer_item()]
+        items=[
+            _single_choice_item(),
+            _true_false_item(),
+            _short_answer_item(),
+            _classification_item(),
+            _ordering_item(),
+        ]
     )
     public = config.to_public_dict()
     serialized = str(public)
     assert "correct_index" not in serialized
     assert "accepted_answers" not in serialized
+    assert "correct_categories" not in serialized
+    assert "correct_order" not in serialized
     assert "explanation" not in serialized
     # "RAM" apparaît légitimement dans l'énoncé (prompt) de q1/q3 — on vérifie plutôt que
     # la valeur de la réponse acceptée de q3 (le champ lui-même déjà vérifié ci-dessus)
@@ -220,6 +316,66 @@ def test_check_editorial_answer_malformed_choice_answer_is_incorrect_not_an_erro
 def test_check_editorial_answer_unknown_exercise_id_returns_none():
     config = EditorialExerciseBlockConfig(items=[_single_choice_item()])
     assert check_editorial_answer(config, "does-not-exist", "0") is None
+
+
+# --- Correction : classification -----------------------------------------------------------
+
+
+def test_check_editorial_answer_classification_correct():
+    config = EditorialExerciseBlockConfig(items=[_classification_item()])
+    correction = check_editorial_answer(config, "q4", [0, 1, 0])
+    assert correction.correct is True
+    assert "Carte graphique" in correction.correct_answer
+    assert "Matériel" in correction.correct_answer
+
+
+def test_check_editorial_answer_classification_incorrect():
+    config = EditorialExerciseBlockConfig(items=[_classification_item()])
+    assert check_editorial_answer(config, "q4", [1, 1, 0]).correct is False
+
+
+def test_check_editorial_answer_classification_incomplete_is_incorrect_not_an_error():
+    config = EditorialExerciseBlockConfig(items=[_classification_item()])
+    assert check_editorial_answer(config, "q4", [0, 1]).correct is False
+    assert check_editorial_answer(config, "q4", []).correct is False
+
+
+def test_check_editorial_answer_classification_wrong_type_is_incorrect_not_an_error():
+    config = EditorialExerciseBlockConfig(items=[_classification_item()])
+    assert check_editorial_answer(config, "q4", "not-a-list").correct is False
+    assert check_editorial_answer(config, "q4", None).correct is False
+    assert check_editorial_answer(config, "q4", ["a", "b", "c"]).correct is False
+
+
+# --- Correction : ordering ------------------------------------------------------------------
+
+
+def test_check_editorial_answer_ordering_correct():
+    config = EditorialExerciseBlockConfig(items=[_ordering_item()])
+    correction = check_editorial_answer(config, "q5", [1, 3, 2, 0])
+    assert correction.correct is True
+    assert correction.correct_answer.startswith("1. Lecture SSD")
+
+
+def test_check_editorial_answer_ordering_incorrect_valid_permutation():
+    config = EditorialExerciseBlockConfig(items=[_ordering_item()])
+    assert check_editorial_answer(config, "q5", [0, 1, 2, 3]).correct is False
+
+
+def test_check_editorial_answer_ordering_incomplete_is_incorrect_not_an_error():
+    config = EditorialExerciseBlockConfig(items=[_ordering_item()])
+    assert check_editorial_answer(config, "q5", [1, 3, 2]).correct is False
+    assert check_editorial_answer(config, "q5", []).correct is False
+
+
+def test_check_editorial_answer_ordering_malformed_not_a_permutation_is_incorrect():
+    """Doublon/valeur hors bornes : une réponse structurellement invalide, pas une
+    permutation valide de order_items — traitée comme une réponse incorrecte, pas une
+    erreur serveur."""
+    config = EditorialExerciseBlockConfig(items=[_ordering_item()])
+    assert check_editorial_answer(config, "q5", [1, 1, 2, 0]).correct is False
+    assert check_editorial_answer(config, "q5", [1, 3, 2, 9]).correct is False
+    assert check_editorial_answer(config, "q5", "not-a-list").correct is False
 
 
 def test_correction_to_dict_shape():

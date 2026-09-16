@@ -68,17 +68,27 @@ def test_mc01_has_twelve_exercises_with_hidden_corrections(client, db_session):
     response = client.get("/uaa/ampcr-mc01")
     text = response.text
 
-    # Les 12 énoncés sont présents (rendu Markdown -> <h2>Exercice N — ...</h2>).
+    # Les 12 énoncés sont présents. Depuis le ticket #21, les exercices 1, 2, 9 et 11 sont
+    # des blocs `editorial_exercise` (titre du bloc affiché comme titre de carte, ex.
+    # « Exercice 1 — Matériel ou logiciel (classification) ») ; les 8 autres restent des
+    # blocs Markdown (« ## Exercice N — ... » -> <h2>Exercice N — ...</h2>).
     for n in range(1, 13):
         assert f"Exercice {n} —" in text, f"exercice {n} manquant"
 
-    # Chaque exercice contient bien un paragraphe de correction : le Markdown est rendu
-    # côté serveur tel quel (comme pour Solides/Patrons en Géométrie), le masquage jusqu'à
-    # la demande explicite est appliqué ensuite côté client par
-    # app/static/js/design_system.js::splitExerciseCorrections() — pas testable via
-    # TestClient (pas de JS), donc on vérifie ici que le texte est bien présent et sera
-    # capturé par ce mécanisme générique (déjà couvert par la convention existante).
-    assert text.count("Correction :") >= 12
+    # Les 8 exercices restés en Markdown (3, 4, 5, 6, 7, 8, 10, 12) contiennent bien un
+    # paragraphe de correction : le Markdown est rendu côté serveur tel quel (comme pour
+    # Solides/Patrons en Géométrie), le masquage jusqu'à la demande explicite est appliqué
+    # ensuite côté client par app/static/js/design_system.js::splitExerciseCorrections() —
+    # pas testable via TestClient (pas de JS), donc on vérifie ici que le texte est bien
+    # présent et sera capturé par ce mécanisme générique (déjà couvert par la convention
+    # existante).
+    assert text.count("Correction :") >= 8
+
+    # Les 4 exercices migrés (ticket #21) n'affichent, eux, JAMAIS leur correction dans le
+    # HTML initial : elle n'existe côté serveur que derrière l'appel de vérification AJAX
+    # (voir app/editorial_exercise.py, app/practice.py). Garde-fou anti-fuite explicite.
+    assert "correct_categories" not in text
+    assert "correct_order" not in text
 
 
 def test_exam_is_published_without_visible_correction(client, db_session):
