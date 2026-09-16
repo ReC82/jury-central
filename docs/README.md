@@ -157,6 +157,17 @@ borné), routes, et comment l'activer pour un nouveau cours.
 
 ---
 
+## editorial_exercise_engine.md
+
+Socle générique des exercices éditoriaux interactifs (single_choice, true_false,
+short_answer dans la première tranche) : modèle de données, route de vérification,
+widget, sécurité, et comment ajouter un nouveau type d'interaction.
+
+À consulter avant de migrer un exercice éditorial vers ce format, ou d'ajouter un
+nouveau type d'interaction.
+
+---
+
 ## deployment_staging.md
 
 Architecture de l'environnement staging (`jury-central.lodylands.com`) : domaine, nginx,

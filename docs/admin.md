@@ -72,6 +72,12 @@ Types actuellement pris en charge :
   `docs/ai_exercise_engine.md`). Pas encore de formulaire admin dédié : se crée aujourd'hui
   via `app/seed.py`, ou en saisissant son JSON (`context_key`, `intro`) dans le champ
   contenu générique du formulaire de bloc.
+- editorial_exercise (exercices éditoriaux structurés interactifs — single_choice,
+  true_false, short_answer dans cette première tranche, voir
+  `docs/editorial_exercise_engine.md`). Pas encore de formulaire admin dédié non plus ;
+  `/admin/editorial-exercise-demo` permet de prévisualiser le composant avec un exercice
+  fixe par type, indépendamment de tout contenu réel (même principe que
+  `/admin/value-table-demo`).
 
 D'autres types pourront être ajoutés progressivement.
 

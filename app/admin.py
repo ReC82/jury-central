@@ -10,6 +10,11 @@ from app import models
 from app.answer_checking import parse_answer
 from app.auth import require_admin, verify_credentials
 from app.database import get_db
+from app.editorial_exercise import (
+    EditorialExerciseBlockConfig,
+    EditorialExerciseItem,
+    check_editorial_answer,
+)
 from app.exercise_blocks import ExerciseBlockConfig
 from app.quiz import QuizConfig, build_quiz_config
 from app.quiz_import import ImportResult, ImportRowError, import_quiz_csv
@@ -830,6 +835,11 @@ class ValueTableVerifyRequest(BaseModel):
     answers: list[str]
 
 
+class VerifyEditorialExerciseDemoRequest(BaseModel):
+    exercise_id: str
+    answer: str
+
+
 @protected_router.get("/value-table-demo", response_class=HTMLResponse)
 async def admin_value_table_demo(request: Request) -> HTMLResponse:
     exercise = _value_table_demo_exercise()
@@ -847,6 +857,75 @@ async def admin_value_table_demo_verify(payload: ValueTableVerifyRequest) -> JSO
         correction = check_value_table_answers(exercise, payload.answers)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return JSONResponse(correction.to_dict())
+
+
+def _editorial_exercise_demo_config() -> EditorialExerciseBlockConfig:
+    """Configuration fixe de démonstration pour le socle `editorial_exercise` (ticket #17).
+
+    Ne fait partie du contenu pédagogique d'aucune UAA : aucun des 12 exercices existants
+    de AMPCR MC01 ne peut être migré sans le dénaturer avec cette première tranche de
+    types (voir docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md). Cette
+    fonction sert uniquement à prévisualiser l'architecture (rendu, saisie, correction
+    AJAX) de bout en bout, indépendamment de tout contenu réel — même principe que
+    `_value_table_demo_exercise` ci-dessus.
+    """
+    return EditorialExerciseBlockConfig(
+        mode="practice",
+        items=[
+            EditorialExerciseItem(
+                exercise_id="demo-single-choice",
+                type="single_choice",
+                prompt="Lequel de ces composants est une mémoire **volatile** ?",
+                choices=["Le disque dur (HDD)", "La mémoire vive (RAM)", "Le SSD"],
+                correct_index=1,
+                explanation=(
+                    "La RAM perd son contenu à l'extinction du PC ; le HDD et le SSD "
+                    "conservent leurs données hors tension."
+                ),
+            ),
+            EditorialExerciseItem(
+                exercise_id="demo-true-false",
+                type="true_false",
+                prompt="Un SSD contient des pièces mécaniques mobiles.",
+                choices=["Vrai", "Faux"],
+                correct_index=1,
+                explanation=(
+                    "Un SSD utilise de la mémoire flash NAND, sans aucune pièce mécanique "
+                    "mobile — contrairement à un disque dur (HDD)."
+                ),
+            ),
+            EditorialExerciseItem(
+                exercise_id="demo-short-answer",
+                type="short_answer",
+                prompt="Quel sigle anglais désigne la mémoire vive ?",
+                accepted_answers=["RAM", "Random Access Memory"],
+                explanation="RAM = Random Access Memory, la mémoire de travail temporaire et volatile.",
+            ),
+        ],
+    )
+
+
+@protected_router.get("/editorial-exercise-demo", response_class=HTMLResponse)
+async def admin_editorial_exercise_demo(request: Request) -> HTMLResponse:
+    config = _editorial_exercise_demo_config()
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_editorial_exercise_demo.html",
+        context={
+            "items_json": json.dumps(config.to_public_dict()["items"], ensure_ascii=False),
+        },
+    )
+
+
+@protected_router.post("/editorial-exercise-demo/verify")
+async def admin_editorial_exercise_demo_verify(
+    payload: VerifyEditorialExerciseDemoRequest,
+) -> JSONResponse:
+    config = _editorial_exercise_demo_config()
+    correction = check_editorial_answer(config, payload.exercise_id, payload.answer)
+    if correction is None:
+        raise HTTPException(status_code=404, detail="Question introuvable")
     return JSONResponse(correction.to_dict())
 
 

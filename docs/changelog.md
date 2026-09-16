@@ -2,6 +2,59 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Socle générique des exercices éditoriaux interactifs (ticket #17)
+
+Suite à l'audit UX/technique du même jour
+(`docs/claude-reports/2026-09-16_audit_interactivite.md`), premier chantier
+d'interactivité : les exercices éditoriaux (texte Markdown avec correction masquée/
+affichée côté client, sans saisie ni vérification serveur) gagnent un socle générique
+réutilisable dans toutes les matières, sur le patron déjà éprouvé par `value_table`/
+`quiz`/`ai_exercise` (config JSON → route de vérification → widget AJAX).
+
+**Nouveau type de bloc `editorial_exercise`** (`app/models.py::BlockType`, extension
+minimale, aucun changement de schéma SQLite). Nouveau module `app/editorial_exercise.py` :
+`EditorialExerciseBlockConfig` (`mode: practice|exam`, liste d'items),
+`EditorialExerciseItem` (validation stricte à la construction, tolérance au chargement
+depuis la base), première tranche de types — `single_choice`, `true_false`,
+`short_answer` — à correction locale déterministe uniquement. Nouvelle fonction
+`app/answer_checking.py::text_answer_matches` (comparaison textuelle normalisée casse/
+espaces/accents, aucun `eval()`).
+
+**Nouvelle route** `POST /practice/api/editorial/{block_id}/verify` — le serveur recharge
+toujours la configuration complète depuis `LessonBlock.content` ; `to_public_dict()`
+exclut structurellement la solution. Nouveau widget `app/static/js/editorial_exercise.js`
+(AJAX, sans rechargement, contrôles `d-print-none`, tailles/contrôles adaptés au mobile).
+
+**Démonstration** `/admin/editorial-exercise-demo` (+ route de vérification associée),
+même principe que `/admin/value-table-demo` : un exercice fixe par type, indépendamment
+de tout contenu réel.
+
+**MC01 : aucune migration dans ce ticket.** Les 12 exercices existants ont été passés en
+revue un par un : 8 nécessitent `long_answer` (réponse rédigée, correction IA — ticket
+séparé), 3 nécessitent `classification`, 1 nécessite `ordering` — aucun ne peut être
+honnêtement exprimé avec la première tranche de types sans dénaturer son contenu
+pédagogique. Conformément au ticket #17 (« ne force pas artificiellement »), MC01 reste
+donc intact dans ce ticket ; le détail exercice par exercice est dans
+`docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md`.
+
+**Tests** : +38 tests (`tests/test_editorial_exercise.py` : validation, sérialisation,
+absence de fuite, correction ; `tests/test_practice_editorial_routes.py` : route HTTP de
+bout en bout, IDs invalides, bloc non publié/mauvais type, absence de fuite dans le HTML
+public, démo admin ; `tests/test_ticket17_no_regression.py` : confirme `app/seed.py`
+inchangé, MC01/MC02/MC03/Mathématiques strictement intacts). 236 tests au total, tous
+verts. `ruff check .` : 36 erreurs, identiques à `develop` (comparé via worktree isolé) —
+aucune nouvelle erreur.
+
+**Vérifié manuellement** sur une base SQLite temporaire isolée (jamais `jury_central.db`,
+intégrité re-vérifiée par MD5) : MC01/MC02/MC03/Mathématiques inchangés, démo admin
+accessible après connexion, réponse correcte/incorrecte/normalisée toutes vérifiées,
+aucune fuite de solution dans le HTML brut de la page de démo.
+
+**Documentation** : `docs/editorial_exercise_engine.md` (nouveau),
+`docs/EXERCISE_TYPES.md`, `docs/admin.md`, `docs/current_state.md`, `docs/INDEX.md`,
+`docs/README.md`,
+`docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md` (rapport de ticket).
+
 ## 2026-09-16 — Informatique AMPCR : mini-cours 03 « CPU et mémoire RAM » (ticket #14)
 
 Troisième cours de la série Informatique AMPCR, contenu et périmètre pédagogique fournis

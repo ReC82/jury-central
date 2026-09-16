@@ -14,6 +14,7 @@ from app.ai_exercise_blocks import AIExerciseBlockConfig
 from app.answer_checking import answers_match
 from app.content import render_markdown
 from app.database import get_db
+from app.editorial_exercise import EditorialExerciseBlockConfig, check_editorial_answer
 from app.exercise_blocks import exercise_to_public_dict
 from app.quiz import QuizConfig
 from app.templating import templates
@@ -50,6 +51,11 @@ class VerifyValueTableRequest(BaseModel):
     difficulty: int
     seed: int
     answers: list[str]
+
+
+class VerifyEditorialExerciseRequest(BaseModel):
+    exercise_id: str
+    answer: str
 
 
 class GenerateAIExerciseRequest(BaseModel):
@@ -265,3 +271,25 @@ async def api_correct_ai_exercise(
         else ""
     )
     return JSONResponse(result)
+
+
+@router.post("/api/editorial/{block_id}/verify")
+async def api_verify_editorial_exercise(
+    block_id: int, payload: VerifyEditorialExerciseRequest, db: Session = Depends(get_db)  # noqa: B008
+) -> JSONResponse:
+    """Vérifie la réponse à un item d'un bloc `editorial_exercise` (ticket #17). Le serveur
+    recharge toujours la configuration complète depuis la base : aucune réponse correcte
+    n'est jamais transmise au navigateur avant cet appel."""
+    block = db.get(models.LessonBlock, block_id)
+    if (
+        block is None
+        or block.type != models.BlockType.EDITORIAL_EXERCISE
+        or not block.is_published
+    ):
+        raise HTTPException(status_code=404, detail="Exercice introuvable")
+
+    config = EditorialExerciseBlockConfig.from_json(block.content)
+    correction = check_editorial_answer(config, payload.exercise_id, payload.answer)
+    if correction is None:
+        raise HTTPException(status_code=404, detail="Question introuvable")
+    return JSONResponse(correction.to_dict())

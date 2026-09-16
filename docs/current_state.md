@@ -90,6 +90,14 @@ générateur réel (exercice fixe).
   correction structurée via l'API OpenAI, appelée côté serveur uniquement, bornée à un
   contexte pédagogique par cours (`app/ai/context.py`). Complémentaire aux deux moteurs
   ci-dessus, pas un remplacement. Non configuré par défaut.
+- **Socle des exercices éditoriaux interactifs** (bloc `editorial_exercise`, ticket #17,
+  voir `docs/editorial_exercise_engine.md`) : première tranche de types —
+  `single_choice`, `true_false`, `short_answer` — à correction locale déterministe,
+  saisie + vérification AJAX + score, sans rechargement de page. Prévisualisable via
+  `/admin/editorial-exercise-demo`. **Aucun exercice MC01 réel n'est encore migré** dans
+  ce format : les 12 exercices existants nécessitent tous `long_answer` (8),
+  `classification` (3) ou `ordering` (1), types réservés à des tickets suivants — voir
+  `docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md`.
 
 ---
 

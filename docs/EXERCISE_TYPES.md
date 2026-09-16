@@ -367,8 +367,11 @@ Le navigateur choisit automatiquement le mode impression via CSS.
 Ce document décrit le moteur de génération **déterministe** (générateur Python → JSON →
 composant frontend). Un second moteur, complémentaire, génère des exercices à la demande et
 les corrige via l'API OpenAI côté serveur (bloc de leçon `ai_exercise`) — voir
-`docs/ai_exercise_engine.md`. Les deux coexistent : un cours peut proposer des exercices
-éditoriaux fixes, des exercices générés déterministes, et/ou des exercices générés par IA.
+`docs/ai_exercise_engine.md`. Un troisième moteur rend interactifs les **exercices
+éditoriaux** (rédigés à l'avance, pas générés) — bloc de leçon `editorial_exercise`, voir
+`docs/editorial_exercise_engine.md`. Les trois coexistent : un cours peut proposer des
+exercices éditoriaux structurés, des exercices générés déterministes, et/ou des exercices
+générés par IA.
 
 ---
 

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — Démo exercice éditorial{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Démo exercice éditorial</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">Socle des exercices éditoriaux — editorial_exercise</h1>
+
+<div class="bg-white p-4 rounded shadow-sm mb-4">
+    <p class="text-muted mb-0">
+        Outil de debug : prévisualise le socle générique <code>editorial_exercise</code>
+        (voir <code>docs/editorial_exercise_engine.md</code>) avec trois exercices fixes
+        (un par type de la première tranche : <code>single_choice</code>,
+        <code>true_false</code>, <code>short_answer</code>), indépendamment de tout
+        contenu réel. Réponds à chaque exercice puis observe la correction — jamais
+        visible avant validation.
+    </p>
+</div>
+
+<div class="jc-card jc-card--exercise">
+    <div class="jc-card-header">
+        <span class="jc-card-icon" aria-hidden="true">📝</span>
+        <span class="jc-card-label">Exercice</span>
+    </div>
+    <div class="jc-card-body">
+        <div
+            class="editorial-exercise-block"
+            data-verify-url="/admin/editorial-exercise-demo/verify"
+            data-items="{{ items_json }}"></div>
+    </div>
+</div>
+{% endblock %}

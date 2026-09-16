@@ -165,6 +165,18 @@
     {% endif %}
     {% endcall %}
 
+    {% elif item.block.type.value == "editorial_exercise" %}
+    {% call cards.card(item.card, title=item.block.title) %}
+    {% if item.editorial_exercise %}
+    <div
+        class="editorial-exercise-block"
+        data-verify-url="{{ item.editorial_exercise.verify_url }}"
+        data-items="{{ item.editorial_exercise.items_json }}"></div>
+    {% else %}
+    <p class="text-muted">Aucun exercice disponible.</p>
+    {% endif %}
+    {% endcall %}
+
     {% elif item.block.type.value == "quiz" and item.quiz %}
     {% call cards.card(item.card, title=item.block.title) %}
     <div
