@@ -11,6 +11,26 @@ ce qui existe, ce qui manque, et propose un découpage en tickets.
 
 ---
 
+# 0. Mise à jour — mini-cours 01 livré (ticket #10, 2026-09-16)
+
+Le mini-cours 01 Informatique AMPCR (« Architecture générale d'un PC ») est désormais
+implémenté (branche `feature/10-informatique-ampcr-mc01-architecture-pc`), avec un chemin
+de traçabilité **différent** de celui anticipé au § 2 : ChatGPT a fourni le cahier des
+charges pédagogique complet directement dans le corps du ticket GitHub #10 (référentiel
+officiel cité : programme 345/2007/249 AMPCR), plutôt que de déposer d'abord un fichier
+brouillon séparé (tickets A/C imaginés ci-dessous). Voir
+`docs/content_workflow.md`, section « Contenu rédigé à partir d'un cahier des charges »,
+pour la règle de traçabilité réellement appliquée (le ticket GitHub fait foi).
+
+Ce qui reste vrai et non résolu : aucun référentiel officiel FWB/AMPCR complet (profil de
+formation) n'est déposé dans le dépôt lui-même ; la structure Module=« AMPCR »,
+UAA=« MC01 » (§ 4.2 ci-dessous) reste une hypothèse technique, pas une correspondance
+officielle confirmée avec des codes FWB. Les tickets B/D (référentiel officiel, cartographie
+détaillée) gardent leur pertinence pour fiabiliser cette correspondance au fil des 37
+mini-cours suivants.
+
+---
+
 # 1. Changement de priorité produit
 
 À partir de ce ticket, l'ordre de priorité produit devient :

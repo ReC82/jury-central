@@ -68,6 +68,10 @@ Types actuellement pris en charge :
 - markdown
 - generated_exercise
 - quiz
+- ai_exercise (génération et correction d'exercices par IA — voir
+  `docs/ai_exercise_engine.md`). Pas encore de formulaire admin dédié : se crée aujourd'hui
+  via `app/seed.py`, ou en saisissant son JSON (`context_key`, `intro`) dans le champ
+  contenu générique du formulaire de bloc.
 
 D'autres types pourront être ajoutés progressivement.
 

@@ -273,6 +273,25 @@ Lorsque cela apporte une valeur pédagogique, utiliser :
 
 Les illustrations doivent être légères.
 
+## Schéma de flux (étapes reliées par des flèches)
+
+Pour représenter un enchaînement simple d'étapes (ex. entrée → traitement → sortie, ou le
+chemin d'exécution d'un programme), utiliser le composant générique `.jc-flow` /
+`.jc-flow-step` / `.jc-flow-arrow` (`app/static/css/design-system.css`) plutôt qu'une
+nouvelle image ou un nouveau schéma SVG :
+
+```html
+<div class="jc-flow">
+    <div class="jc-flow-step">Étape 1<br><small>précision</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">Étape 2</div>
+</div>
+```
+
+Responsive (les flèches pivotent verticalement sous 576px), compatible impression, sans
+JavaScript ni image. Introduit avec le mini-cours 01 Informatique AMPCR (ticket #10),
+réutilisable par toute UAA.
+
 ---
 
 # Formules

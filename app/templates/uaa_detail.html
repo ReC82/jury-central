@@ -116,6 +116,55 @@
     </div>
     {% endcall %}
 
+    {% elif item.block.type.value == "ai_exercise" %}
+    {% call cards.card(item.card, title=item.block.title) %}
+    {% if item.ai_exercise %}
+    {% if item.ai_exercise.intro_html %}
+    <div class="content-markdown mb-3">{{ item.ai_exercise.intro_html | safe }}</div>
+    {% endif %}
+    <div class="border rounded p-3 ai-exercise-widget" data-block-id="{{ item.ai_exercise.block_id }}">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <label class="form-label small text-muted mb-0" for="ai-difficulty-{{ item.ai_exercise.block_id }}">
+                Difficulté
+            </label>
+            <select
+                id="ai-difficulty-{{ item.ai_exercise.block_id }}"
+                class="form-select form-select-sm ai-exercise-difficulty"
+                style="max-width: 160px;">
+                <option value="facile">Facile</option>
+                <option value="moyen" selected>Moyen</option>
+                <option value="difficile">Difficile</option>
+            </select>
+            <button type="button" class="btn btn-outline-primary btn-sm ai-exercise-generate-btn">
+                Générer un exercice
+            </button>
+            <span class="ai-exercise-loading text-muted small d-none">Un instant…</span>
+        </div>
+
+        <div class="ai-exercise-error text-danger small mb-2 d-none"></div>
+
+        <div class="ai-exercise-body d-none">
+            <div class="ai-exercise-statement content-markdown mb-2"></div>
+            <div class="mb-2">
+                <label class="form-label small text-muted" for="ai-answer-{{ item.ai_exercise.block_id }}">
+                    Ta réponse
+                </label>
+                <textarea
+                    id="ai-answer-{{ item.ai_exercise.block_id }}"
+                    class="form-control ai-exercise-answer"
+                    rows="4"></textarea>
+            </div>
+            <button type="button" class="btn btn-dark btn-sm ai-exercise-correct-btn">
+                Corriger ma réponse
+            </button>
+            <div class="ai-exercise-result mt-3 d-none"></div>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-muted">Génération d'exercice indisponible (configuration manquante).</p>
+    {% endif %}
+    {% endcall %}
+
     {% elif item.block.type.value == "quiz" and item.quiz %}
     {% call cards.card(item.card, title=item.block.title) %}
     <div
