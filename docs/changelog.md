@@ -2,6 +2,66 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Informatique AMPCR : mini-cours 01 « Architecture générale d'un PC » (ticket #10)
+
+Premier contenu réel pour Informatique AMPCR, cours pilote de la série prévue des 38
+mini-cours. Contenu et périmètre pédagogique fournis intégralement par ChatGPT dans le
+ticket GitHub #10 (référentiel officiel cité : programme 345/2007/249 AMPCR), implémentés
+sans en changer la portée. Aucune régression sur Mathématiques.
+
+**Matière/module/UAA** : `Informatique` (nouvelle matière) → module `AMPCR` → UAA `MC01`
+(« Architecture générale d'un PC »), navigable depuis `/subjects`,
+`/subjects/informatique`, `/modules/ampcr`, `/uaa/ampcr-mc01`, exactement comme
+Mathématiques.
+
+**Architecture (réutilisée, pas réinventée)** :
+- `app/seed.py` : `_ensure_subject()`/`_ensure_modules()` extraits du code jusque-là
+  spécifique à Mathématiques, pour un seed additif et idempotent **générique**,
+  réutilisable par les mini-cours 02–38 et par Français. `seed()` appelle désormais ces
+  helpers deux fois (Mathématiques, puis Informatique) au lieu d'un chemin unique câblé en
+  dur. Aucun changement de schéma de base de données.
+- `app/card_kind.py` : le mot-clé « examen » classe désormais un bloc en carte « exam » (au
+  même titre que « mini-test »), pour que « Examen final — ... » réutilise directement
+  `ExamCard` sans nouveau type de bloc.
+- `app/static/css/design-system.css` : nouveau composant générique `.jc-flow` (schéma de
+  flux en étapes reliées par des flèches, responsive, compatible impression) — voir
+  `docs/UI_GUIDELINES.md`. Aucun changement JS, aucune nouvelle dépendance.
+- Tous les autres mécanismes sont réutilisés tels quels : blocs `markdown`, classification
+  de carte par titre, masquage de correction générique
+  (`app/static/js/design_system.js::splitExerciseCorrections()`), blocs `is_published`.
+
+**Contenu** : 18 blocs (`MC01_BLOCKS`) — plan, 9 sections de théorie (vue globale, carte
+mère, CPU, RAM, stockage, GPU, PSU, périphériques E/S, vocabulaire FR/EN + vocabulaire
+ancien du référentiel), 1 scénario d'interaction (ExampleCard), 12 exercices progressifs
+répartis en 3 blocs (correction masquée à la demande, mécanisme existant), 1 fiche mémo, et
+l'examen final.
+
+**Examen — traçabilité stricte** : le bloc « Examen final... » (publié) contient les 10
+questions et le barème (2 pts chacune) mais **aucune réponse**. Le corrigé/barème complet
+vit dans un second bloc, « Examen final — Corrigé (réservé formateur, non publié) »,
+`is_published: False` — jamais transmis à la route publique
+(`app/main.py::uaa_detail` ignore les blocs non publiés), consultable/éditable uniquement
+depuis `/admin`. Garantie serveur, pas seulement un masquage CSS/JS côté client.
+
+**Tests** : +14 tests (`tests/test_card_kind.py`, `tests/test_informatique_mc01.py`,
+mise à jour de `test_seed_is_idempotent` pour les nouveaux effectifs) — 156 tests au total,
+tous verts. `ruff check .` : aucune nouvelle erreur (36 préexistantes, non liées à ce
+ticket, déjà signalées avant ce ticket).
+
+**Vérifié manuellement** : serveur démarré sur une base SQLite temporaire isolée (jamais
+`jury_central.db`) — `/subjects`, `/subjects/informatique`, `/modules/ampcr`,
+`/uaa/ampcr-mc01` répondent 200 ; les 12 exercices et les 5 types de cartes s'affichent
+(`jc-card--theory/--example/--exercise/--summary/--exam`) ; le schéma `.jc-flow` est
+présent ; le corrigé de l'examen n'apparaît jamais sur la page publique ; l'admin, une fois
+connecté, voit bien le bloc corrigé non publié ; Mathématiques (`/uaa/mb32-uaa1`) reste
+inchangé.
+
+**Documentation** : `docs/content_workflow.md` (nouvelle section : contenu rédigé depuis un
+cahier des charges de ticket, sans fichier `docs/sources_cours/`), `docs/UI_GUIDELINES.md`
+(composant `.jc-flow`), `docs/components/ExamCard.md` (mot-clé « examen », variante examen
+sans correction révélable), `docs/current_state.md`,
+`docs/content_plan_informatique_francais.md` (mise à jour de statut).
+
 ## 2026-09-16 — Validation staging réelle du ticket #6 et correction de doc
 
 Première exécution réelle de `scripts/deploy_staging.sh` contre le staging opérationnel,

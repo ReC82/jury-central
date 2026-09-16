@@ -25,7 +25,7 @@ def classify_block_title(title: str) -> str:
     l'UAA, méthode).
     """
     lowered = title.lower()
-    if "mini-test" in lowered:
+    if "mini-test" in lowered or "examen" in lowered:
         return "exam"
     if "fiche mémo" in lowered or "mémo" in lowered:
         return "summary"

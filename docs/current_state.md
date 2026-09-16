@@ -176,12 +176,19 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
 - MB32 UAA1
 - MB32 UAA2 (Géométrie — 6 leçons : Solides, Perspective cavalière, Patrons, Vues
   coordonnées, Aires, Volumes)
+- **Informatique — AMPCR — mini-cours 01 « Architecture générale d'un PC »** (ticket #10,
+  2026-09-16) : matière et module désormais navigables (`/subjects/informatique`,
+  `/modules/ampcr`, `/uaa/ampcr-mc01`), 11 sections de cours, 12 exercices progressifs à
+  correction masquée à la demande, examen final de 10 questions/20 points sans aucune
+  correction visible côté candidat (corrigé dans un bloc séparé non publié). Cours pilote
+  de la série des 38 mini-cours Informatique — voir
+  [docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md).
 
 ## En attente d'import
 
-- MB32 UAA3
-- MQ32
-- MQ34
+- MB32 UAA3, MQ32, MQ34 (derrière Informatique/Français, voir priorité ci-dessous)
+- Mini-cours 02 à 38 Informatique AMPCR
+- Français CESS Professionnel (aucun contenu à ce jour)
 
 ---
 
@@ -203,12 +210,13 @@ Depuis le ticket #4 (2026-09-16), l'ordre de priorité produit est :
 2. **Français — CESS Professionnel** ;
 3. reste du contenu Mathématiques (MB32 UAA3, MQ32, MQ34) et autres matières.
 
-Aucune source officielle ni brouillon ChatGPT pour Informatique ou Français n'est encore
-présent dans le dépôt — voir
+Le mini-cours 01 Informatique AMPCR est livré (ticket #10) directement depuis un cahier
+des charges pédagogique fourni par ChatGPT dans le ticket GitHub, sans fichier source
+déposé dans `docs/sources_cours/` (voir `docs/content_workflow.md`, section « Contenu
+rédigé à partir d'un cahier des charges »). Français CESS Professionnel n'a encore aucun
+contenu. Voir
 [docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md) pour
-l'inventaire complet, la cartographie des deux matières et le découpage en tickets
-proposé. Ce plan ne déclenche aucun import : la suite dépend du dépôt des sources par
-l'utilisateur.
+l'inventaire, la cartographie et le découpage en tickets restants.
 
 ---
 

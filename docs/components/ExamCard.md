@@ -55,7 +55,8 @@ Markdown normal, retraité par le Design System.
 - Icône 🎓 : `UI_GUIDELINES.md` ne définit pas d'icône pour les mini-tests. Choisie pour
   évoquer un examen, sans conflit avec une icône déjà attribuée ailleurs.
 - Classification automatique (`app/card_kind.py`) : tout bloc dont le titre contient
-  « mini-test ».
+  « mini-test » ou « examen » (ex. « Examen final — Architecture générale d'un PC »,
+  mini-cours 01 Informatique AMPCR).
 - Même mécanisme de masquage que [ExerciseCard](ExerciseCard.md)
   (`app/static/js/design_system.js`, `splitExerciseCorrections()`), avec une règle
   supplémentaire : si un segment commence par un titre contenant « correction » (ex.
@@ -64,6 +65,21 @@ Markdown normal, retraité par le Design System.
   ExerciseCard, aucun champ de réponse libre n'est inséré (une réponse par question aurait
   demandé de fragmenter le mini-test question par question, hors périmètre actuel — voir
   Limite connue).
+
+---
+
+# Variante : examen sans aucune correction visible côté candidat
+
+Certains examens (ex. mini-cours Informatique AMPCR, ticket #10) exigent qu'**aucune**
+correction ne soit jamais révélable par le candidat, même sur demande — à la différence du
+mini-test Mathématiques, où la correction reste affichable en un clic. Dans ce cas, ne pas
+inclure de section « ## Correction » dans le contenu publié : `splitExerciseCorrections()`
+ne trouvant alors rien à masquer, aucun bouton « Afficher la correction » n'apparaît. Le
+corrigé/barème est alors stocké dans un **second bloc distinct, non publié**
+(`LessonBlock.is_published = False`) : il n'est jamais envoyé au navigateur
+(`app/main.py::uaa_detail` ignore les blocs non publiés), mais reste visible et modifiable
+depuis l'admin pour une correction/notation ultérieure. Voir `app/seed.py`,
+`_MC01_EXAMEN`/`_MC01_EXAMEN_CORRIGE`.
 
 ---
 

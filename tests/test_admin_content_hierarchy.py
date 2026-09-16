@@ -1,5 +1,5 @@
 from app.models import UAA, BlockType, LessonBlock, Module, Subject
-from app.seed import UAA1_BLOCKS, UAA1_TITLE, UAA2_BLOCKS, seed
+from app.seed import MC01_BLOCKS, UAA1_BLOCKS, UAA1_TITLE, UAA2_BLOCKS, seed
 
 
 def test_create_subject_via_admin(admin_client, db_session):
@@ -234,10 +234,36 @@ def test_seed_is_idempotent(db_session):
     seed()
     seed()
 
-    assert db_session.query(Subject).count() == 1
-    assert db_session.query(Module).count() == 3
-    assert db_session.query(UAA).count() == 2
-    assert db_session.query(LessonBlock).count() == len(UAA1_BLOCKS) + len(UAA2_BLOCKS)
+    assert db_session.query(Subject).count() == 2
+    assert db_session.query(Module).count() == 4
+    assert db_session.query(UAA).count() == 3
+    assert db_session.query(LessonBlock).count() == (
+        len(UAA1_BLOCKS) + len(UAA2_BLOCKS) + len(MC01_BLOCKS)
+    )
+
+
+def test_seed_creates_informatique_ampcr_mc01(db_session):
+    seed()
+
+    subject = db_session.query(Subject).filter_by(name="Informatique").first()
+    assert subject is not None
+    assert subject.slug == "informatique"
+
+    module = db_session.query(Module).filter_by(code="AMPCR", subject_id=subject.id).first()
+    assert module is not None
+
+    uaa = db_session.query(UAA).filter_by(code="MC01", module_id=module.id).first()
+    assert uaa is not None
+    assert uaa.title == "Architecture générale d'un PC"
+    assert uaa.is_published is True
+
+    exam_block = (
+        db_session.query(LessonBlock)
+        .filter_by(uaa_id=uaa.id, title="Examen final — Corrigé (réservé formateur, non publié)")
+        .first()
+    )
+    assert exam_block is not None
+    assert exam_block.is_published is False
 
 
 def test_seed_does_not_overwrite_a_manually_edited_uaa_title(db_session):

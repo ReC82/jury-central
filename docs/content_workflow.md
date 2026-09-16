@@ -167,6 +167,30 @@ Ces ressources restent facultatives.
 
 ---
 
+# Contenu rédigé à partir d'un cahier des charges (sans fichier source déposé)
+
+La règle ci-dessus (§ Source officielle) suppose qu'un `cours.html`/`cours.pdf` existe déjà
+dans `docs/sources_cours/`. Ce n'est pas toujours le cas : pour Informatique AMPCR (voir
+`docs/content_plan_informatique_francais.md`), ChatGPT (chef de projet, responsable du
+contenu pédagogique) peut fournir directement un cahier des charges pédagogique complet
+dans le ticket GitHub lui-même — périmètre, notions obligatoires, exercices, examen — sans
+fichier source séparé à déposer au préalable.
+
+Dans ce cas :
+
+- le **ticket GitHub** (son historique, conservé sur GitHub) constitue la source de
+  traçabilité du contenu, à la place d'un fichier dans `docs/sources_cours/` ;
+- Claude implémente fidèlement ce cahier des charges dans la structure existante
+  (Matière → Module → UAA → Blocs), sans en redéfinir le périmètre pédagogique
+  (`docs/PROJECT_RULES.md` § 6) ;
+- le commit qui livre le contenu référence le ticket d'origine.
+
+Premier cas concret : mini-cours 01 Informatique AMPCR (ticket #10), rédigé depuis le
+cahier des charges du ticket plutôt que depuis un fichier `docs/sources_cours/` — la
+structure Matière/Module/UAA reste néanmoins strictement la même que pour Mathématiques.
+
+---
+
 # Objectif à long terme
 
 À terme, l'intégration d'une nouvelle UAA doit être entièrement automatique.
@@ -177,4 +201,6 @@ Le contenu sera généré à partir de :
 - cours.pdf
 - metadata.yaml
 
-sans intervention manuelle sur la structure du site.
+sans intervention manuelle sur la structure du site — **ou**, pour les matières sans
+source `docs/sources_cours/` disponible, à partir d'un cahier des charges de ticket GitHub
+(voir ci-dessus), avec le même niveau d'exigence de fidélité au contenu fourni.

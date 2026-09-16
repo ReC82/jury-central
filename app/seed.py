@@ -1412,6 +1412,876 @@ UAA2_BLOCKS = [
     },
 ]
 
+# Contenu réel du mini-cours 01 Informatique AMPCR (« Architecture générale d'un PC »),
+# ticket #10 : cours pilote de la série des 38 mini-cours Informatique. Contenu et
+# périmètre pédagogique fournis par ChatGPT (chef de projet), rédigés ici sans en changer
+# la portée. Réutilise exactement les mêmes mécanismes que MB32 (blocs markdown, cartes
+# classées par titre via app/card_kind.py, correction masquée générique via
+# app/static/js/design_system.js::splitExerciseCorrections) — aucune architecture
+# spécifique à ce cours.
+
+INFORMATIQUE_SUBJECT_NAME = "Informatique"
+INFORMATIQUE_MODULE_CODES = ["AMPCR"]
+
+MC01_CODE = "MC01"
+MC01_TITLE = "Architecture générale d'un PC"
+
+_MC01_PLAN = r"""# Architecture générale d'un PC
+
+Ce mini-cours est le premier d'une série consacrée à la formation Assistant/Assistante de
+maintenance PC-réseaux (AMPCR). Il pose les bases : de quoi un ordinateur est-il fait, à
+quoi sert chaque composant, et comment ces composants collaborent lorsque tu utilises ton
+PC.
+
+## Objectifs
+
+À la fin de ce mini-cours, tu sauras :
+
+- distinguer le matériel (hardware) du logiciel (software) ;
+- nommer les composants principaux d'un PC et expliquer le rôle de chacun ;
+- expliquer la différence entre la RAM et le stockage (HDD/SSD) ;
+- décrire ce qui se passe, composant par composant, quand tu lances un programme ;
+- utiliser le vocabulaire informatique correct, en français et en anglais.
+
+## Sommaire
+
+1. Vue globale d'un ordinateur
+2. Carte mère
+3. Processeur (CPU)
+4. Mémoire vive (RAM)
+5. Stockage
+6. Carte graphique (GPU)
+7. Alimentation (PSU)
+8. Périphériques et entrées/sorties
+9. Interaction des composants : que se passe-t-il quand tu lances un programme ?
+10. Vocabulaire FR/EN
+11. Vocabulaire ancien du référentiel
+
+*Les détails approfondis du CPU et de la RAM sont traités dans le mini-cours 03, ceux du
+stockage dans le mini-cours 04, et ceux de l'alimentation/refroidissement/sécurité dans le
+mini-cours 05. Ce mini-cours donne les bases nécessaires pour comprendre la suite.*
+"""
+
+_MC01_VUE_GLOBALE = r"""## Matériel (hardware) et logiciel (software)
+
+Un ordinateur combine deux univers très différents :
+
+| | Matériel — Hardware | Logiciel — Software |
+|---|---|---|
+| Définition | Tout ce qui est physique, que tu peux toucher | Les programmes et données qui font fonctionner le matériel |
+| Exemples | carte mère, CPU, RAM, disque dur, écran, souris | Windows, un traitement de texte, un jeu vidéo |
+| Sans l'autre ? | Sans logiciel, le matériel ne sait rien faire | Sans matériel, le logiciel n'a rien pour s'exécuter |
+
+Le matériel est la partie que tu peux réparer ou remplacer physiquement ; le logiciel
+s'installe, se met à jour et se réinstalle sans changer un seul composant.
+
+## Unité centrale et périphériques
+
+- L'**unité centrale** (le boîtier / tour) regroupe les composants qui traitent
+  l'information : carte mère, CPU, RAM, stockage, alimentation, carte graphique.
+- Les **périphériques** sont les éléments qui communiquent avec l'unité centrale sans en
+  faire partie : écran, clavier, souris, imprimante, disque externe...
+
+## Le chemin général de l'information
+
+Un ordinateur, quel qu'il soit, traite toujours l'information selon le même principe :
+
+<div class="jc-flow">
+    <div class="jc-flow-step">Entrée<br><small>clavier, souris, micro…</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">Traitement<br><small>CPU</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">Mémoire / stockage<br><small>RAM, SSD, HDD</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">Sortie<br><small>écran, imprimante, haut-parleurs…</small></div>
+</div>
+
+Ce schéma revient dans toute la suite du mini-cours : chaque composant que tu vas
+découvrir occupe une place précise dans ce chemin.
+
+## RAM et stockage : ne pas confondre
+
+C'est l'une des confusions les plus fréquentes chez un débutant :
+
+| | RAM (mémoire vive) | Stockage (HDD/SSD) |
+|---|---|---|
+| Rôle | Mémoire de travail *temporaire* | Conservation *durable* des données |
+| À l'extinction du PC ? | Contenu **perdu** (volatile) | Contenu **conservé** (persistant) |
+| Unité de mesure typique | quelques Go (8, 16, 32 Go...) | souvent bien plus (250 Go à plusieurs To) |
+| Rapidité | très rapide | plus lente (HDD) à rapide (SSD) |
+
+> **Piège fréquent :** dire « j'ai 32 Go dans mon PC » ne veut rien dire tout seul — 32 Go
+> de RAM et 32 Go de stockage n'ont pas du tout le même usage. Il faut toujours préciser
+> RAM ou stockage.
+"""
+
+_MC01_CARTE_MERE = r"""## Rôle de la carte mère
+
+La carte mère (*motherboard*) est le support physique qui **interconnecte tous les
+composants** de l'unité centrale. Elle ne calcule rien elle-même : son rôle est de
+permettre à chaque composant de communiquer avec les autres.
+
+## Ce qu'on trouve sur une carte mère
+
+| Élément | Rôle |
+|---|---|
+| Socket CPU | Emplacement où se fixe le processeur |
+| Emplacements RAM (slots) | Reçoivent les barrettes de mémoire vive |
+| Emplacements PCIe | Reçoivent la carte graphique et d'autres cartes d'extension |
+| Connecteurs de stockage | Relient les disques (HDD/SSD) à la carte mère |
+| Connecteurs E/S | Ports à l'arrière/l'avant du boîtier : USB, réseau, audio... |
+| Chipset | Petit circuit qui gère la circulation des données entre les composants |
+
+## Le chipset, en une phrase
+
+Le **chipset** est un circuit intégré à la carte mère qui joue le rôle de chef
+d'orchestre : il gère quels composants peuvent communiquer entre eux, à quelle vitesse, et
+combien de ports/emplacements sont réellement utilisables. Le détail de son fonctionnement
+interne n'est pas nécessaire à ce stade.
+
+## Compatibilité : le point le plus important à retenir
+
+Tous les composants ne s'installent pas sur n'importe quelle carte mère : le socket doit
+correspondre au CPU, le type de RAM doit être supporté, l'alimentation doit fournir les
+connecteurs nécessaires. **Choisir des composants, c'est toujours vérifier qu'ils sont
+compatibles entre eux — la carte mère est au centre de cette compatibilité.**
+
+> **Piège fréquent :** un processeur récent ne rentre pas physiquement dans un socket plus
+> ancien, même s'il est « plus performant ». Compatibilité physique et performance sont deux
+> questions différentes.
+"""
+
+_MC01_CPU = r"""## Rôle du processeur
+
+Le **processeur** (CPU, *Central Processing Unit*) exécute les instructions des programmes
+et effectue les calculs. C'est le composant qui « pense » à la place de la machine : chaque
+action d'un logiciel finit par se traduire en instructions traitées par le CPU.
+
+## Cœurs, threads et fréquence
+
+| Terme | Signification simple |
+|---|---|
+| Cœur (*core*) | Une unité de calcul indépendante. Plusieurs cœurs = plusieurs tâches traitées en parallèle. |
+| Thread | Un fil d'exécution ; certains CPU traitent plusieurs threads par cœur. |
+| Fréquence (GHz) | Le nombre de cycles d'horloge par seconde — une mesure de la « vitesse » d'un cœur. |
+
+## Le cache : une mémoire très rapide et très proche
+
+Le CPU dispose de petites mémoires internes appelées **cache**, beaucoup plus rapides que
+la RAM mais beaucoup plus petites, qui stockent temporairement les données que le
+processeur va réutiliser tout de suite. Le cache réduit les temps d'attente du CPU.
+
+## La fréquence seule ne suffit pas à comparer deux CPU
+
+> **Piège fréquent :** un CPU à 4,0 GHz n'est pas automatiquement plus rapide qu'un CPU à
+> 3,2 GHz. Le nombre de cœurs, l'architecture interne, la quantité de cache et la génération
+> du processeur influencent tout autant les performances réelles. Comparer deux CPU sur la
+> seule fréquence est une erreur classique à éviter.
+
+*Le détail des architectures, de l'hyperthreading et des générations de processeurs est
+traité dans le mini-cours 03 — ici, il suffit de comprendre le rôle du CPU et pourquoi une
+seule caractéristique ne suffit jamais à le juger.*
+"""
+
+_MC01_RAM = r"""## Rôle de la RAM
+
+La **mémoire vive** (RAM, *Random Access Memory*) est la mémoire de travail temporaire de
+l'ordinateur. Quand tu ouvres un programme, ses instructions et les données dont il a
+besoin *tout de suite* sont chargées en RAM, où le CPU peut les lire et les écrire très
+rapidement.
+
+## Volatile : le mot-clé à retenir
+
+La RAM est **volatile** : dès que le PC s'éteint (ou redémarre), tout son contenu est
+effacé. C'est pour cela qu'un document non enregistré est perdu si le PC s'éteint
+brutalement — il n'existait qu'en RAM, jamais encore écrit sur le stockage.
+
+## Capacité
+
+La capacité de la RAM se mesure en **gigaoctets (Go)** — typiquement 8, 16 ou 32 Go sur un
+PC actuel. Plus il y a de RAM disponible, plus l'ordinateur peut garder de programmes
+ouverts en même temps sans ralentir.
+
+## RAM et stockage : la différence fondamentale (rappel)
+
+| | RAM | SSD / HDD (stockage) |
+|---|---|---|
+| Rôle | Mémoire de travail, à court terme | Conservation des données, à long terme |
+| À l'extinction | Contenu perdu (volatile) | Contenu conservé (persistant) |
+
+*Les détails techniques — types de RAM (DDR4, DDR5), fonctionnement en dual-channel,
+fréquence de la mémoire — sont traités dans le mini-cours 03.*
+"""
+
+_MC01_STOCKAGE = r"""## Rôle du stockage
+
+Le **stockage** conserve les données de façon **durable**, même lorsque l'ordinateur est
+éteint : système d'exploitation, programmes installés, documents, photos... C'est la
+mémoire à long terme du PC, à l'opposé de la RAM.
+
+## Deux grandes familles
+
+| | HDD (disque dur) | SSD (disque à mémoire flash) |
+|---|---|---|
+| Fonctionnement | Plateaux magnétiques en rotation, tête de lecture mécanique | Mémoire flash électronique, aucune pièce mécanique |
+| Vitesse | Plus lent | Plus rapide, souvent beaucoup plus rapide |
+| Robustesse aux chocs | Plus sensible (pièces mobiles) | Plus résistant |
+| Prix au Go | Généralement moins cher | Généralement plus cher |
+
+## SSD SATA et SSD NVMe : juste une introduction
+
+Il existe deux grandes façons de connecter un SSD à la carte mère : **SATA** (même type de
+connecteur qu'un HDD, plus lent) et **NVMe** (connecté directement en PCIe, beaucoup plus
+rapide). Retiens simplement qu'un SSD n'est pas toujours branché de la même façon, et que
+cela influence sa vitesse — le détail complet (interfaces, performances réelles, fiabilité,
+sauvegarde) est traité dans le mini-cours 04.
+
+## Capacité et performance sont deux choses différentes
+
+Un disque de grande capacité (beaucoup de Go/To) n'est pas nécessairement rapide : la
+capacité mesure *combien* de données tiennent sur le disque, la performance mesure *à
+quelle vitesse* on peut les lire ou les écrire. Un HDD de 4 To reste plus lent qu'un petit
+SSD de 250 Go.
+
+## Persistance hors tension
+
+Contrairement à la RAM, un stockage (HDD ou SSD) **conserve** ses données même sans
+alimentation électrique. C'est pour cela qu'un fichier enregistré reste disponible après
+avoir éteint puis rallumé le PC.
+"""
+
+_MC01_GPU = r"""## Rôle du GPU
+
+Le **GPU** (*Graphics Processing Unit*, processeur graphique) calcule et produit l'image
+affichée à l'écran. Il est spécialisé dans un type de calcul particulier — le traitement
+d'images et de graphismes — qu'il effectue beaucoup plus efficacement qu'un CPU classique
+pour ce genre de tâche.
+
+## GPU intégré ou carte graphique dédiée
+
+| | GPU intégré | Carte graphique dédiée |
+|---|---|---|
+| Où se trouve-t-il ? | Intégré au CPU ou à la carte mère | Carte séparée, branchée en PCIe |
+| Mémoire utilisée | Partage la RAM du système | Possède sa propre mémoire (VRAM) |
+| Usage typique | Bureautique, vidéo, usage courant | Jeu vidéo, montage vidéo, calcul intensif |
+| Coût | Inclus, pas de surcoût | Composant supplémentaire, souvent coûteux |
+
+## La VRAM
+
+La **VRAM** (*Video RAM*) est la mémoire propre à une carte graphique dédiée, réservée aux
+données graphiques (textures, images en cours de calcul). Comme la RAM du système, elle est
+volatile, mais elle est physiquement séparée et réservée au GPU.
+
+## Exemples d'usage
+
+- Bureautique, navigation, vidéos : un GPU intégré suffit largement.
+- Jeu vidéo récent, montage vidéo, modélisation 3D : une carte graphique dédiée devient
+  nécessaire ou très recommandée.
+
+*Ce mini-cours ne va pas plus loin dans l'architecture d'un GPU (unités de calcul,
+pipelines graphiques...) : l'objectif ici est de savoir reconnaître son rôle et la
+différence entre intégré et dédié.*
+"""
+
+_MC01_PSU = r"""## Rôle de l'alimentation
+
+L'**alimentation** (PSU, *Power Supply Unit*) transforme le courant électrique du secteur
+en plusieurs tensions utilisables par les composants du PC, et les distribue à chacun
+d'eux : carte mère, CPU, stockage, carte graphique...
+
+## La puissance, en watts
+
+La puissance d'une alimentation s'exprime en **watts (W)** — par exemple 550 W ou 750 W.
+Ce chiffre indique la puissance **maximale** que l'alimentation peut fournir, pas ce
+qu'elle fournit à chaque instant.
+
+> **Piège fréquent :** une alimentation 750 W ne consomme pas 750 W en permanence. La
+> consommation réelle varie selon ce que fait le PC à cet instant précis (au repos, en
+> pleine charge...) ; 750 W est une limite maximale, pas une consommation constante.
+
+## Sécurité : ne jamais ouvrir une alimentation
+
+Une alimentation conserve une charge électrique dangereuse **même débranchée**, à cause de
+ses condensateurs internes. Règle de sécurité à retenir dès maintenant : **on ne démonte
+jamais une alimentation**, même hors tension, sauf formation spécifique et matériel adapté.
+
+*Les aspects électriques détaillés (connecteurs, certifications d'efficacité, redondance) et
+le refroidissement sont traités dans le mini-cours 05, avec les autres consignes de
+sécurité matérielle.*
+"""
+
+_MC01_PERIPHERIQUES = r"""## Qu'est-ce qu'un périphérique ?
+
+Un **périphérique** (*peripheral / device*) est un élément externe à l'unité centrale, qui
+communique avec elle via un **connecteur d'entrée/sortie** (E/S — *I/O*, port USB, HDMI,
+réseau...).
+
+## Entrée, sortie ou mixte ?
+
+| Type | Rôle | Exemples |
+|---|---|---|
+| Entrée (*input*) | Envoie de l'information *vers* le PC | clavier, souris, micro, scanner |
+| Sortie (*output*) | Reçoit de l'information *depuis* le PC | écran, imprimante, haut-parleurs |
+| Mixte | Envoie **et** reçoit de l'information | écran tactile, disque externe, casque avec micro, imprimante multifonction |
+
+Le réseau (carte réseau, câble ou Wi-Fi) est également une entrée/sortie : le PC y envoie
+et y reçoit des données en permanence.
+
+## Les connecteurs E/S : l'interface entre PC et périphériques
+
+Un connecteur E/S est le point de contact physique (ou sans fil) entre l'unité centrale et
+un périphérique : port USB, prise réseau, prise audio, HDMI... Sans connecteur compatible,
+un périphérique ne peut tout simplement pas être relié au PC.
+"""
+
+_MC01_INTERACTION = r"""## Scénario : tu lances un programme installé sur un SSD
+
+Voici, étape par étape, ce qu'il se passe entre le moment où tu double-cliques sur une
+icône et le moment où le programme s'affiche à l'écran :
+
+<div class="jc-flow">
+    <div class="jc-flow-step">1. Stockage<br><small>lecture sur le SSD</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">2. RAM<br><small>chargement en mémoire vive</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">3. CPU<br><small>traitement des instructions</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">4. GPU<br><small>calcul de l'image (si nécessaire)</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">5. Écran<br><small>affichage du résultat</small></div>
+</div>
+
+1. **Stockage.** Le programme est enregistré sur le SSD. Double-cliquer sur son icône
+   demande au système de le lire depuis le SSD.
+2. **RAM.** Le contenu nécessaire (code du programme, données de démarrage) est copié du
+   SSD vers la RAM : c'est là que le CPU va pouvoir le lire rapidement.
+3. **CPU.** Le processeur exécute les instructions du programme chargées en RAM : calculs,
+   logique, gestion des actions de l'utilisateur.
+4. **GPU.** Si le programme doit afficher quelque chose (une fenêtre, une image, une
+   vidéo), le calcul de cette image passe par le GPU (intégré ou dédié).
+5. **Écran.** Le résultat calculé est envoyé à l'écran, qui l'affiche.
+
+Deux composants ne sont pas dans ce chemin mais le rendent possible partout :
+
+- la **carte mère** assure toutes les connexions entre stockage, RAM, CPU, GPU et écran ;
+- l'**alimentation (PSU)** fournit l'énergie nécessaire à chacun de ces composants, du
+  premier au dernier.
+
+Ce scénario est la synthèse de tout ce mini-cours : chaque composant vu séparément dans
+les sections précédentes joue ici un rôle précis dans une même chaîne.
+"""
+
+_MC01_VOCAB_FR_EN = r"""## Vocabulaire à connaître (français / anglais)
+
+Le vocabulaire technique s'utilise aussi bien en français qu'en anglais dans le métier :
+apprends les deux formes pour chaque terme.
+
+| Français | Anglais |
+|---|---|
+| Matériel | Hardware |
+| Logiciel | Software |
+| Carte mère | Motherboard |
+| Processeur | CPU (*Central Processing Unit*) |
+| Mémoire vive | RAM (*Random Access Memory*) |
+| Stockage | Storage |
+| Disque dur | HDD (*Hard Disk Drive*) |
+| Disque SSD | SSD (*Solid State Drive*) |
+| Carte graphique | Graphics card |
+| Processeur graphique | GPU (*Graphics Processing Unit*) |
+| Alimentation | Power supply / PSU (*Power Supply Unit*) |
+| Périphérique | Device / peripheral |
+| Entrée | Input |
+| Sortie | Output |
+
+## Méthode examen
+
+Face à un sigle anglais (CPU, RAM, SSD, GPU, PSU...), commence toujours par retrouver le
+terme complet en anglais, puis traduis-le en français — cela évite de confondre des sigles
+qui se ressemblent.
+"""
+
+_MC01_VOCAB_ANCIEN = r"""## Du vocabulaire à connaître... sans l'enseigner comme technologie actuelle
+
+Le référentiel officiel de la formation AMPCR (programme 345/2007/249) date de 2007. Il
+cite encore du matériel aujourd'hui obsolète. Tu dois connaître ces termes pour comprendre
+un document ancien ou une question qui les mentionne, **sans qu'ils fassent partie du
+matériel que tu utiliseras en pratique aujourd'hui**.
+
+| Terme | Ce que c'était |
+|---|---|
+| Lecteur de disquettes | Lecteur pour disquette magnétique (quelques centaines de Ko à 1,44 Mo), remplacé depuis longtemps par la clé USB et le stockage en ligne. |
+| Graveur optique | Lecteur/graveur de CD ou DVD, aujourd'hui largement remplacé par les téléchargements et le stockage USB/SSD. |
+
+La formation doit suivre la réalité technologique actuelle : ces éléments sont mentionnés
+comme repères historiques et vocabulaire de référentiel, pas comme du matériel à
+recommander ou à installer aujourd'hui.
+"""
+
+_MC01_EXERCICES_1 = r"""## Exercice 1 — classer
+
+Classe chacun des éléments suivants dans la bonne catégorie : **matériel** ou
+**logiciel**.
+
+a) Une carte graphique
+b) Un navigateur internet
+c) Une barrette de RAM
+d) Un antivirus
+e) Un disque SSD
+
+**Correction :** a) matériel ; b) logiciel ; c) matériel ; d) logiciel ; e) matériel. Le
+matériel est physique (tu peux le toucher), le logiciel est un programme installé sur ce
+matériel.
+
+## Exercice 2 — classer
+
+Parmi les éléments suivants, indique lesquels font partie de l'**unité centrale** et
+lesquels sont des **périphériques** : écran, carte mère, clavier, alimentation, imprimante,
+CPU.
+
+**Correction :** Unité centrale : carte mère, alimentation, CPU. Périphériques : écran,
+clavier, imprimante. L'unité centrale regroupe les composants qui traitent l'information à
+l'intérieur du boîtier ; les périphériques communiquent avec elle de l'extérieur.
+
+## Exercice 3 — expliquer
+
+Explique en une ou deux phrases pourquoi on ne peut pas installer n'importe quel
+processeur sur n'importe quelle carte mère.
+
+**Correction :** Le processeur doit être compatible avec le socket de la carte mère (sa
+forme physique de connexion) et avec le chipset qui gère la communication entre les
+composants. Sans cette compatibilité, le CPU ne rentre pas physiquement ou ne fonctionne
+pas.
+
+## Exercice 4 — diagnostiquer
+
+Un PC s'allume (les ventilateurs tournent, les voyants s'éclairent) mais rien ne
+s'affiche à l'écran. En te basant sur le rôle de chaque composant, cite deux composants ou
+connexions à vérifier en priorité, et explique pourquoi.
+
+**Correction :** À vérifier en priorité : la carte graphique (ou la connexion GPU/écran) et
+le câble/connecteur reliant le PC à l'écran, car ce sont eux qui produisent et transmettent
+l'image. Le fait que le PC démarre (ventilateurs, voyants) montre que l'alimentation et une
+partie au moins de la carte mère fonctionnent ; le problème est donc probablement localisé
+du côté de l'affichage plutôt que de l'alimentation générale.
+"""
+
+_MC01_EXERCICES_2 = r"""## Exercice 5 — expliquer
+
+Explique la différence entre la RAM et le stockage (HDD/SSD) en deux points précis.
+
+**Correction :** 1) La RAM est une mémoire de travail temporaire et volatile (son contenu
+est perdu à l'extinction du PC), alors que le stockage conserve les données de façon
+durable, même hors tension. 2) La RAM sert à ce que le CPU utilise *pendant* l'exécution
+d'un programme, alors que le stockage conserve les fichiers et programmes *entre* deux
+utilisations.
+
+## Exercice 6 — expliquer une ambiguïté
+
+Un ami te dit : « J'ai 32 Go dans mon PC, donc je peux stocker énormément de vidéos ! »
+Explique pourquoi cette phrase est ambiguë, et ce qu'il faudrait lui demander pour vérifier
+si son raisonnement est correct.
+
+**Correction :** La phrase est ambiguë car « 32 Go » peut désigner la RAM ou le stockage,
+qui n'ont rien à voir. 32 Go de RAM ne permet pas de stocker des vidéos de façon durable
+(la RAM est temporaire et bien plus chère au Go) ; il faudrait lui demander s'il parle de
+la RAM ou de la capacité de son disque dur/SSD pour savoir combien d'espace de stockage il
+possède réellement.
+
+## Exercice 7 — expliquer
+
+Explique la différence entre un GPU intégré et une carte graphique dédiée, en précisant ce
+qu'est la VRAM. Donne un exemple de situation où chacun est suffisant/nécessaire.
+
+**Correction :** Un GPU intégré est directement intégré au CPU ou à la carte mère et
+partage la RAM du système ; une carte graphique dédiée est un composant séparé, avec sa
+propre mémoire appelée VRAM, réservée aux calculs graphiques. Un GPU intégré suffit pour de
+la bureautique ou de la vidéo classique ; une carte dédiée devient nécessaire pour un jeu
+vidéo récent ou du montage vidéo, qui demandent beaucoup de calcul graphique.
+
+## Exercice 8 — expliquer
+
+Une alimentation est annoncée « 750 W ». Explique ce que signifie réellement ce chiffre, et
+cite une règle de sécurité essentielle à propos de ce composant.
+
+**Correction :** 750 W est la puissance **maximale** que l'alimentation peut fournir, pas
+ce qu'elle consomme en permanence : la consommation réelle varie selon l'activité du PC à
+chaque instant. Règle de sécurité : on ne démonte jamais une alimentation, même débranchée,
+car elle peut conserver une charge électrique dangereuse dans ses condensateurs.
+"""
+
+_MC01_EXERCICES_3 = r"""## Exercice 9 — reconstruire
+
+Remets dans le bon ordre les étapes suivantes, qui décrivent le lancement d'un programme
+installé sur un SSD : (A) le CPU exécute les instructions ; (B) le résultat s'affiche à
+l'écran ; (C) le programme est lu sur le SSD ; (D) le contenu est chargé en RAM.
+
+**Correction :** Ordre correct : C → D → A → B. Le programme est d'abord lu sur le SSD (C),
+puis chargé en RAM (D), puis ses instructions sont exécutées par le CPU (A), et le résultat
+est finalement affiché à l'écran (B) — éventuellement après un calcul du GPU si une image
+doit être produite.
+
+## Exercice 10 — diagnostiquer
+
+Un utilisateur se plaint : dès qu'il ouvre plusieurs programmes en même temps, son PC
+ralentit fortement. Son disque dispose pourtant de beaucoup d'espace libre. Quel composant
+est le plus probablement en cause, et pourquoi ?
+
+**Correction :** La RAM est la piste la plus probable : ouvrir plusieurs programmes en même
+temps demande de plus en plus de mémoire de travail, et si la RAM disponible est
+insuffisante, le système ralentit fortement. Le fait que l'espace disque libre soit
+important écarte un problème de stockage plein — le symptôme correspond typiquement à un
+manque de RAM.
+
+## Exercice 11 — classer
+
+Classe les périphériques suivants en entrée, sortie, ou mixte : microphone, imprimante
+multifonction (scan + impression), enceintes, écran tactile, souris.
+
+**Correction :** Entrée : microphone, souris. Sortie : enceintes. Mixtes : imprimante
+multifonction (elle imprime — sortie — et scanne — entrée), écran tactile (il affiche —
+sortie — et reçoit le toucher — entrée).
+
+## Exercice 12 — vocabulaire
+
+Donne l'équivalent anglais des quatre termes français suivants, et explique brièvement ce
+que désigne chacun : mémoire vive, disque dur, carte mère, alimentation.
+
+**Correction :** Mémoire vive → RAM (*Random Access Memory*), mémoire de travail temporaire
+et volatile. Disque dur → HDD (*Hard Disk Drive*), stockage magnétique durable. Carte mère
+→ Motherboard, support qui interconnecte tous les composants. Alimentation → Power supply /
+PSU (*Power Supply Unit*), transforme et distribue l'énergie électrique aux composants.
+"""
+
+_MC01_MEMO = r"""# Fiche mémo — Architecture générale d'un PC
+
+## Les composants et leur rôle
+
+| Composant | Rôle en une phrase |
+|---|---|
+| Carte mère | Interconnecte tous les composants |
+| CPU | Exécute les instructions et fait les calculs |
+| RAM | Mémoire de travail temporaire, volatile |
+| Stockage (HDD/SSD) | Conserve les données durablement, même hors tension |
+| GPU | Calcule et produit l'image affichée |
+| Alimentation (PSU) | Transforme et distribue l'énergie électrique |
+| Périphériques | Communiquent avec l'unité centrale via des connecteurs E/S |
+
+## Le chemin de l'exécution d'un programme
+
+Stockage → RAM → CPU → (GPU) → Écran, la carte mère reliant tout et le PSU alimentant
+chaque étape.
+
+## Pièges à ne jamais oublier
+
+- RAM ≠ stockage : l'un est temporaire (volatile), l'autre est durable (persistant).
+- Une fréquence CPU seule ne permet pas de comparer deux processeurs.
+- Les watts d'une alimentation sont une puissance **maximale**, pas une consommation
+  constante.
+- Ne jamais ouvrir une alimentation, même débranchée.
+
+## Vocabulaire FR/EN essentiel
+
+| Français | Anglais |
+|---|---|
+| Matériel | Hardware |
+| Logiciel | Software |
+| Carte mère | Motherboard |
+| Processeur | CPU |
+| Mémoire vive | RAM |
+| Stockage | Storage |
+| Disque dur | HDD |
+| Carte graphique | Graphics card / GPU |
+| Alimentation | Power supply / PSU |
+| Périphérique | Device / peripheral |
+
+<div class="d-print-none mt-3">
+    <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print()">
+        Imprimer cette fiche
+    </button>
+</div>
+"""
+
+_MC01_EXAMEN = r"""# Examen final — Architecture générale d'un PC
+
+**Consigne :** réponds à chaque question de façon complète et justifiée. Chaque question
+vaut 2 points, pour un total de 20 points.
+
+## Question 1 (2 pts)
+
+Explique en une phrase le rôle du CPU, de la RAM, du stockage et de la carte mère.
+
+## Question 2 (2 pts)
+
+Décris, étape par étape, ce qui se passe entre le moment où tu lances un programme
+installé sur un SSD et le moment où le résultat s'affiche à l'écran.
+
+## Question 3 (2 pts)
+
+Un camarade affirme : « J'ai 32 Go dans mon PC, donc je peux stocker beaucoup de vidéos. »
+Explique pourquoi ce raisonnement peut être une erreur.
+
+## Question 4 (2 pts)
+
+Explique la différence entre un GPU intégré et une carte graphique dédiée, et précise ce
+qu'est la VRAM.
+
+## Question 5 (2 pts)
+
+Explique le rôle de l'alimentation (PSU) et ce que signifie réellement une puissance
+annoncée de 750 W.
+
+## Question 6 (2 pts)
+
+Classe les périphériques suivants en entrée, sortie ou mixte : clavier, écran, casque avec
+micro, imprimante.
+
+## Question 7 (2 pts)
+
+Explique la différence entre la volatilité de la RAM et la persistance du stockage.
+
+## Question 8 (2 pts)
+
+Un PC ralentit fortement dès que plusieurs programmes sont ouverts, mais son disque dur est
+presque vide. Le problème vient-il plutôt d'un manque de RAM ou d'un manque d'espace
+disque ? Justifie ta réponse.
+
+## Question 9 (2 pts)
+
+Donne quatre termes informatiques vus dans ce mini-cours, avec leur équivalent en anglais,
+et explique brièvement chacun.
+
+## Question 10 (2 pts)
+
+En synthèse, décris les interactions principales entre les composants d'un PC en état de
+fonctionnement (tu peux t'appuyer sur un schéma ou un exemple concret).
+"""
+
+# Corrigé/barème réservé au formateur — bloc volontairement non publié (is_published=False)
+# pour qu'il ne soit jamais servi sur la route publique /uaa/{slug} (voir app/main.py,
+# uaa_detail : `if not block.is_published: continue`). Consultable/éditable depuis l'admin.
+_MC01_EXAMEN_CORRIGE = r"""# Corrigé — Examen final « Architecture générale d'un PC »
+
+**Ce bloc n'est jamais publié côté candidat** (non publié) — réservé à la
+correction/notation par le formateur depuis l'administration. Barème : 2 points par
+question, 20 points au total.
+
+## Question 1 (2 pts)
+
+CPU : exécute les instructions et effectue les calculs. RAM : mémoire de travail temporaire
+et volatile. Stockage : conserve les données durablement. Carte mère : interconnecte tous
+les composants. *(0,5 pt par rôle correct)*
+
+## Question 2 (2 pts)
+
+Stockage (lecture du programme) → RAM (chargement) → CPU (exécution des instructions) →
+GPU si nécessaire (calcul de l'image) → écran (affichage). *(0,4 pt par étape correcte dans
+le bon ordre)*
+
+## Question 3 (2 pts)
+
+« 32 Go » est ambigu car il peut désigner la RAM (mémoire de travail, non adaptée au
+stockage durable de fichiers) ou le stockage (capacité réelle de conservation). *(1 pt
+identification de l'ambiguïté, 1 pt explication correcte)*
+
+## Question 4 (2 pts)
+
+GPU intégré : partagé avec le CPU/la RAM système. Carte dédiée : composant séparé, VRAM
+propre. VRAM : mémoire réservée aux calculs graphiques de la carte dédiée. *(1 pt
+différence intégré/dédié, 1 pt définition VRAM)*
+
+## Question 5 (2 pts)
+
+PSU : transforme et distribue l'énergie électrique aux composants. 750 W = puissance
+maximale disponible, pas une consommation constante. *(1 pt rôle, 1 pt puissance max ≠
+consommation réelle)*
+
+## Question 6 (2 pts)
+
+Entrée : clavier. Sortie : écran. Mixtes : casque avec micro, imprimante (si multifonction ;
+imprimante simple = sortie seule, accepter les deux réponses si justifiées). *(0,5 pt par
+classification correcte)*
+
+## Question 7 (2 pts)
+
+RAM volatile : contenu perdu à l'extinction. Stockage persistant : contenu conservé hors
+tension. *(1 pt par notion correctement expliquée)*
+
+## Question 8 (2 pts)
+
+Manque de RAM le plus probable : le ralentissement apparaît avec l'ouverture de plusieurs
+programmes (consommation de mémoire de travail), et l'espace disque n'est pas en cause
+puisqu'il reste disponible. *(1 pt bon diagnostic, 1 pt justification correcte)*
+
+## Question 9 (2 pts)
+
+Tout regroupement de 4 termes du cours avec équivalent anglais correct et explication
+correcte est acceptable (ex. RAM, HDD, CPU, motherboard...). *(0,5 pt par terme correct)*
+
+## Question 10 (2 pts)
+
+Réponse ouverte : évaluer la cohérence globale de la synthèse (carte mère = interconnexion,
+PSU = énergie, chemin stockage → RAM → CPU → (GPU) → écran). *(notation qualitative sur 2
+points, à l'appréciation du correcteur)*
+"""
+
+MC01_BLOCKS = [
+    {
+        "title": "Plan du mini-cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_PLAN,
+        "position": 1,
+        "is_published": True,
+    },
+    {
+        "title": "1. Vue globale d'un ordinateur — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_VUE_GLOBALE,
+        "position": 2,
+        "is_published": True,
+    },
+    {
+        "title": "2. Carte mère — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_CARTE_MERE,
+        "position": 3,
+        "is_published": True,
+    },
+    {
+        "title": "3. Processeur (CPU) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_CPU,
+        "position": 4,
+        "is_published": True,
+    },
+    {
+        "title": "4. Mémoire vive (RAM) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_RAM,
+        "position": 5,
+        "is_published": True,
+    },
+    {
+        "title": "5. Stockage — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_STOCKAGE,
+        "position": 6,
+        "is_published": True,
+    },
+    {
+        "title": "6. Carte graphique (GPU) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_GPU,
+        "position": 7,
+        "is_published": True,
+    },
+    {
+        "title": "7. Alimentation (PSU) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_PSU,
+        "position": 8,
+        "is_published": True,
+    },
+    {
+        "title": "8. Périphériques et entrées/sorties — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_PERIPHERIQUES,
+        "position": 9,
+        "is_published": True,
+    },
+    {
+        "title": "9. Interaction des composants — Exemple",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_INTERACTION,
+        "position": 10,
+        "is_published": True,
+    },
+    {
+        "title": "10. Vocabulaire FR/EN — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_VOCAB_FR_EN,
+        "position": 11,
+        "is_published": True,
+    },
+    {
+        "title": "11. Vocabulaire ancien du référentiel — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_VOCAB_ANCIEN,
+        "position": 12,
+        "is_published": True,
+    },
+    {
+        "title": "Architecture d'un PC — Exercices (1/3 : composants et rôles)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_EXERCICES_1,
+        "position": 13,
+        "is_published": True,
+    },
+    {
+        "title": "Architecture d'un PC — Exercices (2/3 : RAM, stockage, GPU, PSU)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_EXERCICES_2,
+        "position": 14,
+        "is_published": True,
+    },
+    {
+        "title": "Architecture d'un PC — Exercices (3/3 : scénario, diagnostic, vocabulaire)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_EXERCICES_3,
+        "position": 15,
+        "is_published": True,
+    },
+    {
+        "title": "Fiche mémo — Architecture générale d'un PC",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_MEMO,
+        "position": 16,
+        "is_published": True,
+    },
+    {
+        "title": "Examen final — Architecture générale d'un PC (10 questions, 20 points)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_EXAMEN,
+        "position": 17,
+        "is_published": True,
+    },
+    {
+        "title": "Examen final — Corrigé (réservé formateur, non publié)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_EXAMEN_CORRIGE,
+        "position": 18,
+        "is_published": False,
+    },
+]
+
+
+def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
+    """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
+
+    Générique : réutilisé pour chaque matière (Mathématiques, Informatique, futures
+    matières), pas seulement pour le contenu Mathématiques historique.
+    """
+    subject = db.query(Subject).filter_by(name=name).first()
+    if subject is None:
+        subject = Subject(name=name, slug=slugify(name))
+        db.add(subject)
+        db.flush()
+        created["subjects"] += 1
+    else:
+        kept["subjects"] += 1
+    return subject
+
+
+def _ensure_modules(db, subject: Subject, codes: list[str], created: dict, kept: dict) -> None:
+    """Crée les modules manquants d'une matière, sans jamais modifier ceux déjà présents."""
+    existing_codes = {module.code for module in subject.modules}
+    for code in codes:
+        if code not in existing_codes:
+            db.add(Module(code=code, slug=slugify(code), subject=subject))
+            created["modules"] += 1
+        else:
+            kept["modules"] += 1
+    db.flush()
+
 
 def _seed_uaa(
     db,
@@ -1482,34 +2352,29 @@ def seed() -> None:
     Base.metadata.create_all(engine)
     db = SessionLocal()
     try:
-        subject = db.query(Subject).filter_by(name=SUBJECT_NAME).first()
-        if subject is None:
-            subject = Subject(name=SUBJECT_NAME, slug=slugify(SUBJECT_NAME))
-            db.add(subject)
-            db.flush()
-            created["subjects"] += 1
-        else:
-            kept["subjects"] += 1
+        mathematiques = _ensure_subject(db, SUBJECT_NAME, created, kept)
+        _ensure_modules(db, mathematiques, MODULE_CODES, created, kept)
 
-        existing_codes = {module.code for module in subject.modules}
-        for code in MODULE_CODES:
-            if code not in existing_codes:
-                db.add(Module(code=code, slug=slugify(code), subject=subject))
-                created["modules"] += 1
-            else:
-                kept["modules"] += 1
-        db.flush()
-
-        mb32 = next(module for module in subject.modules if module.code == "MB32")
+        mb32 = next(module for module in mathematiques.modules if module.code == "MB32")
         removed_obsolete += _seed_uaa(
             db, mb32, UAA1_CODE, UAA1_TITLE, 1, UAA1_BLOCKS, created, kept,
             obsolete_titles=OBSOLETE_DEMO_BLOCK_TITLES,
         )
         _seed_uaa(db, mb32, UAA2_CODE, UAA2_TITLE, 2, UAA2_BLOCKS, created, kept)
 
+        # Informatique AMPCR (ticket #10) : même mécanisme générique, purement additif —
+        # ne touche jamais Mathématiques/MB32/MQ32/MQ34.
+        informatique = _ensure_subject(db, INFORMATIQUE_SUBJECT_NAME, created, kept)
+        _ensure_modules(db, informatique, INFORMATIQUE_MODULE_CODES, created, kept)
+
+        ampcr = next(module for module in informatique.modules if module.code == "AMPCR")
+        _seed_uaa(db, ampcr, MC01_CODE, MC01_TITLE, 1, MC01_BLOCKS, created, kept)
+
         db.commit()
 
-        print(f"Seed terminé : {SUBJECT_NAME} ({', '.join(MODULE_CODES)})")
+        all_subjects = f"{SUBJECT_NAME} ({', '.join(MODULE_CODES)}), " \
+            f"{INFORMATIQUE_SUBJECT_NAME} ({', '.join(INFORMATIQUE_MODULE_CODES)})"
+        print(f"Seed terminé : {all_subjects}")
         print(
             f"  Créé   : {created['subjects']} matière(s), {created['modules']} module(s), "
             f"{created['uaas']} UAA, {created['blocks']} bloc(s)"
