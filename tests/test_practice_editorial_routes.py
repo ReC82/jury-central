@@ -34,6 +34,23 @@ def _create_editorial_block(db_session, *, is_published: bool = True) -> LessonB
                 accepted_answers=["RAM"],
                 explanation="RAM = Random Access Memory.",
             ),
+            EditorialExerciseItem(
+                exercise_id="q3",
+                type="classification",
+                prompt="Classe chaque composant.",
+                categories=["Matériel", "Logiciel"],
+                elements=["Carte graphique", "Navigateur"],
+                correct_categories=[0, 1],
+                explanation="Le matériel est physique, le logiciel est un programme.",
+            ),
+            EditorialExerciseItem(
+                exercise_id="q4",
+                type="ordering",
+                prompt="Remets les étapes dans l'ordre.",
+                order_items=["Lecture SSD", "Exécution CPU"],
+                correct_order=[0, 1],
+                explanation="On lit avant d'exécuter.",
+            ),
         ],
     )
     block = LessonBlock(
@@ -88,6 +105,58 @@ def test_verify_short_answer_correct_and_normalized(client, db_session):
 
     assert response.status_code == 200
     assert response.json()["correct"] is True
+
+
+def test_verify_correct_classification_answer(client, db_session):
+    block = _create_editorial_block(db_session)
+
+    response = client.post(
+        f"/practice/api/editorial/{block.id}/verify",
+        json={"exercise_id": "q3", "answer": [0, 1]},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["correct"] is True
+    assert "Carte graphique" in data["correct_answer"]
+
+
+def test_verify_incorrect_classification_answer(client, db_session):
+    block = _create_editorial_block(db_session)
+
+    response = client.post(
+        f"/practice/api/editorial/{block.id}/verify",
+        json={"exercise_id": "q3", "answer": [1, 1]},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["correct"] is False
+
+
+def test_verify_correct_ordering_answer(client, db_session):
+    block = _create_editorial_block(db_session)
+
+    response = client.post(
+        f"/practice/api/editorial/{block.id}/verify",
+        json={"exercise_id": "q4", "answer": [0, 1]},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["correct"] is True
+    assert "Lecture SSD" in data["correct_answer"]
+
+
+def test_verify_incorrect_ordering_answer(client, db_session):
+    block = _create_editorial_block(db_session)
+
+    response = client.post(
+        f"/practice/api/editorial/{block.id}/verify",
+        json={"exercise_id": "q4", "answer": [1, 0]},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["correct"] is False
 
 
 def test_verify_unknown_exercise_id_returns_404(client, db_session):
@@ -158,6 +227,8 @@ def test_public_uaa_page_never_leaks_solution_before_correction(client, db_sessi
     assert "RAM = Random Access Memory" not in text  # explanation
     assert '"correct_index"' not in text
     assert '"accepted_answers"' not in text
+    assert '"correct_categories"' not in text
+    assert '"correct_order"' not in text
 
 
 def test_admin_editorial_exercise_demo_page_renders(admin_client):

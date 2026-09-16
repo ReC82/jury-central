@@ -2,6 +2,7 @@ from pathlib import Path
 
 from app.ai_exercise_blocks import AIExerciseBlockConfig
 from app.database import DATABASE_URL, Base, SessionLocal, engine
+from app.editorial_exercise import EditorialExerciseBlockConfig, EditorialExerciseItem
 from app.exercise_blocks import ExerciseBlockConfig
 from app.models import UAA, BlockType, LessonBlock, Module, Subject
 from app.quiz import QuizConfig
@@ -29,6 +30,22 @@ OBSOLETE_DEMO_BLOCK_TITLES = {
     "Exemple d'exercice généré — Fonction du premier degré",
     "Exemple de quiz — Lecture de graphique",
     "Fiche mémo — Tableaux, graphiques, formules",
+}
+
+# Ticket #21 : les exercices 1, 2, 9 et 11 du mini-cours 01 AMPCR migrent de blocs
+# Markdown statiques vers des blocs `editorial_exercise` structurés (classification,
+# ordering). Les deux blocs Markdown qui les contenaient sont retirés PAR TITRE lors du
+# seed (même mécanisme que `OBSOLETE_DEMO_BLOCK_TITLES` ci-dessus) et remplacés par des
+# blocs de titres différents (voir `MC01_BLOCKS`) : ce mécanisme est indispensable sur un
+# staging déjà seedé, où `_seed_uaa` ne modifie jamais le contenu d'un bloc existant dont
+# le titre correspond déjà — sans ce retrait explicite, l'ancien texte des exercices 1/2/9/11
+# resterait affiché en doublon à côté des nouveaux blocs structurés. Voir
+# `docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md`, section
+# « Migration du contenu déjà seedé (staging) », pour le détail de la procédure de
+# déploiement (seed-db, sans reset-db).
+MC01_OBSOLETE_TITLES = {
+    "Architecture d'un PC — Exercices (1/3 : composants et rôles)",
+    "Architecture d'un PC — Exercices (3/3 : scénario, diagnostic, vocabulaire)",
 }
 
 _CONSTANT_FUNCTION_PRESENTATION = r"""# Fonction constante
@@ -1818,32 +1835,7 @@ comme repères historiques et vocabulaire de référentiel, pas comme du matéri
 recommander ou à installer aujourd'hui.
 """
 
-_MC01_EXERCICES_1 = r"""## Exercice 1 — classer
-
-Classe chacun des éléments suivants dans la bonne catégorie : **matériel** ou
-**logiciel**.
-
-a) Une carte graphique
-b) Un navigateur internet
-c) Une barrette de RAM
-d) Un antivirus
-e) Un disque SSD
-
-**Correction :** a) matériel ; b) logiciel ; c) matériel ; d) logiciel ; e) matériel. Le
-matériel est physique (tu peux le toucher), le logiciel est un programme installé sur ce
-matériel.
-
-## Exercice 2 — classer
-
-Parmi les éléments suivants, indique lesquels font partie de l'**unité centrale** et
-lesquels sont des **périphériques** : écran, carte mère, clavier, alimentation, imprimante,
-CPU.
-
-**Correction :** Unité centrale : carte mère, alimentation, CPU. Périphériques : écran,
-clavier, imprimante. L'unité centrale regroupe les composants qui traitent l'information à
-l'intérieur du boîtier ; les périphériques communiquent avec elle de l'extérieur.
-
-## Exercice 3 — expliquer
+_MC01_EXERCICES_1 = r"""## Exercice 3 — expliquer
 
 Explique en une ou deux phrases pourquoi on ne peut pas installer n'importe quel
 processeur sur n'importe quelle carte mère.
@@ -1910,18 +1902,7 @@ chaque instant. Règle de sécurité : on ne démonte jamais une alimentation, m
 car elle peut conserver une charge électrique dangereuse dans ses condensateurs.
 """
 
-_MC01_EXERCICES_3 = r"""## Exercice 9 — reconstruire
-
-Remets dans le bon ordre les étapes suivantes, qui décrivent le lancement d'un programme
-installé sur un SSD : (A) le CPU exécute les instructions ; (B) le résultat s'affiche à
-l'écran ; (C) le programme est lu sur le SSD ; (D) le contenu est chargé en RAM.
-
-**Correction :** Ordre correct : C → D → A → B. Le programme est d'abord lu sur le SSD (C),
-puis chargé en RAM (D), puis ses instructions sont exécutées par le CPU (A), et le résultat
-est finalement affiché à l'écran (B) — éventuellement après un calcul du GPU si une image
-doit être produite.
-
-## Exercice 10 — diagnostiquer
+_MC01_EXERCICES_3 = r"""## Exercice 10 — diagnostiquer
 
 Un utilisateur se plaint : dès qu'il ouvre plusieurs programmes en même temps, son PC
 ralentit fortement. Son disque dispose pourtant de beaucoup d'espace libre. Quel composant
@@ -1933,15 +1914,6 @@ insuffisante, le système ralentit fortement. Le fait que l'espace disque libre 
 important écarte un problème de stockage plein — le symptôme correspond typiquement à un
 manque de RAM.
 
-## Exercice 11 — classer
-
-Classe les périphériques suivants en entrée, sortie, ou mixte : microphone, imprimante
-multifonction (scan + impression), enceintes, écran tactile, souris.
-
-**Correction :** Entrée : microphone, souris. Sortie : enceintes. Mixtes : imprimante
-multifonction (elle imprime — sortie — et scanne — entrée), écran tactile (il affiche —
-sortie — et reçoit le toucher — entrée).
-
 ## Exercice 12 — vocabulaire
 
 Donne l'équivalent anglais des quatre termes français suivants, et explique brièvement ce
@@ -1952,6 +1924,117 @@ et volatile. Disque dur → HDD (*Hard Disk Drive*), stockage magnétique durabl
 → Motherboard, support qui interconnecte tous les composants. Alimentation → Power supply /
 PSU (*Power Supply Unit*), transforme et distribue l'énergie électrique aux composants.
 """
+
+# Ticket #21 : exercices 1, 2, 9, 11 migrés en blocs `editorial_exercise` structurés
+# (classification/ordering). Contenu pédagogique identique à la version Markdown d'origine
+# (voir historique git de `_MC01_EXERCICES_1`/`_MC01_EXERCICES_3`) — seule la structure
+# technique change (boutons de catégorie / boutons monter-descendre au lieu d'un texte de
+# correction statique).
+
+_MC01_EXERCICE_1_CLASSIFICATION = EditorialExerciseBlockConfig(
+    mode="practice",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex1",
+            type="classification",
+            prompt=(
+                "Classe chacun des éléments suivants dans la bonne catégorie : "
+                "**matériel** ou **logiciel**."
+            ),
+            categories=["Matériel", "Logiciel"],
+            elements=[
+                "Une carte graphique",
+                "Un navigateur internet",
+                "Une barrette de RAM",
+                "Un antivirus",
+                "Un disque SSD",
+            ],
+            correct_categories=[0, 1, 0, 1, 0],
+            explanation=(
+                "Le matériel est physique (tu peux le toucher), le logiciel est un "
+                "programme installé sur ce matériel."
+            ),
+        )
+    ],
+)
+
+_MC01_EXERCICE_2_CLASSIFICATION = EditorialExerciseBlockConfig(
+    mode="practice",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex2",
+            type="classification",
+            prompt=(
+                "Parmi les éléments suivants, indique lesquels font partie de "
+                "l'**unité centrale** et lesquels sont des **périphériques**."
+            ),
+            categories=["Unité centrale", "Périphérique"],
+            elements=["Écran", "Carte mère", "Clavier", "Alimentation", "Imprimante", "CPU"],
+            correct_categories=[1, 0, 1, 0, 1, 0],
+            explanation=(
+                "L'unité centrale regroupe les composants qui traitent l'information à "
+                "l'intérieur du boîtier ; les périphériques communiquent avec elle de "
+                "l'extérieur."
+            ),
+        )
+    ],
+)
+
+_MC01_EXERCICE_9_ORDERING = EditorialExerciseBlockConfig(
+    mode="practice",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex9",
+            type="ordering",
+            prompt=(
+                "Remets dans le bon ordre les étapes suivantes, qui décrivent le lancement "
+                "d'un programme installé sur un SSD."
+            ),
+            order_items=[
+                "Le résultat s'affiche à l'écran",
+                "Le programme est lu sur le SSD",
+                "Le CPU exécute les instructions",
+                "Le contenu est chargé en RAM",
+            ],
+            # Ordre correct (index dans order_items ci-dessus) : lecture SSD → chargement
+            # RAM → exécution CPU → affichage écran.
+            correct_order=[1, 3, 2, 0],
+            explanation=(
+                "Le programme est d'abord lu sur le SSD, puis chargé en RAM, puis ses "
+                "instructions sont exécutées par le CPU, et le résultat est finalement "
+                "affiché à l'écran — éventuellement après un calcul du GPU si une image "
+                "doit être produite."
+            ),
+        )
+    ],
+)
+
+_MC01_EXERCICE_11_CLASSIFICATION = EditorialExerciseBlockConfig(
+    mode="practice",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex11",
+            type="classification",
+            prompt=(
+                "Classe les périphériques suivants en **entrée**, **sortie**, ou **mixte**."
+            ),
+            categories=["Entrée", "Sortie", "Mixte"],
+            elements=[
+                "Microphone",
+                "Imprimante multifonction (scan + impression)",
+                "Enceintes",
+                "Écran tactile",
+                "Souris",
+            ],
+            correct_categories=[0, 2, 1, 2, 0],
+            explanation=(
+                "Entrée : microphone, souris. Sortie : enceintes. Mixtes : imprimante "
+                "multifonction (elle imprime — sortie — et scanne — entrée), écran tactile "
+                "(il affiche — sortie — et reçoit le toucher — entrée)."
+            ),
+        )
+    ],
+)
 
 _MC01_MEMO = r"""# Fiche mémo — Architecture générale d'un PC
 
@@ -2211,24 +2294,65 @@ MC01_BLOCKS = [
         "is_published": True,
     },
     {
-        "title": "Architecture d'un PC — Exercices (1/3 : composants et rôles)",
-        "type": BlockType.MARKDOWN,
-        "content": _MC01_EXERCICES_1,
+        # Ticket #21 : ex-Exercice 1, migré de Markdown vers `editorial_exercise`
+        # (classification). Titre distinct des blocs Markdown ci-dessous : ne fait pas
+        # partie de MC01_OBSOLETE_TITLES.
+        "title": "Exercice 1 — Matériel ou logiciel (classification)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_1_CLASSIFICATION.to_json(),
         "position": 13,
         "is_published": True,
     },
     {
-        "title": "Architecture d'un PC — Exercices (2/3 : RAM, stockage, GPU, PSU)",
-        "type": BlockType.MARKDOWN,
-        "content": _MC01_EXERCICES_2,
+        "title": "Exercice 2 — Unité centrale ou périphérique (classification)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_2_CLASSIFICATION.to_json(),
         "position": 14,
         "is_published": True,
     },
     {
-        "title": "Architecture d'un PC — Exercices (3/3 : scénario, diagnostic, vocabulaire)",
+        # Titre volontairement DIFFÉRENT de la version pré-#21 (qui portait encore Ex1/Ex2)
+        # — ce bloc ne contient plus que les exercices 3 et 4. `MC01_OBSOLETE_TITLES`
+        # référence l'ANCIEN titre pour le retirer sur un staging déjà seedé ; ce nouveau
+        # titre garantit qu'un second `seed-db` ne le recrée pas indéfiniment (règle
+        # générale du projet : un contenu déjà seedé n'est jamais réécrit). Voir le rapport
+        # de ticket, section « Migration du contenu déjà seedé ».
+        "title": "Architecture d'un PC — Exercices (composants et rôles : suite)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_EXERCICES_1,
+        "position": 15,
+        "is_published": True,
+    },
+    {
+        # Inchangé par le ticket #21 (exercices 5 à 8, aucune migration).
+        "title": "Architecture d'un PC — Exercices (2/3 : RAM, stockage, GPU, PSU)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC01_EXERCICES_2,
+        "position": 16,
+        "is_published": True,
+    },
+    {
+        "title": "Exercice 9 — Lancement d'un programme (ordering)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_9_ORDERING.to_json(),
+        "position": 17,
+        "is_published": True,
+    },
+    {
+        "title": "Exercice 11 — Entrée, sortie ou mixte (classification)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_11_CLASSIFICATION.to_json(),
+        "position": 18,
+        "is_published": True,
+    },
+    {
+        # Même logique de renommage que ci-dessus : ne contient plus que les exercices 10
+        # et 12 (9 et 11 migrés ci-dessus). Titre différent de l'ancien pour garantir
+        # l'idempotence des seeds ultérieurs.
+        "title": "Architecture d'un PC — Exercices (diagnostic et vocabulaire : suite)",
         "type": BlockType.MARKDOWN,
         "content": _MC01_EXERCICES_3,
-        "position": 15,
+        "position": 19,
         "is_published": True,
     },
     {
@@ -2242,28 +2366,28 @@ MC01_BLOCKS = [
                 "L'exercice reste strictement dans la matière de ce mini-cours."
             ),
         ).to_json(),
-        "position": 16,
+        "position": 20,
         "is_published": True,
     },
     {
         "title": "Fiche mémo — Architecture générale d'un PC",
         "type": BlockType.MARKDOWN,
         "content": _MC01_MEMO,
-        "position": 17,
+        "position": 21,
         "is_published": True,
     },
     {
         "title": "Examen final — Architecture générale d'un PC (10 questions, 20 points)",
         "type": BlockType.MARKDOWN,
         "content": _MC01_EXAMEN,
-        "position": 18,
+        "position": 22,
         "is_published": True,
     },
     {
         "title": "Examen final — Corrigé (réservé formateur, non publié)",
         "type": BlockType.MARKDOWN,
         "content": _MC01_EXAMEN_CORRIGE,
-        "position": 19,
+        "position": 23,
         "is_published": False,
     },
 ]
@@ -4195,7 +4319,17 @@ def seed() -> None:
         _ensure_modules(db, informatique, INFORMATIQUE_MODULE_CODES, created, kept)
 
         ampcr = next(module for module in informatique.modules if module.code == "AMPCR")
-        _seed_uaa(db, ampcr, MC01_CODE, MC01_TITLE, 1, MC01_BLOCKS, created, kept)
+        # Ticket #21 : `obsolete_titles=MC01_OBSOLETE_TITLES` retire, par leur ANCIEN titre,
+        # les deux blocs Markdown qui contenaient encore le texte des exercices 1/2/9/11
+        # avant leur migration vers des blocs `editorial_exercise` — indispensable pour
+        # qu'un staging déjà seedé se mette réellement à jour (voir le commentaire sur
+        # `MC01_OBSOLETE_TITLES` en tête de fichier). Les blocs de remplacement portent des
+        # titres différents (voir MC01_BLOCKS), donc ce retrait ne s'exécute qu'une seule
+        # fois : sans effet sur une base déjà migrée ou jamais seedée.
+        removed_obsolete += _seed_uaa(
+            db, ampcr, MC01_CODE, MC01_TITLE, 1, MC01_BLOCKS, created, kept,
+            obsolete_titles=MC01_OBSOLETE_TITLES,
+        )
         # Mini-cours 02 (ticket #12) : même mécanisme, purement additif — ne touche jamais
         # MC01 ni Mathématiques.
         _seed_uaa(db, ampcr, MC02_CODE, MC02_TITLE, 2, MC02_BLOCKS, created, kept)

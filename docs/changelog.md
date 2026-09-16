@@ -2,6 +2,50 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Classification et ordering dans les exercices éditoriaux (ticket #21)
+
+Extension du socle `editorial_exercise` (ticket #17) avec deux nouveaux types :
+`classification` (classer des éléments dans des catégories) et `ordering` (remettre des
+éléments dans le bon ordre) — les deux à correction locale déterministe, sans note
+partielle (correct/incorrect sur l'ensemble de l'item, comme les types existants).
+
+**Migration MC01** : les exercices 1, 2 et 11 (classification) et 9 (ordering) migrent de
+blocs Markdown statiques vers des blocs `editorial_exercise` interactifs, **sans
+changement de leur contenu pédagogique** (mêmes catégories/éléments, même ordre correct,
+mêmes explications, mot pour mot). Les 8 autres exercices (3, 4, 5, 6, 7, 8, 10, 12)
+restent inchangés en Markdown — ils nécessitent `long_answer` (réponse rédigée + IA) ou
+une réécriture qui dénaturerait l'énoncé, hors périmètre de ce ticket.
+
+**UX** : entièrement au clic, aucun glisser-déposer requis (utilisable au tactile comme au
+clavier). `classification` : un groupe de boutons de catégorie par élément (le choix actif
+est mis en surbrillance) ; `ordering` : une liste numérotée avec boutons « monter »/
+« descendre » sur chaque ligne. Correction toujours via la même route AJAX générique
+(`POST /practice/api/editorial/{block_id}/verify`), jamais de rechargement de page, jamais
+de solution dans le HTML avant l'appel de vérification.
+
+**Migration du contenu déjà seedé (staging)** : les deux blocs Markdown modifiés
+(désormais réduits aux exercices restants) portent des titres **différents** de leur
+version pré-#21 ; leurs anciens titres sont listés dans `MC01_OBSOLETE_TITLES`
+(`app/seed.py`) et retirés explicitement par `_seed_uaa(..., obsolete_titles=...)` au
+prochain `seed-db` — sans `reset-db`, sans perte du reste du contenu. Ce mécanisme
+(retrait par ancien titre + insertion sous un titre nouveau) est nécessaire car
+`_seed_uaa` ne modifie jamais le contenu d'un bloc existant dont le titre correspond déjà
+— un simple changement du texte Python n'aurait eu aucun effet sur un staging déjà seedé.
+Scénario testé explicitement (`tests/test_ticket21_no_regression.py`), voir aussi
+`docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md`.
+
+**Tests** : +28 tests (241 → 269, tous verts) : validation de configuration, sérialisation,
+absence de fuite de solution, correction correcte/incorrecte/incomplète/malformée pour les
+deux nouveaux types (`tests/test_editorial_exercise.py`), route HTTP de bout en bout
+(`tests/test_practice_editorial_routes.py`), migration MC01 sans doublon, non-régression
+MC02/MC03/Mathématiques, idempotence du seed, et scénario de migration d'un staging
+pré-#21 sans reset (`tests/test_ticket21_no_regression.py`, nouveau fichier). `ruff check .`
+: 36 erreurs, identiques à `develop` (comparé via worktree isolé) — aucune nouvelle erreur.
+
+**Documentation** : `docs/editorial_exercise_engine.md` mis à jour (types pris en charge,
+UX classification/ordering, route `answer: Any`) ;
+`docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md` (rapport de ticket).
+
 ## 2026-09-16 — Correction bug mobile : menu hamburger inerte (ticket #18)
 
 Constaté sur le staging public depuis Chrome Android : le bouton hamburger de la navbar

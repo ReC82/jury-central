@@ -1,20 +1,24 @@
-"""Socle générique des exercices éditoriaux structurés (ticket #17).
+"""Socle générique des exercices éditoriaux structurés (ticket #17, étendu au #21).
 
 Un bloc de leçon `editorial_exercise` regroupe plusieurs items structurés (voir
 `docs/claude-reports/2026-09-16_audit_interactivite.md`, section D, et
-`docs/editorial_exercise_engine.md`). Première tranche de types (ticket #17) :
-`single_choice`, `true_false`, `short_answer` — uniquement lorsqu'une correction locale
-déterministe est fiable (comparaison exacte après normalisation, voir
-`app/answer_checking.py::text_answer_matches`). Les types nécessitant une correction IA
-(`long_answer`) ou une correction locale plus complexe (`classification`, `ordering`,
-`matching`) seront ajoutés par des tickets séparés — voir
-`docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md` pour la liste précise des
-exercices MC01 concernés.
+`docs/editorial_exercise_engine.md`). Types pris en charge :
+`single_choice`, `true_false`, `short_answer` (ticket #17), `classification`, `ordering`
+(ticket #21) — uniquement lorsqu'une correction locale déterministe est fiable. Les types
+nécessitant une correction IA (`long_answer`) ou un appariement (`matching`) seront ajoutés
+par des tickets séparés — voir `docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md`
+et `docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md` pour la liste
+précise des exercices MC01 concernés.
 
 Même principe de sécurité que `value_table`/`quiz`/`ai_exercise` : le serveur recharge
 toujours la configuration complète depuis `LessonBlock.content` pour corriger ; aucune
 réponse correcte, aucune liste de réponses acceptées, aucune explication n'est jamais
 transmise au navigateur avant l'appel de correction. Aucun `eval()`.
+
+Pour `classification`/`ordering`, la réponse soumise n'est plus une simple chaîne mais une
+liste d'entiers (voir `EditorialExerciseItem.check`) — `check_editorial_answer` accepte donc
+`submitted: Any` depuis le ticket #21, tout en restant rétrocompatible avec les réponses
+`str` des types existants.
 """
 
 import json
@@ -24,7 +28,13 @@ from typing import Any
 from app.answer_checking import text_answer_matches
 from app.content import render_markdown
 
-EDITORIAL_EXERCISE_TYPES = ("single_choice", "true_false", "short_answer")
+EDITORIAL_EXERCISE_TYPES = (
+    "single_choice",
+    "true_false",
+    "short_answer",
+    "classification",
+    "ordering",
+)
 EDITORIAL_EXERCISE_MODES = ("practice", "exam")
 
 
@@ -50,6 +60,14 @@ class EditorialExerciseItem:
     correct_index: int | None = None
     # short_answer — jamais dans to_public_dict avant correction :
     accepted_answers: list[str] = field(default_factory=list)
+    # classification — categories/elements publics, correct_categories jamais avant correction :
+    categories: list[str] = field(default_factory=list)
+    elements: list[str] = field(default_factory=list)
+    correct_categories: list[int] = field(default_factory=list)
+    # ordering — order_items public (ordre de présentation), correct_order jamais avant
+    # correction :
+    order_items: list[str] = field(default_factory=list)
+    correct_order: list[int] = field(default_factory=list)
     # commun — jamais dans to_public_dict avant correction :
     explanation: str = ""
 
@@ -78,10 +96,39 @@ class EditorialExerciseItem:
             raise EditorialExerciseValidationError(
                 f"{self.exercise_id} : accepted_answers est requis pour short_answer."
             )
+        elif self.type == "classification":
+            if len(self.categories) < 2:
+                raise EditorialExerciseValidationError(
+                    f"{self.exercise_id} : au moins deux catégories sont requises."
+                )
+            if len(self.elements) < 2:
+                raise EditorialExerciseValidationError(
+                    f"{self.exercise_id} : au moins deux éléments à classer sont requis."
+                )
+            if len(self.correct_categories) != len(self.elements):
+                raise EditorialExerciseValidationError(
+                    f"{self.exercise_id} : correct_categories doit avoir la même longueur "
+                    "que elements."
+                )
+            if any(not (0 <= c < len(self.categories)) for c in self.correct_categories):
+                raise EditorialExerciseValidationError(
+                    f"{self.exercise_id} : correct_categories contient un index de "
+                    "catégorie invalide."
+                )
+        elif self.type == "ordering":
+            if len(self.order_items) < 2:
+                raise EditorialExerciseValidationError(
+                    f"{self.exercise_id} : au moins deux éléments à ordonner sont requis."
+                )
+            if sorted(self.correct_order) != list(range(len(self.order_items))):
+                raise EditorialExerciseValidationError(
+                    f"{self.exercise_id} : correct_order doit être une permutation valide "
+                    "des index de order_items."
+                )
 
     def to_public_dict(self) -> dict[str, Any]:
         """Représentation envoyée au navigateur avant correction : jamais `correct_index`,
-        `accepted_answers` ni `explanation`."""
+        `accepted_answers`, `correct_categories`, `correct_order` ni `explanation`."""
         data: dict[str, Any] = {
             "exercise_id": self.exercise_id,
             "type": self.type,
@@ -91,24 +138,75 @@ class EditorialExerciseItem:
         }
         if self.type in ("single_choice", "true_false"):
             data["choices"] = self.choices
+        elif self.type == "classification":
+            data["categories"] = self.categories
+            data["elements"] = self.elements
+        elif self.type == "ordering":
+            data["order_items"] = self.order_items
         return data
 
-    def check(self, submitted: str) -> bool:
-        """Vérifie une réponse soumise. Ne révèle jamais la bonne réponse."""
+    def check(self, submitted: Any) -> bool:
+        """Vérifie une réponse soumise. Ne révèle jamais la bonne réponse.
+
+        `submitted` est une `str` pour single_choice/true_false/short_answer (inchangé
+        depuis le ticket #17), et une `list[int]` pour classification/ordering (ticket
+        #21) : classification attend un index de catégorie par élément, dans l'ordre de
+        `elements` ; ordering attend une permutation des index de `order_items` dans
+        l'ordre proposé par l'apprenant. Toute forme inattendue (mauvais type, mauvaise
+        longueur, valeurs non entières, permutation invalide) est traitée comme une réponse
+        incorrecte, jamais comme une erreur serveur.
+        """
         if self.type in ("single_choice", "true_false"):
             try:
                 return int(submitted) == self.correct_index
             except (TypeError, ValueError):
                 return False
         if self.type == "short_answer":
+            if not isinstance(submitted, str):
+                return False
             return text_answer_matches(self.accepted_answers, submitted)
+        if self.type == "classification":
+            return self._check_classification(submitted)
+        if self.type == "ordering":
+            return self._check_ordering(submitted)
         return False
+
+    def _check_classification(self, submitted: Any) -> bool:
+        if not isinstance(submitted, list) or len(submitted) != len(self.elements):
+            return False
+        try:
+            submitted_indexes = [int(value) for value in submitted]
+        except (TypeError, ValueError):
+            return False
+        return submitted_indexes == self.correct_categories
+
+    def _check_ordering(self, submitted: Any) -> bool:
+        if not isinstance(submitted, list) or len(submitted) != len(self.order_items):
+            return False
+        try:
+            submitted_indexes = [int(value) for value in submitted]
+        except (TypeError, ValueError):
+            return False
+        if sorted(submitted_indexes) != list(range(len(self.order_items))):
+            return False
+        return submitted_indexes == self.correct_order
 
     def correct_answer_display(self) -> str:
         if self.type in ("single_choice", "true_false") and self.correct_index is not None:
             return self.choices[self.correct_index]
         if self.type == "short_answer" and self.accepted_answers:
             return self.accepted_answers[0]
+        if self.type == "classification" and self.correct_categories:
+            pairs = zip(self.elements, self.correct_categories, strict=True)
+            return "\n".join(
+                f"- {element} → {self.categories[category_index]}"
+                for element, category_index in pairs
+            )
+        if self.type == "ordering" and self.correct_order:
+            return "\n".join(
+                f"{position + 1}. {self.order_items[item_index]}"
+                for position, item_index in enumerate(self.correct_order)
+            )
         return ""
 
 
@@ -142,6 +240,11 @@ class EditorialExerciseBlockConfig:
                         "choices": item.choices,
                         "correct_index": item.correct_index,
                         "accepted_answers": item.accepted_answers,
+                        "categories": item.categories,
+                        "elements": item.elements,
+                        "correct_categories": item.correct_categories,
+                        "order_items": item.order_items,
+                        "correct_order": item.correct_order,
                         "explanation": item.explanation,
                     }
                     for item in self.items
@@ -173,6 +276,11 @@ class EditorialExerciseBlockConfig:
                         choices=list(raw_item.get("choices", [])),
                         correct_index=raw_item.get("correct_index"),
                         accepted_answers=list(raw_item.get("accepted_answers", [])),
+                        categories=list(raw_item.get("categories", [])),
+                        elements=list(raw_item.get("elements", [])),
+                        correct_categories=list(raw_item.get("correct_categories", [])),
+                        order_items=list(raw_item.get("order_items", [])),
+                        correct_order=list(raw_item.get("correct_order", [])),
                         explanation=raw_item.get("explanation", ""),
                     )
                 )
@@ -214,7 +322,7 @@ class EditorialExerciseCorrection:
 
 
 def check_editorial_answer(
-    config: EditorialExerciseBlockConfig, exercise_id: str, submitted: str
+    config: EditorialExerciseBlockConfig, exercise_id: str, submitted: Any
 ) -> EditorialExerciseCorrection | None:
     """Vérifie une réponse soumise pour un item du bloc. Retourne `None` si `exercise_id`
     est introuvable dans cette configuration (à l'appelant de renvoyer 404) — jamais

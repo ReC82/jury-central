@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -55,7 +55,10 @@ class VerifyValueTableRequest(BaseModel):
 
 class VerifyEditorialExerciseRequest(BaseModel):
     exercise_id: str
-    answer: str
+    # str pour single_choice/true_false/short_answer ; list[int] pour classification
+    # (index de catégorie par élément) et ordering (permutation des index de order_items) —
+    # voir `app.editorial_exercise.EditorialExerciseItem.check` (ticket #21).
+    answer: Any
 
 
 class GenerateAIExerciseRequest(BaseModel):
