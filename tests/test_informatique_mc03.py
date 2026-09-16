@@ -62,9 +62,10 @@ def test_mc03_covers_the_mandatory_content(client, db_session):
 
 
 def test_mc03_has_at_least_ten_exercises_with_hidden_corrections(client, db_session):
+    """Depuis le ticket #22, les exercices sont sur la page S'entraîner."""
     seed()
 
-    response = client.get("/uaa/ampcr-mc03")
+    response = client.get("/uaa/ampcr-mc03/practice")
     text = response.text
 
     for n in range(1, 13):
@@ -73,15 +74,28 @@ def test_mc03_has_at_least_ten_exercises_with_hidden_corrections(client, db_sess
 
 
 def test_mc03_exam_is_published_without_visible_correction(client, db_session):
+    """Depuis le ticket #22, l'examen est sur la page S'évaluer."""
     seed()
 
-    response = client.get("/uaa/ampcr-mc03")
+    response = client.get("/uaa/ampcr-mc03/exam")
     text = response.text
 
     assert "Examen final" in text
     assert "Question 10 (2 pts)" in text
     assert "Corrigé" not in text
     assert "notation qualitative" not in text
+
+
+def test_mc03_course_page_no_longer_contains_practice_or_exam_content(client, db_session):
+    seed()
+
+    response = client.get("/uaa/ampcr-mc03")
+    text = response.text
+
+    assert response.status_code == 200
+    for n in range(1, 13):
+        assert f"Exercice {n} —" not in text
+    assert "Examen final" not in text
 
 
 def test_mc03_exam_correction_block_exists_but_is_unpublished(db_session):

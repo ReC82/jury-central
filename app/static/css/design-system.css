@@ -318,6 +318,29 @@ table.value-table tbody th {
     .jc-flow { break-inside: avoid; }
 }
 
+/* --- Navigation Cours / S'entraîner / S'évaluer (ticket #22) --- */
+
+.jc-space-nav .nav {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+}
+.jc-space-nav .nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.5rem 0.5rem;
+    border-radius: 999px;
+    background: var(--jc-gray-bg);
+    color: #333;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.jc-space-nav .nav-link.active {
+    background: var(--jc-blue);
+    color: #fff;
+}
+
 /* --- Progression de lecture de la leçon --- */
 
 .jc-lesson-progress {

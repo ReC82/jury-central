@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ uaa.title }} — Cours — Jury Central{% endblock %}
+{% block title %}{{ uaa.title }} — S'évaluer — Jury Central{% endblock %}
 
 {% block content %}
 <nav aria-label="breadcrumb">
@@ -16,20 +16,14 @@
     </ol>
 </nav>
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+<div class="mb-3">
+    <p class="text-uppercase text-muted small fw-semibold mb-1">S'évaluer</p>
     <h1 class="h3 mb-0">{{ uaa.title }} <small class="text-muted">({{ uaa.code }})</small></h1>
-    <button type="button" class="btn btn-dark mark-complete-btn" data-uaa-slug="{{ uaa.slug }}">
-        Marquer comme terminé
-    </button>
 </div>
 
 {% include "_uaa_space_nav.html" %}
 
-<div class="jc-lesson-progress d-print-none mb-4" aria-hidden="true">
-    <div class="jc-lesson-progress-bar"></div>
-</div>
-
-{% with empty_message = "Aucun contenu de cours publié pour cette UAA." %}
+{% with empty_message = "Aucune évaluation publiée pour cette UAA." %}
 {% include "_lesson_blocks.html" %}
 {% endwith %}
 

@@ -2,6 +2,73 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Refonte UX : séparer Cours, S'entraîner et S'évaluer (ticket #22)
+
+Décision produit de ChatGPT : une page de module ne doit plus mélanger théorie, exercices
+et examen dans le même flux. Chaque UAA expose désormais trois espaces génériques,
+identiques pour toutes les matières :
+
+- **Cours** (`/uaa/{slug}`) : théorie, exemples, tableaux, vocabulaire, fiche mémo.
+- **S'entraîner** (`/uaa/{slug}/practice`) : exercices structurés (`editorial_exercise`),
+  exercices historiques encore en Markdown, génération d'exercice par IA
+  (`ai_exercise`) — prépare le ticket #24 (constructeur multi-modules).
+- **S'évaluer** (`/uaa/{slug}/exam`) : examen final — prépare le ticket #25 (génération
+  d'examen multi-modules).
+
+**Classification explicite, pas déduite** : nouveau champ `LessonBlock.space`
+(`BlockSpace` : `COURSE`/`PRACTICE`/`EXAM`), indépendant de `BlockType` (nature technique
+du bloc) — jamais déduit du titre, de la position ou du type à l'exécution, conformément à
+la décision explicite de ChatGPT. Valeur par défaut rétrocompatible : `COURSE`.
+
+**Migration explicite du contenu connu** : chaque bloc de MC01/MC02/MC03 (72 blocs) porte
+désormais une classification écrite en dur dans `app/seed.py` (théorie/exemples/fiche
+mémo → COURSE, exercices Markdown + `editorial_exercise` + `ai_exercise` → PRACTICE,
+examen final → EXAM). Mathématiques reste COURSE par défaut (aucune classification
+spécifique demandée pour ce ticket).
+
+**Migration de schéma sans Alembic** : le projet n'a pas de système de migrations : une
+nouvelle colonne sur une table déjà existante (staging déjà seedé) n'est jamais créée par
+`Base.metadata.create_all`. Nouvelle fonction `app.database.ensure_schema_migrations()`
+(idempotente, `ALTER TABLE ... ADD COLUMN space ... DEFAULT 'COURSE'` si la colonne est
+absente), appelée au démarrage de l'application et dans `seed()`.
+
+**Migration du contenu déjà seedé (staging) sans reset-db** : `_seed_uaa()` accepte
+désormais un paramètre `reclassified` qui met à jour EN PLACE la métadonnée `space` d'un
+bloc déjà existant (matché par titre) dont la valeur diffère de celle désormais définie
+dans `app/seed.py` — jamais son `content`. Un staging seedé avant ce ticket (où `space`
+vaut COURSE partout, valeur posée par `ensure_schema_migrations`) reclasse donc
+correctement ses exercices/examen vers PRACTICE/EXAM au prochain `seed-db`, sans perte ni
+duplication de contenu. Scénario testé explicitement de bout en bout (base construite à la
+main + `seed()` + vérification HTTP) et vérifié manuellement sur un serveur réel.
+
+**Navigation** : nouveau partiel `_uaa_space_nav.html` (trois onglets de largeur égale,
+`min-height: 44px`, testé aux largeurs mobiles 360/390/430 px), inclus par les trois
+templates (`uaa_detail.html`, nouveaux `uaa_practice.html`/`uaa_exam.html`), tous
+alimentés par le même partiel de rendu générique `_lesson_blocks.html` et la même fonction
+`app.main._render_lesson_blocks` (aucune duplication de logique d'affichage par bloc).
+
+**Tests** : +16 tests (`tests/test_ticket22_no_regression.py`, nouveau) : migration de
+schéma (ajout de colonne idempotent, y compris sur une table absente), valeur par défaut
+du modèle, filtrage strict par espace sur les trois routes, 404 cohérent (slug inconnu,
+UAA non publiée) sur les trois routes, navigation (liens + état actif), scénario complet
+de staging pré-#22 reclassé sans reset, répartition COURSE/PRACTICE/EXAM de MC01/MC02/MC03,
+Mathématiques inchangé, idempotence. Ajustements de tests existants (conséquence directe
+et attendue de la séparation, pas une régression) :
+`tests/test_informatique_mc0{1,2,3}.py` et `tests/test_ticket{17,21}_no_regression.py`
+pointent désormais vers `/practice`/`/exam` pour les exercices/examens, avec des tests
+supplémentaires confirmant leur absence du flux Cours. 288 tests au total, tous verts.
+
+**Ruff** : `ruff check .` → 36 erreurs, strictement identiques à `develop` (comparé via
+worktree isolé) — 0 nouvelle erreur (2 nouvelles occurrences B008 sur les routes
+`/practice`/`/exam`, neutralisées par `# noqa: B008`, même convention que le reste du
+projet pour ce type d'appel `Depends()`).
+
+**Documentation** : `docs/editorial_exercise_engine.md` implicitement à jour (aucun
+changement de socle) ; `docs/current_state.md` (navigation publique, classification
+explicite) ;
+`docs/claude-reports/2026-09-16_ticket-22_separation-cours-practice-exam.md` (rapport de
+ticket).
+
 ## 2026-09-16 — Classification et ordering dans les exercices éditoriaux (ticket #21)
 
 Extension du socle `editorial_exercise` (ticket #17) avec deux nouveaux types :

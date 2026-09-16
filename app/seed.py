@@ -1,10 +1,10 @@
 from pathlib import Path
 
 from app.ai_exercise_blocks import AIExerciseBlockConfig
-from app.database import DATABASE_URL, Base, SessionLocal, engine
+from app.database import DATABASE_URL, Base, SessionLocal, engine, ensure_schema_migrations
 from app.editorial_exercise import EditorialExerciseBlockConfig, EditorialExerciseItem
 from app.exercise_blocks import ExerciseBlockConfig
-from app.models import UAA, BlockType, LessonBlock, Module, Subject
+from app.models import UAA, BlockSpace, BlockType, LessonBlock, Module, Subject
 from app.quiz import QuizConfig
 from app.slugify import slugify
 
@@ -2215,6 +2215,7 @@ MC01_BLOCKS = [
         "content": _MC01_PLAN,
         "position": 1,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "1. Vue globale d'un ordinateur — Cours",
@@ -2222,6 +2223,7 @@ MC01_BLOCKS = [
         "content": _MC01_VUE_GLOBALE,
         "position": 2,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "2. Carte mère — Cours",
@@ -2229,6 +2231,7 @@ MC01_BLOCKS = [
         "content": _MC01_CARTE_MERE,
         "position": 3,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "3. Processeur (CPU) — Cours",
@@ -2236,6 +2239,7 @@ MC01_BLOCKS = [
         "content": _MC01_CPU,
         "position": 4,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "4. Mémoire vive (RAM) — Cours",
@@ -2243,6 +2247,7 @@ MC01_BLOCKS = [
         "content": _MC01_RAM,
         "position": 5,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "5. Stockage — Cours",
@@ -2250,6 +2255,7 @@ MC01_BLOCKS = [
         "content": _MC01_STOCKAGE,
         "position": 6,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "6. Carte graphique (GPU) — Cours",
@@ -2257,6 +2263,7 @@ MC01_BLOCKS = [
         "content": _MC01_GPU,
         "position": 7,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "7. Alimentation (PSU) — Cours",
@@ -2264,6 +2271,7 @@ MC01_BLOCKS = [
         "content": _MC01_PSU,
         "position": 8,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "8. Périphériques et entrées/sorties — Cours",
@@ -2271,6 +2279,7 @@ MC01_BLOCKS = [
         "content": _MC01_PERIPHERIQUES,
         "position": 9,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "9. Interaction des composants — Exemple",
@@ -2278,6 +2287,7 @@ MC01_BLOCKS = [
         "content": _MC01_INTERACTION,
         "position": 10,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "10. Vocabulaire FR/EN — Cours",
@@ -2285,6 +2295,7 @@ MC01_BLOCKS = [
         "content": _MC01_VOCAB_FR_EN,
         "position": 11,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "11. Vocabulaire ancien du référentiel — Cours",
@@ -2292,6 +2303,7 @@ MC01_BLOCKS = [
         "content": _MC01_VOCAB_ANCIEN,
         "position": 12,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         # Ticket #21 : ex-Exercice 1, migré de Markdown vers `editorial_exercise`
@@ -2302,6 +2314,7 @@ MC01_BLOCKS = [
         "content": _MC01_EXERCICE_1_CLASSIFICATION.to_json(),
         "position": 13,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Exercice 2 — Unité centrale ou périphérique (classification)",
@@ -2309,6 +2322,7 @@ MC01_BLOCKS = [
         "content": _MC01_EXERCICE_2_CLASSIFICATION.to_json(),
         "position": 14,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         # Titre volontairement DIFFÉRENT de la version pré-#21 (qui portait encore Ex1/Ex2)
@@ -2322,6 +2336,7 @@ MC01_BLOCKS = [
         "content": _MC01_EXERCICES_1,
         "position": 15,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         # Inchangé par le ticket #21 (exercices 5 à 8, aucune migration).
@@ -2330,6 +2345,7 @@ MC01_BLOCKS = [
         "content": _MC01_EXERCICES_2,
         "position": 16,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Exercice 9 — Lancement d'un programme (ordering)",
@@ -2337,6 +2353,7 @@ MC01_BLOCKS = [
         "content": _MC01_EXERCICE_9_ORDERING.to_json(),
         "position": 17,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Exercice 11 — Entrée, sortie ou mixte (classification)",
@@ -2344,6 +2361,7 @@ MC01_BLOCKS = [
         "content": _MC01_EXERCICE_11_CLASSIFICATION.to_json(),
         "position": 18,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         # Même logique de renommage que ci-dessus : ne contient plus que les exercices 10
@@ -2354,6 +2372,7 @@ MC01_BLOCKS = [
         "content": _MC01_EXERCICES_3,
         "position": 19,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Architecture d'un PC — Génère ton propre exercice (IA)",
@@ -2368,6 +2387,7 @@ MC01_BLOCKS = [
         ).to_json(),
         "position": 20,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Fiche mémo — Architecture générale d'un PC",
@@ -2375,6 +2395,7 @@ MC01_BLOCKS = [
         "content": _MC01_MEMO,
         "position": 21,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "Examen final — Architecture générale d'un PC (10 questions, 20 points)",
@@ -2382,6 +2403,7 @@ MC01_BLOCKS = [
         "content": _MC01_EXAMEN,
         "position": 22,
         "is_published": True,
+        "space": BlockSpace.EXAM,
     },
     {
         "title": "Examen final — Corrigé (réservé formateur, non publié)",
@@ -2389,6 +2411,7 @@ MC01_BLOCKS = [
         "content": _MC01_EXAMEN_CORRIGE,
         "position": 23,
         "is_published": False,
+        "space": BlockSpace.EXAM,
     },
 ]
 
@@ -3141,6 +3164,7 @@ MC02_BLOCKS = [
         "content": _MC02_PLAN,
         "position": 1,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "1. Rôle détaillé de la carte mère — Cours",
@@ -3148,6 +3172,7 @@ MC02_BLOCKS = [
         "content": _MC02_ROLE,
         "position": 2,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "2. Formats ATX, micro-ATX, Mini-ITX — Cours",
@@ -3155,6 +3180,7 @@ MC02_BLOCKS = [
         "content": _MC02_FORMATS,
         "position": 3,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "3. Socket CPU et compatibilité — Cours",
@@ -3162,6 +3188,7 @@ MC02_BLOCKS = [
         "content": _MC02_SOCKET,
         "position": 4,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "4. Chipset — Cours",
@@ -3169,6 +3196,7 @@ MC02_BLOCKS = [
         "content": _MC02_CHIPSET,
         "position": 5,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "5. Slots RAM (DIMM) — Cours",
@@ -3176,6 +3204,7 @@ MC02_BLOCKS = [
         "content": _MC02_RAM_SLOTS,
         "position": 6,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "6. PCI Express (PCIe) — Cours",
@@ -3183,6 +3212,7 @@ MC02_BLOCKS = [
         "content": _MC02_PCIE,
         "position": 7,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "7. Stockage sur la carte mère (SATA, M.2) — Cours",
@@ -3190,6 +3220,7 @@ MC02_BLOCKS = [
         "content": _MC02_STOCKAGE_CM,
         "position": 8,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "8. Alimentation interne (ATX 24 broches, EPS) — Cours",
@@ -3197,6 +3228,7 @@ MC02_BLOCKS = [
         "content": _MC02_ALIM_INTERNE,
         "position": 9,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "9. Connecteurs internes — Cours",
@@ -3204,6 +3236,7 @@ MC02_BLOCKS = [
         "content": _MC02_CONNECTEURS_INTERNES,
         "position": 10,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "10. Connectique arrière (E/S) — Cours",
@@ -3211,6 +3244,7 @@ MC02_BLOCKS = [
         "content": _MC02_IO_ARRIERE,
         "position": 11,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "11. F_PANEL — Cours",
@@ -3218,6 +3252,7 @@ MC02_BLOCKS = [
         "content": _MC02_F_PANEL,
         "position": 12,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "12. BIOS/UEFI et POST — Cours",
@@ -3225,6 +3260,7 @@ MC02_BLOCKS = [
         "content": _MC02_BIOS_UEFI,
         "position": 13,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "13. Méthode de compatibilité — Cours",
@@ -3232,6 +3268,7 @@ MC02_BLOCKS = [
         "content": _MC02_METHODE_COMPATIBILITE,
         "position": 14,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "14. Diagnostic professionnel : pas de POST — Exemple",
@@ -3239,6 +3276,7 @@ MC02_BLOCKS = [
         "content": _MC02_DIAGNOSTIC,
         "position": 15,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "15. Sécurité et décharge électrostatique (ESD) — Cours",
@@ -3246,6 +3284,7 @@ MC02_BLOCKS = [
         "content": _MC02_SECURITE_ESD,
         "position": 16,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "16. Vocabulaire FR/EN — Cours",
@@ -3253,6 +3292,7 @@ MC02_BLOCKS = [
         "content": _MC02_VOCAB_FR_EN,
         "position": 17,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "Carte mère — Exercices (1/3 : formats, socket, chipset, RAM)",
@@ -3260,6 +3300,7 @@ MC02_BLOCKS = [
         "content": _MC02_EXERCICES_1,
         "position": 18,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Carte mère — Exercices (2/3 : PCIe, stockage, alimentation, F_PANEL)",
@@ -3267,6 +3308,7 @@ MC02_BLOCKS = [
         "content": _MC02_EXERCICES_2,
         "position": 19,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Carte mère — Exercices (3/3 : E/S, POST, diagnostic)",
@@ -3274,6 +3316,7 @@ MC02_BLOCKS = [
         "content": _MC02_EXERCICES_3,
         "position": 20,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Carte mère — Génère ton propre exercice (IA)",
@@ -3289,6 +3332,7 @@ MC02_BLOCKS = [
         ).to_json(),
         "position": 21,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Fiche mémo — Carte mère, formats et connectiques",
@@ -3296,6 +3340,7 @@ MC02_BLOCKS = [
         "content": _MC02_MEMO,
         "position": 22,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "Examen final — Carte mère, formats et connectiques (10 questions, 20 points)",
@@ -3303,6 +3348,7 @@ MC02_BLOCKS = [
         "content": _MC02_EXAMEN,
         "position": 23,
         "is_published": True,
+        "space": BlockSpace.EXAM,
     },
     {
         "title": "Examen final — Corrigé (réservé formateur, non publié)",
@@ -3310,6 +3356,7 @@ MC02_BLOCKS = [
         "content": _MC02_EXAMEN_CORRIGE,
         "position": 24,
         "is_published": False,
+        "space": BlockSpace.EXAM,
     },
 ]
 
@@ -4025,6 +4072,7 @@ MC03_BLOCKS = [
         "content": _MC03_PLAN,
         "position": 1,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "1. Rôle du CPU et cycle d'exécution — Cours",
@@ -4032,6 +4080,7 @@ MC03_BLOCKS = [
         "content": _MC03_CPU_ROLE,
         "position": 2,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "2. Cœurs, threads et fréquence — Cours",
@@ -4039,6 +4088,7 @@ MC03_BLOCKS = [
         "content": _MC03_CORES_FREQ,
         "position": 3,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "3. IPC et hiérarchie de cache (L1/L2/L3) — Cours",
@@ -4046,6 +4096,7 @@ MC03_BLOCKS = [
         "content": _MC03_IPC_CACHE,
         "position": 4,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "4. Architecture 32/64 bits — Cours",
@@ -4053,6 +4104,7 @@ MC03_BLOCKS = [
         "content": _MC03_32_64_BITS,
         "position": 5,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "5. Socket, génération et compatibilité — Cours",
@@ -4060,6 +4112,7 @@ MC03_BLOCKS = [
         "content": _MC03_SOCKET_COMPAT,
         "position": 6,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "6. TDP, refroidissement et throttling — Cours",
@@ -4067,6 +4120,7 @@ MC03_BLOCKS = [
         "content": _MC03_TDP_THROTTLING,
         "position": 7,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "7. CPU avec ou sans graphique intégré — Cours",
@@ -4074,6 +4128,7 @@ MC03_BLOCKS = [
         "content": _MC03_GPU_INTEGRE,
         "position": 8,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "8. Rôle et capacité de la RAM — Cours",
@@ -4081,6 +4136,7 @@ MC03_BLOCKS = [
         "content": _MC03_RAM_ROLE,
         "position": 9,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "9. DDR3, DDR4, DDR5 — Cours",
@@ -4088,6 +4144,7 @@ MC03_BLOCKS = [
         "content": _MC03_DDR_GENERATIONS,
         "position": 10,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "10. DIMM, SO-DIMM et canaux mémoire — Cours",
@@ -4095,6 +4152,7 @@ MC03_BLOCKS = [
         "content": _MC03_DIMM_CHANNELS,
         "position": 11,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "11. Capacité maximale et compatibilité — Cours",
@@ -4102,6 +4160,7 @@ MC03_BLOCKS = [
         "content": _MC03_CAPACITE_MAX,
         "position": 12,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "12. XMP/EXPO et ECC — Cours",
@@ -4109,6 +4168,7 @@ MC03_BLOCKS = [
         "content": _MC03_XMP_ECC,
         "position": 13,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "13. RAM, VRAM et stockage — Cours",
@@ -4116,6 +4176,7 @@ MC03_BLOCKS = [
         "content": _MC03_RAM_VRAM_STOCKAGE,
         "position": 14,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "14. Goulot d'étranglement et symptômes — Cours",
@@ -4123,6 +4184,7 @@ MC03_BLOCKS = [
         "content": _MC03_GOULOT,
         "position": 15,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "15. Diagnostic RAM et CPU/thermique — Exemple",
@@ -4130,6 +4192,7 @@ MC03_BLOCKS = [
         "content": _MC03_DIAGNOSTIC,
         "position": 16,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "16. Unités et pièges d'examen — Cours",
@@ -4137,6 +4200,7 @@ MC03_BLOCKS = [
         "content": _MC03_UNITES_PIEGES,
         "position": 17,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "17. Vocabulaire FR/EN — Cours",
@@ -4144,6 +4208,7 @@ MC03_BLOCKS = [
         "content": _MC03_VOCAB_FR_EN,
         "position": 18,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "CPU et RAM — Exercices (1/3 : CPU, fréquence, cache, TDP)",
@@ -4151,6 +4216,7 @@ MC03_BLOCKS = [
         "content": _MC03_EXERCICES_1,
         "position": 19,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "CPU et RAM — Exercices (2/3 : DDR, formats, dual-channel, VRAM)",
@@ -4158,6 +4224,7 @@ MC03_BLOCKS = [
         "content": _MC03_EXERCICES_2,
         "position": 20,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "CPU et RAM — Exercices (3/3 : diagnostic, unités, goulot d'étranglement)",
@@ -4165,6 +4232,7 @@ MC03_BLOCKS = [
         "content": _MC03_EXERCICES_3,
         "position": 21,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "CPU et RAM — Génère ton propre exercice (IA)",
@@ -4180,6 +4248,7 @@ MC03_BLOCKS = [
         ).to_json(),
         "position": 22,
         "is_published": True,
+        "space": BlockSpace.PRACTICE,
     },
     {
         "title": "Fiche mémo — CPU et mémoire RAM",
@@ -4187,6 +4256,7 @@ MC03_BLOCKS = [
         "content": _MC03_MEMO,
         "position": 23,
         "is_published": True,
+        "space": BlockSpace.COURSE,
     },
     {
         "title": "Examen final — CPU et mémoire RAM (10 questions, 20 points)",
@@ -4194,6 +4264,7 @@ MC03_BLOCKS = [
         "content": _MC03_EXAMEN,
         "position": 24,
         "is_published": True,
+        "space": BlockSpace.EXAM,
     },
     {
         "title": "Examen final — Corrigé (réservé formateur, non publié)",
@@ -4201,6 +4272,7 @@ MC03_BLOCKS = [
         "content": _MC03_EXAMEN_CORRIGE,
         "position": 25,
         "is_published": False,
+        "space": BlockSpace.EXAM,
     },
 ]
 
@@ -4244,10 +4316,21 @@ def _seed_uaa(
     created: dict,
     kept: dict,
     obsolete_titles: frozenset[str] = frozenset(),
+    reclassified: dict | None = None,
 ) -> int:
     """Crée (ou complète) une UAA et ses blocs, sans jamais écraser l'existant.
 
     Retourne le nombre de blocs obsolètes retirés (voir `OBSOLETE_DEMO_BLOCK_TITLES`).
+
+    `reclassified` (optionnel, ticket #22) : si fourni, incrémente `reclassified["blocks"]`
+    et met à jour EN PLACE le champ `LessonBlock.space` de tout bloc déjà existant (matché
+    par titre) dont la valeur explicite dans `blocks` (`block_data.get("space")`) diffère
+    de celle actuellement en base. Seule la métadonnée `space` est touchée — jamais
+    `content`, `title`, `position` ni `is_published` d'un bloc déjà existant. Nécessaire
+    pour qu'un staging déjà seedé AVANT l'introduction de `LessonBlock.space` (colonne
+    ajoutée avec la valeur par défaut COURSE, voir `app.database.ensure_schema_migrations`)
+    reclasse correctement ses exercices/examens déjà existants vers PRACTICE/EXAM au
+    prochain `seed-db`, sans `reset-db` ni duplication de contenu.
     """
     uaa = next((u for u in module.uaas if u.code == code), None)
     if uaa is None:
@@ -4272,13 +4355,20 @@ def _seed_uaa(
             removed_obsolete += 1
     db.flush()
 
-    existing_titles = {block.title for block in uaa.lesson_blocks}
+    existing_by_title = {block.title: block for block in uaa.lesson_blocks}
     for block_data in blocks:
-        if block_data["title"] not in existing_titles:
+        existing_block = existing_by_title.get(block_data["title"])
+        if existing_block is None:
             db.add(LessonBlock(uaa=uaa, **block_data))
             created["blocks"] += 1
-        else:
-            kept["blocks"] += 1
+            continue
+
+        kept["blocks"] += 1
+        if reclassified is not None:
+            target_space = block_data.get("space", BlockSpace.COURSE)
+            if existing_block.space != target_space:
+                existing_block.space = target_space
+                reclassified["blocks"] += 1
 
     return removed_obsolete
 
@@ -4298,9 +4388,11 @@ def seed() -> None:
     """
     created = {"subjects": 0, "modules": 0, "uaas": 0, "blocks": 0}
     kept = {"subjects": 0, "modules": 0, "uaas": 0, "blocks": 0}
+    reclassified = {"blocks": 0}
     removed_obsolete = 0
 
     Base.metadata.create_all(engine)
+    ensure_schema_migrations()
     db = SessionLocal()
     try:
         mathematiques = _ensure_subject(db, SUBJECT_NAME, created, kept)
@@ -4309,9 +4401,12 @@ def seed() -> None:
         mb32 = next(module for module in mathematiques.modules if module.code == "MB32")
         removed_obsolete += _seed_uaa(
             db, mb32, UAA1_CODE, UAA1_TITLE, 1, UAA1_BLOCKS, created, kept,
-            obsolete_titles=OBSOLETE_DEMO_BLOCK_TITLES,
+            obsolete_titles=OBSOLETE_DEMO_BLOCK_TITLES, reclassified=reclassified,
         )
-        _seed_uaa(db, mb32, UAA2_CODE, UAA2_TITLE, 2, UAA2_BLOCKS, created, kept)
+        _seed_uaa(
+            db, mb32, UAA2_CODE, UAA2_TITLE, 2, UAA2_BLOCKS, created, kept,
+            reclassified=reclassified,
+        )
 
         # Informatique AMPCR (ticket #10) : même mécanisme générique, purement additif —
         # ne touche jamais Mathématiques/MB32/MQ32/MQ34.
@@ -4326,16 +4421,29 @@ def seed() -> None:
         # `MC01_OBSOLETE_TITLES` en tête de fichier). Les blocs de remplacement portent des
         # titres différents (voir MC01_BLOCKS), donc ce retrait ne s'exécute qu'une seule
         # fois : sans effet sur une base déjà migrée ou jamais seedée.
+        # Ticket #22 : `reclassified=reclassified` reclasse EN PLACE (métadonnée `space`
+        # uniquement) les blocs déjà existants dont l'espace pédagogique (COURSE/PRACTICE/
+        # EXAM) diffère de la valeur explicite désormais définie dans MC01_BLOCKS/MC02_
+        # BLOCKS/MC03_BLOCKS — indispensable pour qu'un staging déjà seedé avant ce ticket
+        # (où `space` vaut COURSE partout par défaut) affiche correctement ses exercices en
+        # PRACTICE et son examen en EXAM, sans reset-db. Voir le rapport de ticket, section
+        # « Migration du contenu déjà seedé (staging) ».
         removed_obsolete += _seed_uaa(
             db, ampcr, MC01_CODE, MC01_TITLE, 1, MC01_BLOCKS, created, kept,
-            obsolete_titles=MC01_OBSOLETE_TITLES,
+            obsolete_titles=MC01_OBSOLETE_TITLES, reclassified=reclassified,
         )
         # Mini-cours 02 (ticket #12) : même mécanisme, purement additif — ne touche jamais
         # MC01 ni Mathématiques.
-        _seed_uaa(db, ampcr, MC02_CODE, MC02_TITLE, 2, MC02_BLOCKS, created, kept)
+        _seed_uaa(
+            db, ampcr, MC02_CODE, MC02_TITLE, 2, MC02_BLOCKS, created, kept,
+            reclassified=reclassified,
+        )
         # Mini-cours 03 (ticket #14) : même mécanisme, purement additif — ne touche jamais
         # MC01/MC02 ni Mathématiques.
-        _seed_uaa(db, ampcr, MC03_CODE, MC03_TITLE, 3, MC03_BLOCKS, created, kept)
+        _seed_uaa(
+            db, ampcr, MC03_CODE, MC03_TITLE, 3, MC03_BLOCKS, created, kept,
+            reclassified=reclassified,
+        )
 
         db.commit()
 
@@ -4352,6 +4460,11 @@ def seed() -> None:
         )
         if removed_obsolete:
             print(f"  Retiré : {removed_obsolete} bloc(s) de démonstration obsolète(s)")
+        if reclassified["blocks"]:
+            print(
+                f"  Reclassé (espace pédagogique COURSE/PRACTICE/EXAM mis à jour, "
+                f"contenu inchangé) : {reclassified['blocks']} bloc(s)"
+            )
     finally:
         db.close()
 

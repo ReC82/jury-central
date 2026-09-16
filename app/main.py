@@ -14,7 +14,7 @@ from app.ai_exercise_blocks import AIExerciseBlockConfig
 from app.card_kind import card_meta, classify_block_title
 from app.config import settings
 from app.content import extract_youtube_id, render_markdown
-from app.database import Base, engine, get_db
+from app.database import Base, engine, ensure_schema_migrations, get_db
 from app.editorial_exercise import EditorialExerciseBlockConfig
 from app.exercise_blocks import ExerciseBlockConfig, exercise_to_public_dict, generate_exercises
 from app.practice import router as practice_router
@@ -27,6 +27,7 @@ from generators.exercise_types import InteractiveExercise
 BASE_DIR = Path(__file__).resolve().parent
 
 Base.metadata.create_all(bind=engine)
+ensure_schema_migrations()
 
 app = FastAPI(title="Jury Central")
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
@@ -86,13 +87,15 @@ async def module_detail(
     )
 
 
-@app.get("/uaa/{uaa_slug}", response_class=HTMLResponse)
-async def uaa_detail(
-    uaa_slug: str, request: Request, db: Session = Depends(get_db)
-) -> HTMLResponse:
-    uaa = db.query(models.UAA).filter_by(slug=uaa_slug).first()
-    if uaa is None or not uaa.is_published:
-        raise HTTPException(status_code=404, detail="UAA introuvable")
+def _render_lesson_blocks(blocks: list[models.LessonBlock]) -> tuple[list[dict], bool]:
+    """Rend une liste de blocs de leçon déjà publiés en `rendered_blocks` pour un template.
+
+    Générique : ne sait rien de l'UAA, du gabarit ni de l'espace pédagogique (COURSE/
+    PRACTICE/EXAM, ticket #22) qui l'appelle — le tri par espace a lieu AVANT l'appel (voir
+    les trois routes `/uaa/{slug}`, `/uaa/{slug}/practice`, `/uaa/{slug}/exam` ci-dessous),
+    ce qui garde cette fonction, et le template qu'elle alimente, strictement identiques aux
+    trois espaces.
+    """
 
     def empty_item(block: models.LessonBlock) -> dict:
         return {
@@ -130,7 +133,7 @@ async def uaa_detail(
         pending_group_name = None
         pending_group_entries = []
 
-    for block in uaa.lesson_blocks:
+    for block in blocks:
         if not block.is_published:
             continue
 
@@ -208,9 +211,78 @@ async def uaa_detail(
     needs_plotly = any(
         item["html"] and "jc-graph-constant" in item["html"] for item in rendered_blocks
     )
+    return rendered_blocks, needs_plotly
+
+
+def _get_published_uaa(uaa_slug: str, db: Session) -> models.UAA:
+    uaa = db.query(models.UAA).filter_by(slug=uaa_slug).first()
+    if uaa is None or not uaa.is_published:
+        raise HTTPException(status_code=404, detail="UAA introuvable")
+    return uaa
+
+
+def _space_blocks(uaa: models.UAA, space: models.BlockSpace) -> list[models.LessonBlock]:
+    return [block for block in uaa.lesson_blocks if block.space == space]
+
+
+@app.get("/uaa/{uaa_slug}", response_class=HTMLResponse)
+async def uaa_detail(
+    uaa_slug: str, request: Request, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    uaa = _get_published_uaa(uaa_slug, db)
+    rendered_blocks, needs_plotly = _render_lesson_blocks(
+        _space_blocks(uaa, models.BlockSpace.COURSE)
+    )
 
     return templates.TemplateResponse(
         request=request,
         name="uaa_detail.html",
-        context={"uaa": uaa, "rendered_blocks": rendered_blocks, "needs_plotly": needs_plotly},
+        context={
+            "uaa": uaa,
+            "rendered_blocks": rendered_blocks,
+            "needs_plotly": needs_plotly,
+            "active_space": "course",
+        },
+    )
+
+
+@app.get("/uaa/{uaa_slug}/practice", response_class=HTMLResponse)
+async def uaa_practice(
+    uaa_slug: str, request: Request, db: Session = Depends(get_db)  # noqa: B008
+) -> HTMLResponse:
+    uaa = _get_published_uaa(uaa_slug, db)
+    rendered_blocks, needs_plotly = _render_lesson_blocks(
+        _space_blocks(uaa, models.BlockSpace.PRACTICE)
+    )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="uaa_practice.html",
+        context={
+            "uaa": uaa,
+            "rendered_blocks": rendered_blocks,
+            "needs_plotly": needs_plotly,
+            "active_space": "practice",
+        },
+    )
+
+
+@app.get("/uaa/{uaa_slug}/exam", response_class=HTMLResponse)
+async def uaa_exam(
+    uaa_slug: str, request: Request, db: Session = Depends(get_db)  # noqa: B008
+) -> HTMLResponse:
+    uaa = _get_published_uaa(uaa_slug, db)
+    rendered_blocks, needs_plotly = _render_lesson_blocks(
+        _space_blocks(uaa, models.BlockSpace.EXAM)
+    )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="uaa_exam.html",
+        context={
+            "uaa": uaa,
+            "rendered_blocks": rendered_blocks,
+            "needs_plotly": needs_plotly,
+            "active_space": "exam",
+        },
     )

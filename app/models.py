@@ -18,6 +18,20 @@ class BlockType(str, enum.Enum):
     EDITORIAL_EXERCISE = "editorial_exercise"
 
 
+class BlockSpace(str, enum.Enum):
+    """Espace pédagogique dans lequel un bloc est affiché (ticket #22) : COURS, S'ENTRAÎNER
+    ou S'ÉVALUER. Champ EXPLICITE, indépendant de `BlockType` (nature technique du bloc) —
+    un bloc `editorial_exercise` peut par exemple appartenir à PRACTICE aujourd'hui et à
+    EXAM demain, sans changer de type. Ne jamais déduire `space` du titre, de la position
+    ou du type à l'exécution (voir `app/main.py`, routes `/uaa/{slug}`,
+    `/uaa/{slug}/practice`, `/uaa/{slug}/exam`) : seule la valeur explicite en base fait foi.
+    """
+
+    COURSE = "course"
+    PRACTICE = "practice"
+    EXAM = "exam"
+
+
 class Subject(Base):
     __tablename__ = "subjects"
 
@@ -74,6 +88,11 @@ class LessonBlock(Base):
     content: Mapped[str] = mapped_column(Text)
     position: Mapped[int] = mapped_column(Integer, default=0)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Rétrocompatible : tout bloc existant avant le ticket #22 (colonne ajoutée via
+    # `app.database.ensure_schema_migrations`, voir ce module) vaut COURSE par défaut.
+    space: Mapped[BlockSpace] = mapped_column(
+        Enum(BlockSpace), default=BlockSpace.COURSE, server_default="COURSE"
+    )
     uaa_id: Mapped[int] = mapped_column(ForeignKey("uaas.id"))
 
     uaa: Mapped["UAA"] = relationship(back_populates="lesson_blocks")
