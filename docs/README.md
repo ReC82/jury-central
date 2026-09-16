@@ -137,6 +137,16 @@ Historique des évolutions importantes.
 
 ---
 
+## content_plan_informatique_francais.md
+
+Plan d'intégration des matières Informatique (AMPCR) et Français (CESS Professionnel) :
+inventaire des sources, cartographie, écarts et découpage en tickets d'import proposés.
+
+À consulter avant de créer ou de prendre en charge un ticket d'import pour ces deux
+matières.
+
+---
+
 # Sources des cours
 
 Toutes les sources officielles sont stockées dans :

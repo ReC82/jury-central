@@ -197,13 +197,18 @@ Chaque document possède une responsabilité unique.
 
 # Priorité actuelle
 
-Valider complètement le workflow d'import automatique.
+Depuis le ticket #4 (2026-09-16), l'ordre de priorité produit est :
 
-Une fois validé :
+1. **Informatique — Assistant/Assistante de maintenance PC-réseaux (AMPCR)** ;
+2. **Français — CESS Professionnel** ;
+3. reste du contenu Mathématiques (MB32 UAA3, MQ32, MQ34) et autres matières.
 
-1. importer toutes les UAA de mathématiques ;
-2. importer les autres matières ;
-3. enrichir progressivement le contenu pédagogique.
+Aucune source officielle ni brouillon ChatGPT pour Informatique ou Français n'est encore
+présent dans le dépôt — voir
+[docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md) pour
+l'inventaire complet, la cartographie des deux matières et le découpage en tickets
+proposé. Ce plan ne déclenche aucun import : la suite dépend du dépôt des sources par
+l'utilisateur.
 
 ---
 
@@ -226,6 +231,10 @@ Les améliorations suivantes sont prévues mais ne sont pas prioritaires :
 
 # Prochaine étape
 
-Importer complètement MB32 UAA3 en utilisant exclusivement les sources présentes dans :
+Dépôt par l'utilisateur des sources officielles et/ou des brouillons ChatGPT pour
+Informatique AMPCR (priorité 1), puis Français CESS Professionnel (priorité 2) — voir
+[docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md),
+section « Tickets atomiques proposés ».
 
-docs/sources_cours/
+MB32 UAA3 reste importable depuis `docs/sources_cours/` dès que ces deux matières auront
+avancé, mais n'est plus la priorité immédiate.

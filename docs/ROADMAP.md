@@ -90,6 +90,19 @@ doit faire l'objet d'un ticket dédié plutôt que d'être confondu avec VS003.
 
 ---
 
+# Priorité produit (depuis le ticket #4, 2026-09-16)
+
+Avant de poursuivre VS004/VS005/VS006 ci-dessous, la priorité produit est désormais :
+
+1. **Informatique — AMPCR**
+2. **Français — CESS Professionnel**
+
+Voir [docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md)
+pour l'inventaire, la cartographie des deux matières et le découpage en tickets. VS004,
+VS005 et VS006 restent valides mais passent derrière ces deux matières.
+
+---
+
 # VS004 - Import complet MB32
 
 ## Objectifs
@@ -100,7 +113,7 @@ Le résultat doit être directement publiable.
 
 ## Statut
 
-⏳ À faire
+⏳ À faire (après Informatique AMPCR et Français CESS P, voir ci-dessus)
 
 ---
 
@@ -132,18 +145,17 @@ Importer automatiquement toutes les UAA MQ34.
 
 ## Objectifs
 
-Importer :
+Importer, dans cet ordre de priorité (voir
+[docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md)) :
 
-- Français
-- Sciences
-- Informatique
-- Social
-- Économie
-- ...
+1. Informatique (AMPCR)
+2. Français
+3. Sciences, Social, Économie, ...
 
 ## Statut
 
-⏳ À faire
+⏳ À faire — Informatique et Français en sont au stade planification (ticket #4), aucune
+source encore disponible dans le dépôt.
 
 ---
 
