@@ -2,6 +2,59 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Informatique AMPCR : mini-cours 04 « Stockage : HDD, SSD SATA et NVMe » (ticket #16)
+
+Quatrième cours de la série Informatique AMPCR, contenu et périmètre pédagogique fournis
+intégralement par ChatGPT dans le ticket #16. Réutilise **strictement** l'architecture des
+tickets #10/#12/#14 — aucun nouveau mécanisme, aucun second moteur IA.
+
+**Matière/UAA** : nouvelle UAA `MC04` (« Stockage : HDD, SSD SATA et NVMe ») sous le
+module `AMPCR` existant, navigable depuis `/uaa/ampcr-mc04`, juste après MC03.
+
+**Contenu** (`app/seed.py::MC04_BLOCKS`, 22 blocs) : plan, 14 sections de cours —
+fondamentaux (stockage vs RAM, unités décimales/binaires, partitions), HDD (mécanique,
+RPM/latence/débit, fragmentation), SSD (NAND/contrôleur), SSD SATA, M.2 et NVMe (formats,
+protocole, PCIe/lanes, facteurs réels de performance), endurance/fiabilité (TBW, wear
+leveling, TRIM), SMART, sauvegarde et règle 3-2-1, ransomware et synchronisation, choix
+technologique, diagnostic stockage, sécurité, vocabulaire FR/EN, vocabulaire ancien
+(IDE/PATA, disquette, optique) — 12 exercices progressifs (3 blocs) à correction masquée à
+la demande, un bloc `ai_exercise` réutilisant le moteur du ticket #10, une fiche mémo, et
+l'examen final (10 questions/20 points, aucune réponse visible, corrigé dans un bloc
+séparé `is_published: False` — même mécanisme qu'aux mini-cours 01–03).
+
+**Pièges pédagogiques explicitement respectés** (exigés par le ticket #16, vérifiés par
+test) : M.2 présenté comme un format de connecteur jamais synonyme de NVMe ; SMART jamais
+présenté comme une garantie qu'un disque ne tombera pas en panne, ni comme une sauvegarde ;
+TBW jamais présenté comme une date de mort certaine du SSD ; une synchronisation seule
+jamais présentée comme équivalente à une sauvegarde (propagation ransomware explicitée) ;
+formater/initialiser un disque explicitement exclu comme première étape de diagnostic ; la
+défragmentation classique explicitement déconseillée pour un SSD.
+
+**Contexte IA MC04** : nouvelle entrée
+`app/ai/context.py::PEDAGOGICAL_CONTEXTS["ampcr-mc04"]` (notions, compétences 1.1.1–1.1.4/
+2.3.2–2.3.3, vocabulaire, contraintes reprenant explicitement les six pièges ci-dessus pour
+que le moteur IA ne les reproduise pas non plus). Aucune autre modification du moteur IA
+ni de ses routes.
+
+**Tests** : +9 tests (`tests/test_informatique_mc04.py` : navigation, matière obligatoire,
+présence explicite des six pièges pédagogiques dans le contenu rendu, 12 exercices, examen
+sans correction visible, corrigé non publié, contexte IA enregistré, génération/correction
+via le moteur partagé avec le contexte MC04 spécifiquement vérifié, non-régression
+MC01/MC02/MC03/Mathématiques), `test_seed_is_idempotent` mis à jour pour les nouveaux
+effectifs. 207 tests au total, tous verts. Aucun appel OpenAI réel dans les tests.
+
+`ruff check .` : 36 erreurs, identiques (mêmes fichiers, mêmes règles) à celles de
+`develop` — comparé via un worktree isolé, aucune nouvelle erreur.
+
+**Vérifié manuellement** sur une base SQLite temporaire isolée (jamais `jury_central.db`,
+intégrité re-vérifiée par MD5) : toutes les routes répondent 200, corrigé absent de la
+réponse publique, 12 exercices présents, les six pièges pédagogiques présents dans le
+HTML rendu, MC01/MC02/MC03/Mathématiques inchangés. Seed additif et idempotent, aucun
+reset staging.
+
+**Documentation** : `docs/current_state.md`, `docs/changelog.md`,
+`docs/content_plan_informatique_francais.md`.
+
 ## 2026-09-16 — Informatique AMPCR : mini-cours 03 « CPU et mémoire RAM » (ticket #14)
 
 Troisième cours de la série Informatique AMPCR, contenu et périmètre pédagogique fournis

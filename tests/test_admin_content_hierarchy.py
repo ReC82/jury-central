@@ -3,6 +3,7 @@ from app.seed import (
     MC01_BLOCKS,
     MC02_BLOCKS,
     MC03_BLOCKS,
+    MC04_BLOCKS,
     UAA1_BLOCKS,
     UAA1_TITLE,
     UAA2_BLOCKS,
@@ -244,10 +245,10 @@ def test_seed_is_idempotent(db_session):
 
     assert db_session.query(Subject).count() == 2
     assert db_session.query(Module).count() == 4
-    assert db_session.query(UAA).count() == 5
+    assert db_session.query(UAA).count() == 6
     assert db_session.query(LessonBlock).count() == (
         len(UAA1_BLOCKS) + len(UAA2_BLOCKS) + len(MC01_BLOCKS) + len(MC02_BLOCKS)
-        + len(MC03_BLOCKS)
+        + len(MC03_BLOCKS) + len(MC04_BLOCKS)
     )
 
 

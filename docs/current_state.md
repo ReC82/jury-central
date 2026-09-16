@@ -210,11 +210,22 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
   final de 10 questions/20 points (corrigé non publié), et son propre contexte
   pédagogique borné (`PEDAGOGICAL_CONTEXTS["ampcr-mc03"]`) pour le même moteur IA — aucun
   second moteur.
+- **Informatique — AMPCR — mini-cours 04 « Stockage : HDD, SSD SATA et NVMe »** (ticket
+  #16, 2026-09-16) : navigable après le mini-cours 03 (`/uaa/ampcr-mc04`), 15 sections de
+  cours (HDD, SSD/NAND, SATA, M.2 vs NVMe, TBW/wear leveling/TRIM, SMART, sauvegarde et
+  règle 3-2-1, ransomware/synchronisation, choix technologique, diagnostic, sécurité,
+  vocabulaire), 12 exercices progressifs, examen final de 10 questions/20 points (corrigé
+  non publié), et son propre contexte pédagogique borné
+  (`PEDAGOGICAL_CONTEXTS["ampcr-mc04"]`) pour le même moteur IA — aucun second moteur.
+  Pièges pédagogiques explicitement respectés (vérifiés par test) : M.2 ≠ NVMe, SMART ne
+  garantit pas l'absence de panne, TBW n'est pas une date de mort du SSD, synchronisation
+  ≠ sauvegarde, jamais formater en premier réflexe de diagnostic, jamais défragmenter un
+  SSD.
 
 ## En attente d'import
 
 - MB32 UAA3, MQ32, MQ34 (derrière Informatique/Français, voir priorité ci-dessous)
-- Mini-cours 04 à 38 Informatique AMPCR
+- Mini-cours 05 à 38 Informatique AMPCR
 - Français CESS Professionnel (aucun contenu à ce jour)
 
 ---
@@ -237,9 +248,10 @@ Depuis le ticket #4 (2026-09-16), l'ordre de priorité produit est :
 2. **Français — CESS Professionnel** ;
 3. reste du contenu Mathématiques (MB32 UAA3, MQ32, MQ34) et autres matières.
 
-Les mini-cours 01 (ticket #10), 02 (ticket #12) et 03 (ticket #14) Informatique AMPCR sont
-livrés directement depuis un cahier des charges pédagogique fourni par ChatGPT dans chaque
-ticket GitHub, sans fichier source déposé dans `docs/sources_cours/` (voir
+Les mini-cours 01 (ticket #10), 02 (ticket #12), 03 (ticket #14) et 04 (ticket #16)
+Informatique AMPCR sont livrés directement depuis un cahier des charges pédagogique
+fourni par ChatGPT dans chaque ticket GitHub, sans fichier source déposé dans
+`docs/sources_cours/` (voir
 `docs/content_workflow.md`, section « Contenu rédigé à partir d'un cahier des charges »).
 Français CESS Professionnel n'a encore aucun contenu. Voir
 [docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md) pour

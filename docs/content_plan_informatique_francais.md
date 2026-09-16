@@ -47,6 +47,16 @@ réutilisabilité de l'architecture #10 sur un troisième cours : même chemin d
 seule une nouvelle entrée de contexte pédagogique (`PEDAGOGICAL_CONTEXTS["ampcr-mc03"]`) a
 été ajoutée, aucune ligne de `app/ai/` (hors `context.py`) modifiée depuis le ticket #10.
 
+## Mise à jour — mini-cours 04 livré (ticket #16, 2026-09-16)
+
+« Stockage : HDD, SSD SATA et NVMe » (UAA `MC04`, sous le même module `AMPCR`) confirme
+une quatrième fois la réutilisabilité de l'architecture #10 : même chemin de traçabilité,
+même système de blocs, même moteur IA générique — seule une nouvelle entrée de contexte
+pédagogique (`PEDAGOGICAL_CONTEXTS["ampcr-mc04"]`) a été ajoutée. Ce cours introduit aussi
+des exigences de nuance pédagogique plus fines (M.2 ≠ NVMe, SMART, TBW, sauvegarde vs
+synchronisation) explicitement encodées dans les contraintes du contexte IA, montrant que
+ce mécanisme suffit à transmettre des règles pédagogiques fines sans code supplémentaire.
+
 ---
 
 # 1. Changement de priorité produit

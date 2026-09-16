@@ -4080,6 +4080,895 @@ MC03_BLOCKS = [
     },
 ]
 
+# Contenu réel du mini-cours 04 Informatique AMPCR (« Stockage : HDD, SSD SATA et NVMe »),
+# ticket #16 : contenu et périmètre pédagogique fournis par ChatGPT (chef de projet),
+# rédigés ici sans en changer la portée. Réutilise exactement l'architecture des tickets
+# #10/#12/#14 (blocs markdown, classification par titre, correction masquée générique,
+# bloc ai_exercise + contexte pédagogique borné) — aucune nouvelle architecture.
+
+MC04_CODE = "MC04"
+MC04_TITLE = "Stockage : HDD, SSD SATA et NVMe"
+
+_MC04_PLAN = r"""# Stockage : HDD, SSD SATA et NVMe
+
+Ce mini-cours prolonge les mini-cours 01 à 03 : après la vue d'ensemble, la carte mère et
+le couple CPU/RAM, on approfondit le stockage — la mémoire durable d'un PC — ses
+technologies, ses limites, et surtout les bons réflexes de diagnostic et de sauvegarde.
+
+## Objectifs
+
+À la fin de ce mini-cours, tu sauras :
+
+- expliquer la différence entre stockage persistant et RAM, et lire correctement une
+  unité de capacité ;
+- comparer HDD, SSD SATA et SSD NVMe selon leurs technologies et leurs limites réelles ;
+- expliquer pourquoi M.2 n'est pas synonyme de NVMe ;
+- interpréter SMART, TBW et TRIM sans leur prêter des garanties qu'ils n'offrent pas ;
+- appliquer une procédure de diagnostic prudente, sans jamais formater un disque par
+  réflexe ;
+- expliquer la règle 3-2-1 et pourquoi une synchronisation seule n'est pas une sauvegarde.
+
+## Sommaire
+
+1. Stockage persistant : rôle et unités
+2. Disque dur (HDD)
+3. SSD : NAND et contrôleur
+4. SSD SATA
+5. M.2 et NVMe
+6. Endurance et fiabilité (TBW, wear leveling, TRIM)
+7. SMART et diagnostic de santé
+8. Sauvegarde : notions et règle 3-2-1
+9. Ransomware et synchronisation
+10. Choisir la bonne technologie
+11. Diagnostic stockage
+12. Sécurité et bonnes pratiques
+13. Vocabulaire FR/EN
+14. Ancien vocabulaire du référentiel
+
+*Ce mini-cours s'appuie sur le mini-cours 02 (connecteur SATA, M.2 comme format,
+alimentation) : la distinction M.2 ≠ NVMe y a déjà été introduite, elle est ici
+approfondie.*
+"""
+
+_MC04_FONDAMENTAUX = r"""## Rappel : stockage vs RAM
+
+Comme vu au mini-cours 01, le stockage conserve les données de façon durable, même hors
+tension, contrairement à la RAM (volatile). Ce mini-cours détaille les technologies qui
+assurent ce rôle.
+
+## Capacité et performance : deux choses différentes (rappel)
+
+Un disque de grande capacité n'est pas nécessairement rapide — la capacité et la
+performance se choisissent indépendamment selon les besoins.
+
+## Unités : octet, Ko, Mo, Go, To
+
+| Unité | Relation |
+|---|---|
+| Octet (B) | Unité de base, 8 bits |
+| Kilooctet (Ko) | 1 000 octets (ou 1 024 selon la convention) |
+| Mégaoctet (Mo) | 1 000 Ko (ou 1 024) |
+| Gigaoctet (Go) | 1 000 Mo (ou 1 024) |
+| Téraoctet (To) | 1 000 Go (ou 1 024) |
+
+> **Piège fréquent :** les fabricants annoncent généralement la capacité en préfixes
+> décimaux (1 Go = 1 000 000 000 octets), alors que certains systèmes d'exploitation
+> affichent la capacité en préfixes binaires (1 Gio ≈ 1 073 741 824 octets, souvent
+> affiché « Go » par simplification). Un disque annoncé « 500 Go » peut donc s'afficher
+> comme « 465 Go » dans l'explorateur de fichiers — ce n'est pas une perte de capacité
+> réelle, seulement une différence de convention d'affichage.
+
+## Fichiers, partitions, systèmes de fichiers : juste une introduction
+
+Un disque est organisé en **partitions**, chacune formatée avec un **système de
+fichiers** (qui organise comment les fichiers sont stockés et retrouvés). Ces notions ne
+sont qu'introduites ici — leur fonctionnement détaillé relève des cours sur les systèmes
+d'exploitation.
+"""
+
+_MC04_HDD = r"""## Principe mécanique
+
+Un disque dur (HDD, *Hard Disk Drive*) stocke les données sur des **plateaux**
+magnétiques en rotation, lus/écrits par des **têtes** de lecture/écriture mobiles,
+entraînés par un **moteur**.
+
+## Caractéristiques
+
+| Caractéristique | Ce qu'elle mesure |
+|---|---|
+| RPM (tours/minute) | Vitesse de rotation des plateaux — influence la rapidité d'accès |
+| Temps d'accès / latence | Délai pour positionner la tête sur la bonne donnée |
+| Débit séquentiel | Vitesse de lecture/écriture de données stockées à la suite |
+
+## Formats et connexion
+
+Les HDD existent en 2,5 pouces (portables, plus compacts) et 3,5 pouces (PC de bureau,
+plus grande capacité), connectés en **SATA** (voir mini-cours 02).
+
+## Avantages et limites
+
+| Avantages | Limites |
+|---|---|
+| Coût par Go plus faible | Mécanique : plus sensible aux chocs |
+| Grande capacité accessible | Plus bruyant (rotation, têtes) |
+| | Latence plus élevée qu'un SSD |
+
+## Fragmentation : un phénomène surtout mécanique
+
+La **fragmentation** survient quand les parties d'un même fichier sont dispersées à
+différents endroits physiques du disque, ce qui allonge le temps d'accès sur un HDD
+(déplacements mécaniques supplémentaires de la tête).
+
+> **Piège fréquent :** la défragmentation classique concerne les HDD.
+> **Ne jamais recommander de défragmenter un SSD** : un SSD n'a pas de tête mécanique à
+> déplacer (le temps d'accès est quasiment constant quel que soit l'emplacement
+> physique), et une défragmentation classique userait inutilement la mémoire flash sans
+> apporter de gain de performance réel.
+"""
+
+_MC04_SSD_NAND = r"""## Mémoire flash NAND
+
+Un SSD (*Solid State Drive*) stocke les données dans de la mémoire flash **NAND**,
+électronique, sans aucune pièce mécanique mobile.
+
+## Le contrôleur
+
+Un **contrôleur** intégré au SSD gère la répartition des écritures, la correction
+d'erreurs, et communique avec le reste du système. Ses performances influencent
+directement la vitesse réelle du SSD, au-delà de la seule mémoire NAND utilisée.
+
+## Conséquence de l'absence de pièces mobiles
+
+Pas de bruit, meilleure résistance aux chocs, temps d'accès quasiment constant — à
+l'opposé des limites mécaniques du HDD (voir section précédente).
+"""
+
+_MC04_SSD_SATA = r"""## Format et connectique
+
+Un SSD SATA se présente le plus souvent au format 2,5 pouces, avec les mêmes connecteurs
+qu'un HDD : **SATA données** (transfert d'informations) et **SATA alimentation** (vient du
+PSU — voir mini-cours 02).
+
+## La limite pratique de l'interface SATA
+
+> **Piège fréquent :** l'interface SATA a une limite de débit théorique bien inférieure à
+> celle du NVMe. Cette limite est réelle, mais elle ne doit pas être présentée comme une
+> garantie de performance atteinte en toutes circonstances : la vitesse effective dépend
+> aussi du SSD lui-même, de son contrôleur et de la charge de travail. Un SSD SATA reste
+> néanmoins toujours nettement plus rapide qu'un HDD pour un usage courant.
+"""
+
+_MC04_M2_NVME = r"""## M.2 : un format de connecteur, pas un protocole
+
+Comme introduit au mini-cours 02, **M.2** désigne uniquement la **forme physique** d'un
+connecteur et d'un composant.
+
+> **Piège fréquent :** un SSD M.2 peut être **SATA** ou **NVMe (PCIe)** — ces deux
+> technologies utilisent parfois le même connecteur physique M.2, mais fonctionnent selon
+> des protocoles différents et à des vitesses très différentes. Le format M.2 seul ne
+> permet donc jamais de déduire les performances d'un SSD : il faut vérifier la
+> documentation du produit.
+
+## NVMe : un protocole pensé pour le PCIe
+
+**NVMe** (*Non-Volatile Memory Express*) est un protocole de communication conçu
+spécifiquement pour le stockage flash connecté en PCIe (voir mini-cours 02) — il exploite
+notamment un fort **parallélisme** (de nombreuses opérations traitées simultanément), ce
+qui réduit fortement la latence par rapport à SATA.
+
+## Générations PCIe et facteurs réels de performance
+
+Comme pour une carte graphique (mini-cours 02), un SSD NVMe est concerné par les
+générations PCIe (débit par lane) et le nombre de lanes disponibles.
+
+> **Piège fréquent :** les performances réelles d'un SSD NVMe dépendent du SSD lui-même,
+> du slot utilisé, de la plateforme (carte mère/CPU), de la charge de travail, et de la
+> **température** (un NVMe qui surchauffe peut réduire sa vitesse, un phénomène proche du
+> throttling CPU vu au mini-cours 03). Un chiffre de vitesse maximale annoncé par le
+> fabricant n'est pas garanti en toutes circonstances.
+
+## Clés M.2 : juste ce qu'il faut reconnaître
+
+Les connecteurs M.2 existent avec différentes **clés** (encoches, notamment M, B, ou B+M)
+qui déterminent quels types de SSD peuvent physiquement s'y insérer. Il suffit de savoir
+que cette compatibilité existe et de toujours **vérifier le manuel du constructeur** avant
+d'installer un SSD M.2 — un catalogue exhaustif des combinaisons n'est pas nécessaire ici.
+"""
+
+_MC04_ENDURANCE = r"""## TBW : une indication, pas une date de péremption
+
+Le **TBW** (*Terabytes Written*) est la quantité totale de données qu'un fabricant
+garantit pouvoir être écrite sur un SSD avant que son endurance ne soit plus couverte par
+la garantie.
+
+> **Piège fréquent :** le TBW n'est **pas** une date de mort certaine du SSD. C'est une
+> indication d'endurance garantie par le fabricant, généralement prudente : un SSD peut
+> continuer à fonctionner après avoir atteint son TBW annoncé, et inversement un défaut
+> peut survenir avant. Le TBW sert à choisir un SSD adapté à un usage (écritures
+> fréquentes ou non), pas à prédire une panne à une date précise.
+
+## Usure NAND et wear leveling
+
+Chaque cellule de mémoire NAND supporte un nombre limité de cycles d'écriture. Le
+**wear leveling** (répartition d'usure) est une technique du contrôleur qui répartit les
+écritures sur l'ensemble des cellules disponibles, plutôt que de toujours réécrire les
+mêmes zones, afin de prolonger la durée de vie globale du SSD.
+
+## TRIM : informer le SSD des blocs libres
+
+La commande **TRIM** indique au SSD quels blocs de données ne sont plus utilisés par le
+système de fichiers (fichier supprimé), afin que le contrôleur puisse les préparer à
+l'avance pour une prochaine écriture — ce qui aide à maintenir les performances dans la
+durée. Il ne s'agit pas d'un outil de maintenance à lancer manuellement comme une
+défragmentation ; c'est un mécanisme généralement automatique et régulier du système.
+"""
+
+_MC04_SMART = r"""## Ce que SMART surveille
+
+**SMART** (*Self-Monitoring, Analysis and Reporting Technology*) est un système intégré
+aux disques (HDD et SSD) qui surveille en continu plusieurs indicateurs de santé
+(température, secteurs défectueux, heures de fonctionnement, attributs spécifiques au SSD
+comme l'usure estimée...).
+
+## Ce que SMART ne garantit PAS
+
+> **Piège fréquent :** un statut SMART « OK » ne garantit absolument pas qu'un disque ne
+> tombera jamais en panne — certaines défaillances surviennent brutalement, sans signe
+> avant-coureur détecté par SMART. À l'inverse, SMART n'est en aucun cas un outil de
+> sauvegarde : il informe sur l'état probable du matériel, il ne protège jamais les
+> données elles-mêmes.
+
+## Symptômes à surveiller
+
+- Lenteurs inhabituelles et progressives.
+- Erreurs de lecture/écriture répétées.
+- Attributs SMART qui se dégradent dans le temps (à observer sur la durée, pas sur une
+  seule lecture).
+- Sur un HDD : bruits inhabituels (clics répétés), secteurs défectueux croissants.
+- Disque qui disparaît puis réapparaît de façon intermittente.
+
+Face à ces signes, le diagnostic reste prudent : un indicateur isolé n'est pas une
+certitude, mais leur accumulation justifie une sauvegarde immédiate par précaution.
+"""
+
+_MC04_SAUVEGARDE = r"""## Stockage, copie, sauvegarde, synchronisation : quatre notions à ne pas confondre
+
+| Terme | Définition |
+|---|---|
+| Stockage | Le support qui conserve les données au quotidien |
+| Copie | Duplication ponctuelle d'un fichier, sans stratégie de récupération organisée |
+| Sauvegarde (*backup*) | Copie organisée, régulière, pensée pour restaurer les données après un incident |
+| Synchronisation | Réplication automatique entre plusieurs emplacements, dans les deux sens |
+
+## La règle 3-2-1
+
+Une bonne stratégie de sauvegarde suit la règle **3-2-1** :
+
+- **3** copies des données au total (l'original compris) ;
+- sur **2** supports différents (ex. disque interne + disque externe) ;
+- dont **1** copie hors site (ailleurs physiquement, ou dans le cloud).
+
+## Local, externe, hors site
+
+Une sauvegarde uniquement locale (même sur un second disque dans le même PC) ne protège
+pas contre un vol, un incendie, ou un dégât matériel général touchant tout l'appareil —
+d'où l'intérêt d'une copie hors site.
+"""
+
+_MC04_RANSOMWARE = r"""## Pourquoi une synchronisation seule n'est pas une sauvegarde
+
+Un service de synchronisation cloud (type dossier synchronisé automatiquement) réplique
+en continu les modifications, **y compris les suppressions et les chiffrements
+malveillants**.
+
+> **Piège fréquent :** en cas de ransomware (logiciel qui chiffre les fichiers pour
+> exiger une rançon), une synchronisation seule peut **propager le chiffrement ou la
+> suppression** vers la copie synchronisée presque immédiatement — la synchronisation
+> n'est donc pas, à elle seule, une protection contre ce type d'incident.
+
+## Ce qui aide réellement
+
+- **Versioning** : conserver plusieurs versions successives d'un fichier, pas seulement
+  la dernière, pour pouvoir revenir avant l'incident.
+- **Sauvegarde hors ligne / déconnectée** (*offline*) : une copie non connectée en
+  permanence ne peut pas être atteinte par un ransomware actif sur le système infecté.
+- **Immuabilité** : certaines solutions empêchent la modification ou la suppression d'une
+  sauvegarde pendant une période donnée, même par un compte compromis.
+
+## Restauration : la vérifier, pas seulement l'espérer
+
+> **Piège fréquent :** une sauvegarde jamais testée en restauration n'offre pas la même
+> garantie qu'une sauvegarde dont la restauration a été vérifiée avec succès — un fichier
+> de sauvegarde peut être corrompu ou incomplet sans que cela soit visible autrement qu'en
+> essayant réellement de restaurer.
+"""
+
+_MC04_CHOIX_TECHNO = r"""## Méthode examen : choisir un stockage adapté
+
+Face à un besoin de stockage, croise systématiquement :
+
+1. **Usage** — système d'exploitation et applications (réactivité importante) ou
+   données volumineuses/archives (accès moins fréquent) ?
+2. **Capacité** requise.
+3. **Performance** requise (latence, débit).
+4. **Endurance** attendue (beaucoup d'écritures ou plutôt de la lecture/stockage passif) ?
+5. **Compatibilité** avec la carte mère (connecteurs disponibles, voir mini-cours 02).
+6. **Budget** disponible.
+7. **Criticité** des données (justifie-t-elle une redondance ou une sauvegarde
+   renforcée) ?
+
+## Repère général
+
+Pour le système d'exploitation et les applications, un **SSD** est aujourd'hui presque
+toujours préférable (réactivité). Pour de grandes quantités de données peu consultées
+(archives, sauvegardes locales volumineuses), un **HDD** reste souvent pertinent pour son
+coût par Go plus faible.
+
+## Cas pratiques
+
+- **PC ancien avec connecteurs SATA uniquement** : un SSD SATA apporte déjà un gain de
+  réactivité important par rapport à un HDD, sans changer la carte mère.
+- **Ordinateur portable avec emplacement M.2** : vérifier si l'emplacement supporte le
+  NVMe ou seulement le SATA avant d'acheter un SSD M.2.
+- **Station de travail exigeante** : NVMe pour le système et les fichiers de travail
+  actifs, HDD ou NAS pour l'archivage.
+- **Stockage de sauvegarde** : capacité et fiabilité priment souvent sur la vitesse — un
+  HDD externe reste un choix courant et économique.
+"""
+
+_MC04_DIAGNOSTIC = r"""## Disque non détecté
+
+1. Vérifier le câblage : câble SATA data et câble d'alimentation SATA bien enfoncés (voir
+   mini-cours 02), ou bonne insertion dans le slot M.2.
+2. Vérifier le port utilisé (essayer un autre port/câble SATA si possible).
+3. Vérifier dans le BIOS/UEFI si le disque est détecté au niveau matériel.
+4. Pour un SSD M.2 : vérifier la compatibilité du slot (SATA/NVMe) et si ce slot partage
+   des ressources avec un autre port selon le manuel de la carte mère (certains slots M.2
+   désactivent un port SATA lorsqu'ils sont occupés).
+
+## Disque détecté par le firmware, mais absent du système d'exploitation
+
+Pistes à explorer, **sans jamais formater par réflexe** : partitionnement existant mais
+non assigné, lettre de lecteur non attribuée, pilote (driver) manquant pour un contrôleur
+récent. Le formatage est une action destructive, réservée à une décision explicite une
+fois les données existantes prises en compte.
+
+> **Piège fréquent, à ne jamais suivre :** formater ou initialiser un disque ne doit
+> **jamais** être la première étape d'un diagnostic — cette action est destructive et
+> irréversible pour les données déjà présentes. Toujours écarter les causes non
+> destructives (câblage, détection, partitionnement, pilote) et s'assurer qu'aucune
+> donnée importante n'est en jeu avant d'envisager une telle action.
+
+## SSD qui semble lent
+
+Vérifier l'interface réellement utilisée (SATA vs NVMe, voir section 5), la température
+(risque de throttling), l'espace libre restant, la charge du système, et l'état général du
+disque (SMART).
+
+## HDD bruyant ou qui « clique »
+
+Un bruit de clic répété peut indiquer une défaillance mécanique en cours. Priorité
+absolue : sécuriser les données (sauvegarde immédiate) avant tout test supplémentaire ;
+éviter les tests agressifs ou prolongés qui pourraient aggraver une panne en cours.
+"""
+
+_MC04_SECURITE = r"""## Avant toute manipulation
+
+- Couper l'alimentation avant de débrancher ou brancher un câble de stockage interne
+  (voir mini-cours 02).
+- Respecter les précautions ESD (décharge électrostatique, voir mini-cours 02) lors de la
+  manipulation d'un SSD ou d'une carte contrôleur.
+
+## Manipulation physique d'un HDD
+
+Un HDD contient des pièces mécaniques sensibles : éviter les chocs et les mouvements
+brusques pendant qu'il fonctionne, le manipuler avec précaution même hors tension.
+
+## À retenir
+
+Toujours s'assurer qu'une sauvegarde existe avant une opération pouvant affecter les
+données (changement de disque, réinstallation, manipulation de partitions).
+Diagnostiquer un problème et agir dessus (notamment de façon destructive) sont deux
+étapes distinctes : ne jamais les confondre ni les précipiter.
+"""
+
+_MC04_VOCAB_FR_EN = r"""## Vocabulaire à connaître (français / anglais)
+
+| Français | Anglais |
+|---|---|
+| Stockage | Storage |
+| Disque | Drive |
+| Disque dur | Hard disk drive / HDD |
+| Disque à mémoire flash | Solid-state drive / SSD |
+| (même terme) | SATA |
+| (même terme) | M.2 |
+| (même terme) | NVMe |
+| (même terme) | PCIe |
+| Mémoire flash NAND | NAND flash |
+| Contrôleur | Controller |
+| Débit | Throughput |
+| Latence | Latency |
+| Opérations par seconde (notion) | IOPS |
+| Endurance | Endurance |
+| Quantité de données écrites garantie | TBW |
+| Surveillance de santé du disque | SMART |
+| Commande d'optimisation SSD | TRIM |
+| Sauvegarde | Backup |
+| Restauration | Restore |
+
+## Méthode examen
+
+Comme dans les mini-cours précédents : pour un sigle anglais (SSD, NVMe, TBW, SMART,
+TRIM...), retrouve le terme complet en anglais avant de le traduire.
+"""
+
+_MC04_VOCAB_ANCIEN = r"""## Interfaces et supports historiques à reconnaître
+
+Comme évoqué au mini-cours 01, le référentiel officiel (2007) cite du matériel aujourd'hui
+obsolète. Ces éléments sont à connaître comme repères historiques, pas comme standards
+actuels.
+
+| Terme | Ce que c'était |
+|---|---|
+| IDE / PATA | Ancienne interface de connexion des disques durs, remplacée par le SATA |
+| Disquette | Support magnétique amovible de très faible capacité, obsolète |
+| Lecteur/graveur optique (CD/DVD) | Stockage amovible autrefois courant, largement remplacé par l'USB et le stockage en ligne |
+
+La formation doit suivre la réalité technologique actuelle (SATA, M.2, NVMe) tout en
+sachant reconnaître ce vocabulaire ancien s'il apparaît dans un document ou une question
+de référentiel.
+"""
+
+_MC04_EXERCICES_1 = r"""## Exercice 1 — expliquer
+
+Explique la différence entre le stockage et la RAM, puis explique pourquoi un disque
+annoncé « 500 Go » peut s'afficher « 465 Go » dans l'explorateur de fichiers, sans qu'il
+s'agisse d'une perte de capacité réelle.
+
+**Correction :** Le stockage conserve les données durablement, même hors tension ; la RAM
+est une mémoire de travail temporaire et volatile. L'écart d'affichage vient d'une
+différence de convention : les fabricants utilisent des préfixes décimaux (1 Go = 1
+milliard d'octets), certains systèmes d'exploitation affichent en préfixes binaires (1 Gio
+≈ 1,074 milliard d'octets) — la capacité physique réelle n'a pas changé.
+
+## Exercice 2 — comparer
+
+Un client hésite entre un HDD et un SSD pour installer son système d'exploitation.
+Recommande une technologie et justifie avec au moins deux arguments techniques.
+
+**Correction :** SSD recommandé : latence bien plus faible qu'un HDD (pas de pièces
+mécaniques à déplacer), ce qui rend le système nettement plus réactif au démarrage et à
+l'ouverture des applications ; plus résistant aux chocs, sans bruit mécanique. Le HDD
+garde un intérêt pour le stockage de données volumineuses peu consultées, à moindre coût
+par Go.
+
+## Exercice 3 — expliquer un piège
+
+Un technicien propose de défragmenter un SSD pour « améliorer ses performances ». Explique
+pourquoi c'est une mauvaise pratique.
+
+**Correction :** La défragmentation réorganise les données pour réduire les déplacements
+mécaniques d'une tête de lecture — un phénomène propre au HDD. Un SSD n'a pas de tête
+mécanique, son temps d'accès est quasiment constant quel que soit l'emplacement physique
+des données : défragmenter un SSD n'apporte aucun gain de performance réel et use
+inutilement la mémoire flash (cycles d'écriture supplémentaires).
+
+## Exercice 4 — expliquer un piège
+
+Une fiche produit annonce un SSD SATA « jusqu'à 550 Mo/s » et un SSD NVMe « jusqu'à 7000
+Mo/s ». Un client en conclut que son SSD NVMe atteindra toujours cette vitesse en usage
+réel. Explique pourquoi ce raisonnement est incomplet.
+
+**Correction :** Les chiffres annoncés sont des maximums théoriques. Les performances
+réelles dépendent aussi du contrôleur du SSD, du slot utilisé, de la plateforme, de la
+charge de travail, et de la température (un NVMe qui chauffe peut réduire sa vitesse). La
+limite de l'interface SATA (550 Mo/s) est réelle, mais un chiffre NVMe maximal n'est pas
+une garantie de performance constante.
+"""
+
+_MC04_EXERCICES_2 = r"""## Exercice 5 — vrai ou faux, justifié
+
+« Un SSD au format M.2 est forcément un SSD NVMe. » Vrai ou faux ? Justifie.
+
+**Correction :** Faux. M.2 désigne uniquement la forme physique du connecteur ; un SSD
+M.2 peut être SATA ou NVMe (PCIe) selon le produit et le support de la carte mère. Il faut
+toujours vérifier la documentation pour connaître le protocole réellement utilisé.
+
+## Exercice 6 — expliquer un piège
+
+Un SSD affiche un TBW de 300 To. Un client en déduit qu'il pourra utiliser ce SSD sans
+problème jusqu'à exactement 300 To écrits, puis qu'il tombera en panne. Explique son
+erreur.
+
+**Correction :** Le TBW est une indication d'endurance garantie par le fabricant, pas une
+date de panne certaine. Le SSD peut continuer à fonctionner après avoir dépassé ce seuil,
+tout comme un défaut peut survenir avant. Le TBW sert à choisir un SSD adapté à la
+fréquence d'écriture prévue, pas à prédire une panne précise.
+
+## Exercice 7 — expliquer une limite
+
+Un statut SMART affiche « OK » sur un disque. Un technicien en conclut que ce disque ne
+tombera pas en panne dans les prochains mois et qu'aucune sauvegarde n'est nécessaire.
+Explique pourquoi ce raisonnement est dangereux.
+
+**Correction :** Un statut SMART « OK » ne garantit jamais l'absence de panne future :
+certaines défaillances surviennent brutalement, sans signe détecté par SMART au préalable.
+SMART n'est de plus jamais un outil de sauvegarde — il informe sur l'état probable du
+matériel, il ne protège jamais les données elles-mêmes. Une sauvegarde reste nécessaire
+indépendamment du statut SMART.
+
+## Exercice 8 — appliquer
+
+Explique la règle 3-2-1 de sauvegarde, puis applique-la à un cas concret : les photos
+d'un particulier, stockées uniquement sur son PC.
+
+**Correction :** Règle 3-2-1 : 3 copies au total, sur 2 supports différents, dont 1 copie
+hors site. Application : conserver l'original sur le PC (1), une copie sur un disque
+externe (2, second support), et une copie supplémentaire dans le cloud ou chez un proche
+(3, hors site) — stocker uniquement sur le PC ne respecte aucune de ces trois conditions.
+"""
+
+_MC04_EXERCICES_3 = r"""## Exercice 9 — expliquer
+
+Un client utilise un dossier synchronisé dans le cloud comme seule protection de ses
+fichiers. Un ransomware chiffre ses fichiers locaux. Explique ce qui risque de se passer,
+et ce qui aurait mieux protégé ses données.
+
+**Correction :** La synchronisation réplique automatiquement les modifications, y compris
+le chiffrement malveillant : les fichiers chiffrés risquent d'être propagés vers la copie
+cloud presque immédiatement. Une sauvegarde avec versioning (plusieurs versions
+conservées) ou une copie hors ligne/déconnectée aurait permis de revenir à une version
+saine antérieure, contrairement à une simple synchronisation.
+
+## Exercice 10 — diagnostiquer
+
+Un disque SATA neuf n'apparaît pas du tout dans le BIOS/UEFI. Décris, dans l'ordre, les
+vérifications à effectuer avant de conclure à un disque défectueux.
+
+**Correction :** Vérifier le câble de données SATA (bien enfoncé, essayer un autre câble),
+vérifier le câble d'alimentation SATA, essayer un autre port SATA sur la carte mère, puis
+seulement conclure à un disque potentiellement défectueux si toutes ces pistes non
+destructives ont été écartées. Ne jamais commencer par une action destructive.
+
+## Exercice 11 — choisir
+
+Un client possède un PC ancien avec uniquement des connecteurs SATA sur sa carte mère, et
+souhaite améliorer sa réactivité avec un budget limité. Que recommandes-tu ?
+
+**Correction :** Un SSD SATA 2,5 pouces : il apporte un gain de réactivité important par
+rapport à un HDD, sans nécessiter de changer la carte mère (qui ne propose pas de slot
+M.2/NVMe) — solution adaptée au budget et à la compatibilité matérielle existante.
+
+## Exercice 12 — interpréter un cas ambigu
+
+Un utilisateur affirme : « J'ai un stockage de 2 To, donc mes sauvegardes sont en
+sécurité. » Explique pourquoi cette phrase, à elle seule, ne dit rien sur la sécurité de
+ses données.
+
+**Correction :** La capacité de stockage (2 To) ne renseigne ni sur le nombre de copies,
+ni sur la diversité des supports, ni sur la localisation (règle 3-2-1), ni sur la
+technologie utilisée, ni sur l'existence d'une sauvegarde testée. Avoir beaucoup d'espace
+disponible n'est pas une stratégie de sauvegarde en soi — cela ne fait que déplacer le
+risque si tout est stocké au même endroit, sans copie supplémentaire.
+"""
+
+_MC04_MEMO = r"""# Fiche mémo — Stockage : HDD, SSD SATA et NVMe
+
+## Technologies
+
+| | HDD | SSD SATA | SSD NVMe |
+|---|---|---|---|
+| Principe | Mécanique (plateaux, têtes) | Flash NAND, SATA | Flash NAND, PCIe |
+| Latence | Élevée | Faible | Très faible |
+| Coût/Go | Faible | Moyen | Plus élevé |
+| Usage typique | Archives, gros volumes | OS/applications, budget maîtrisé | OS/applications exigeants |
+
+## Pièges à ne jamais oublier
+
+- M.2 = format de connecteur, pas un protocole (SATA ou NVMe possibles).
+- TBW = indication d'endurance garantie, pas une date de panne.
+- SMART « OK » ne garantit jamais l'absence de panne ; SMART n'est pas une sauvegarde.
+- Synchronisation seule ≠ sauvegarde (propage suppressions/chiffrements ransomware).
+- Ne jamais défragmenter un SSD.
+- Ne jamais formater/initialiser un disque comme première étape de diagnostic.
+
+## Règle 3-2-1
+
+3 copies, 2 supports différents, 1 copie hors site.
+
+## Diagnostic express
+
+Disque non détecté : câblage → port → BIOS/UEFI → compatibilité slot M.2.
+Détecté mais absent de l'OS : partition/lettre/pilote, jamais formater par réflexe.
+SSD lent : interface → température → espace libre → charge → SMART.
+HDD bruyant : sauvegarder en priorité, éviter les tests agressifs.
+
+<div class="d-print-none mt-3">
+    <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print()">
+        Imprimer cette fiche
+    </button>
+</div>
+"""
+
+_MC04_EXAMEN = r"""# Examen final — Stockage : HDD, SSD SATA et NVMe
+
+**Consigne :** réponds à chaque question de façon complète et justifiée. Chaque question
+vaut 2 points, pour un total de 20 points.
+
+## Question 1 (2 pts)
+
+Explique les différences technologiques principales entre un HDD et un SSD.
+
+## Question 2 (2 pts)
+
+Explique pourquoi un SSD au format M.2 n'est pas forcément un SSD NVMe.
+
+## Question 3 (2 pts)
+
+Explique les facteurs qui influencent réellement la performance et la latence d'un SSD
+NVMe, au-delà du chiffre maximal annoncé par le fabricant.
+
+## Question 4 (2 pts)
+
+Explique ce que surveille SMART, et pourquoi un statut SMART « OK » ne garantit pas
+l'absence de panne future.
+
+## Question 5 (2 pts)
+
+Explique la différence entre le TBW et le TRIM.
+
+## Question 6 (2 pts)
+
+Décris la procédure de diagnostic à suivre face à un disque non détecté par le système.
+
+## Question 7 (2 pts)
+
+Explique la règle 3-2-1 de sauvegarde.
+
+## Question 8 (2 pts)
+
+Explique pourquoi une synchronisation cloud seule n'est pas équivalente à une sauvegarde,
+notamment face à un ransomware.
+
+## Question 9 (2 pts)
+
+Décris une méthode pour choisir la technologie de stockage adaptée à un besoin donné.
+
+## Question 10 (2 pts)
+
+Cite trois règles de sécurité ou bonnes pratiques à respecter avant de manipuler un
+support de stockage.
+"""
+
+_MC04_EXAMEN_CORRIGE = r"""# Corrigé — Examen final « Stockage : HDD, SSD SATA et NVMe »
+
+**Ce bloc n'est jamais publié côté candidat** (non publié) — réservé à la
+correction/notation par le formateur depuis l'administration. Barème : 2 points par
+question, 20 points au total.
+
+## Question 1 (2 pts)
+
+HDD : mécanique (plateaux, têtes), plus lent, moins cher au Go. SSD : mémoire flash NAND,
+sans pièce mobile, plus rapide, plus résistant aux chocs. *(1 pt par technologie
+correctement décrite)*
+
+## Question 2 (2 pts)
+
+M.2 est un format de connecteur physique, pas un protocole ; un SSD M.2 peut être SATA ou
+NVMe selon le produit et le support de la carte mère. *(1 pt distinction format/protocole,
+1 pt exemple SATA/NVMe)*
+
+## Question 3 (2 pts)
+
+Le SSD lui-même, le slot utilisé, la plateforme (carte mère/CPU), la charge de travail, et
+la température (throttling possible). *(2 facteurs pertinents minimum, 1 pt chacun)*
+
+## Question 4 (2 pts)
+
+SMART surveille des indicateurs de santé (température, secteurs défectueux, usure...).
+Un statut « OK » ne garantit rien : certaines pannes surviennent sans signe avant-coureur
+détecté. *(1 pt rôle, 1 pt limite expliquée)*
+
+## Question 5 (2 pts)
+
+TBW : quantité totale de données garantie pouvoir être écrite (indication d'endurance).
+TRIM : commande qui informe le SSD des blocs libres pour maintenir les performances dans
+le temps. *(1 pt par notion correctement distinguée)*
+
+## Question 6 (2 pts)
+
+Vérifier le câblage (données + alimentation), le port utilisé, la détection au niveau
+BIOS/UEFI, et pour un M.2 la compatibilité du slot — jamais formater en premier réflexe.
+*(notation qualitative sur l'ordre et la prudence de la démarche)*
+
+## Question 7 (2 pts)
+
+3 copies des données, sur 2 supports différents, dont 1 copie hors site. *(1 pt par
+élément correct, jusqu'à 2 pts)*
+
+## Question 8 (2 pts)
+
+Une synchronisation réplique automatiquement les modifications, y compris les suppressions
+et chiffrements malveillants d'un ransomware — elle peut donc propager l'attaque vers la
+copie synchronisée. *(1 pt mécanisme de réplication, 1 pt conséquence ransomware)*
+
+## Question 9 (2 pts)
+
+Croiser usage, capacité, performance, endurance, compatibilité, budget et criticité des
+données. *(au moins 3 critères pertinents cités, notation qualitative)*
+
+## Question 10 (2 pts)
+
+Ex. couper l'alimentation avant manipulation interne, respecter les précautions ESD,
+manipuler un HDD avec précaution (chocs), sauvegarder avant une opération risquée. *(2/3
+règles pertinentes acceptées, 0,67 pt chacune)*
+"""
+
+MC04_BLOCKS = [
+    {
+        "title": "Plan du mini-cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_PLAN,
+        "position": 1,
+        "is_published": True,
+    },
+    {
+        "title": "1. Stockage persistant : rôle et unités — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_FONDAMENTAUX,
+        "position": 2,
+        "is_published": True,
+    },
+    {
+        "title": "2. Disque dur (HDD) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_HDD,
+        "position": 3,
+        "is_published": True,
+    },
+    {
+        "title": "3. SSD : NAND et contrôleur — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_SSD_NAND,
+        "position": 4,
+        "is_published": True,
+    },
+    {
+        "title": "4. SSD SATA — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_SSD_SATA,
+        "position": 5,
+        "is_published": True,
+    },
+    {
+        "title": "5. M.2 et NVMe — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_M2_NVME,
+        "position": 6,
+        "is_published": True,
+    },
+    {
+        "title": "6. Endurance et fiabilité (TBW, wear leveling, TRIM) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_ENDURANCE,
+        "position": 7,
+        "is_published": True,
+    },
+    {
+        "title": "7. SMART et diagnostic de santé — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_SMART,
+        "position": 8,
+        "is_published": True,
+    },
+    {
+        "title": "8. Sauvegarde : notions et règle 3-2-1 — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_SAUVEGARDE,
+        "position": 9,
+        "is_published": True,
+    },
+    {
+        "title": "9. Ransomware et synchronisation — Exemple",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_RANSOMWARE,
+        "position": 10,
+        "is_published": True,
+    },
+    {
+        "title": "10. Choisir la bonne technologie — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_CHOIX_TECHNO,
+        "position": 11,
+        "is_published": True,
+    },
+    {
+        "title": "11. Diagnostic stockage — Exemple",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_DIAGNOSTIC,
+        "position": 12,
+        "is_published": True,
+    },
+    {
+        "title": "12. Sécurité et bonnes pratiques — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_SECURITE,
+        "position": 13,
+        "is_published": True,
+    },
+    {
+        "title": "13. Vocabulaire FR/EN — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_VOCAB_FR_EN,
+        "position": 14,
+        "is_published": True,
+    },
+    {
+        "title": "14. Ancien vocabulaire du référentiel — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_VOCAB_ANCIEN,
+        "position": 15,
+        "is_published": True,
+    },
+    {
+        "title": "Stockage — Exercices (1/3 : HDD, SSD, SATA, NVMe)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_EXERCICES_1,
+        "position": 16,
+        "is_published": True,
+    },
+    {
+        "title": "Stockage — Exercices (2/3 : M.2/NVMe, TBW, SMART, sauvegarde)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_EXERCICES_2,
+        "position": 17,
+        "is_published": True,
+    },
+    {
+        "title": "Stockage — Exercices (3/3 : ransomware, diagnostic, choix, capacité)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_EXERCICES_3,
+        "position": 18,
+        "is_published": True,
+    },
+    {
+        "title": "Stockage — Génère ton propre exercice (IA)",
+        "type": BlockType.AI_EXERCISE,
+        "content": AIExerciseBlockConfig(
+            context_key="ampcr-mc04",
+            intro=(
+                "En complément des exercices ci-dessus : choisis une difficulté, génère un "
+                "nouvel exercice sur le stockage (HDD, SSD, sauvegarde...), réponds, puis "
+                "demande une correction personnalisée. L'exercice reste strictement dans "
+                "la matière de ce mini-cours."
+            ),
+        ).to_json(),
+        "position": 19,
+        "is_published": True,
+    },
+    {
+        "title": "Fiche mémo — Stockage : HDD, SSD SATA et NVMe",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_MEMO,
+        "position": 20,
+        "is_published": True,
+    },
+    {
+        "title": "Examen final — Stockage : HDD, SSD SATA et NVMe (10 questions, 20 points)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_EXAMEN,
+        "position": 21,
+        "is_published": True,
+    },
+    {
+        "title": "Examen final — Corrigé (réservé formateur, non publié)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC04_EXAMEN_CORRIGE,
+        "position": 22,
+        "is_published": False,
+    },
+]
+
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
@@ -4202,6 +5091,9 @@ def seed() -> None:
         # Mini-cours 03 (ticket #14) : même mécanisme, purement additif — ne touche jamais
         # MC01/MC02 ni Mathématiques.
         _seed_uaa(db, ampcr, MC03_CODE, MC03_TITLE, 3, MC03_BLOCKS, created, kept)
+        # Mini-cours 04 (ticket #16) : même mécanisme, purement additif — ne touche jamais
+        # MC01/MC02/MC03 ni Mathématiques.
+        _seed_uaa(db, ampcr, MC04_CODE, MC04_TITLE, 4, MC04_BLOCKS, created, kept)
 
         db.commit()
 

@@ -294,6 +294,117 @@ PEDAGOGICAL_CONTEXTS: dict[str, PedagogicalContext] = {
             "mini-cours 03."
         ),
     ),
+    "ampcr-mc04": PedagogicalContext(
+        course_key="ampcr-mc04",
+        course_title=(
+            "Informatique AMPCR — Mini-cours 04 : Stockage : HDD, SSD SATA et NVMe"
+        ),
+        level="CESS Professionnel, suite des mini-cours 01 à 03",
+        allowed_notions=[
+            (
+                "stockage persistant vs RAM (rappel) ; capacité vs performance ; "
+                "unités octet/Ko/Mo/Go/To et différence préfixes décimaux "
+                "(fabricants) vs binaires (certains OS)"
+            ),
+            "notions introductives de fichiers, partitions et système de fichiers",
+            (
+                "HDD : plateaux, têtes, moteur, RPM, temps d'accès, débit "
+                "séquentiel, formats 2,5/3,5 pouces, SATA, avantages/limites"
+            ),
+            (
+                "fragmentation propre au HDD — ne jamais recommander de "
+                "défragmenter un SSD"
+            ),
+            "SSD : mémoire flash NAND, contrôleur, absence de pièces mobiles",
+            (
+                "SSD SATA : format 2,5 pouces, SATA données + SATA alimentation, "
+                "limite pratique de l'interface sans en faire une garantie absolue"
+            ),
+            (
+                "M.2 = format/connecteur, pas un protocole ; un SSD M.2 peut être "
+                "SATA ou PCIe/NVMe selon le matériel"
+            ),
+            (
+                "NVMe = protocole pour stockage sur PCIe, performances/latence, "
+                "parallélisme ; générations PCIe et lanes ; performances réelles "
+                "dépendant du SSD, du slot, de la plateforme, de la charge et de "
+                "la température"
+            ),
+            "clés M.2 (M/B/B+M) au niveau utile, toujours vérifier le manuel",
+            (
+                "TBW comme indication d'endurance garantie par le fabricant, "
+                "jamais une date certaine de panne"
+            ),
+            "usure NAND et wear leveling ; rôle général de TRIM",
+            (
+                "SMART : surveillance d'indicateurs de santé — ni une sauvegarde, "
+                "ni une garantie qu'un disque ne tombera pas en panne"
+            ),
+            (
+                "symptômes de panne : erreurs, lenteurs inhabituelles, secteurs/"
+                "attributs problématiques, diagnostic prudent"
+            ),
+            (
+                "différence stockage / copie / sauvegarde / synchronisation ; "
+                "règle 3-2-1 ; sauvegarde locale/externe/hors site"
+            ),
+            (
+                "ransomware : une synchronisation seule peut propager suppression/"
+                "chiffrement ; intérêt du versioning, de l'offline, de "
+                "l'immutabilité ; restauration non testée = garantie incomplète"
+            ),
+            (
+                "choix technicien : SSD pour OS/applications, HDD pertinent pour "
+                "données volumineuses/archives, critères capacité/performance/"
+                "endurance/compatibilité/budget/criticité"
+            ),
+            (
+                "diagnostic : disque non détecté (câblage, port, BIOS/UEFI, "
+                "compatibilité slot M.2), disque détecté par le firmware mais "
+                "absent de l'OS (partitionnement/lettre/pilote, jamais de "
+                "formatage par réflexe), SSD lent, HDD bruyant/clicking"
+            ),
+            (
+                "sécurité : hors tension, ESD, manipulation prudente d'un HDD, "
+                "sauvegarder avant toute opération risquée"
+            ),
+            (
+                "vocabulaire FR/EN : storage, drive, HDD, SSD, SATA, M.2, NVMe, "
+                "PCIe, NAND flash, controller, throughput, latency, IOPS, "
+                "endurance, TBW, SMART, TRIM, backup, restore"
+            ),
+            (
+                "vocabulaire ancien du référentiel : IDE/PATA, disquette, lecteur/"
+                "graveur optique, comme repères historiques uniquement"
+            ),
+        ],
+        competencies=[
+            "1.1.1 identifier et nommer les composants d'un PC",
+            "1.1.2 décrire leurs caractéristiques principales",
+            "1.1.3 expliquer le rôle de chaque composant",
+            (
+                "1.1.4 expliquer les interactions entre composants et utiliser "
+                "le vocabulaire informatique FR/EN"
+            ),
+            "2.3.2 choisir des composants adéquats à un besoin",
+            "2.3.3 vérifier la compatibilité de composants choisis",
+        ],
+        vocabulary=[
+            "storage", "drive", "HDD", "SSD", "SATA", "M.2", "NVMe", "PCIe",
+            "NAND flash", "controller", "throughput", "latency", "IOPS",
+            "endurance", "TBW", "SMART", "TRIM", "backup", "restore",
+        ],
+        constraints=(
+            "Ne jamais présenter M.2 comme synonyme de NVMe. Ne jamais présenter "
+            "SMART comme une garantie qu'un disque ne tombera pas en panne, ni "
+            "comme une sauvegarde. Ne jamais présenter le TBW comme une date de "
+            "mort certaine du SSD. Ne jamais présenter une synchronisation seule "
+            "comme équivalente à une sauvegarde. Ne jamais recommander de "
+            "formater/initialiser un disque comme première étape de diagnostic. "
+            "Ne jamais recommander la défragmentation classique d'un SSD. Rester "
+            "strictement au niveau de ce mini-cours 04."
+        ),
+    ),
 }
 
 
