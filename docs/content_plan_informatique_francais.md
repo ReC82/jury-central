@@ -39,6 +39,14 @@ contexte pédagogique ajouté par cours, `app/ai/context.py`), aucune duplicatio
 complément IA du ticket #10 (génération/correction) est donc validé sur un deuxième cours
 sans modification de son code.
 
+## Mise à jour — mini-cours 03 livré (ticket #14, 2026-09-16)
+
+« CPU et mémoire RAM » (UAA `MC03`, sous le même module `AMPCR`) confirme à nouveau la
+réutilisabilité de l'architecture #10 sur un troisième cours : même chemin de traçabilité
+(cahier des charges du ticket GitHub), même système de blocs, même moteur IA générique —
+seule une nouvelle entrée de contexte pédagogique (`PEDAGOGICAL_CONTEXTS["ampcr-mc03"]`) a
+été ajoutée, aucune ligne de `app/ai/` (hors `context.py`) modifiée depuis le ticket #10.
+
 ---
 
 # 1. Changement de priorité produit

@@ -181,6 +181,119 @@ PEDAGOGICAL_CONTEXTS: dict[str, PedagogicalContext] = {
             "réalité actuelle. Rester strictement au niveau de ce mini-cours 02."
         ),
     ),
+    "ampcr-mc03": PedagogicalContext(
+        course_key="ampcr-mc03",
+        course_title="Informatique AMPCR — Mini-cours 03 : CPU et mémoire RAM",
+        level="CESS Professionnel, suite des mini-cours 01 et 02",
+        allowed_notions=[
+            (
+                "rôle du CPU et cycle simplifié instruction → traitement → résultat"
+            ),
+            (
+                "cœurs, threads, SMT/Hyper-Threading comme concepts — sans "
+                "microarchitecture excessive"
+            ),
+            (
+                "fréquence de base et boost (GHz) : insuffisante seule pour comparer "
+                "deux CPU"
+            ),
+            "IPC expliqué qualitativement (instructions traitées par cycle)",
+            "hiérarchie de cache L1/L2/L3 : rôle et proximité au CPU",
+            (
+                "architecture 32/64 bits : lien avec l'OS et la mémoire adressable, "
+                "sans digression historique"
+            ),
+            (
+                "socket, génération, chipset/firmware et compatibilité avec la carte "
+                "mère (rappel du mini-cours 02)"
+            ),
+            (
+                "TDP comme indicateur de conception thermique, jamais une mesure "
+                "exacte de consommation électrique"
+            ),
+            "refroidissement CPU, throttling thermique et ses conséquences",
+            (
+                "CPU avec ou sans graphique intégré : conséquence pratique en "
+                "diagnostic sans GPU dédié"
+            ),
+            "rôle de la RAM comme mémoire de travail volatile",
+            "capacité, fréquence/débit et latence de la RAM",
+            (
+                "générations DDR3/DDR4/DDR5 : incompatibles physiquement et "
+                "électriquement entre elles ; DDR5 est la génération actuelle"
+            ),
+            "DIMM vs SO-DIMM",
+            (
+                "canaux mémoire / dual-channel et population correcte des slots "
+                "selon le manuel de la carte mère"
+            ),
+            "capacité maximale de RAM selon la carte mère et le CPU",
+            (
+                "XMP/EXPO comme profils de paramètres mémoire au-delà des "
+                "spécifications de base, à traiter avec prudence"
+            ),
+            "ECC : notion et cas d'usage, sans approfondissement serveur",
+            "différence entre RAM, VRAM et stockage",
+            (
+                "goulot d'étranglement : un PC est un système, augmenter un seul "
+                "composant ne garantit pas un gain"
+            ),
+            (
+                "symptômes typiques d'un manque de RAM (pagination/swap, "
+                "ralentissements) distincts d'un manque d'espace de stockage"
+            ),
+            (
+                "diagnostic RAM : inspection, réinsertion, un module à la fois, "
+                "outil de test mémoire, sans garantie absolue d'un test unique"
+            ),
+            (
+                "diagnostic CPU/thermique : températures, ventilateur, pâte "
+                "thermique, throttling, compatibilité firmware"
+            ),
+            (
+                "causes possibles de no-POST liées au CPU/RAM : RAM mal installée, "
+                "firmware, connecteur EPS, absence de graphique intégré"
+            ),
+            "sécurité ESD et hors tension avant toute manipulation",
+            (
+                "unités et pièges : bit vs octet (b vs B), Go de RAM vs Go de "
+                "stockage, GHz ≠ performance absolue, 64 bits ≠ deux fois plus "
+                "rapide, DDR5 ≠ simple DDR4 accélérée"
+            ),
+            (
+                "vocabulaire FR/EN : CPU/processor, core, thread, clock/frequency, "
+                "cache, socket, thermal throttling, RAM/memory, DIMM, SO-DIMM, "
+                "channel, latency, bandwidth, ECC, integrated graphics"
+            ),
+        ],
+        competencies=[
+            "1.1.1 identifier et nommer les composants d'un PC",
+            "1.1.2 décrire leurs caractéristiques principales",
+            "1.1.3 expliquer le rôle de chaque composant",
+            (
+                "1.1.4 expliquer les interactions entre composants et utiliser "
+                "le vocabulaire informatique FR/EN"
+            ),
+            "2.3.2 choisir des composants adéquats à un besoin",
+            "2.3.3 vérifier la compatibilité de composants choisis",
+        ],
+        vocabulary=[
+            "CPU", "processor", "core", "thread", "clock", "frequency", "cache",
+            "socket", "thermal throttling", "RAM", "memory", "DIMM", "SO-DIMM",
+            "channel", "latency", "bandwidth", "ECC", "integrated graphics",
+        ],
+        constraints=(
+            "Ne jamais assimiler le TDP à la consommation électrique exacte du CPU. "
+            "Ne jamais présenter le GHz comme une mesure absolue de performance : "
+            "toujours nuancer avec l'IPC, les cœurs et la génération. Ne jamais "
+            "affirmer que 64 bits est « deux fois plus rapide » que 32 bits. Ne "
+            "jamais présenter la DDR5 comme une simple accélération de la DDR4 — "
+            "insister sur l'incompatibilité de génération. Ne pas approfondir le "
+            "fonctionnement interne de l'ECC ni les architectures CPU avancées, "
+            "réservées à un niveau ultérieur. Rester strictement au niveau de ce "
+            "mini-cours 03."
+        ),
+    ),
 }
 
 
