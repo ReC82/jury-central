@@ -2268,6 +2268,927 @@ MC01_BLOCKS = [
     },
 ]
 
+# Contenu réel du mini-cours 02 Informatique AMPCR (« Carte mère, formats et
+# connectiques »), ticket #12 : contenu et périmètre pédagogique fournis par ChatGPT (chef
+# de projet), rédigés ici sans en changer la portée. Réutilise exactement l'architecture du
+# ticket #10 (blocs markdown, classification par titre, correction masquée générique,
+# bloc ai_exercise + contexte pédagogique borné) — aucune nouvelle architecture.
+
+MC02_CODE = "MC02"
+MC02_TITLE = "Carte mère, formats et connectiques"
+
+_MC02_PLAN = r"""# Carte mère, formats et connectiques
+
+Ce mini-cours prolonge le mini-cours 01 : après la vue d'ensemble d'un PC, on entre dans le
+détail de la carte mère elle-même — son rôle exact, ses formats, ses connecteurs, et la
+méthode professionnelle pour vérifier la compatibilité des composants et diagnostiquer une
+panne de démarrage.
+
+## Objectifs
+
+À la fin de ce mini-cours, tu sauras :
+
+- expliquer le rôle détaillé de la carte mère (interconnexion, alimentation distribuée,
+  firmware, contrôleurs) ;
+- reconnaître les formats ATX, micro-ATX, Mini-ITX et leurs conséquences pratiques ;
+- vérifier la compatibilité socket/chipset/RAM/PCIe/alimentation d'une configuration ;
+- identifier les connecteurs internes et la connectique arrière ;
+- appliquer une procédure structurée de diagnostic en cas d'absence de POST ;
+- respecter les règles de sécurité (hors tension, ESD) avant toute manipulation.
+
+## Sommaire
+
+1. Rôle détaillé de la carte mère
+2. Formats : ATX, micro-ATX, Mini-ITX
+3. Socket CPU et compatibilité
+4. Chipset
+5. Slots RAM (DIMM)
+6. PCI Express (PCIe)
+7. Stockage sur la carte mère (SATA, M.2)
+8. Alimentation interne (ATX 24 broches, EPS)
+9. Connecteurs internes
+10. Connectique arrière (E/S)
+11. F_PANEL
+12. BIOS/UEFI et POST
+13. Méthode de compatibilité
+14. Diagnostic professionnel : pas de POST/affichage
+15. Sécurité et décharge électrostatique (ESD)
+16. Vocabulaire FR/EN
+
+*Les détails DDR/dual-channel de la RAM restent traités au mini-cours 03, les détails
+SATA/NVMe du stockage au mini-cours 04, et l'alimentation/le refroidissement complets au
+mini-cours 05.*
+"""
+
+_MC02_ROLE = r"""## Interconnexion
+
+Comme vu au mini-cours 01, la carte mère relie physiquement et électriquement tous les
+composants : CPU, RAM, stockage, carte graphique, alimentation, périphériques. Ici, on va
+plus loin : ce rôle se décompose en plusieurs fonctions précises.
+
+## Alimentation distribuée
+
+La carte mère ne produit aucune énergie : elle reçoit le courant de l'alimentation (PSU) et
+le **distribue** aux composants qu'elle héberge (CPU, RAM, cartes d'extension) via des
+circuits de régulation dédiés (VRM — *Voltage Regulator Module* — pour le CPU notamment).
+
+## Firmware
+
+La carte mère embarque un petit programme stocké sur une puce dédiée, le **firmware**
+(BIOS/UEFI, voir section 12), qui s'exécute avant le système d'exploitation pour
+initialiser le matériel.
+
+## Contrôleurs
+
+La carte mère intègre plusieurs **contrôleurs** : puces spécialisées qui gèrent un type de
+périphérique particulier (réseau, audio, USB, stockage). Un contrôleur défaillant peut
+rendre indisponible une fonction précise (ex. plus de son) sans affecter le reste du PC.
+
+## À retenir
+
+La carte mère n'est pas un simple support passif : elle interconnecte, distribue l'énergie,
+exécute un firmware, et intègre des contrôleurs actifs.
+"""
+
+_MC02_FORMATS = r"""## Trois formats courants
+
+| Format | Dimensions typiques | Emplacements d'extension | Usage typique |
+|---|---|---|---|
+| ATX | 305 × 244 mm | Nombreux (jusqu'à 7 PCIe, plusieurs DIMM) | PC de bureau standard, extensible |
+| micro-ATX (mATX) | 244 × 244 mm | Réduits (souvent 2 à 4 PCIe) | Compromis taille/extensibilité |
+| Mini-ITX | 170 × 170 mm | Très réduits (1 seul PCIe en général) | PC compact, silencieux, peu extensible |
+
+## Conséquences pratiques
+
+- Le **boîtier** doit être compatible avec le format de la carte mère (un boîtier ATX
+  accepte en général aussi micro-ATX et Mini-ITX, l'inverse n'est pas vrai).
+- Une carte plus petite offre **moins d'emplacements** (RAM, PCIe, connecteurs de
+  stockage) : elle limite les possibilités d'évolution future.
+- Le format influence l'espace disponible pour le refroidissement et le câblage, pas
+  seulement la taille du boîtier.
+
+## Ce que le format ne détermine PAS
+
+> **Piège fréquent :** le format d'une carte mère (ATX/micro-ATX/Mini-ITX) ne détermine
+> pas à lui seul les performances du PC. Une carte Mini-ITX peut héberger un CPU et une
+> carte graphique haut de gamme ; elle offre seulement moins d'emplacements et de marge
+> d'extension future.
+"""
+
+_MC02_SOCKET = r"""## Rôle du socket
+
+Le **socket** est l'emplacement physique où se fixe le processeur sur la carte mère. Il
+détermine si un CPU peut être **physiquement** installé.
+
+## Compatibilité mécanique ≠ compatibilité complète
+
+> **Piège fréquent :** un CPU qui rentre physiquement dans un socket n'est pas forcément
+> pleinement compatible. Il faut aussi vérifier la **génération** du CPU supportée par la
+> carte mère, la compatibilité avec le **chipset**, et si nécessaire une **mise à jour du
+> BIOS/UEFI** (support constructeur) avant que le CPU ne soit reconnu.
+
+## Méthode rapide de vérification
+
+1. Identifier le socket du CPU (ex. LGA1700, AM5...).
+2. Vérifier que la carte mère annonce ce même socket.
+3. Vérifier, sur le site du fabricant de la carte mère, la liste de compatibilité CPU (CPU
+   support list) et la version de BIOS minimale requise pour ce CPU.
+4. Mettre à jour le BIOS si nécessaire, **avant** d'installer un CPU très récent sur une
+   carte plus ancienne.
+
+## À retenir
+
+Socket correspondant = condition nécessaire, pas suffisante. Toujours croiser socket,
+génération CPU, chipset et version BIOS.
+"""
+
+_MC02_CHIPSET = r"""## Rôle moderne du chipset
+
+Le chipset est aujourd'hui un circuit unique intégré à la carte mère, qui gère la
+communication entre le CPU et les composants qui ne sont pas directement reliés à lui :
+ports USB supplémentaires, connexions SATA, lanes PCIe additionnelles, certains
+contrôleurs réseau/audio.
+
+Il détermine notamment :
+
+- le nombre de ports USB, SATA et lanes PCIe réellement disponibles ;
+- certaines fonctionnalités avancées (overclocking, RAID, etc., selon la gamme de
+  chipset).
+
+## Éviter une description historique dépassée
+
+> **Piège fréquent :** les anciennes architectures « north bridge / south bridge » (deux
+> puces séparées) ne décrivent plus les plateformes modernes, où la plupart des fonctions
+> du north bridge ont été intégrées directement au CPU. Ne pas présenter cette architecture
+> à deux puces comme la réalité actuelle.
+"""
+
+_MC02_RAM_SLOTS = r"""## Slots DIMM
+
+Les barrettes de RAM s'installent dans des **slots DIMM** (*Dual In-line Memory Module*)
+sur la carte mère. Un **détrompeur** (encoche asymétrique) empêche d'insérer une barrette
+dans le mauvais sens ou un type de RAM incompatible avec la carte.
+
+## Canaux et emplacements recommandés
+
+Les cartes mères modernes fonctionnent en **plusieurs canaux mémoire** (dual-channel le
+plus souvent) : pour en bénéficier, les barrettes doivent être installées dans des slots
+précis, indiqués par le **manuel de la carte mère** (souvent des couleurs de slots
+alternées). Installer les barrettes au hasard peut désactiver ce mode multi-canal sans
+provoquer d'erreur visible.
+
+> **Piège fréquent :** deux barrettes installées côte à côte dans les mauvais slots
+> fonctionnent souvent quand même, mais sans le gain de performance du mode dual-channel —
+> toujours consulter le manuel pour l'emplacement recommandé.
+
+*Le fonctionnement détaillé du dual-channel et les générations DDR sont traités au
+mini-cours 03 — ici, il suffit de savoir que l'emplacement des barrettes compte.*
+"""
+
+_MC02_PCIE = r"""## Lanes et formats x1/x4/x8/x16
+
+Le PCI Express (PCIe) relie des cartes d'extension (carte graphique, carte réseau, carte de
+capture, contrôleurs additionnels...) à la carte mère via des **lanes** (voies de
+communication). Un emplacement PCIe existe en plusieurs tailles : x1, x4, x8, x16 — le
+chiffre indique le nombre de lanes disponibles.
+
+## Taille physique ≠ liaison électrique
+
+> **Piège fréquent :** un emplacement de taille physique x16 n'est pas toujours câblé avec
+> 16 lanes électriques réelles (parfois seulement x4 ou x8 électriquement, selon la carte
+> mère). La taille du connecteur et le nombre de lanes réellement actives sont deux choses
+> différentes à vérifier dans la documentation.
+
+## Générations PCIe
+
+Chaque génération (PCIe 3.0, 4.0, 5.0...) double environ le débit par lane par rapport à la
+précédente. Les générations sont **rétrocompatibles** : une carte PCIe 4.0 fonctionne dans
+un emplacement PCIe 3.0 (à la vitesse la plus basse des deux), et inversement une carte
+PCIe 3.0 fonctionne dans un emplacement PCIe 5.0.
+
+## Exemples d'usage
+
+Carte graphique (généralement x16), carte réseau ou de capture (souvent x1 ou x4),
+contrôleurs additionnels (USB, SATA supplémentaires).
+"""
+
+_MC02_STOCKAGE_CM = r"""## SATA : le connecteur de données
+
+Le connecteur **SATA** (data) relie un disque (HDD ou SSD SATA) à la carte mère pour le
+transfert de données. Il est distinct du câble d'alimentation SATA, qui vient du PSU (voir
+section 8).
+
+## M.2 : un format de connecteur, pas une technologie
+
+> **Piège fréquent :** « M.2 » désigne la **forme physique** du connecteur et du
+> composant, pas une technologie de vitesse. Un emplacement M.2 peut accueillir un SSD
+> SATA ou un SSD NVMe (bien plus rapide, connecté en PCIe) — la carte mère précise dans sa
+> documentation quel(s) mode(s) chaque emplacement M.2 supporte. M.2 n'est donc **jamais
+> synonyme de NVMe**.
+
+*Le détail des performances et de la fiabilité SATA/NVMe est traité au mini-cours 04 — ici,
+il suffit de distinguer le connecteur SATA data, le format M.2, et de savoir qu'ils ne se
+recouvrent pas exactement.*
+"""
+
+_MC02_ALIM_INTERNE = r"""## ATX 24 broches et EPS
+
+La carte mère reçoit l'énergie du PSU via deux connecteurs principaux :
+
+| Connecteur | Alimente | Broches typiques |
+|---|---|---|
+| ATX principal | La carte mère elle-même | 24 broches |
+| EPS (CPU) | Le processeur, via les VRM | 4 ou 8 broches (parfois 4+4) |
+
+## À ne pas confondre avec le connecteur GPU
+
+> **Piège fréquent :** le connecteur EPS (CPU, 4/8 broches) ressemble à certains
+> connecteurs d'alimentation de cartes graphiques (PCIe 6/8 broches, ou le récent
+> 12V-2x6/12VHPWR) mais ce ne sont **pas les mêmes connecteurs** et ils ne sont pas
+> interchangeables. Toujours vérifier l'étiquette du câble et le connecteur correspondant.
+
+## Le SATA Power vient du PSU, pas de la carte mère
+
+Le câble d'alimentation SATA (différent du câble de données SATA, voir section 7) part
+directement de l'alimentation (PSU) vers le disque — il ne transite pas par la carte mère.
+
+*Le détail complet de l'alimentation (watts, certifications, câblage) est traité au
+mini-cours 05.*
+"""
+
+_MC02_CONNECTEURS_INTERNES = r"""## Ventilateurs
+
+| Connecteur | Rôle |
+|---|---|
+| CPU_FAN | Ventilateur du processeur — surveillé par la carte mère (vitesse, arrêt détecté) |
+| SYS_FAN / CHA_FAN | Ventilateurs du boîtier (*system/chassis fan*) |
+
+## F_PANEL (façade avant)
+
+Regroupe les connexions du bouton d'allumage, du bouton reset, et des voyants — détaillé en
+section 11.
+
+## USB internes et audio façade
+
+- En-têtes **USB internes** : alimentent les ports USB en façade du boîtier.
+- En-tête **audio façade** (souvent « AAFP » ou « HD Audio ») : relie la prise casque/micro
+  en façade du boîtier à la carte mère.
+
+## RGB/ARGB (extension moderne)
+
+Certaines cartes mères récentes ajoutent des en-têtes RGB ou ARGB pour piloter un éclairage
+décoratif. Il s'agit d'une extension purement esthétique, clairement séparée des
+connecteurs fonctionnels ci-dessus.
+
+> **Piège fréquent :** un connecteur RGB/ARGB standard 3 broches (5 V) branché par erreur
+> sur un connecteur RGB 4 broches (12 V), ou inversement, peut endommager les composants —
+> toujours vérifier le voltage et le nombre de broches avant de brancher.
+"""
+
+_MC02_IO_ARRIERE = r"""## Panneau E/S arrière
+
+| Connecteur | Rôle | Remarque |
+|---|---|---|
+| USB-A | Périphériques USB classiques | Plusieurs versions (débit variable) |
+| USB-C | Périphériques USB récents, réversible | De plus en plus courant |
+| Audio (jack) | Casque, micro, haut-parleurs | Souvent plusieurs prises couleur |
+| Ethernet (RJ45) | Connexion réseau filaire | Débit selon le contrôleur réseau |
+| Vidéo (HDMI/DisplayPort) | Sortie image | Présent seulement si GPU intégré utilisé |
+| PS/2 | Clavier/souris très anciens | Ancien, de moins en moins présent |
+
+## Connecteur physique ≠ protocole
+
+> **Piège fréquent :** un même connecteur physique (ex. USB-C) peut supporter des
+> protocoles différents selon la carte mère (USB simple, Thunderbolt, DisplayPort via
+> USB-C...). Le connecteur physique ne suffit pas à connaître les capacités réelles — il
+> faut vérifier la documentation.
+"""
+
+_MC02_F_PANEL = r"""## Les 4 connexions principales
+
+| Connecteur | Rôle | Type |
+|---|---|---|
+| Power SW | Bouton d'allumage | Interrupteur (pas de polarité) |
+| Reset SW | Bouton de redémarrage matériel | Interrupteur (pas de polarité) |
+| Power LED | Voyant d'alimentation allumée | LED (polarité à respecter) |
+| HDD LED | Voyant d'activité disque | LED (polarité à respecter) |
+
+## Polarité : interrupteurs vs LED
+
+Les **interrupteurs** (Power SW, Reset SW) n'ont pas de polarité : ils fonctionnent dans
+les deux sens de branchement, car ils ferment simplement un circuit. Les **LED** (Power
+LED, HDD LED) ont une polarité (+ / −) : branchées à l'envers, elles ne s'allument
+simplement pas, en général sans risque d'endommager le matériel.
+
+> **Piège fréquent :** brancher les connecteurs F_PANEL au hasard « pour voir » fonctionne
+> souvent pour l'allumage (interrupteurs) mais peut laisser les voyants éteints (LED à
+> l'envers). Toujours consulter le manuel de la carte mère : le brochage F_PANEL n'est pas
+> standardisé entre fabricants.
+"""
+
+_MC02_BIOS_UEFI = r"""## Rôle du firmware
+
+Le **BIOS** (*Basic Input/Output System*, terme historique toujours utilisé) ou son
+successeur, l'**UEFI** (*Unified Extensible Firmware Interface*, la norme actuelle), est le
+firmware qui s'exécute au démarrage, avant tout système d'exploitation. Il initialise le
+matériel (CPU, RAM, contrôleurs) et transfère ensuite le contrôle au système d'exploitation.
+
+## Le POST
+
+Le **POST** (*Power-On Self-Test*) est la séquence de vérifications matérielles effectuée
+par le firmware juste après la mise sous tension, avant l'affichage du système
+d'exploitation. Un POST réussi précède toujours un démarrage normal ; un POST qui échoue
+bloque le démarrage (voir section 14, diagnostic).
+
+## À retenir
+
+BIOS = terme historique encore utilisé couramment ; UEFI = norme actuelle, plus complète
+(interface graphique, disques de grande capacité, sécurité au démarrage).
+L'approfondissement de l'UEFI (menus, options avancées) sera vu plus tard.
+"""
+
+_MC02_METHODE_COMPATIBILITE = r"""## Méthode examen : vérifier la compatibilité d'une configuration
+
+Face à une configuration à valider (montage, mise à niveau, dépannage), suis toujours cet
+ordre :
+
+1. **Besoin** — que doit faire ce PC (bureautique, jeu, serveur...) ?
+2. **Format** — quel format de carte mère et de boîtier convient à ce besoin ?
+3. **Socket / support CPU** — le CPU choisi est-il supporté par la carte mère (socket,
+   génération, version BIOS) ?
+4. **RAM** — le type de RAM (voir mini-cours 03), la capacité et le nombre de slots
+   conviennent-ils ?
+5. **Stockage** — les connecteurs disponibles (SATA, M.2) correspondent-ils aux disques
+   prévus ?
+6. **PCIe** — les emplacements disponibles conviennent-ils à la carte graphique et aux
+   éventuelles cartes d'extension ?
+7. **Alimentation et connecteurs** — le PSU fournit-il les connecteurs nécessaires (ATX 24
+   broches, EPS, PCIe GPU) avec une puissance suffisante ?
+8. **Boîtier** — le boîtier accepte-t-il le format de carte mère et la taille des autres
+   composants (GPU, ventirad) ?
+9. **Manuel / QVL / support constructeur** — vérifier la documentation officielle et la
+   liste de compatibilité (*Qualified Vendor List*) avant de finaliser le choix.
+
+Cet ordre n'est pas arbitraire : chaque étape dépend en partie de la précédente (le format
+conditionne les emplacements disponibles, qui conditionnent les choix de RAM/stockage/PCIe).
+"""
+
+_MC02_DIAGNOSTIC = r"""## Scénario : les ventilateurs tournent, mais aucun affichage
+
+Un client apporte un PC qui s'allume (ventilateurs, voyants) mais qui n'affiche jamais rien
+à l'écran — aucun POST. Voici la procédure professionnelle structurée, étape par étape :
+
+<div class="jc-flow">
+    <div class="jc-flow-step">1. Couper<br><small>l'alimentation</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">2. Contrôle visuel<br><small>connecteurs, dégâts</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">3. ATX/EPS<br><small>bien enfoncés</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">4. RAM<br><small>réinsérer/tester une barrette</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">5. GPU/écran<br><small>connexion, sortie vidéo</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">6. Codes LED/beep<br><small>si disponibles</small></div>
+</div>
+
+1. **Couper l'alimentation** avant toute manipulation (voir section 15, sécurité).
+2. **Contrôle visuel** : connecteurs bien enfoncés, absence de dégâts visibles (composants
+   gonflés, traces de brûlure, corps étranger).
+3. **Vérifier ATX 24 broches et EPS** : bien enfoncés jusqu'au clic.
+4. **RAM** : réinsérer les barrettes, tester avec une seule barrette dans le slot
+   recommandé par le manuel, tester chaque barrette séparément si plusieurs sont
+   disponibles.
+5. **GPU et écran** : vérifier que le câble vidéo est branché sur la bonne sortie (carte
+   dédiée vs GPU intégré), tester un autre câble/écran si possible.
+6. **Codes LED ou signaux sonores (beep codes)** : de nombreuses cartes mères affichent un
+   code d'erreur (LED dédiées ou séquence de bips) qui identifie le composant en cause —
+   consulter le manuel pour l'interpréter.
+7. **Configuration minimale** : si le problème persiste, démonter tout ce qui n'est pas
+   indispensable (une seule barrette de RAM, pas de carte d'extension autre que le GPU si
+   nécessaire) pour isoler la panne.
+8. **Clear CMOS** : réinitialiser les paramètres du BIOS/UEFI selon la procédure du
+   fabricant (cavalier dédié ou bouton) si un mauvais réglage est suspecté.
+9. **Documenter** chaque étape testée et son résultat, pour ne pas répéter un test déjà
+   fait et pour transmettre l'information si le problème est escaladé.
+
+> **Piège fréquent :** ne jamais retirer, insérer ou tester un composant alors que le PC
+> est sous tension, même « juste pour voir » — toujours couper l'alimentation d'abord (voir
+> section 15).
+"""
+
+_MC02_SECURITE_ESD = r"""## Toujours hors tension
+
+Avant toute intervention à l'intérieur du boîtier : éteindre le PC, débrancher le câble
+d'alimentation secteur (pas seulement éteindre l'interrupteur du PSU).
+
+## Décharge électrostatique (ESD)
+
+L'électricité statique accumulée par le corps humain peut détruire silencieusement un
+composant électronique (RAM, CPU, carte mère) au contact, sans dégât visible immédiat.
+
+- Se décharger avant de toucher un composant (toucher une partie métallique non peinte du
+  boîtier, ou utiliser un bracelet antistatique relié à la masse).
+- Manipuler les composants **par les bords**, jamais par les broches, les connecteurs ou
+  les puces.
+- Éviter de travailler sur une surface générant de l'électricité statique (tapis
+  synthétique, par exemple), et éviter les vêtements très isolants dans un environnement
+  sec.
+
+## Connecteurs : ne jamais forcer
+
+> **Piège fréquent :** un connecteur qui ne s'insère pas facilement est presque toujours
+> mal orienté ou mal aligné — ne jamais forcer. Vérifier le détrompeur (RAM, câbles SATA,
+> connecteurs alimentation) avant d'insister.
+"""
+
+_MC02_VOCAB_FR_EN = r"""## Vocabulaire à connaître (français / anglais)
+
+| Français | Anglais |
+|---|---|
+| Carte mère | Motherboard |
+| Socket (même terme) | Socket |
+| Jeu de composants | Chipset |
+| Emplacement (RAM, PCIe) | Slot |
+| Connecteur interne (façade, ventilateur...) | Header |
+| Panneau avant | Front panel |
+| Emplacement d'extension | Expansion slot |
+| Entrée/sortie | I/O |
+| Voie de communication (PCIe) | Lane |
+| Micrologiciel | Firmware |
+| Auto-test de démarrage | POST (Power-On Self-Test) |
+
+## Méthode examen
+
+Comme au mini-cours 01 : pour un sigle anglais (POST, I/O, EPS...), retrouve d'abord le
+terme complet en anglais, puis traduis-le en français.
+"""
+
+_MC02_EXERCICES_1 = r"""## Exercice 1 — choisir
+
+Un client veut un PC très compact pour du bureautique simple, sans intention d'ajouter des
+cartes d'extension plus tard. Quel format de carte mère lui recommandes-tu, et pourquoi
+n'est-ce pas nécessairement un problème pour ses performances ?
+
+**Correction :** Mini-ITX est adapté : format le plus compact, un seul emplacement PCIe
+suffit pour un usage bureautique sans extension prévue. Le format ne détermine pas les
+performances : une Mini-ITX peut recevoir un CPU performant, elle offre seulement moins
+d'emplacements pour évoluer plus tard.
+
+## Exercice 2 — vérifier une compatibilité
+
+Un technicien veut installer un CPU récent (socket LGA1700, dernière génération) sur une
+carte mère qui annonce elle aussi le socket LGA1700, mais plus ancienne. Le socket
+correspond : peut-il en conclure que la compatibilité est garantie ? Justifie.
+
+**Correction :** Non. Le socket correspondant est nécessaire mais pas suffisant : il faut
+aussi vérifier que la carte mère supporte cette génération précise de CPU (liste de
+compatibilité du fabricant) et que le BIOS est à une version suffisante — une mise à jour
+du BIOS est parfois nécessaire avant que le CPU récent soit reconnu.
+
+## Exercice 3 — expliquer
+
+Explique pourquoi il est incorrect aujourd'hui de décrire le chipset comme « deux puces
+séparées, north bridge et south bridge ».
+
+**Correction :** Cette description correspond à d'anciennes architectures. Sur les
+plateformes modernes, la plupart des fonctions autrefois assurées par le north bridge sont
+intégrées directement au CPU ; le chipset est aujourd'hui un circuit unique qui gère les
+connexions restantes (USB, SATA, PCIe additionnels...).
+
+## Exercice 4 — expliquer
+
+Deux barrettes de RAM identiques sont installées, mais pas dans les slots recommandés par
+le manuel de la carte mère. Le PC démarre normalement. Le technicien en conclut qu'il n'y a
+aucun problème. A-t-il raison ?
+
+**Correction :** Pas nécessairement. Le PC peut démarrer normalement même sans le mode
+dual-channel : dans ce cas, les barrettes fonctionnent, mais sans le gain de performance
+associé à ce mode. Il faut consulter le manuel pour installer les barrettes dans les slots
+recommandés.
+"""
+
+_MC02_EXERCICES_2 = r"""## Exercice 5 — expliquer
+
+Un emplacement PCIe est annoncé « x16 » sur la carte mère, mais la documentation précise
+qu'il n'est câblé électriquement qu'en x4 lorsqu'un second emplacement est utilisé en même
+temps. Explique ce que cela signifie concrètement pour l'utilisateur.
+
+**Correction :** La taille physique du connecteur (x16) n'indique pas toujours le nombre
+réel de lanes électriques actives. Dans ce cas, une carte installée dans cet emplacement
+peut ne recevoir que la bande passante d'un x4 si un second emplacement est occupé en même
+temps — ce qui peut réduire les performances d'une carte graphique exigeante, par exemple.
+
+## Exercice 6 — vrai ou faux, justifié
+
+« Un SSD M.2 est toujours un SSD NVMe. » Vrai ou faux ? Justifie ta réponse.
+
+**Correction :** Faux. M.2 est un format de connecteur/composant, pas une technologie de
+vitesse. Un emplacement M.2 peut accueillir un SSD SATA ou un SSD NVMe (connecté en PCIe,
+plus rapide) — il faut vérifier la documentation de la carte mère pour savoir quel(s)
+mode(s) un emplacement M.2 donné supporte.
+
+## Exercice 7 — classer
+
+Classe les éléments suivants selon leur origine et leur rôle : câble ATX 24 broches, câble
+EPS, câble SATA Power, câble SATA data.
+
+**Correction :** ATX 24 broches (du PSU vers la carte mère, alimente la carte mère) ; EPS
+(du PSU vers la carte mère, alimente le CPU via les VRM) ; SATA Power (du PSU directement
+vers le disque, ne passe pas par la carte mère) ; SATA data (de la carte mère vers le
+disque, transfert de données uniquement, aucune alimentation).
+
+## Exercice 8 — associer
+
+Associe chaque connecteur F_PANEL à son rôle et précise s'il faut respecter une polarité :
+Power SW, Reset SW, Power LED, HDD LED.
+
+**Correction :** Power SW : bouton d'allumage, interrupteur, pas de polarité. Reset SW :
+bouton de redémarrage matériel, interrupteur, pas de polarité. Power LED : voyant
+d'alimentation, LED, polarité à respecter. HDD LED : voyant d'activité disque, LED,
+polarité à respecter.
+"""
+
+_MC02_EXERCICES_3 = r"""## Exercice 9 — reconnaître
+
+Pour chacun de ces connecteurs du panneau arrière, indique à quoi il sert : USB-C, RJ45,
+jack audio, HDMI.
+
+**Correction :** USB-C : périphériques USB récents (réversible). RJ45 : connexion réseau
+filaire (Ethernet). Jack audio : casque/micro/haut-parleurs. HDMI : sortie vidéo (présente
+seulement si le GPU intégré est utilisé, ou absente sur une carte mère sans sortie vidéo
+intégrée).
+
+## Exercice 10 — expliquer
+
+Explique ce qu'est le POST, et pourquoi son échec empêche tout affichage à l'écran, même si
+les ventilateurs tournent.
+
+**Correction :** Le POST (Power-On Self-Test) est la séquence de vérifications matérielles
+effectuée par le firmware (BIOS/UEFI) juste après la mise sous tension, avant tout
+affichage. Les ventilateurs qui tournent montrent seulement que l'alimentation électrique
+de base fonctionne ; si le POST échoue (RAM, GPU ou autre composant essentiel non détecté
+correctement), le firmware ne transmet jamais le contrôle à l'affichage.
+
+## Exercice 11 — ordonner
+
+Un PC s'allume mais n'affiche rien à l'écran. Remets dans l'ordre professionnel ces
+étapes de diagnostic : (A) réinsérer/tester la RAM ; (B) couper l'alimentation ; (C)
+vérifier le câble vidéo et l'écran ; (D) contrôle visuel des connecteurs.
+
+**Correction :** Ordre correct : B → D → A → C (couper l'alimentation, contrôle visuel,
+RAM, puis GPU/écran) — on ne manipule jamais un composant sous tension, et on procède du
+plus simple/rapide à vérifier vers le plus spécifique.
+
+## Exercice 12 — interpréter un mini-schéma
+
+Un technicien te donne cette description : « CPU socket AM5, carte mère annoncée socket
+AM4 ». Que peux-tu en conclure immédiatement, sans autre information ?
+
+**Correction :** Incompatibilité physique certaine : les sockets AM5 et AM4 ne sont pas le
+même connecteur, le CPU ne peut pas être installé sur cette carte mère, quelle que soit la
+version du BIOS. Il faut soit un CPU socket AM4, soit une carte mère socket AM5.
+"""
+
+_MC02_MEMO = r"""# Fiche mémo — Carte mère, formats et connectiques
+
+## Formats
+
+| Format | Taille | Extensibilité |
+|---|---|---|
+| ATX | Grande | Élevée |
+| micro-ATX | Moyenne | Moyenne |
+| Mini-ITX | Petite | Faible |
+
+## Compatibilité — ordre de vérification
+
+Besoin → format → socket/CPU/BIOS → RAM → stockage → PCIe → alimentation/connecteurs →
+boîtier → manuel/QVL.
+
+## Alimentation de la carte mère
+
+- ATX 24 broches : alimente la carte mère.
+- EPS 4/8 broches : alimente le CPU (≠ connecteur GPU).
+- SATA Power : vient du PSU directement, pas de la carte mère.
+
+## Pièges à ne jamais oublier
+
+- Format ≠ performances.
+- Socket compatible ≠ compatibilité complète (génération, chipset, BIOS).
+- x16 physique ≠ toujours x16 électrique.
+- M.2 ≠ synonyme de NVMe (SATA possible aussi).
+- F_PANEL : interrupteurs sans polarité, LED avec polarité.
+- Ne jamais manipuler un composant sous tension ; toujours se protéger de l'ESD.
+
+## Diagnostic no-POST (ordre)
+
+Couper l'alimentation → contrôle visuel → ATX/EPS → RAM → GPU/écran → codes LED/beep →
+configuration minimale → clear CMOS → documenter.
+
+<div class="d-print-none mt-3">
+    <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print()">
+        Imprimer cette fiche
+    </button>
+</div>
+"""
+
+_MC02_EXAMEN = r"""# Examen final — Carte mère, formats et connectiques
+
+**Consigne :** réponds à chaque question de façon complète et justifiée. Chaque question
+vaut 2 points, pour un total de 20 points.
+
+## Question 1 (2 pts)
+
+Explique les différences principales entre les formats ATX, micro-ATX et Mini-ITX.
+
+## Question 2 (2 pts)
+
+Un CPU rentre physiquement dans le socket d'une carte mère. Cela suffit-il à garantir la
+compatibilité ? Justifie.
+
+## Question 3 (2 pts)
+
+Explique la différence entre la taille physique d'un emplacement PCIe (ex. x16) et le
+nombre réel de lanes électriques actives.
+
+## Question 4 (2 pts)
+
+Décris le rôle des connecteurs ATX 24 broches et EPS, et explique en quoi ils diffèrent
+d'un connecteur d'alimentation de carte graphique.
+
+## Question 5 (2 pts)
+
+Cite et explique le rôle de trois connecteurs internes (hors F_PANEL) : par exemple
+CPU_FAN, USB interne, audio façade.
+
+## Question 6 (2 pts)
+
+Explique pourquoi « M.2 » n'est pas synonyme de « NVMe ».
+
+## Question 7 (2 pts)
+
+Explique la différence de polarité entre les interrupteurs et les LED du F_PANEL, et ses
+conséquences en cas d'inversion.
+
+## Question 8 (2 pts)
+
+Explique le rôle du BIOS/UEFI et du POST dans le démarrage d'un PC.
+
+## Question 9 (2 pts)
+
+Cite trois règles de sécurité à respecter avant d'intervenir à l'intérieur d'un boîtier.
+
+## Question 10 (2 pts)
+
+Un PC s'allume (ventilateurs, voyants) mais n'affiche rien à l'écran. Décris une procédure
+structurée de diagnostic, dans l'ordre.
+"""
+
+_MC02_EXAMEN_CORRIGE = r"""# Corrigé — Examen final « Carte mère, formats et connectiques »
+
+**Ce bloc n'est jamais publié côté candidat** (non publié) — réservé à la
+correction/notation par le formateur depuis l'administration. Barème : 2 points par
+question, 20 points au total.
+
+## Question 1 (2 pts)
+
+ATX : grand format, nombreux emplacements. micro-ATX : format intermédiaire, emplacements
+réduits. Mini-ITX : très compact, un seul PCIe en général. *(différences de taille et
+d'extensibilité, pas de performance intrinsèque)*
+
+## Question 2 (2 pts)
+
+Non. Le socket correspondant est nécessaire mais pas suffisant : il faut aussi vérifier la
+génération CPU supportée, le chipset, et la version BIOS. *(1 pt « non » justifié, 1 pt
+éléments supplémentaires cités)*
+
+## Question 3 (2 pts)
+
+La taille physique (x16) indique le connecteur ; le nombre de lanes électriques actives
+peut être inférieur (x4, x8) selon la carte mère — à vérifier dans la documentation. *(1 pt
+distinction, 1 pt conséquence pratique)*
+
+## Question 4 (2 pts)
+
+ATX 24 broches alimente la carte mère, EPS (4/8 broches) alimente le CPU. Différents des
+connecteurs d'alimentation GPU (PCIe 6/8 broches, 12V-2x6), non interchangeables. *(1 pt
+rôles, 1 pt distinction GPU)*
+
+## Question 5 (2 pts)
+
+Ex. CPU_FAN (ventilateur CPU, surveillé), USB interne (ports USB façade), audio façade
+(prise casque/micro façade). *(0,67 pt par connecteur correctement décrit)*
+
+## Question 6 (2 pts)
+
+M.2 est un format de connecteur physique ; un emplacement M.2 peut recevoir un SSD SATA ou
+NVMe selon ce que supporte la carte mère. *(1 pt distinction format/technologie, 1 pt
+exemple SATA/NVMe)*
+
+## Question 7 (2 pts)
+
+Interrupteurs (Power SW, Reset SW) : pas de polarité, fonctionnent dans les deux sens. LED
+(Power LED, HDD LED) : polarité à respecter, ne s'allument pas si inversées. *(1 pt par
+catégorie correctement expliquée)*
+
+## Question 8 (2 pts)
+
+BIOS/UEFI : firmware qui initialise le matériel avant l'OS. POST : séquence de
+vérifications matérielles juste après la mise sous tension, doit réussir avant tout
+affichage. *(1 pt par notion)*
+
+## Question 9 (2 pts)
+
+Ex. couper l'alimentation/débrancher le secteur, se décharger de l'électricité statique
+(ESD)/bracelet antistatique, manipuler les composants par les bords, ne jamais forcer un
+connecteur. *(2/3 règles pertinentes acceptées, 0,67 pt chacune)*
+
+## Question 10 (2 pts)
+
+Couper l'alimentation → contrôle visuel → vérifier ATX/EPS → RAM → GPU/écran → codes
+LED/beep → configuration minimale → clear CMOS → documenter. *(notation qualitative sur 2
+points selon la structure et l'ordre logique de la réponse)*
+"""
+
+MC02_BLOCKS = [
+    {
+        "title": "Plan du mini-cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_PLAN,
+        "position": 1,
+        "is_published": True,
+    },
+    {
+        "title": "1. Rôle détaillé de la carte mère — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_ROLE,
+        "position": 2,
+        "is_published": True,
+    },
+    {
+        "title": "2. Formats ATX, micro-ATX, Mini-ITX — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_FORMATS,
+        "position": 3,
+        "is_published": True,
+    },
+    {
+        "title": "3. Socket CPU et compatibilité — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_SOCKET,
+        "position": 4,
+        "is_published": True,
+    },
+    {
+        "title": "4. Chipset — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_CHIPSET,
+        "position": 5,
+        "is_published": True,
+    },
+    {
+        "title": "5. Slots RAM (DIMM) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_RAM_SLOTS,
+        "position": 6,
+        "is_published": True,
+    },
+    {
+        "title": "6. PCI Express (PCIe) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_PCIE,
+        "position": 7,
+        "is_published": True,
+    },
+    {
+        "title": "7. Stockage sur la carte mère (SATA, M.2) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_STOCKAGE_CM,
+        "position": 8,
+        "is_published": True,
+    },
+    {
+        "title": "8. Alimentation interne (ATX 24 broches, EPS) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_ALIM_INTERNE,
+        "position": 9,
+        "is_published": True,
+    },
+    {
+        "title": "9. Connecteurs internes — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_CONNECTEURS_INTERNES,
+        "position": 10,
+        "is_published": True,
+    },
+    {
+        "title": "10. Connectique arrière (E/S) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_IO_ARRIERE,
+        "position": 11,
+        "is_published": True,
+    },
+    {
+        "title": "11. F_PANEL — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_F_PANEL,
+        "position": 12,
+        "is_published": True,
+    },
+    {
+        "title": "12. BIOS/UEFI et POST — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_BIOS_UEFI,
+        "position": 13,
+        "is_published": True,
+    },
+    {
+        "title": "13. Méthode de compatibilité — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_METHODE_COMPATIBILITE,
+        "position": 14,
+        "is_published": True,
+    },
+    {
+        "title": "14. Diagnostic professionnel : pas de POST — Exemple",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_DIAGNOSTIC,
+        "position": 15,
+        "is_published": True,
+    },
+    {
+        "title": "15. Sécurité et décharge électrostatique (ESD) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_SECURITE_ESD,
+        "position": 16,
+        "is_published": True,
+    },
+    {
+        "title": "16. Vocabulaire FR/EN — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_VOCAB_FR_EN,
+        "position": 17,
+        "is_published": True,
+    },
+    {
+        "title": "Carte mère — Exercices (1/3 : formats, socket, chipset, RAM)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_EXERCICES_1,
+        "position": 18,
+        "is_published": True,
+    },
+    {
+        "title": "Carte mère — Exercices (2/3 : PCIe, stockage, alimentation, F_PANEL)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_EXERCICES_2,
+        "position": 19,
+        "is_published": True,
+    },
+    {
+        "title": "Carte mère — Exercices (3/3 : E/S, POST, diagnostic)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_EXERCICES_3,
+        "position": 20,
+        "is_published": True,
+    },
+    {
+        "title": "Carte mère — Génère ton propre exercice (IA)",
+        "type": BlockType.AI_EXERCISE,
+        "content": AIExerciseBlockConfig(
+            context_key="ampcr-mc02",
+            intro=(
+                "En complément des exercices ci-dessus : choisis une difficulté, génère un "
+                "nouvel exercice sur la carte mère, réponds, puis demande une correction "
+                "personnalisée. L'exercice reste strictement dans la matière de ce "
+                "mini-cours."
+            ),
+        ).to_json(),
+        "position": 21,
+        "is_published": True,
+    },
+    {
+        "title": "Fiche mémo — Carte mère, formats et connectiques",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_MEMO,
+        "position": 22,
+        "is_published": True,
+    },
+    {
+        "title": "Examen final — Carte mère, formats et connectiques (10 questions, 20 points)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_EXAMEN,
+        "position": 23,
+        "is_published": True,
+    },
+    {
+        "title": "Examen final — Corrigé (réservé formateur, non publié)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC02_EXAMEN_CORRIGE,
+        "position": 24,
+        "is_published": False,
+    },
+]
+
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
@@ -2384,6 +3305,9 @@ def seed() -> None:
 
         ampcr = next(module for module in informatique.modules if module.code == "AMPCR")
         _seed_uaa(db, ampcr, MC01_CODE, MC01_TITLE, 1, MC01_BLOCKS, created, kept)
+        # Mini-cours 02 (ticket #12) : même mécanisme, purement additif — ne touche jamais
+        # MC01 ni Mathématiques.
+        _seed_uaa(db, ampcr, MC02_CODE, MC02_TITLE, 2, MC02_BLOCKS, created, kept)
 
         db.commit()
 

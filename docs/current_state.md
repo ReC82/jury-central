@@ -196,11 +196,17 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
   [docs/ai_exercise_engine.md](ai_exercise_engine.md). Non configuré par défaut
   (`OPENAI_API_KEY` vide) : la fonctionnalité affiche un message clair plutôt que d'échouer
   silencieusement, tant qu'aucune clé n'est fournie.
+- **Informatique — AMPCR — mini-cours 02 « Carte mère, formats et connectiques »**
+  (ticket #12, 2026-09-16) : navigable après le mini-cours 01 (`/uaa/ampcr-mc02`), 16
+  sections de cours, 12 exercices progressifs à correction masquée, examen final de 10
+  questions/20 points (corrigé non publié), et son propre contexte pédagogique borné
+  (`app/ai/context.py::PEDAGOGICAL_CONTEXTS["ampcr-mc02"]`) pour le **même** moteur IA
+  générique introduit au ticket #10 — aucun second moteur, aucune logique IA dupliquée.
 
 ## En attente d'import
 
 - MB32 UAA3, MQ32, MQ34 (derrière Informatique/Français, voir priorité ci-dessous)
-- Mini-cours 02 à 38 Informatique AMPCR
+- Mini-cours 03 à 38 Informatique AMPCR
 - Français CESS Professionnel (aucun contenu à ce jour)
 
 ---
@@ -223,11 +229,11 @@ Depuis le ticket #4 (2026-09-16), l'ordre de priorité produit est :
 2. **Français — CESS Professionnel** ;
 3. reste du contenu Mathématiques (MB32 UAA3, MQ32, MQ34) et autres matières.
 
-Le mini-cours 01 Informatique AMPCR est livré (ticket #10) directement depuis un cahier
-des charges pédagogique fourni par ChatGPT dans le ticket GitHub, sans fichier source
-déposé dans `docs/sources_cours/` (voir `docs/content_workflow.md`, section « Contenu
-rédigé à partir d'un cahier des charges »). Français CESS Professionnel n'a encore aucun
-contenu. Voir
+Les mini-cours 01 (ticket #10) et 02 (ticket #12) Informatique AMPCR sont livrés
+directement depuis un cahier des charges pédagogique fourni par ChatGPT dans chaque ticket
+GitHub, sans fichier source déposé dans `docs/sources_cours/` (voir
+`docs/content_workflow.md`, section « Contenu rédigé à partir d'un cahier des charges »).
+Français CESS Professionnel n'a encore aucun contenu. Voir
 [docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md) pour
 l'inventaire, la cartographie et le découpage en tickets restants.
 
