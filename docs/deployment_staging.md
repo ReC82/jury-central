@@ -47,19 +47,25 @@ d'installation initiale.
 
 ## 1.1 nginx (config active, hors dépôt)
 
-La configuration nginx active vit dans `/etc/nginx/` sur le serveur (probablement
-`/etc/nginx/sites-available/jury-central.lodylands.com` ou équivalent, activée dans
-`sites-enabled/`) et n'est **pas** versionnée dans ce dépôt — voir § 5 pour la raison.
-Rôle : terminer le TLS (certificat Let's Encrypt) et transmettre les requêtes en HTTP vers
-`127.0.0.1:8100`.
+Vérifié sur le serveur (2026-09-16) : la configuration active est
+`/etc/nginx/sites-available/jury-central`, activée via un lien symbolique dans
+`/etc/nginx/sites-enabled/jury-central`. Le nom du fichier ne reprend pas le domaine — ne
+pas supposer `jury-central.lodylands.com` comme nom de fichier. Cette configuration n'est
+**pas** versionnée dans ce dépôt — voir § 5 pour la raison. Rôle : terminer le TLS
+(certificat Let's Encrypt) et transmettre les requêtes en HTTP vers `127.0.0.1:8100`
+(`proxy_pass`), avec les en-têtes `X-Forwarded-*` usuels.
+
+L'instance héberge plusieurs autres sites (autres blocs dans `sites-enabled/`, hors
+périmètre de Jury Central) : ne jamais modifier un autre fichier que
+`sites-available/jury-central` sans ticket dédié.
 
 ## 1.2 systemd (unité active, hors dépôt)
 
-`jury-central.service` est défini sur le serveur (probablement
-`/etc/systemd/system/jury-central.service`), pas dans ce dépôt. Il lance vraisemblablement
-`uvicorn app.main:app --host 127.0.0.1 --port 8100` avec `WorkingDirectory=/srv/jury-central`
-et l'environnement chargé depuis `/srv/jury-central/.env` (à confirmer sur le serveur, voir
-§ 4 pour la commande d'inspection).
+Vérifié sur le serveur (2026-09-16) via `systemctl cat jury-central.service` :
+`/etc/systemd/system/jury-central.service` lance
+`/srv/jury-central/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8100`, avec
+`WorkingDirectory=/srv/jury-central`, `EnvironmentFile=/srv/jury-central/.env`,
+`Restart=on-failure` (`RestartSec=5`), utilisateur `ubuntu`.
 
 ## 1.3 Certbot
 

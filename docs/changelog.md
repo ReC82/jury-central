@@ -2,6 +2,24 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Validation staging réelle du ticket #6 et correction de doc
+
+Première exécution réelle de `scripts/deploy_staging.sh` contre le staging opérationnel,
+à la demande explicite de l'utilisateur. Résultat : succès complet, sans interaction
+`sudo`, sans échec — voir le rapport de validation transmis en session pour le détail des
+vérifications (service, nginx, `/health`, HTTPS public, intégrité de `jury_central.db`).
+
+Cette validation a révélé une inexactitude dans `docs/deployment_staging.md` § 1.1 : le
+nom du fichier de configuration nginx documenté (« probablement
+`jury-central.lodylands.com` ») ne correspondait pas au fichier réel
+(`/etc/nginx/sites-available/jury-central`, sans le domaine dans le nom). Corrigé, avec la
+définition systemd également confirmée mot pour mot (§ 1.2, plus besoin de « à
+confirmer »). Aucune autre modification : script, comportement de l'application et tests
+inchangés.
+
+**Tests** : aucune modification de code applicatif ; suite complète toujours verte
+(`pytest -q`).
+
 ## 2026-09-16 — Documenter et automatiser le déploiement staging (ticket #6)
 
 Un environnement staging (`https://jury-central.lodylands.com`, installé manuellement sur
