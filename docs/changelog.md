@@ -2,6 +2,48 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Informatique AMPCR : mini-cours 02 « Carte mère, formats et connectiques » (ticket #12)
+
+Deuxième cours de la série Informatique AMPCR, contenu et périmètre pédagogique fournis
+intégralement par ChatGPT dans le ticket #12. Réutilise **strictement** l'architecture du
+ticket #10 — aucun nouveau mécanisme, aucun second moteur IA.
+
+**Matière/UAA** : nouvelle UAA `MC02` (« Carte mère, formats et connectiques ») sous le
+module `AMPCR` existant, navigable depuis `/uaa/ampcr-mc02`, juste après MC01.
+
+**Contenu** (`app/seed.py::MC02_BLOCKS`, 24 blocs) : plan, 16 sections de cours (rôle
+détaillé de la carte mère, formats ATX/micro-ATX/Mini-ITX, socket et compatibilité,
+chipset, slots RAM/DIMM, PCIe, stockage SATA/M.2, alimentation interne ATX/EPS, connecteurs
+internes, connectique arrière, F_PANEL, BIOS/UEFI/POST, méthode de compatibilité,
+diagnostic no-POST, sécurité/ESD, vocabulaire FR/EN), 12 exercices progressifs (3 blocs) à
+correction masquée à la demande, un bloc `ai_exercise` réutilisant le moteur du ticket #10,
+une fiche mémo, et l'examen final.
+
+**Contexte IA MC02** : nouvelle entrée
+`app/ai/context.py::PEDAGOGICAL_CONTEXTS["ampcr-mc02"]` (notions, compétences 1.1.1–1.1.4/
+1.2.3/2.3.2–2.3.3/3.4.1–3.4.2, vocabulaire, contraintes reportant DDR/dual-channel au
+mini-cours 03, SATA/NVMe détaillé au mini-cours 04, alimentation/refroidissement au
+mini-cours 05). Aucune autre modification du moteur IA (`app/ai/`, routes
+`/practice/api/ai/*`) : le bloc `ai_exercise` de MC02 référence simplement cette nouvelle
+clé de contexte.
+
+**Examen** : bloc publié avec 10 questions/20 points, aucune réponse ; corrigé complet dans
+un second bloc `is_published: False`, jamais servi côté public — même mécanisme
+exactement qu'au mini-cours 01.
+
+**Tests** : +8 tests (`tests/test_informatique_mc02.py` : navigation, matière obligatoire,
+12 exercices, examen sans correction visible, corrigé non publié, contexte IA enregistré,
+génération/correction via le moteur partagé avec le contexte MC02 — vérifié explicitement
+que `FakeAIProvider` reçoit `course_key == "ampcr-mc02"`, pas MC01 ; non-régression MC01 et
+Mathématiques), `test_seed_is_idempotent` mis à jour pour les nouveaux effectifs. 190 tests
+au total, tous verts. `ruff check .` : 36 erreurs, identiques (mêmes fichiers, mêmes
+règles) à celles de `develop` — comparé via un worktree isolé, aucune nouvelle erreur.
+
+**Vérifié** : seed idempotent (second appel = 0 création), MC01 et Mathématiques
+inchangés, corrigé de l'examen absent de la réponse HTTP publique.
+
+**Documentation** : `docs/current_state.md`, `docs/content_plan_informatique_francais.md`.
+
 ## 2026-09-16 — Moteur générique de génération d'exercices et de correction par IA (complément ticket #10)
 
 ChatGPT a complété le ticket #10 en cours de réalisation : le mini-cours 01 ne doit pas

@@ -29,6 +29,16 @@ officielle confirmée avec des codes FWB. Les tickets B/D (référentiel officie
 détaillée) gardent leur pertinence pour fiabiliser cette correspondance au fil des 37
 mini-cours suivants.
 
+## Mise à jour — mini-cours 02 livré (ticket #12, 2026-09-16)
+
+« Carte mère, formats et connectiques » (UAA `MC02`, sous le même module `AMPCR`) suit
+exactement le même chemin de traçabilité que MC01 (cahier des charges dans le ticket
+GitHub, pas de fichier `docs/sources_cours/`). Confirme la réutilisabilité de
+l'architecture posée par #10 : même système de blocs, même moteur IA générique (un seul
+contexte pédagogique ajouté par cours, `app/ai/context.py`), aucune duplication. Le
+complément IA du ticket #10 (génération/correction) est donc validé sur un deuxième cours
+sans modification de son code.
+
 ---
 
 # 1. Changement de priorité produit
