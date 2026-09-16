@@ -147,6 +147,20 @@ Vérifier (revue humaine, hors périmètre de Claude Code sauf demande explicite
 
 ---
 
+# Après le merge : déploiement staging
+
+Une fois une branche de ticket mergée dans `develop` par ChatGPT, la mise à jour du
+staging (`https://jury-central.lodylands.com`) est une étape séparée, manuelle et
+explicite — jamais un effet de bord du merge. Voir
+`docs/deployment_staging.md` pour l'architecture staging et le script
+`scripts/deploy_staging.sh`.
+
+Claude Code ne déclenche jamais lui-même un déploiement staging, ne modifie pas nginx,
+Certbot ou le service systemd actif, sans ticket dédié et instruction explicite (voir
+`docs/PROJECT_RULES.md` § 8 et § 16).
+
+---
+
 # Dépôt
 
 Le dépôt Git constitue la source de vérité du projet.

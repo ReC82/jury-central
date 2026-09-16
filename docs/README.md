@@ -147,6 +147,16 @@ matières.
 
 ---
 
+## deployment_staging.md
+
+Architecture de l'environnement staging (`jury-central.lodylands.com`) : domaine, nginx,
+systemd, port, `.env`, SQLite, logs, commandes de diagnostic, et fonctionnement du script
+`scripts/deploy_staging.sh`.
+
+À consulter avant tout déploiement ou diagnostic staging.
+
+---
+
 # Sources des cours
 
 Toutes les sources officielles sont stockées dans :
