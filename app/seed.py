@@ -3189,6 +3189,897 @@ MC02_BLOCKS = [
     },
 ]
 
+# Contenu réel du mini-cours 03 Informatique AMPCR (« CPU et mémoire RAM »), ticket #14 :
+# contenu et périmètre pédagogique fournis par ChatGPT (chef de projet), rédigés ici sans
+# en changer la portée. Réutilise exactement l'architecture des tickets #10/#12 (blocs
+# markdown, classification par titre, correction masquée générique, bloc ai_exercise +
+# contexte pédagogique borné) — aucune nouvelle architecture.
+
+MC03_CODE = "MC03"
+MC03_TITLE = "CPU et mémoire RAM"
+
+_MC03_PLAN = r"""# CPU et mémoire RAM
+
+Ce mini-cours prolonge les mini-cours 01 et 02 : après la vue d'ensemble d'un PC et le
+détail de la carte mère, on approfondit les deux composants les plus souvent mis en avant
+commercialement — le CPU et la RAM — et on apprend à ne pas se laisser piéger par des
+chiffres mal interprétés (GHz, TDP, Go, bits).
+
+## Objectifs
+
+À la fin de ce mini-cours, tu sauras :
+
+- expliquer le rôle du CPU et les facteurs qui influencent réellement ses performances ;
+- comparer deux CPU sans te fier à un seul chiffre ;
+- expliquer les générations de RAM, les canaux mémoire et leurs conditions d'installation ;
+- distinguer RAM, VRAM et stockage sans confusion ;
+- appliquer une procédure de diagnostic structurée en cas de panne RAM ou thermique ;
+- éviter les pièges d'unités et d'interprétation les plus fréquents à l'examen.
+
+## Sommaire
+
+1. Rôle du CPU et cycle d'exécution
+2. Cœurs, threads et fréquence
+3. IPC et hiérarchie de cache (L1/L2/L3)
+4. Architecture 32/64 bits
+5. Socket, génération et compatibilité
+6. TDP, refroidissement et throttling
+7. CPU avec ou sans graphique intégré
+8. Rôle et capacité de la RAM
+9. DDR3, DDR4, DDR5
+10. DIMM, SO-DIMM et canaux mémoire
+11. Capacité maximale et compatibilité
+12. XMP/EXPO et ECC
+13. RAM, VRAM et stockage
+14. Goulot d'étranglement et symptômes
+15. Diagnostic RAM et CPU/thermique
+16. Unités et pièges d'examen
+17. Vocabulaire FR/EN
+
+*Ce mini-cours s'appuie sur le mini-cours 02 (carte mère, socket, connecteurs) : la
+compatibilité CPU/RAM/carte mère y a déjà été introduite, elle est ici approfondie côté
+CPU et RAM.*
+"""
+
+_MC03_CPU_ROLE = r"""## Rôle du CPU (rappel et approfondissement)
+
+Le CPU exécute les instructions des programmes. De façon simplifiée, chaque instruction
+suit un cycle en trois temps :
+
+<div class="jc-flow">
+    <div class="jc-flow-step">Instruction<br><small>lue en mémoire</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">Traitement<br><small>données manipulées</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">Résultat<br><small>écrit en mémoire</small></div>
+</div>
+
+Ce cycle se répète des milliards de fois par seconde. C'est cette répétition extrêmement
+rapide, pas une « intelligence » du CPU, qui donne l'impression que l'ordinateur
+« réfléchit ».
+
+## À retenir
+
+Le CPU ne fait qu'exécuter des instructions très simples, très vite, dans un ordre précis —
+toute la complexité perçue vient du nombre d'instructions exécutées, pas de leur
+sophistication individuelle.
+"""
+
+_MC03_CORES_FREQ = r"""## Cœurs et threads
+
+Un CPU moderne contient plusieurs **cœurs** (*cores*), chacun capable de traiter des
+instructions de façon indépendante — plusieurs tâches peuvent donc progresser en
+parallèle.
+
+Le **SMT** (*Simultaneous Multi-Threading*, appelé Hyper-Threading chez Intel) permet à un
+seul cœur physique de traiter deux **threads** (fils d'exécution) en même temps, en
+exploitant les temps morts internes du cœur. Un thread SMT n'égale pas un cœur physique
+complet : le gain dépend fortement du type de tâche.
+
+## Fréquence : base, boost, et GHz
+
+La fréquence (en GHz) indique le nombre de cycles d'horloge par seconde. Les CPU modernes
+annoncent une fréquence **de base** (garantie en continu) et une fréquence **boost**
+(atteinte ponctuellement, sous conditions thermiques favorables, pas en continu).
+
+> **Piège fréquent :** un CPU à fréquence plus élevée n'est pas automatiquement plus
+> rapide qu'un CPU à fréquence plus basse. Le nombre de cœurs, l'IPC (voir section
+> suivante), la génération et la charge de travail réelle comptent au moins autant que le
+> chiffre en GHz seul.
+"""
+
+_MC03_IPC_CACHE = r"""## IPC : l'autre moitié de l'équation
+
+L'**IPC** (*Instructions Per Cycle*) mesure, en moyenne, combien d'instructions un CPU
+traite à chaque cycle d'horloge. Deux CPU à la même fréquence peuvent avoir des
+performances très différentes si leur IPC diffère : un CPU plus récent, à IPC plus élevé,
+peut dépasser un CPU plus ancien pourtant cadencé plus haut.
+
+Retiens la logique globale, sans qu'il soit nécessaire de calculer l'IPC toi-même :
+performance ≈ fréquence × IPC × nombre de cœurs utiles à la tâche — jamais la fréquence
+seule.
+
+## Le cache : mémoire très rapide, très proche du CPU
+
+Comme vu au mini-cours 01, le cache est une mémoire minuscule mais extrêmement rapide,
+intégrée au CPU. Il existe en plusieurs niveaux :
+
+| Niveau | Taille typique | Vitesse | Rôle |
+|---|---|---|---|
+| L1 | Quelques dizaines de Ko, par cœur | La plus rapide | Données/instructions immédiates du cœur |
+| L2 | Quelques centaines de Ko à quelques Mo, par cœur | Rapide | Relais entre L1 et L3 |
+| L3 | Plusieurs Mo, partagé entre les cœurs | Plus lente que L1/L2, bien plus rapide que la RAM | Réservoir commun, réduit les accès à la RAM |
+
+Plus une donnée est trouvée dans un niveau de cache proche (L1), plus vite le CPU peut
+l'utiliser ; à défaut, il doit aller la chercher plus loin (L2, L3, puis RAM), ce qui prend
+plus de temps à chaque niveau.
+"""
+
+_MC03_32_64_BITS = r"""## Ce que « bits » désigne ici
+
+L'architecture 32 ou 64 bits d'un CPU détermine notamment la taille des données qu'il
+traite nativement et surtout la quantité de mémoire vive qu'il peut adresser.
+
+| | 32 bits | 64 bits |
+|---|---|---|
+| RAM adressable (théorique) | Environ 4 Go maximum | Bien au-delà (largement suffisant aujourd'hui) |
+| Système d'exploitation requis | Version 32 bits | Version 64 bits (aujourd'hui la norme) |
+| Compatibilité logicielle | Logiciels 32 bits uniquement | Logiciels 32 bits **et** 64 bits en général |
+
+## Piège d'examen
+
+> **Piège fréquent :** passer de 32 à 64 bits ne rend **pas** un CPU « deux fois plus
+> rapide ». Cela change la quantité de mémoire adressable et certaines capacités de
+> traitement, pas un doublement direct de la vitesse d'exécution.
+
+*Le sujet est traité ici sans digression historique sur l'évolution des architectures —
+l'essentiel est de connaître le lien avec l'OS et la mémoire adressable.*
+"""
+
+_MC03_SOCKET_COMPAT = r"""## Rappel du mini-cours 02
+
+Le socket détermine la compatibilité physique CPU/carte mère ; la génération du CPU, le
+chipset et la version du firmware (BIOS/UEFI) déterminent la compatibilité **complète**
+(voir mini-cours 02, section Socket CPU et compatibilité).
+
+## Ce qu'il faut ajouter côté CPU
+
+Un même socket peut accueillir plusieurs **générations** de CPU au fil du temps, mais pas
+indéfiniment : le fabricant publie une liste de compatibilité (CPU support list) par carte
+mère, qui évolue avec les mises à jour de firmware.
+
+## Méthode examen
+
+Avant d'installer ou de recommander un CPU : vérifier socket → génération supportée par la
+carte mère → version de firmware minimale requise → mise à jour du firmware si
+nécessaire.
+"""
+
+_MC03_TDP_THROTTLING = r"""## TDP : un indicateur de conception, pas une mesure de consommation exacte
+
+Le **TDP** (*Thermal Design Power*) exprime, en watts, la quantité de chaleur que le
+système de refroidissement doit être capable d'évacuer en fonctionnement soutenu typique.
+
+> **Piège fréquent :** le TDP n'est **pas** une mesure exacte de la consommation
+> électrique instantanée du CPU. La consommation réelle varie selon la charge de travail et
+> peut, à certains moments (boost), dépasser temporairement le TDP annoncé. Le TDP sert
+> avant tout à dimensionner le refroidissement, pas à calculer une facture électrique
+> précise.
+
+## Refroidissement et throttling thermique
+
+Le refroidisseur (ventirad, watercooling...) évacue la chaleur produite par le CPU. Si la
+température devient trop élevée, le CPU réduit automatiquement sa fréquence pour se
+protéger : c'est le **throttling thermique**. Conséquence pratique : un refroidissement
+insuffisant ou mal installé peut faire chuter les performances, même sans panne matérielle
+au sens strict.
+"""
+
+_MC03_GPU_INTEGRE = r"""## Conséquence pratique lors d'un diagnostic
+
+Comme vu au mini-cours 01, certains CPU intègrent un GPU, d'autres non. Cette distinction a
+une conséquence pratique importante en diagnostic : un CPU **sans** graphique intégré,
+installé sur une carte mère sans carte graphique dédiée fonctionnelle, ne produira **aucun
+affichage**, même si tout le reste fonctionne correctement — ce n'est pas nécessairement
+une panne.
+
+> **Piège fréquent :** face à une absence d'affichage, toujours vérifier si le CPU dispose
+> d'un graphique intégré avant de conclure à une panne de carte graphique ou de carte
+> mère.
+"""
+
+_MC03_RAM_ROLE = r"""## Rappel et approfondissement
+
+Comme vu au mini-cours 01, la RAM est une mémoire de travail temporaire et volatile. Trois
+caractéristiques la décrivent :
+
+| Caractéristique | Ce qu'elle mesure |
+|---|---|
+| Capacité (Go) | Quantité de données que la RAM peut contenir simultanément |
+| Fréquence / débit | Vitesse à laquelle les données transitent |
+| Latence | Délai avant qu'une donnée demandée soit disponible |
+
+## Capacité et latence : deux choses différentes
+
+Une RAM plus rapide (fréquence élevée) n'a pas forcément une latence plus faible : les deux
+caractéristiques évoluent parfois en sens contraires selon les modules. Pour un usage
+courant, la capacité suffisante compte généralement plus que quelques nanosecondes de
+latence.
+"""
+
+_MC03_DDR_GENERATIONS = r"""## Générations incompatibles
+
+| Génération | Statut | Compatibilité |
+|---|---|---|
+| DDR3 | Ancienne, encore présente sur du matériel plus âgé | Non compatible avec DDR4/DDR5 |
+| DDR4 | Très répandue | Non compatible avec DDR3/DDR5 |
+| DDR5 | Génération actuelle | Non compatible avec DDR3/DDR4 |
+
+## Incompatibilité physique et électrique
+
+> **Piège fréquent :** les générations DDR ne sont **pas** interchangeables : le
+> détrompeur (encoche) est positionné différemment selon la génération, ce qui empêche
+> physiquement d'insérer le mauvais type de barrette dans un slot — et même si cela
+> semblait possible, les tensions électriques diffèrent. Une carte mère ne supporte
+> qu'**une seule** génération de RAM.
+
+## DDR5 n'est pas juste « DDR4 en plus rapide »
+
+> **Piège fréquent :** présenter la DDR5 comme une simple version accélérée de la DDR4 est
+> une erreur d'examen classique. Il s'agit d'une génération différente, avec une
+> compatibilité physique/électrique différente — une carte mère DDR4 n'accepte jamais de
+> DDR5, quelle que soit la vitesse annoncée.
+
+*Le terme « DDR » reste utilisé couramment même pour désigner la génération la plus
+récente : ce n'est pas un vocabulaire dépassé.*
+"""
+
+_MC03_DIMM_CHANNELS = r"""## DIMM et SO-DIMM
+
+| Format | Taille | Usage typique |
+|---|---|---|
+| DIMM | Standard, plus grand | PC de bureau |
+| SO-DIMM (*Small Outline DIMM*) | Compact | Ordinateurs portables, PC très compacts |
+
+## Canaux mémoire et population des slots
+
+Comme introduit au mini-cours 02, le mode **dual-channel** exige d'installer les
+barrettes dans des slots précis (souvent indiqués par une couleur), selon le **manuel** de
+la carte mère.
+
+> **Piège fréquent :** des barrettes installées dans les mauvais slots fonctionnent
+> généralement quand même (le PC démarre normalement), mais sans le gain de bande passante
+> du dual-channel — aucune erreur visible n'avertit l'utilisateur.
+"""
+
+_MC03_CAPACITE_MAX = r"""## Deux limites à croiser
+
+La capacité maximale de RAM installable dépend à la fois :
+
+- de la **carte mère** (nombre de slots, capacité maximale supportée) ;
+- du **CPU** (capacité maximale de RAM qu'il peut adresser/gérer).
+
+La limite réelle d'une configuration est toujours la plus basse des deux. Vérifier les
+deux documentations (carte mère et CPU) avant de recommander une capacité de RAM.
+"""
+
+_MC03_XMP_ECC = r"""## XMP / EXPO : des profils de paramètres mémoire
+
+Par défaut, une carte mère fait fonctionner la RAM à une fréquence standard, prudente. Les
+profils **XMP** (Intel) ou **EXPO** (AMD) permettent d'activer, en un clic dans le
+BIOS/UEFI, des paramètres plus performants **déjà validés par le fabricant de la RAM**,
+au-delà de la fréquence de base.
+
+> **Piège fréquent :** XMP/EXPO reste un paramétrage au-delà des spécifications de base
+> (JEDEC) : bien que validé par le fabricant de la RAM, ce n'est pas garanti par le
+> fabricant de la carte mère ou du CPU dans toutes les configurations — à activer avec
+> prudence et à tester après activation.
+
+## ECC : une notion à connaître, sans approfondissement serveur
+
+La RAM **ECC** (*Error-Correcting Code*) détecte et corrige automatiquement certaines
+erreurs mineures de mémoire. Elle est surtout utilisée dans les serveurs et stations de
+travail critiques, rarement sur un PC grand public standard. Il suffit ici de connaître
+son existence et son usage typique, sans entrer dans le détail de son fonctionnement.
+"""
+
+_MC03_RAM_VRAM_STOCKAGE = r"""## Trois mémoires, trois rôles
+
+| | RAM | VRAM | Stockage |
+|---|---|---|---|
+| Rôle | Mémoire de travail générale (système, programmes) | Mémoire dédiée aux données graphiques | Conservation durable des données |
+| Volatile ? | Oui | Oui | Non |
+| Où se trouve-t-elle ? | Barrettes sur la carte mère | Intégrée à la carte graphique | HDD/SSD |
+
+## À retenir
+
+Ne jamais confondre ces trois mémoires dans une phrase du type « mon PC a X Go » — préciser
+systématiquement laquelle est concernée (voir aussi mini-cours 01, section RAM et
+stockage).
+"""
+
+_MC03_GOULOT = r"""## Un PC est un système
+
+Augmenter un seul composant (par exemple ajouter de la RAM) n'améliore pas forcément les
+performances globales : si un autre composant (CPU, stockage) limite déjà le système, il
+devient le **goulot d'étranglement** (*bottleneck*) — la performance globale reste limitée
+par le composant le plus faible pour la tâche concernée.
+
+> **Piège fréquent :** ajouter de la RAM sur un PC qui en a déjà suffisamment pour l'usage
+> prévu n'accélère généralement rien. L'augmentation de capacité n'aide que si la RAM était
+> réellement le facteur limitant.
+
+## Symptômes typiques d'un manque de RAM
+
+- Ralentissements progressifs quand plusieurs applications sont ouvertes.
+- Recours à la **pagination/swap** (le système utilise le stockage comme RAM de secours,
+  beaucoup plus lent).
+- Applications qui se ferment ou affichent des erreurs de mémoire dans les cas extrêmes.
+
+## Ne pas confondre avec un manque d'espace disque
+
+Un disque presque plein peut aussi ralentir un PC (moins d'espace pour les fichiers
+temporaires), mais les symptômes et la solution diffèrent d'un manque de RAM — voir
+mini-cours 01, exercice sur ce diagnostic.
+"""
+
+_MC03_DIAGNOSTIC = r"""## Diagnostic RAM
+
+<div class="jc-flow">
+    <div class="jc-flow-step">1. Couper<br><small>l'alimentation</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">2. Inspection<br><small>visuelle des barrettes</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">3. Réinsertion<br><small>un module à la fois</small></div>
+    <div class="jc-flow-arrow">→</div>
+    <div class="jc-flow-step">4. Test<br><small>outil de test mémoire</small></div>
+</div>
+
+1. Couper l'alimentation avant toute manipulation (sécurité ESD, voir mini-cours 02).
+2. Inspection visuelle des barrettes et des slots (poussière, dégâts, mauvaise insertion).
+3. Réinsérer chaque barrette fermement, puis tester **un module à la fois** dans le slot
+   recommandé par le manuel, pour isoler un module défectueux.
+4. Utiliser un outil de test mémoire dédié pour une vérification plus poussée.
+
+> **Piège fréquent :** un test mémoire qui ne détecte rien ne garantit pas l'absence totale
+> de panne — certains défauts intermittents échappent à un test unique. Un résultat propre
+> est un indice favorable, pas une certitude absolue.
+
+## Diagnostic CPU / thermique
+
+1. Vérifier les températures (logiciel de monitoring si le système démarre).
+2. Vérifier que le ventilateur du CPU tourne réellement.
+3. Vérifier l'installation du refroidisseur et l'état de la pâte thermique (mal appliquée
+   ou desséchée = mauvais transfert de chaleur).
+4. Observer si un throttling thermique est en cause (baisse de performance sous charge).
+5. Vérifier la compatibilité firmware si le CPU est récent sur une carte mère plus
+   ancienne (voir section 5).
+
+## POST / no-POST : causes possibles côté CPU/RAM
+
+RAM mal installée ou défectueuse, CPU non reconnu (firmware à mettre à jour), connecteur
+EPS CPU non branché (voir mini-cours 02), absence de sortie vidéo si le CPU n'a pas de
+graphique intégré et qu'aucune carte dédiée n'est installée.
+"""
+
+_MC03_UNITES_PIEGES = r"""## Bit vs octet
+
+| Symbole | Signification | Relation |
+|---|---|---|
+| b (minuscule) | bit | Unité de base (0 ou 1) |
+| B (majuscule) | octet (byte) | 8 bits |
+
+Confondre **b** et **B** peut fausser une lecture de débit réseau (souvent en mégabits/s,
+Mb/s) avec une capacité de stockage (toujours en Go/To, gigaoctets/téraoctets).
+
+## Synthèse des pièges du mini-cours
+
+- Go de RAM ≠ Go de stockage (rappel du mini-cours 01).
+- GHz seul ne mesure pas la performance absolue d'un CPU (IPC, cœurs, génération comptent
+  aussi).
+- Plus de RAM n'accélère pas systématiquement un PC si la capacité était déjà suffisante.
+- DDR5 n'est pas simplement « DDR4 en plus rapide » : la compatibilité diffère.
+- 64 bits ne signifie pas « deux fois plus rapide » que 32 bits.
+- Le TDP n'est pas une mesure exacte de la consommation électrique du CPU.
+"""
+
+_MC03_VOCAB_FR_EN = r"""## Vocabulaire à connaître (français / anglais)
+
+| Français | Anglais |
+|---|---|
+| Processeur | CPU / Processor |
+| Cœur | Core |
+| Fil d'exécution | Thread |
+| Fréquence / horloge | Clock / Frequency |
+| Antémémoire | Cache |
+| Support de processeur | Socket |
+| Réduction thermique automatique | Thermal throttling |
+| Mémoire vive | RAM / Memory |
+| Barrette mémoire (format standard) | DIMM |
+| Barrette mémoire (format compact) | SO-DIMM |
+| Canal mémoire | Channel |
+| Latence | Latency |
+| Débit | Bandwidth |
+| Correction d'erreur | ECC |
+| Graphique intégré | Integrated graphics |
+
+## Méthode examen
+
+Comme dans les mini-cours précédents : pour un sigle anglais (IPC, TDP, ECC, DIMM...),
+retrouve le terme complet en anglais avant de le traduire.
+"""
+
+_MC03_EXERCICES_1 = r"""## Exercice 1 — comparer
+
+Deux CPU sont proposés : CPU A (3,5 GHz, 4 cœurs, génération ancienne) et CPU B (3,0 GHz,
+8 cœurs, génération récente, IPC plus élevé). Pour une tâche fortement multi-threadée
+(montage vidéo), lequel recommandes-tu ? Justifie sans te limiter à la fréquence.
+
+**Correction :** CPU B est généralement préférable pour une tâche multi-threadée : plus de
+cœurs à exploiter, et un IPC plus élevé compense largement la fréquence légèrement plus
+basse. La fréquence seule (CPU A plus élevée) ne suffit pas à conclure — cœurs et IPC
+comptent au moins autant.
+
+## Exercice 2 — interpréter
+
+Une fiche technique indique : « 6 cœurs / 12 threads, 3,7 GHz base / 4,6 GHz boost ».
+Explique ce que signifie chacun de ces chiffres.
+
+**Correction :** 6 cœurs physiques, chacun traitant 2 threads grâce au SMT/Hyper-Threading
+(12 threads au total, pas 12 cœurs réels). 3,7 GHz est la fréquence garantie en continu ;
+4,6 GHz est une fréquence boost atteinte ponctuellement, sous conditions thermiques
+favorables, pas en continu.
+
+## Exercice 3 — expliquer
+
+Explique pourquoi une donnée présente en cache L1 est traitée plus vite qu'une donnée qui
+doit être cherchée en RAM, en citant les niveaux intermédiaires.
+
+**Correction :** Le CPU cherche d'abord en L1 (la plus rapide, la plus proche) ; si absente,
+il cherche en L2, puis en L3 (partagé entre cœurs, plus lent que L1/L2 mais bien plus
+rapide que la RAM), et enfin en RAM si la donnée n'est dans aucun niveau de cache — chaque
+niveau supplémentaire ajoute un délai.
+
+## Exercice 4 — expliquer un piège
+
+Un fabricant annonce un CPU « TDP 65 W ». Un client en conclut que ce CPU consomme
+exactement 65 W en permanence. Explique pourquoi ce raisonnement est incorrect.
+
+**Correction :** Le TDP est un indicateur de conception thermique (la chaleur que le
+refroidissement doit pouvoir évacuer en usage soutenu typique), pas une mesure exacte de
+consommation instantanée. La consommation réelle varie selon la charge, et peut dépasser
+temporairement le TDP lors d'un boost.
+"""
+
+_MC03_EXERCICES_2 = r"""## Exercice 5 — vérifier une compatibilité
+
+Une carte mère supporte la DDR4 jusqu'à 3200 MHz. Un technicien propose d'y installer des
+barrettes DDR5. Est-ce possible ? Explique.
+
+**Correction :** Non, impossible. DDR4 et DDR5 ne sont pas compatibles physiquement
+(détrompeur différent) ni électriquement (tensions différentes). Une carte mère DDR4
+n'accepte jamais de barrettes DDR5, quelle que soit leur fréquence annoncée.
+
+## Exercice 6 — choisir le bon format
+
+Un client veut ajouter de la RAM à son ordinateur portable. Doit-il acheter des barrettes
+DIMM ou SO-DIMM ? Pourquoi ?
+
+**Correction :** SO-DIMM — format compact utilisé dans les ordinateurs portables et les PC
+très compacts. Le format DIMM standard, plus grand, est réservé aux PC de bureau et ne
+rentre pas physiquement dans un portable.
+
+## Exercice 7 — expliquer le dual-channel
+
+Une carte mère a 4 slots RAM (2 slots noirs, 2 slots gris) et le manuel recommande
+d'utiliser les deux slots de même couleur pour 2 barrettes. Un technicien installe les 2
+barrettes dans un slot noir et un slot gris. Le PC démarre normalement. A-t-il bien fait ?
+
+**Correction :** Le PC fonctionne, mais le technicien n'a probablement pas respecté la
+configuration recommandée pour le dual-channel : les barrettes doivent être dans des slots
+de même couleur pour bénéficier du mode multi-canal. Sans erreur visible, la RAM
+fonctionne alors en simple canal, avec une bande passante réduite.
+
+## Exercice 8 — classer
+
+Classe les éléments suivants selon qu'ils désignent de la RAM, de la VRAM ou du stockage :
+barrette DIMM sur la carte mère, mémoire intégrée à une carte graphique dédiée, SSD NVMe,
+barrette SO-DIMM d'un portable.
+
+**Correction :** RAM : barrette DIMM sur la carte mère, barrette SO-DIMM d'un portable.
+VRAM : mémoire intégrée à une carte graphique dédiée. Stockage : SSD NVMe.
+"""
+
+_MC03_EXERCICES_3 = r"""## Exercice 9 — diagnostiquer
+
+Un PC ne démarre pas (pas d'affichage), et la carte mère émet une série de bips répétés
+que le manuel associe à une erreur mémoire. Décris la procédure de diagnostic à suivre.
+
+**Correction :** Couper l'alimentation, inspecter visuellement les barrettes et les slots,
+réinsérer fermement chaque barrette, puis tester une seule barrette à la fois dans le slot
+recommandé par le manuel pour isoler un module défectueux ; utiliser un outil de test
+mémoire si le problème persiste.
+
+## Exercice 10 — diagnostiquer
+
+Un PC ralentit fortement après quelques minutes d'utilisation intensive, et les
+ventilateurs deviennent très bruyants. Quelle piste explorer en priorité, et comment la
+vérifier ?
+
+**Correction :** Piste prioritaire : throttling thermique. Vérifier les températures
+(logiciel de monitoring), que le ventilateur du CPU tourne correctement, et l'état du
+refroidisseur et de la pâte thermique — une pâte mal appliquée ou desséchée réduit le
+transfert de chaleur et provoque une surchauffe sous charge.
+
+## Exercice 11 — expliquer une unité
+
+Une offre internet annonce « 100 Mb/s ». Un client pense qu'il pourra télécharger un fichier
+de 100 Mo en une seconde. Explique son erreur.
+
+**Correction :** Confusion entre bit (Mb, minuscule) et octet (Mo, majuscule) : 1 octet =
+8 bits, donc 100 Mb/s correspond à environ 12,5 Mo/s réels, pas 100 Mo/s. Le débit annoncé
+en mégabits par seconde est près de 8 fois inférieur à ce que suggère une lecture rapide en
+« Mo ».
+
+## Exercice 12 — identifier un goulot d'étranglement
+
+Un PC dispose de 32 Go de RAM (largement suffisant pour l'usage du client) mais d'un vieux
+disque dur mécanique lent. Le client envisage de doubler la RAM à 64 Go pour améliorer les
+performances. Est-ce la bonne solution ? Que proposer à la place ?
+
+**Correction :** Non : la RAM n'est pas le facteur limitant ici (32 Go suffisaient déjà).
+Le goulot d'étranglement est probablement le disque dur mécanique lent. Remplacer le
+disque par un SSD apporterait un gain de performance bien plus perceptible qu'ajouter de
+la RAM déjà suffisante.
+"""
+
+_MC03_MEMO = r"""# Fiche mémo — CPU et mémoire RAM
+
+## CPU
+
+| Facteur | Ce qu'il faut retenir |
+|---|---|
+| Fréquence (GHz) | Ne suffit jamais seule : IPC, cœurs, génération comptent aussi |
+| Cœurs / threads | Plusieurs cœurs = parallélisme ; SMT ≠ cœur physique complet |
+| Cache L1/L2/L3 | Plus proche = plus rapide, plus petit |
+| TDP | Indicateur thermique de conception, pas la consommation exacte |
+| 32/64 bits | Change la RAM adressable, pas un doublement de vitesse |
+
+## RAM
+
+| Notion | À retenir |
+|---|---|
+| DDR3/DDR4/DDR5 | Générations incompatibles entre elles (physique et électrique) |
+| DIMM / SO-DIMM | Format standard (PC bureau) / format compact (portable) |
+| Dual-channel | Slots précis à respecter (manuel), sinon perte de bande passante silencieuse |
+| XMP/EXPO | Profil au-delà des specs de base, validé par le fabricant RAM |
+| ECC | Correction d'erreurs, surtout serveurs/stations critiques |
+| RAM vs VRAM vs stockage | Trois mémoires différentes, ne jamais confondre |
+
+## Pièges à ne jamais oublier
+
+- GHz seul ≠ performance absolue.
+- TDP ≠ consommation électrique exacte.
+- 64 bits ≠ deux fois plus rapide que 32 bits.
+- DDR5 ≠ « DDR4 en plus rapide » : compatibilité différente.
+- Plus de RAM n'aide que si la RAM était le facteur limitant.
+- bit (b) ≠ octet (B) : 1 octet = 8 bits.
+
+## Diagnostic express
+
+RAM : couper alimentation → inspection → réinsertion, un module à la fois → outil de test.
+Thermique : températures → ventilateur → pâte thermique/refroidisseur → throttling.
+
+<div class="d-print-none mt-3">
+    <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print()">
+        Imprimer cette fiche
+    </button>
+</div>
+"""
+
+_MC03_EXAMEN = r"""# Examen final — CPU et mémoire RAM
+
+**Consigne :** réponds à chaque question de façon complète et justifiée. Chaque question
+vaut 2 points, pour un total de 20 points.
+
+## Question 1 (2 pts)
+
+Explique le rôle du CPU et décris, en trois étapes, le cycle simplifié d'exécution d'une
+instruction.
+
+## Question 2 (2 pts)
+
+Explique pourquoi la fréquence (GHz) seule ne suffit pas à comparer deux CPU.
+
+## Question 3 (2 pts)
+
+Décris le rôle de la hiérarchie de cache (L1, L2, L3) et pourquoi plusieurs niveaux
+existent.
+
+## Question 4 (2 pts)
+
+Explique pourquoi un CPU compatible avec le socket d'une carte mère n'est pas
+automatiquement pleinement compatible.
+
+## Question 5 (2 pts)
+
+Explique le rôle de la RAM et pourquoi elle est dite volatile.
+
+## Question 6 (2 pts)
+
+Explique pourquoi les générations DDR3, DDR4 et DDR5 ne sont pas compatibles entre elles.
+
+## Question 7 (2 pts)
+
+Explique le principe du dual-channel et la condition nécessaire à son bon fonctionnement.
+
+## Question 8 (2 pts)
+
+Explique la différence entre bit et octet, et pourquoi confondre Go de RAM et Go de
+stockage est une erreur fréquente.
+
+## Question 9 (2 pts)
+
+Décris une procédure structurée de diagnostic en cas de panne mémoire suspectée (no-POST).
+
+## Question 10 (2 pts)
+
+Décris une procédure structurée de diagnostic en cas de ralentissement suspecté d'origine
+thermique.
+"""
+
+_MC03_EXAMEN_CORRIGE = r"""# Corrigé — Examen final « CPU et mémoire RAM »
+
+**Ce bloc n'est jamais publié côté candidat** (non publié) — réservé à la
+correction/notation par le formateur depuis l'administration. Barème : 2 points par
+question, 20 points au total.
+
+## Question 1 (2 pts)
+
+Le CPU exécute les instructions des programmes. Cycle simplifié : lecture de l'instruction
+→ traitement des données → écriture du résultat. *(1 pt rôle, 1 pt cycle en 3 étapes)*
+
+## Question 2 (2 pts)
+
+L'IPC, le nombre de cœurs et la génération influencent autant la performance réelle que la
+fréquence ; deux CPU à fréquences égales peuvent avoir des performances très différentes.
+*(1 pt affirmation correcte, 1 pt au moins un facteur supplémentaire cité)*
+
+## Question 3 (2 pts)
+
+L1 : le plus rapide, le plus proche du cœur. L2 : relais intermédiaire. L3 : partagé entre
+cœurs, plus lent mais plus rapide que la RAM. Plusieurs niveaux réduisent les accès coûteux
+à la RAM. *(1 pt hiérarchie correcte, 1 pt rôle global)*
+
+## Question 4 (2 pts)
+
+Le socket assure seulement la compatibilité physique ; il faut aussi vérifier la génération
+supportée, le chipset et la version du firmware/BIOS. *(1 pt socket = nécessaire pas
+suffisant, 1 pt éléments additionnels cités)*
+
+## Question 5 (2 pts)
+
+La RAM est la mémoire de travail temporaire utilisée pendant l'exécution des programmes ;
+volatile car son contenu est perdu à l'extinction du PC. *(1 pt rôle, 1 pt volatilité
+expliquée)*
+
+## Question 6 (2 pts)
+
+Chaque génération DDR a un détrompeur différent (incompatibilité physique) et des tensions
+électriques différentes (incompatibilité électrique) : aucune interchangeabilité possible.
+*(1 pt par type d'incompatibilité)*
+
+## Question 7 (2 pts)
+
+Le dual-channel fait fonctionner deux barrettes en parallèle pour augmenter la bande
+passante ; il exige d'installer les barrettes dans les slots précis indiqués par le manuel
+de la carte mère. *(1 pt principe, 1 pt condition d'installation)*
+
+## Question 8 (2 pts)
+
+1 octet (B) = 8 bits (b) ; confondre les deux fausse la lecture d'un débit (Mb/s) avec une
+capacité (Go). Go de RAM et Go de stockage désignent deux mémoires différentes malgré la
+même unité. *(1 pt bit/octet, 1 pt RAM/stockage)*
+
+## Question 9 (2 pts)
+
+Couper l'alimentation → inspection visuelle → réinsertion des barrettes → test un module à
+la fois dans le slot recommandé → outil de test mémoire si besoin. *(notation qualitative
+sur l'ordre et la complétude de la procédure)*
+
+## Question 10 (2 pts)
+
+Vérifier les températures → vérifier le ventilateur CPU → vérifier l'installation du
+refroidisseur et la pâte thermique → identifier un éventuel throttling. *(notation
+qualitative sur l'ordre et la complétude de la procédure)*
+"""
+
+MC03_BLOCKS = [
+    {
+        "title": "Plan du mini-cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_PLAN,
+        "position": 1,
+        "is_published": True,
+    },
+    {
+        "title": "1. Rôle du CPU et cycle d'exécution — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_CPU_ROLE,
+        "position": 2,
+        "is_published": True,
+    },
+    {
+        "title": "2. Cœurs, threads et fréquence — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_CORES_FREQ,
+        "position": 3,
+        "is_published": True,
+    },
+    {
+        "title": "3. IPC et hiérarchie de cache (L1/L2/L3) — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_IPC_CACHE,
+        "position": 4,
+        "is_published": True,
+    },
+    {
+        "title": "4. Architecture 32/64 bits — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_32_64_BITS,
+        "position": 5,
+        "is_published": True,
+    },
+    {
+        "title": "5. Socket, génération et compatibilité — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_SOCKET_COMPAT,
+        "position": 6,
+        "is_published": True,
+    },
+    {
+        "title": "6. TDP, refroidissement et throttling — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_TDP_THROTTLING,
+        "position": 7,
+        "is_published": True,
+    },
+    {
+        "title": "7. CPU avec ou sans graphique intégré — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_GPU_INTEGRE,
+        "position": 8,
+        "is_published": True,
+    },
+    {
+        "title": "8. Rôle et capacité de la RAM — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_RAM_ROLE,
+        "position": 9,
+        "is_published": True,
+    },
+    {
+        "title": "9. DDR3, DDR4, DDR5 — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_DDR_GENERATIONS,
+        "position": 10,
+        "is_published": True,
+    },
+    {
+        "title": "10. DIMM, SO-DIMM et canaux mémoire — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_DIMM_CHANNELS,
+        "position": 11,
+        "is_published": True,
+    },
+    {
+        "title": "11. Capacité maximale et compatibilité — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_CAPACITE_MAX,
+        "position": 12,
+        "is_published": True,
+    },
+    {
+        "title": "12. XMP/EXPO et ECC — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_XMP_ECC,
+        "position": 13,
+        "is_published": True,
+    },
+    {
+        "title": "13. RAM, VRAM et stockage — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_RAM_VRAM_STOCKAGE,
+        "position": 14,
+        "is_published": True,
+    },
+    {
+        "title": "14. Goulot d'étranglement et symptômes — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_GOULOT,
+        "position": 15,
+        "is_published": True,
+    },
+    {
+        "title": "15. Diagnostic RAM et CPU/thermique — Exemple",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_DIAGNOSTIC,
+        "position": 16,
+        "is_published": True,
+    },
+    {
+        "title": "16. Unités et pièges d'examen — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_UNITES_PIEGES,
+        "position": 17,
+        "is_published": True,
+    },
+    {
+        "title": "17. Vocabulaire FR/EN — Cours",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_VOCAB_FR_EN,
+        "position": 18,
+        "is_published": True,
+    },
+    {
+        "title": "CPU et RAM — Exercices (1/3 : CPU, fréquence, cache, TDP)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_EXERCICES_1,
+        "position": 19,
+        "is_published": True,
+    },
+    {
+        "title": "CPU et RAM — Exercices (2/3 : DDR, formats, dual-channel, VRAM)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_EXERCICES_2,
+        "position": 20,
+        "is_published": True,
+    },
+    {
+        "title": "CPU et RAM — Exercices (3/3 : diagnostic, unités, goulot d'étranglement)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_EXERCICES_3,
+        "position": 21,
+        "is_published": True,
+    },
+    {
+        "title": "CPU et RAM — Génère ton propre exercice (IA)",
+        "type": BlockType.AI_EXERCISE,
+        "content": AIExerciseBlockConfig(
+            context_key="ampcr-mc03",
+            intro=(
+                "En complément des exercices ci-dessus : choisis une difficulté, génère un "
+                "nouvel exercice sur le CPU ou la RAM, réponds, puis demande une "
+                "correction personnalisée. L'exercice reste strictement dans la matière de "
+                "ce mini-cours."
+            ),
+        ).to_json(),
+        "position": 22,
+        "is_published": True,
+    },
+    {
+        "title": "Fiche mémo — CPU et mémoire RAM",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_MEMO,
+        "position": 23,
+        "is_published": True,
+    },
+    {
+        "title": "Examen final — CPU et mémoire RAM (10 questions, 20 points)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_EXAMEN,
+        "position": 24,
+        "is_published": True,
+    },
+    {
+        "title": "Examen final — Corrigé (réservé formateur, non publié)",
+        "type": BlockType.MARKDOWN,
+        "content": _MC03_EXAMEN_CORRIGE,
+        "position": 25,
+        "is_published": False,
+    },
+]
+
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
@@ -3308,6 +4199,9 @@ def seed() -> None:
         # Mini-cours 02 (ticket #12) : même mécanisme, purement additif — ne touche jamais
         # MC01 ni Mathématiques.
         _seed_uaa(db, ampcr, MC02_CODE, MC02_TITLE, 2, MC02_BLOCKS, created, kept)
+        # Mini-cours 03 (ticket #14) : même mécanisme, purement additif — ne touche jamais
+        # MC01/MC02 ni Mathématiques.
+        _seed_uaa(db, ampcr, MC03_CODE, MC03_TITLE, 3, MC03_BLOCKS, created, kept)
 
         db.commit()
 

@@ -2,6 +2,60 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Informatique AMPCR : mini-cours 03 « CPU et mémoire RAM » (ticket #14)
+
+Troisième cours de la série Informatique AMPCR, contenu et périmètre pédagogique fournis
+intégralement par ChatGPT dans le ticket #14. Réutilise **strictement** l'architecture des
+tickets #10/#12 — aucun nouveau mécanisme, aucun second moteur IA.
+
+**Matière/UAA** : nouvelle UAA `MC03` (« CPU et mémoire RAM ») sous le module `AMPCR`
+existant, navigable depuis `/uaa/ampcr-mc03`, juste après MC02.
+
+**Contenu** (`app/seed.py::MC03_BLOCKS`, 25 blocs) : plan, 17 sections de cours — CPU (rôle
+et cycle d'exécution, cœurs/threads/SMT, fréquence base/boost, IPC, cache L1/L2/L3,
+32/64 bits, socket/génération/compatibilité, TDP/refroidissement/throttling, graphique
+intégré) puis RAM (rôle/capacité/latence, DDR3/DDR4/DDR5, DIMM/SO-DIMM/dual-channel,
+capacité maximale, XMP/EXPO/ECC, RAM vs VRAM vs stockage) puis performances/diagnostic
+(goulot d'étranglement, diagnostic RAM et CPU/thermique, unités et pièges d'examen),
+vocabulaire FR/EN — 12 exercices progressifs (3 blocs) à correction masquée à la demande,
+un bloc `ai_exercise` réutilisant le moteur du ticket #10, une fiche mémo, et l'examen
+final (10 questions/20 points, aucune réponse visible, corrigé dans un bloc séparé
+`is_published: False` — même mécanisme exactement qu'aux mini-cours 01/02).
+
+**Nuances explicitement respectées** (exigées par le ticket #14, vérifiées par test) : TDP
+présenté comme indicateur de conception thermique et non comme consommation électrique
+exacte ; GHz explicitement insuffisant seul pour comparer deux CPU (IPC, cœurs, génération) ;
+64 bits jamais assimilé à « deux fois plus rapide » que 32 bits ; DDR5 explicitement
+distinguée d'une simple « DDR4 plus rapide » (incompatibilité de génération, pas seulement
+une différence de vitesse).
+
+**Contexte IA MC03** : nouvelle entrée
+`app/ai/context.py::PEDAGOGICAL_CONTEXTS["ampcr-mc03"]` (notions, compétences 1.1.1–1.1.4/
+2.3.2–2.3.3, vocabulaire, contraintes reprenant explicitement les nuances TDP/GHz/64 bits/
+DDR5 ci-dessus pour que le moteur IA ne les reproduise pas non plus). Aucune autre
+modification du moteur IA (`app/ai/`, routes `/practice/api/ai/*`).
+
+**Examen** : bloc publié avec 10 questions/20 points, aucune réponse ; corrigé complet dans
+un second bloc `is_published: False`, jamais servi côté public.
+
+**Tests** : +8 tests (`tests/test_informatique_mc03.py` : navigation, matière obligatoire
+(dont les nuances TDP/GHz/64 bits/DDR5), 12 exercices, examen sans correction visible,
+corrigé non publié, contexte IA enregistré, génération/correction via le moteur partagé
+avec le contexte MC03 spécifiquement vérifié, non-régression MC01/MC02/Mathématiques),
+`test_seed_is_idempotent` mis à jour pour les nouveaux effectifs. 198 tests au total, tous
+verts. Aucun appel OpenAI réel dans les tests.
+
+`ruff check .` : 36 erreurs, identiques (mêmes fichiers, mêmes règles) à celles de
+`develop` — comparé via un worktree isolé, aucune nouvelle erreur.
+
+**Vérifié manuellement** sur une base SQLite temporaire isolée (jamais `jury_central.db`,
+intégrité re-vérifiée par MD5) : toutes les routes répondent 200, corrigé absent de la
+réponse publique, 12 exercices présents, MC01/MC02/Mathématiques inchangés. Seed additif et
+idempotent, aucun reset staging.
+
+**Documentation** : `docs/current_state.md`, `docs/changelog.md`,
+`docs/content_plan_informatique_francais.md`.
+
 ## 2026-09-16 — Informatique AMPCR : mini-cours 02 « Carte mère, formats et connectiques » (ticket #12)
 
 Deuxième cours de la série Informatique AMPCR, contenu et périmètre pédagogique fournis
