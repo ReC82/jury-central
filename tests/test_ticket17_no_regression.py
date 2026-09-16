@@ -9,8 +9,13 @@ vers des blocs `editorial_exercise` (classification/ordering) — voir
 docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md et
 tests/test_ticket21_no_regression.py pour la non-régression spécifique à ce ticket. Le
 test ci-dessous est ajusté en conséquence (4 blocs editorial_exercise attendus, et non 0)
-mais conserve son rôle : vérifier que les 12 exercices restent tous accessibles sur la
-page MC01, quel que soit leur type de bloc."""
+mais conserve son rôle : vérifier que les 12 exercices restent tous accessibles, quel que
+soit leur type de bloc.
+
+Mise à jour ticket #22 : les 12 exercices ne sont plus servis sur `/uaa/{slug}` (page
+Cours, théorie uniquement) mais sur `/uaa/{slug}/practice` (espace S'entraîner) — voir
+docs/claude-reports/2026-09-16_ticket-22_separation-cours-practice-exam.md et
+tests/test_ticket22_no_regression.py."""
 
 from app.models import UAA, BlockType, LessonBlock
 from app.seed import MC01_BLOCKS, MC02_BLOCKS, MC03_BLOCKS, seed
@@ -31,7 +36,8 @@ def test_mc01_content_is_untouched_by_ticket_17(client, db_session):
     # 4 exercices MC01 (1, 2, 9, 11) migrés par le ticket #21 — voir docstring du module.
     assert editorial_blocks == 4
 
-    response = client.get("/uaa/ampcr-mc01")
+    # Ticket #22 : les 12 exercices sont désormais sur l'espace S'entraîner, pas Cours.
+    response = client.get("/uaa/ampcr-mc01/practice")
     assert response.status_code == 200
     for n in range(1, 13):
         assert f"Exercice {n} —" in response.text

@@ -63,9 +63,12 @@ def test_mc01_covers_the_mandatory_content(client, db_session):
 
 
 def test_mc01_has_twelve_exercises_with_hidden_corrections(client, db_session):
+    """Depuis le ticket #22, les 12 exercices sont sur la page S'entraîner
+    (`/uaa/{slug}/practice`), plus dans le flux Cours (voir aussi
+    test_course_page_no_longer_contains_practice_or_exam_content)."""
     seed()
 
-    response = client.get("/uaa/ampcr-mc01")
+    response = client.get("/uaa/ampcr-mc01/practice")
     text = response.text
 
     # Les 12 énoncés sont présents. Depuis le ticket #21, les exercices 1, 2, 9 et 11 sont
@@ -92,9 +95,10 @@ def test_mc01_has_twelve_exercises_with_hidden_corrections(client, db_session):
 
 
 def test_exam_is_published_without_visible_correction(client, db_session):
+    """Depuis le ticket #22, l'examen est sur la page S'évaluer (`/uaa/{slug}/exam`)."""
     seed()
 
-    response = client.get("/uaa/ampcr-mc01")
+    response = client.get("/uaa/ampcr-mc01/exam")
     text = response.text
 
     assert "Examen final" in text
@@ -104,6 +108,27 @@ def test_exam_is_published_without_visible_correction(client, db_session):
     assert "Corrigé" not in text
     assert "0,5 pt par rôle correct" not in text
     assert "notation qualitative" not in text
+
+
+def test_course_page_no_longer_contains_practice_or_exam_content(client, db_session):
+    """Acceptation explicite du ticket #22 : la page Cours ne mélange plus théorie,
+    exercices et examen dans le même flux."""
+    seed()
+
+    response = client.get("/uaa/ampcr-mc01")
+    text = response.text
+
+    assert response.status_code == 200
+    # Théorie toujours présente.
+    assert "Rôle de la carte mère" in text
+    # Plus aucun exercice ni examen dans le flux Cours.
+    for n in range(1, 13):
+        assert f"Exercice {n} —" not in text
+    assert "Examen final" not in text
+    assert "Génère ton propre exercice" not in text
+    # La navigation vers les deux autres espaces reste accessible depuis Cours.
+    assert "/uaa/ampcr-mc01/practice" in text
+    assert "/uaa/ampcr-mc01/exam" in text
 
 
 def test_exam_correction_block_exists_but_is_unpublished(db_session):

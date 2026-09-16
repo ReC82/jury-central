@@ -135,9 +135,16 @@ Uniquement les éléments essentiels.
 
 ---
 
-# Une leçon
+# Une leçon (depuis le ticket #22 : trois espaces distincts)
 
-Une leçon suit toujours cette organisation :
+Un module (UAA) n'affiche plus la théorie, les exercices et l'examen dans un même flux :
+il expose trois espaces génériques, chacun avec sa propre URL
+(`/uaa/{slug}`, `/uaa/{slug}/practice`, `/uaa/{slug}/exam`) et sa propre organisation
+interne. Une navigation par onglets (Cours / S'entraîner / S'évaluer) reste visible sur
+les trois pages et indique toujours l'espace actif — voir
+`docs/claude-reports/2026-09-16_ticket-22_separation-cours-practice-exam.md`.
+
+## Cours (`/uaa/{slug}`)
 
 Présentation
 
@@ -151,19 +158,17 @@ Exemples
 
 ↓
 
-Exercice guidé
+Résumé (fiche mémo)
 
-↓
+## S'entraîner (`/uaa/{slug}/practice`)
 
-Exercices
+Exercices structurés (`editorial_exercise`), exercices historiques encore en Markdown,
+génération d'exercice par IA (`ai_exercise`). Prépare le constructeur multi-modules
+(ticket #24).
 
-↓
+## S'évaluer (`/uaa/{slug}/exam`)
 
-Quiz
-
-↓
-
-Résumé
+Examen final. Prépare la génération d'examen multi-modules (ticket #25).
 
 ---
 

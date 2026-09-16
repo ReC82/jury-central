@@ -44,6 +44,15 @@ Navigation :
 
 Matière → Module → UAA → Leçons.
 
+Depuis le ticket #22, chaque UAA expose trois espaces distincts au lieu d'un flux unique
+mélangeant théorie/exercices/examen : **Cours** (`/uaa/{slug}`, théorie/exemples/fiche
+mémo uniquement), **S'entraîner** (`/uaa/{slug}/practice`, exercices structurés et
+historiques, génération IA) et **S'évaluer** (`/uaa/{slug}/exam`, examen final). Une
+navigation par onglets (`_uaa_space_nav.html`) indique toujours l'espace actif ; la
+classification est un champ explicite `LessonBlock.space` (COURSE/PRACTICE/EXAM, jamais
+déduit du titre ou du type à l'exécution) — voir
+`docs/claude-reports/2026-09-16_ticket-22_separation-cours-practice-exam.md`.
+
 ---
 
 ## Administration
@@ -91,13 +100,15 @@ générateur réel (exercice fixe).
   contexte pédagogique par cours (`app/ai/context.py`). Complémentaire aux deux moteurs
   ci-dessus, pas un remplacement. Non configuré par défaut.
 - **Socle des exercices éditoriaux interactifs** (bloc `editorial_exercise`, ticket #17,
-  voir `docs/editorial_exercise_engine.md`) : première tranche de types —
-  `single_choice`, `true_false`, `short_answer` — à correction locale déterministe,
-  saisie + vérification AJAX + score, sans rechargement de page. Prévisualisable via
-  `/admin/editorial-exercise-demo`. **Aucun exercice MC01 réel n'est encore migré** dans
-  ce format : les 12 exercices existants nécessitent tous `long_answer` (8),
-  `classification` (3) ou `ordering` (1), types réservés à des tickets suivants — voir
-  `docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md`.
+  étendu au #21, voir `docs/editorial_exercise_engine.md`) : types disponibles —
+  `single_choice`, `true_false`, `short_answer` (ticket #17), `classification`, `ordering`
+  (ticket #21) — à correction locale déterministe, saisie + vérification AJAX + score,
+  sans rechargement de page. Prévisualisable via `/admin/editorial-exercise-demo`. **4 des
+  12 exercices de MC01** (1, 2, 9, 11) sont migrés dans ce format ; les 8 restants
+  nécessitent `long_answer` (correction IA, ticket futur) — voir
+  `docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md`. Depuis le ticket
+  #22, ces exercices sont servis sur l'espace S'entraîner (`/uaa/{slug}/practice`), plus
+  dans le flux de théorie.
 
 ---
 
@@ -160,8 +171,8 @@ ci-dessus, dont ce système est maintenant un consommateur comme les autres écr
 exercices rédigés dont la correction reste masquée jusqu'à demande explicite, quiz group
 affichant toujours une explication après chaque réponse.
 
-Appliqué automatiquement à toute UAA affichée via `/uaa/{slug}` (MB32 UAA1 et UAA2 à ce
-jour).
+Appliqué automatiquement à toute UAA affichée, quel que soit l'espace
+(`/uaa/{slug}`, `/uaa/{slug}/practice`, `/uaa/{slug}/exam` — ticket #22).
 
 ---
 

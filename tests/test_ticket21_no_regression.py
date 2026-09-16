@@ -59,7 +59,8 @@ def test_migrated_exercises_no_longer_appear_in_markdown_form(client, db_session
     assert "## Exercice 9 — reconstruire" not in markdown_text
     assert "## Exercice 11 — classer" not in markdown_text
 
-    response = client.get("/uaa/ampcr-mc01")
+    # Ticket #22 : les exercices sont désormais sur l'espace S'entraîner, pas Cours.
+    response = client.get("/uaa/ampcr-mc01/practice")
     assert response.status_code == 200
     assert response.text.count("Exercice 1 —") == 1
     assert response.text.count("Exercice 2 —") == 1
@@ -170,9 +171,15 @@ def test_staging_already_seeded_before_ticket_21_is_migrated_without_reset(clien
     ]
     assert len(editorial_blocks) == 4
 
-    response = client.get("/uaa/ampcr-mc01")
-    assert response.status_code == 200
-    assert "Ancien contenu pré-#21" not in response.text
+    # Ticket #22 : le contenu migré vit désormais sur l'espace S'entraîner, pas Cours —
+    # on vérifie l'absence de l'ancien contenu sur les deux pages.
+    course_response = client.get("/uaa/ampcr-mc01")
+    assert course_response.status_code == 200
+    assert "Ancien contenu pré-#21" not in course_response.text
+
+    practice_response = client.get("/uaa/ampcr-mc01/practice")
+    assert practice_response.status_code == 200
+    assert "Ancien contenu pré-#21" not in practice_response.text
 
 
 def test_mc02_and_mc03_unaffected(client, db_session):
