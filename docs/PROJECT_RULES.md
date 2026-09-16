@@ -20,6 +20,10 @@ L'objectif principal est de produire une plateforme :
 
 Toute décision technique doit respecter cette philosophie.
 
+Public cible : des étudiants qui préparent un jury et reprennent leurs études, parfois
+depuis longtemps. Le niveau pédagogique part de zéro et les explications doivent rester
+accessibles à une personne qui n'a pas suivi les cours récemment.
+
 ---
 
 # 2. Architecture
@@ -93,17 +97,29 @@ Les améliorations pédagogiques viendront plus tard.
 
 ---
 
-# 6. Travail autonome
+# 6. Pilotage et travail autonome
 
-Lorsqu'une tâche est demandée :
+Mode de travail du projet :
 
-- analyser le projet
-- rechercher les conventions existantes
-- déduire les informations manquantes
+- **ChatGPT** est chef de projet : il gère le backlog, les priorités et les critères
+  d'acceptation.
+- **Claude Code** réalise le développement, sur AWS via tmux.
+- **GitHub** (issues) est la source de vérité pour les tâches et leur historique.
 
-Ne poser une question que lorsqu'une information est réellement impossible à déduire.
+Toute nouvelle tâche de développement doit être rattachée à un ticket GitHub. Claude Code
+lit intégralement le ticket avant toute modification, reste strictement dans son périmètre
+et n'élargit jamais ce périmètre sans validation explicite — une amélioration identifiée
+en cours de route est signalée, pas implémentée (voir § 11).
 
-Par défaut, travailler de manière autonome.
+Dans le périmètre d'un ticket, lorsqu'une information est manquante :
+
+- analyser le projet ;
+- rechercher les conventions existantes ;
+- déduire les informations manquantes.
+
+Ne poser une question que lorsqu'une information est réellement impossible à déduire ou
+qu'elle relève d'une décision produit (voir § 11). Par défaut, travailler de manière
+autonome jusqu'au commit et au push (voir § 8).
 
 ---
 
@@ -118,23 +134,31 @@ Avant de terminer une tâche :
 - vérifier les menus
 - vérifier les imports
 - vérifier les migrations si nécessaire
+- exécuter la suite de tests automatiques (`pytest`) et vérifier qu'elle reste au vert
+- fournir une procédure de test manuel lorsque le changement affecte un comportement
+  visible (page, formulaire, route) et n'est pas déjà entièrement couvert par les tests
+  automatiques
 
-Corriger automatiquement les problèmes rencontrés.
+Corriger automatiquement les problèmes rencontrés. Une tâche n'est pas terminée tant que
+ces vérifications ne sont pas faites.
 
 ---
 
 # 8. Git
 
-Toujours travailler sur la branche actuelle.
-
-Ne jamais créer une nouvelle branche sauf demande explicite.
-
-À la fin du travail :
-
-- faire un commit propre
-- avec un message clair
-
-Ne jamais faire de push sans demande explicite.
+- `main` est la branche stable : aucun développement direct dessus.
+- `develop` est la branche d'intégration.
+- Chaque ticket est développé dans une branche dédiée créée depuis `develop`, nommée
+  `feature/<numero-ticket>-<slug>` (nouvelle fonctionnalité) ou `fix/<numero-ticket>-<slug>`
+  (correction), jamais directement sur `develop` ou `main`.
+- Ne jamais créer de branche hors de ce cadre (un ticket = une branche) sauf demande
+  explicite.
+- Une fois les tests exécutés et la documentation mise à jour, Claude Code commit et push
+  la branche du ticket sur `origin`.
+- **Aucun merge vers `develop` ou `main` sans validation explicite.**
+- **Aucun déploiement sans demande explicite.**
+- Convention de commit : `type: description`, avec les types `feat`, `fix`, `docs`,
+  `refactor`, `style`, `test`, `chore`.
 
 ---
 
@@ -171,6 +195,10 @@ Lorsqu'une amélioration est identifiée :
 
 Ne jamais modifier le fonctionnement général du projet sans validation.
 
+En cas de contradiction rencontrée dans le code ou la documentation qui nécessite une
+décision produit (choix de dépendance, orientation technique, périmètre fonctionnel), la
+signaler explicitement plutôt que d'inventer une règle ou de trancher silencieusement.
+
 ---
 
 # 12. Priorités
@@ -197,3 +225,52 @@ Le workflow idéal est :
 4. publier le contenu
 
 Tout développement doit tendre vers cet objectif.
+
+---
+
+# 14. Sécurité
+
+- Aucun secret dans Git (identifiants, clés — toujours via `.env`, jamais commités).
+- Validation des entrées et des réponses toujours effectuée côté serveur.
+- Aucun `eval()`, ni équivalent, à quelque niveau que ce soit.
+- Protection contre le CSRF sur les formulaires d'administration.
+
+---
+
+# 15. Interface et expérience utilisateur
+
+Toujours privilégier :
+
+- peu de clics ;
+- une navigation simple ;
+- une interface claire et responsive ;
+- la lisibilité et l'accessibilité.
+
+L'étudiant doit toujours savoir où il est, ce qu'il lui reste à faire, et comment
+continuer.
+
+---
+
+# 16. Ce qu'il ne faut jamais faire
+
+- Créer un deuxième système alors qu'une solution existe déjà (voir § 2).
+- Créer des routes ou des modèles dupliqués.
+- Créer une banque d'exercices fixe lorsqu'un générateur est possible.
+- Réécrire entièrement une fonctionnalité existante plutôt que l'étendre.
+- Supprimer une fonctionnalité sans migration ni justification.
+- Ajouter une dépendance lourde sans justification.
+- Introduire Docker.
+- Intégrer de l'IA dans l'application elle-même (Claude sert uniquement au
+  développement, jamais à la génération de contenu ou de réponses en production).
+
+---
+
+# 17. Vertical Slice
+
+Le développement se fait tranche par tranche, pas UAA entière par UAA entière.
+
+Une tranche (un chapitre, une fonctionnalité) n'est considérée comme terminée que
+lorsqu'elle réunit, selon ce qui est pertinent pour la tâche : contenu, générateur, quiz,
+progression, administration, documentation et tests — puis commit et push (§ 8).
+
+La tranche suivante ne démarre qu'une fois la précédente terminée.

@@ -35,7 +35,7 @@ utilisé dans ce projet.
 - **Génération d'exercices** : [SymPy](https://www.sympy.org/) pour la résolution/vérification, générateurs 100 % Python (pas d'IA)
 - **Validation des réponses** : côté serveur (`app/answer_checking.py`), jamais de réponse stockée dans le HTML, jamais d'`eval()`
 - **JavaScript** : vanilla JS uniquement (aucun framework, aucune dépendance npm)
-- **Tests** : pytest (87 tests, tous dans `tests/`), y compris des tests `TestClient` sur une base SQLite isolée (jamais `jury_central.db`)
+- **Tests** : pytest, suite complète dans `tests/` (nombre exact donné par `pytest -q` — voir `docs/changelog.md` pour l'historique des baselines), y compris des tests `TestClient` sur une base SQLite isolée (jamais `jury_central.db`)
 
 ## Structure du projet
 
@@ -63,7 +63,7 @@ jury-central/
 │   ├── base.py                 # GeneratedExercise (dataclass) + interface ExerciseGenerator
 │   ├── registry.py              # Registre id → fonction generate()
 │   └── maths/{equations,constant_function}.py  # Générateurs implémentés
-├── tests/                    # Tests pytest (87 tests, dont TestClient — voir tests/conftest.py)
+├── tests/                    # Tests pytest (dont TestClient — voir tests/conftest.py)
 ├── docs/                      # Documentation (ce dossier)
 ├── .env.example                # Modèle des variables d'environnement
 ├── pyproject.toml               # Dépendances et configuration du projet
