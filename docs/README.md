@@ -147,6 +147,16 @@ matières.
 
 ---
 
+## ai_exercise_engine.md
+
+Moteur générique de génération d'exercices et de correction par IA (API OpenAI, côté
+serveur uniquement) : architecture, sécurité (clé API, injection, contexte pédagogique
+borné), routes, et comment l'activer pour un nouveau cours.
+
+À consulter avant d'ajouter ce moteur à un nouveau cours, ou de modifier `app/ai/`.
+
+---
+
 ## deployment_staging.md
 
 Architecture de l'environnement staging (`jury-central.lodylands.com`) : domaine, nginx,

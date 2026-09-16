@@ -2,6 +2,63 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Moteur générique de génération d'exercices et de correction par IA (complément ticket #10)
+
+ChatGPT a complété le ticket #10 en cours de réalisation : le mini-cours 01 ne doit pas
+reposer uniquement sur des exercices figés. Ajout d'un moteur réutilisable de génération
+d'exercices à la demande (difficulté facile/moyen/difficile) et de correction par IA (API
+OpenAI, côté serveur uniquement), en plus des 12 exercices éditoriaux déjà livrés (conservés
+tels quels comme entraînement de référence garanti). Voir
+[docs/ai_exercise_engine.md](ai_exercise_engine.md) pour l'architecture complète.
+
+**Nouveau package `app/ai/`** : `schemas.py` (structures JSON typées — jamais de texte libre
+non structuré), `context.py` (registre `PEDAGOGICAL_CONTEXTS`, un contexte borné par cours,
+rédigé à la main), `prompts.py` (messages + schémas JSON stricts, testable sans réseau),
+`provider.py` (interface générique `AIProvider` + hiérarchie d'exceptions),
+`openai_provider.py` (implémentation réelle, HTTP via `httpx`, clé API jamais journalisée),
+`fake_provider.py` (déterministe, pour les tests), `factory.py` (point d'entrée unique),
+`integrity.py` (signature HMAC des exercices générés, réutilise `settings.secret_key`).
+
+**Nouveau type de bloc `ai_exercise`** (`app/models.py::BlockType`, extension minimale et
+générique) : `app/ai_exercise_blocks.py::AIExerciseBlockConfig` (JSON `{context_key,
+intro}`), rendu par `app/main.py::uaa_detail` + `app/templates/uaa_detail.html`, widget
+`app/static/js/ai_exercise.js`. Aucun changement de schéma de base côté SQLite (`type` est
+un simple `VARCHAR`, vérifié sur la base staging avant modification).
+
+**Nouvelles routes `app/practice.py`** : `POST /api/ai/generate` (retourne un exercice signé
+HMAC) et `POST /api/ai/correct` (vérifie la signature avant tout appel IA — rejette un
+énoncé modifié côté client sans jamais interroger le fournisseur). Erreurs claires : 503 si
+`OPENAI_API_KEY` absente, 502 en cas d'échec du fournisseur (timeout, réponse invalide), 400
+si l'énoncé a été altéré, 404/422 pour les cas invalides — jamais de 500 brut.
+
+**Sécurité** : clé API exclusivement serveur (`.env`, jamais Git, jamais journalisée, jamais
+transmise au navigateur) ; réponse candidate toujours traitée comme donnée délimitée à
+évaluer, jamais comme instruction (`app/ai/prompts.py`) ; sortie forcée en JSON strict
+(`response_format: json_schema`) ; contexte pédagogique borné par cours, jamais l'ensemble
+de la base ; aucune écriture automatique dans le contenu éditorial du cours.
+
+**Mini-cours 01** : nouveau bloc « Architecture d'un PC — Génère ton propre exercice (IA) »
+(`app/seed.py`), ajouté après les 3 blocs d'exercices éditoriaux et avant la fiche mémo —
+les 12 exercices éditoriaux et l'examen final restent inchangés.
+
+**Tests** : +26 tests (`tests/ai/` : prompts, contexte, fournisseur factice, intégrité,
+fournisseur réel avec `httpx.post` intercepté — succès, timeout, réponse malformée,
+non-fuite de la clé API ; `tests/test_practice_ai_routes.py` : routes de bout en bout avec
+`FakeAIProvider`, cas « non configuré » sans aucun mock réseau). 182 tests au total, tous
+verts. `ruff check .` : 2 nouvelles occurrences de B008 (`Depends()` en valeur par défaut),
+motif déjà présent 4 fois dans le projet avant ce complément — non corrigées, cohérence avec
+l'existant plutôt que correction isolée.
+
+**Dépendance** : `httpx` promu de `dev` vers les dépendances principales (`pyproject.toml`)
+— nécessaire à `OpenAIProvider` en runtime, déjà présent et vérifié dans le projet (utilisé
+jusqu'ici par `TestClient`).
+
+**Vérifié manuellement** : widget affiché sur `/uaa/ampcr-mc01`, `app/static/js/ai_exercise.js`
+correctement servi, `POST /practice/api/ai/generate` renvoie 503 avec message clair en
+l'absence de clé, 422 sur difficulté invalide, 404 sur bloc inconnu, aucune fuite de
+clé/secret dans les réponses. Aucun appel réseau réel effectué (pas de clé API disponible
+dans cet environnement) — conforme à l'exigence de tests sans consommation d'API réelle.
+
 ## 2026-09-16 — Informatique AMPCR : mini-cours 01 « Architecture générale d'un PC » (ticket #10)
 
 Premier contenu réel pour Informatique AMPCR, cours pilote de la série prévue des 38

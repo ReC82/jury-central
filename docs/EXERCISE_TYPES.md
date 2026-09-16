@@ -362,6 +362,16 @@ Le navigateur choisit automatiquement le mode impression via CSS.
 
 ---
 
+# Génération et correction par IA (complémentaire, hors périmètre de ce document)
+
+Ce document décrit le moteur de génération **déterministe** (générateur Python → JSON →
+composant frontend). Un second moteur, complémentaire, génère des exercices à la demande et
+les corrige via l'API OpenAI côté serveur (bloc de leçon `ai_exercise`) — voir
+`docs/ai_exercise_engine.md`. Les deux coexistent : un cours peut proposer des exercices
+éditoriaux fixes, des exercices générés déterministes, et/ou des exercices générés par IA.
+
+---
+
 # Règle fondamentale
 
 Le générateur ne produit jamais :

@@ -13,3 +13,4 @@ Si la tâche concerne...
 - exemple d'UAA → REFERENCE_UAA.md
 - priorité Informatique/Français, cartographie, prochains tickets d'import → content_plan_informatique_francais.md
 - déploiement staging, script de déploiement, diagnostic serveur → deployment_staging.md
+- génération d'exercices par IA, correction IA, sécurité (clé API, injection) → ai_exercise_engine.md

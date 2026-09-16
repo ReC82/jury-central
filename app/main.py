@@ -9,6 +9,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app import models
 from app.admin import router as admin_router
+from app.ai import context as ai_context
+from app.ai_exercise_blocks import AIExerciseBlockConfig
 from app.card_kind import card_meta, classify_block_title
 from app.config import settings
 from app.content import extract_youtube_id, render_markdown
@@ -101,6 +103,7 @@ async def uaa_detail(
             "value_table_exercises": None,
             "quiz": None,
             "quiz_run": None,
+            "ai_exercise": None,
             "card": card_meta(classify_block_title(block.title)),
         }
 
@@ -177,6 +180,15 @@ async def uaa_detail(
                 for exercise in raw_exercises
                 if isinstance(exercise, InteractiveExercise) and exercise.type == "value_table"
             ]
+        elif block.type == models.BlockType.AI_EXERCISE:
+            ai_config = AIExerciseBlockConfig.from_json(block.content)
+            item["card"] = card_meta("exercise")
+            pedagogical_context = ai_context.get_context(ai_config.context_key)
+            if pedagogical_context is not None:
+                item["ai_exercise"] = {
+                    "block_id": block.id,
+                    "intro_html": render_markdown(ai_config.intro) if ai_config.intro else "",
+                }
 
         rendered_blocks.append(item)
 

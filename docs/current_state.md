@@ -85,6 +85,12 @@ retourné et choisit le composant d'affichage — un générateur donné renvoie
 forme. `/admin/value-table-demo` reste disponible pour prévisualiser le composant sans
 générateur réel (exercice fixe).
 
+- **Moteur IA** (bloc `ai_exercise`, ticket #10 complément IA, voir
+  `docs/ai_exercise_engine.md`) : génération à la demande (facile/moyen/difficile) et
+  correction structurée via l'API OpenAI, appelée côté serveur uniquement, bornée à un
+  contexte pédagogique par cours (`app/ai/context.py`). Complémentaire aux deux moteurs
+  ci-dessus, pas un remplacement. Non configuré par défaut.
+
 ---
 
 ## Quiz
@@ -183,6 +189,13 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
   correction visible côté candidat (corrigé dans un bloc séparé non publié). Cours pilote
   de la série des 38 mini-cours Informatique — voir
   [docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md).
+  Complète également le moteur générique de **génération d'exercices et de correction par
+  IA** (API OpenAI, côté serveur uniquement) : difficulté sélectionnable
+  (facile/moyen/difficile), contexte pédagogique borné par cours, correction structurée
+  (JSON strict), aucune clé API exposée au client — voir
+  [docs/ai_exercise_engine.md](ai_exercise_engine.md). Non configuré par défaut
+  (`OPENAI_API_KEY` vide) : la fonctionnalité affiche un message clair plutôt que d'échouer
+  silencieusement, tant qu'aucune clé n'est fournie.
 
 ## En attente d'import
 

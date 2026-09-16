@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from app.ai_exercise_blocks import AIExerciseBlockConfig
 from app.database import DATABASE_URL, Base, SessionLocal, engine
 from app.exercise_blocks import ExerciseBlockConfig
 from app.models import UAA, BlockType, LessonBlock, Module, Subject
@@ -2231,24 +2232,38 @@ MC01_BLOCKS = [
         "is_published": True,
     },
     {
+        "title": "Architecture d'un PC — Génère ton propre exercice (IA)",
+        "type": BlockType.AI_EXERCISE,
+        "content": AIExerciseBlockConfig(
+            context_key="ampcr-mc01",
+            intro=(
+                "En complément des exercices ci-dessus : choisis une difficulté, génère un "
+                "nouvel exercice, réponds, puis demande une correction personnalisée. "
+                "L'exercice reste strictement dans la matière de ce mini-cours."
+            ),
+        ).to_json(),
+        "position": 16,
+        "is_published": True,
+    },
+    {
         "title": "Fiche mémo — Architecture générale d'un PC",
         "type": BlockType.MARKDOWN,
         "content": _MC01_MEMO,
-        "position": 16,
+        "position": 17,
         "is_published": True,
     },
     {
         "title": "Examen final — Architecture générale d'un PC (10 questions, 20 points)",
         "type": BlockType.MARKDOWN,
         "content": _MC01_EXAMEN,
-        "position": 17,
+        "position": 18,
         "is_published": True,
     },
     {
         "title": "Examen final — Corrigé (réservé formateur, non publié)",
         "type": BlockType.MARKDOWN,
         "content": _MC01_EXAMEN_CORRIGE,
-        "position": 18,
+        "position": 19,
         "is_published": False,
     },
 ]
