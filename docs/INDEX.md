@@ -12,3 +12,4 @@ Si la tâche concerne...
 - règles générales → PROJECT_RULES.md
 - exemple d'UAA → REFERENCE_UAA.md
 - priorité Informatique/Français, cartographie, prochains tickets d'import → content_plan_informatique_francais.md
+- déploiement staging, script de déploiement, diagnostic serveur → deployment_staging.md

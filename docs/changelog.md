@@ -2,6 +2,38 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — Documenter et automatiser le déploiement staging (ticket #6)
+
+Un environnement staging (`https://jury-central.lodylands.com`, installé manuellement sur
+AWS) existe désormais. Ce ticket documente son architecture et ajoute un script de
+déploiement prudent, sans toucher à l'infrastructure active (nginx, Certbot, systemd) ni
+déployer quoi que ce soit.
+
+**Nouveau `scripts/deploy_staging.sh`** : refuse toute branche autre que `develop`, refuse
+un working tree sale, synchronise `origin/develop` en fast-forward uniquement (jamais de
+force), installe les dépendances dans le `.venv` existant, exécute `pytest -q` (aucun
+redémarrage si échec), ne touche jamais `jury_central.db`, redémarre
+`jury-central.service` seulement après succès, puis vérifie que le service est `active` et
+que `http://127.0.0.1:8100/health` répond. Ne lit, n'affiche ni ne modifie jamais `.env`.
+Vérifié avec `bash -n` et `shellcheck` (aucune erreur), non exécuté contre le staging réel
+dans ce ticket (interdit par son périmètre).
+
+**Documentation**
+- Nouveau `docs/deployment_staging.md` : architecture staging complète (domaine, nginx,
+  systemd, port, `.env`, SQLite, logs), fonctionnement détaillé du script, commandes de
+  diagnostic, et rappel explicite que `seed-db`/`reset-db` ne font jamais partie d'un
+  déploiement.
+- `docs/git_workflow.md` : nouvelle section « Après le merge : déploiement staging »,
+  renvoyant vers le document ci-dessus.
+- `docs/PROJECT_RULES.md` § 16 : ajout explicite de l'interdiction de modifier
+  nginx/Certbot/systemd ou de déployer sans instruction explicite.
+- `.env.example` : commentaire `DATABASE_URL` corrigé (la variable est bien lue par
+  `app/database.py`, contrairement à ce qu'indiquait l'ancien commentaire).
+- `docs/INDEX.md`, `docs/README.md` : référencement du nouveau document.
+
+**Tests** : aucune modification de code applicatif ; suite complète toujours verte
+(`pytest -q`).
+
 ## 2026-09-16 — Cadrage Informatique AMPCR et Français CESS P (ticket #4)
 
 Changement de priorité produit : Informatique (AMPCR) devient la priorité n°1, Français

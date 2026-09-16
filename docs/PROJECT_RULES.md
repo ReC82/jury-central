@@ -262,6 +262,10 @@ continuer.
 - Introduire Docker.
 - Intégrer de l'IA dans l'application elle-même (Claude sert uniquement au
   développement, jamais à la génération de contenu ou de réponses en production).
+- Modifier nginx, Certbot ou la définition active du service systemd sans ticket dédié et
+  instruction explicite (voir `docs/deployment_staging.md`).
+- Déployer sur staging, ou redémarrer le service en production, sans instruction
+  explicite (§ 8) — un push de branche n'implique jamais un déploiement.
 
 ---
 
