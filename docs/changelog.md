@@ -2,6 +2,71 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-16 — IA : configurer OpenAI et stabiliser le contrat de génération/correction (ticket #23)
+
+Met réellement en service le moteur OpenAI côté serveur et stabilise un contrat générique
+« questionnaire » (plusieurs questions, tous types, notation avec sévérité), destiné aux
+tickets #24 (S'entraîner) et #25 (S'évaluer), pour toutes les matières. Même package
+`app/ai/`, même fournisseur (`AIProvider`) : **aucun second moteur**. Le contrat à exercice
+unique du ticket #10 (blocs `ai_exercise`, routes `/practice/api/ai/*`) reste inchangé.
+
+**Contrat générique** : `generate_questionnaire(provider, request)` /
+`correct_questionnaire(provider, questionnaire, answers, severity, contexts)`
+(`app/ai/questionnaire.py`), avec 14 types de question stabilisés (`QUESTION_TYPES`) :
+`single_choice`, `multiple_choice`, `true_false`, `short_answer`, `long_answer`,
+`fill_blank`, `matching`, `classification`, `ordering`, `numeric`, `diagnostic`,
+`procedure`, `vocabulary`. Sortie JSON stricte et validée côté serveur
+(`Questionnaire`/`QuestionnaireQuestion`, chargement tolérant comme `editorial_exercise`).
+
+**Correction locale vs IA** : les types déterministes (QCM, vrai/faux, matching,
+classification, ordering, numeric, fill_blank, + short_answer/vocabulary avec
+`accepted_answers`) sont corrigés localement (`app/ai/local_correction.py`), **jamais**
+d'appel IA pour ceux-ci. Les questions sémantiques (long_answer, diagnostic, procedure, +
+short_answer/vocabulary sans réponses acceptées) sont regroupées en **un seul** appel au
+fournisseur, jamais un appel par question.
+
+**Sévérité de notation** : trois niveaux stables (`lenient`/`standard`/`strict`, labels UI
+futurs Bienveillante/Standard/Stricte) — changent l'exigence appliquée par le correcteur
+sémantique, jamais les faits attendus ni `points_max`.
+
+**Validation serveur des points** : `points_max` d'une question ne vient jamais de la
+réponse IA (absent du schéma de correction demandé au modèle) ; `points_awarded` est
+systématiquement borné à `[0, points_max]` après coup, quel que soit ce que renvoie le
+fournisseur. Pour un questionnaire d'examen avec `total_points`, les `points_max` générés
+sont recalés côté serveur pour que leur somme soit exacte.
+
+**Sécurité** : réponse candidate toujours transmise comme donnée délimitée, jamais une
+instruction (même mécanisme que le ticket #10, étendu à un lot de questions/réponses en un
+seul appel) ; aucun secret dans le HTML/JS/logs/Git/rapport ; retry borné et documenté
+(2 tentatives maximum) en cas de réponse invalide, jamais de boucle indéfinie ; site
+fonctionnel sans clé configurée (`AINotConfiguredError`, jamais un 500).
+
+**Configuration** : `OPENAI_API_KEY`, `OPENAI_MODEL` (`gpt-4o-mini` par défaut, déjà en
+place depuis le ticket #10, entièrement configurable sans code), `AI_REQUEST_TIMEOUT_SECONDS`
+— confirmées à jour (appel HTTP direct via `httpx`, sortie structurée stricte
+`json_schema`, mécanisme actuellement documenté par OpenAI ; pas de paquet SDK `openai`
+ajouté, cohérent avec la philosophie de dépendances minimales du projet).
+
+**Statut** : ce ticket stabilise le contrat et ne branche encore aucune route HTTP
+publique ni interface S'entraîner/S'évaluer — périmètre explicite des tickets #24/#25.
+
+**Tests** : +98 tests au total (288 → 386), `tests/ai/` compte désormais 117 tests :
+validation de configuration par type,
+correction locale déterministe (tous les types, malformé jamais une exception), génération
+(practice/exam, difficulté, types autorisés, contexte strictement borné aux modules
+sélectionnés, retry borné, filtrage défensif), correction (routage local/IA, aucun appel IA
+gaspillé pour un questionnaire purement déterministe, sévérité, bornes de points, injection
+de prompt reproduisant l'exemple du ticket), fournisseur réel avec `httpx.post` intercepté
+(succès, réponse vide, type inconnu toléré, timeout, erreur fournisseur, id de question
+inconnu ignoré). Aucun appel réseau réel dans `pytest`. 386 tests au total, tous verts.
+`ruff check .` : 36 erreurs, identiques à `develop` (comparé via worktree isolé) — aucune
+nouvelle erreur.
+
+**Documentation** : `docs/ai_exercise_engine.md` étendu (contrat questionnaire, correction
+locale vs IA, sévérité, validation des points, configuration, procédure de validation
+réelle sur staging avec une vraie clé) ;
+`docs/claude-reports/2026-09-16_ticket-23_openai-contract.md` (rapport de ticket).
+
 ## 2026-09-16 — Refonte UX : séparer Cours, S'entraîner et S'évaluer (ticket #22)
 
 Décision produit de ChatGPT : une page de module ne doit plus mélanger théorie, exercices
