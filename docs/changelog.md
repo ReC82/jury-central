@@ -2,6 +2,74 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-17 — Bug IA : migrer le provider OpenAI vers la Responses API (ticket #31)
+
+Corrige un bug bloquant diagnostiqué en conditions réelles sur staging : avec
+`OPENAI_MODEL=gpt-5.6-luna` (clé et modèle valides, confirmés par un appel direct à `POST
+/v1/responses` réussissant en HTTP 200 depuis le même serveur), `POST
+/practice/api/ai/generate` renvoyait HTTP 502, causé par un HTTP 400 d'OpenAI — le
+provider appelait encore `/v1/chat/completions` avec `response_format: json_schema`, un
+point d'entrée qui n'accepte plus ce modèle.
+
+**Migration** : `OpenAIProvider` appelle désormais `POST https://api.openai.com/v1/responses`
+pour les quatre opérations existantes (génération/correction exercice unique — #10 ;
+génération questionnaire/correction sémantique groupée — #23). Adaptation de la seule
+couche I/O — `app/ai/prompts.py` (messages, schémas JSON, contrats métier) est
+**entièrement inchangé** :
+- `messages` (`[{"role": "system"|"user", "content"}]`) → `instructions` (système) +
+  `input` (utilisateur), séparés au niveau racine du payload ;
+- `response_format: {"type": "json_schema", "json_schema": {...}}` →
+  `text: {"format": {"type": "json_schema", "name", "strict", "schema"}}` (schéma
+  aplati, sans la clé `json_schema` imbriquée) ;
+- extraction du résultat : `choices[0].message.content` →
+  `output[]` (recherche du premier item `type: "message"`, puis de son premier bloc
+  `content[]` de `type: "output_text"`) — jamais un index fixe non validé, robuste à un
+  item `reasoning` intercalé par un modèle de raisonnement.
+- **`temperature` retirée du payload** : les modèles GPT-5 de raisonnement (dont
+  `gpt-5.6-luna`) la rejettent avec un HTTP 400 (« Unsupported parameter: 'temperature' is
+  not supported with this model ») — un second bug latent qui aurait persisté même après la
+  migration d'endpoint si ce paramètre était resté envoyé inconditionnellement. Découvert
+  par vérification de la documentation/du comportement actuel des modèles GPT-5, pas par
+  simple transposition du payload Chat Completions.
+
+**Diagnostic d'erreur amélioré** : sur un statut non-2xx, reprend désormais
+`error.type`/`error.code`/`error.message` d'OpenAI (message tronqué à 200 caractères) dans
+`AIResponseError`, sans jamais exposer les en-têtes, le payload ou la clé API.
+
+**Sécurité inchangée** : timeout, absence de clé (`AINotConfiguredError` → 503), retry
+borné de l'orchestrateur questionnaire, contexte pédagogique borné, réponse candidate
+toujours traitée comme donnée — aucune de ces protections (#10/#23) n'est modifiée par
+cette migration, uniquement la couche réseau.
+
+**Découverte annexe corrigée** : `tests/conftest.py` ne forçait pas explicitement
+`OPENAI_API_KEY=""` (seulement un `setdefault` sur d'autres variables) — inoffensif tant
+qu'aucune vraie clé n'existait dans `/srv/jury-central/.env`, mais désormais qu'une vraie
+clé y est configurée (ticket #31), `pytest` risquait de la lire directement depuis le
+fichier `.env` réel et de l'utiliser dans un test qui suppose l'absence de configuration.
+Corrigé par un force-set explicite (`os.environ["OPENAI_API_KEY"] = ""`) — garantit qu'
+**aucun test ne peut jamais déclencher un appel réseau réel**, y compris sur cette
+machine.
+
+**Compatibilité** : routes `/practice/api/ai/generate`/`/correct` inchangées, bloc
+`AI_EXERCISE` de MC01 (`block_id` à reconfirmer après déploiement, voir le rapport de
+ticket) fonctionnel sans modification JS/template. Contrat questionnaire #23 non régressé.
+
+**Tests** : +8 tests dans `tests/ai/test_openai_provider.py` (22 au total dans ce fichier) :
+URL `/v1/responses`, `instructions`/`input`/`text.format` bien séparés du payload,
+extraction avec item `reasoning` intercalé, `output` vide, item `message` absent, JSON de
+contenu invalide, statuts 400 (avec message OpenAI repris et tronqué)/401/429/500 (corps
+illisible), scénario exact du ticket (`gpt-5.6-luna`) — plus la correction de
+`tests/conftest.py`. Tests existants (génération/correction exercice unique, génération
+questionnaire, correction sémantique groupée) adaptés à la nouvelle enveloppe de réponse
+sans changer leurs assertions métier. 394 tests au total, tous verts. `ruff check .` : 36
+erreurs, identiques à `develop` (comparé via worktree isolé) — aucune nouvelle erreur.
+
+**Documentation** : `docs/ai_exercise_engine.md` — tableau de migration Chat Completions →
+Responses API, diagnostic d'erreur, extraction robuste, procédure de validation réelle
+staging mise à jour (clé déjà configurée, test direct de `block_id` réel avec
+génération **et** correction) ;
+`docs/claude-reports/2026-09-17_ticket-31_responses-api.md` (rapport de ticket).
+
 ## 2026-09-16 — IA : configurer OpenAI et stabiliser le contrat de génération/correction (ticket #23)
 
 Met réellement en service le moteur OpenAI côté serveur et stabilise un contrat générique

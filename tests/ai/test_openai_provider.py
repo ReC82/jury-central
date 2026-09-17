@@ -1,6 +1,11 @@
 """Tests du fournisseur IA réel — aucun appel réseau : httpx.post est intercepté (voir
 complément IA du ticket #10, « prévoir tests avec provider mock/fake, sans consommation
-réelle d'API dans pytest »)."""
+réelle d'API dans pytest »).
+
+Ticket #31 : le fournisseur appelle désormais `/v1/responses` (Responses API), plus
+`/v1/chat/completions` — `_openai_envelope` construit l'enveloppe `output[]` correspondante
+(avec un item `reasoning` intercalé avant le `message`, comme observé avec les modèles de
+raisonnement réels, pour vérifier que l'extraction ne dépend jamais d'un index fixe)."""
 
 import json
 
@@ -25,7 +30,26 @@ class _FakeResponse:
 
 
 def _openai_envelope(content: dict) -> dict:
-    return {"choices": [{"message": {"content": json.dumps(content, ensure_ascii=False)}}]}
+    """Enveloppe Responses API réaliste : un item `reasoning` (sans texte exploitable)
+    précède le `message` — l'extraction doit chercher le bon item, jamais supposer que
+    `output[0]` est le message."""
+    return {
+        "id": "resp_test",
+        "object": "response",
+        "model": "gpt-5.6-luna",
+        "output": [
+            {"id": "rs_1", "type": "reasoning", "content": [], "summary": []},
+            {
+                "id": "msg_1",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                    {"type": "output_text", "text": json.dumps(content, ensure_ascii=False)}
+                ],
+            },
+        ],
+    }
 
 
 def test_missing_api_key_raises_not_configured():
@@ -56,9 +80,38 @@ def test_generate_exercise_success(monkeypatch):
 
     # La clé API est bien transmise en en-tête HTTP, jamais ailleurs.
     assert captured["headers"]["Authorization"] == "Bearer sk-test"
-    assert captured["payload"]["response_format"]["type"] == "json_schema"
-    assert captured["payload"]["response_format"]["json_schema"]["strict"] is True
+    # Ticket #31 : Responses API — /v1/responses, text.format (pas response_format).
+    assert captured["url"] == "https://api.openai.com/v1/responses"
+    assert captured["payload"]["text"]["format"]["type"] == "json_schema"
+    assert captured["payload"]["text"]["format"]["strict"] is True
+    assert "response_format" not in captured["payload"]
+    assert "messages" not in captured["payload"]
+    # Jamais de `temperature` : rejetée (HTTP 400) par les modèles GPT-5 de raisonnement,
+    # dont gpt-5.6-luna — voir le rapport de ticket #31.
+    assert "temperature" not in captured["payload"]
+    # instructions (système) et input (utilisateur) bien séparés au niveau racine.
+    assert "générateur d'exercices" in captured["payload"]["instructions"]
+    assert "carte mère" in captured["payload"]["input"]
     assert captured["timeout"] == 5
+
+
+def test_generate_exercise_uses_configured_model_gpt_5_6_luna(monkeypatch):
+    """Reproduit exactement le scénario du ticket #31 : OPENAI_MODEL=gpt-5.6-luna."""
+    captured = {}
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        captured["payload"] = json
+        return _FakeResponse(
+            200, _openai_envelope({"exercise_type": "calcul", "statement": "Calcule 2+2."})
+        )
+
+    monkeypatch.setattr("app.ai.openai_provider.httpx.post", fake_post)
+
+    provider = OpenAIProvider(api_key="sk-test", model="gpt-5.6-luna", timeout_seconds=5)
+    exercise = provider.generate_exercise(CONTEXT, "moyen")
+
+    assert exercise.statement == "Calcule 2+2."
+    assert captured["payload"]["model"] == "gpt-5.6-luna"
 
 
 def test_generate_exercise_never_leaks_api_key_in_error(monkeypatch):
@@ -87,13 +140,139 @@ def test_timeout_raises_ai_timeout_error(monkeypatch):
 
 def test_malformed_json_content_raises_response_error(monkeypatch):
     def fake_post(url, headers=None, json=None, timeout=None):
-        return _FakeResponse(200, {"choices": [{"message": {"content": "not json"}}]})
+        return _FakeResponse(
+            200,
+            {
+                "output": [
+                    {
+                        "id": "msg_1",
+                        "type": "message",
+                        "status": "completed",
+                        "content": [{"type": "output_text", "text": "not json"}],
+                    }
+                ]
+            },
+        )
 
     monkeypatch.setattr("app.ai.openai_provider.httpx.post", fake_post)
 
     provider = OpenAIProvider(api_key="sk-test", model="gpt-4o-mini", timeout_seconds=5)
     with pytest.raises(AIResponseError):
         provider.generate_exercise(CONTEXT, "facile")
+
+
+def test_empty_output_array_raises_response_error(monkeypatch):
+    def fake_post(url, headers=None, json=None, timeout=None):
+        return _FakeResponse(200, {"output": []})
+
+    monkeypatch.setattr("app.ai.openai_provider.httpx.post", fake_post)
+
+    provider = OpenAIProvider(api_key="sk-test", model="gpt-4o-mini", timeout_seconds=5)
+    with pytest.raises(AIResponseError):
+        provider.generate_exercise(CONTEXT, "facile")
+
+
+def test_output_with_only_reasoning_item_raises_response_error(monkeypatch):
+    """Aucun item `message` du tout (ex. le modèle n'a produit que du raisonnement, sans
+    réponse finale) : ne doit jamais planter avec un IndexError/KeyError brut."""
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        return _FakeResponse(
+            200, {"output": [{"id": "rs_1", "type": "reasoning", "content": [], "summary": []}]}
+        )
+
+    monkeypatch.setattr("app.ai.openai_provider.httpx.post", fake_post)
+
+    provider = OpenAIProvider(api_key="sk-test", model="gpt-4o-mini", timeout_seconds=5)
+    with pytest.raises(AIResponseError):
+        provider.generate_exercise(CONTEXT, "facile")
+
+
+def test_http_400_includes_openai_error_details_without_leaking_secrets(monkeypatch):
+    def fake_post(url, headers=None, json=None, timeout=None):
+        return _FakeResponse(
+            400,
+            {
+                "error": {
+                    "type": "invalid_request_error",
+                    "code": "unsupported_parameter",
+                    "message": "Unsupported parameter: 'response_format'.",
+                }
+            },
+        )
+
+    monkeypatch.setattr("app.ai.openai_provider.httpx.post", fake_post)
+
+    provider = OpenAIProvider(api_key="sk-super-secret", model="gpt-5.6-luna", timeout_seconds=5)
+    with pytest.raises(AIResponseError) as excinfo:
+        provider.generate_exercise(CONTEXT, "facile")
+
+    message = str(excinfo.value)
+    assert "400" in message
+    assert "invalid_request_error" in message
+    assert "unsupported_parameter" in message
+    assert "response_format" in message  # message OpenAI repris, tronqué si besoin
+    assert "sk-super-secret" not in message
+
+
+def test_http_400_error_message_is_truncated_to_a_reasonable_length(monkeypatch):
+    def fake_post(url, headers=None, json=None, timeout=None):
+        return _FakeResponse(
+            400,
+            {"error": {"type": "invalid_request_error", "message": "x" * 5000}},
+        )
+
+    monkeypatch.setattr("app.ai.openai_provider.httpx.post", fake_post)
+
+    provider = OpenAIProvider(api_key="sk-test", model="gpt-4o-mini", timeout_seconds=5)
+    with pytest.raises(AIResponseError) as excinfo:
+        provider.generate_exercise(CONTEXT, "facile")
+
+    assert len(str(excinfo.value)) < 500
+
+
+def test_http_401_raises_clean_response_error_without_body(monkeypatch):
+    def fake_post(url, headers=None, json=None, timeout=None):
+        return _FakeResponse(401, {})
+
+    monkeypatch.setattr("app.ai.openai_provider.httpx.post", fake_post)
+
+    provider = OpenAIProvider(api_key="sk-invalid", model="gpt-4o-mini", timeout_seconds=5)
+    with pytest.raises(AIResponseError) as excinfo:
+        provider.generate_exercise(CONTEXT, "facile")
+    assert "401" in str(excinfo.value)
+    assert "sk-invalid" not in str(excinfo.value)
+
+
+def test_http_429_rate_limit_raises_clean_response_error(monkeypatch):
+    def fake_post(url, headers=None, json=None, timeout=None):
+        return _FakeResponse(
+            429, {"error": {"type": "rate_limit_error", "message": "Rate limit reached."}}
+        )
+
+    monkeypatch.setattr("app.ai.openai_provider.httpx.post", fake_post)
+
+    provider = OpenAIProvider(api_key="sk-test", model="gpt-4o-mini", timeout_seconds=5)
+    with pytest.raises(AIResponseError) as excinfo:
+        provider.generate_exercise(CONTEXT, "facile")
+    assert "429" in str(excinfo.value)
+    assert "rate_limit_error" in str(excinfo.value)
+
+
+def test_error_response_with_unparseable_body_still_raises_clean_response_error(monkeypatch):
+    class _BrokenBodyResponse(_FakeResponse):
+        def json(self):
+            raise ValueError("no body")
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        return _BrokenBodyResponse(500, {})
+
+    monkeypatch.setattr("app.ai.openai_provider.httpx.post", fake_post)
+
+    provider = OpenAIProvider(api_key="sk-test", model="gpt-4o-mini", timeout_seconds=5)
+    with pytest.raises(AIResponseError) as excinfo:
+        provider.generate_exercise(CONTEXT, "facile")
+    assert "500" in str(excinfo.value)
 
 
 def test_correct_answer_success(monkeypatch):

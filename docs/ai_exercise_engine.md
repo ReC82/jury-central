@@ -51,7 +51,7 @@ génération et correction sont entièrement éphémères, renvoyées au navigat
 | `context.py` | Registre `PEDAGOGICAL_CONTEXTS : dict[str, PedagogicalContext]`, un contexte borné par cours (voir § Ajouter un cours). Partagé par les deux contrats. |
 | `prompts.py` | Construction des messages système/utilisateur et des schémas JSON stricts envoyés au fournisseur, pour les deux contrats. Aucun appel réseau — testable seul. |
 | `provider.py` | Interface générique `AIProvider` (`Protocol`, étendue au #23 avec `generate_questionnaire`/`correct_semantic_batch`) + hiérarchie d'exceptions (`AIProviderError`, `AINotConfiguredError`, `AITimeoutError`, `AIResponseError`). |
-| `openai_provider.py` | Implémentation réelle : appelle l'API Chat Completions d'OpenAI en HTTP (`httpx`), côté serveur uniquement. |
+| `openai_provider.py` | Implémentation réelle : appelle la Responses API d'OpenAI (`POST /v1/responses`, ticket #31 — anciennement `/v1/chat/completions`) en HTTP (`httpx`), côté serveur uniquement. |
 | `fake_provider.py` | Implémentation factice, déterministe, sans réseau — utilisée par les tests. |
 | `factory.py` | `get_ai_provider()` : point d'entrée unique utilisé par les routes ; substituable dans les tests par monkeypatch. |
 | `integrity.py` | Signature HMAC de l'exercice généré (voir § Intégrité sans état serveur). |
@@ -274,9 +274,11 @@ exploitable — jamais de boucle indéfinie. Documenté et testé explicitement.
   la réponse candidate qui ressemblerait à une consigne ; la réponse est en outre transmise
   entre délimiteurs explicites (`"""..."""`) dans le message utilisateur, jamais fusionnée
   au message système.
-- **Sortie JSON stricte** : les deux appels utilisent `response_format: json_schema` avec
-  `strict: true` (`app/ai/prompts.py::GENERATE_JSON_SCHEMA`/`CORRECT_JSON_SCHEMA`) — le
-  modèle ne peut pas renvoyer de texte libre hors du schéma demandé.
+- **Sortie JSON stricte** : les quatre opérations utilisent `text.format: {"type":
+  "json_schema", "strict": true, ...}` côté Responses API (`app/ai/prompts.py::
+  GENERATE_JSON_SCHEMA`/`CORRECT_JSON_SCHEMA`/`GENERATE_QUESTIONNAIRE_JSON_SCHEMA`/
+  `CORRECT_SEMANTIC_JSON_SCHEMA`, adaptés par `OpenAIProvider._to_responses_payload`,
+  ticket #31) — le modèle ne peut pas renvoyer de texte libre hors du schéma demandé.
 - **Contexte borné, jamais la base entière** : seul `PedagogicalContext` (notions,
   compétences, vocabulaire, contraintes, rédigés à la main) est transmis à l'IA — jamais un
   contenu de bloc libre ni l'ensemble du contenu du cours.
@@ -285,6 +287,18 @@ exploitable — jamais de boucle indéfinie. Documenté et testé explicitement.
 - **Configuration absente = état explicite, pas une erreur serveur** : `OPENAI_API_KEY` vide
   fait échouer proprement (`AINotConfiguredError` → HTTP 503 avec message clair), jamais un
   500 ni un comportement silencieux.
+- **Diagnostic d'erreur fournisseur sans fuite** (ticket #31) : sur un statut HTTP non-2xx,
+  `OpenAIProvider._raise_for_error_response` reprend `error.type`/`error.code`/
+  `error.message` d'OpenAI si présents dans le corps de réponse — jamais les en-têtes de la
+  requête, jamais le payload envoyé, jamais la clé API. Le message repris est tronqué à 200
+  caractères (`_MAX_ERROR_MESSAGE_LENGTH`) avant d'être inclus dans `AIResponseError`, pour
+  ne jamais faire gonfler nos propres logs/réponses avec un message fournisseur arbitraire.
+- **Extraction robuste, jamais un index fixe** (ticket #31) : `OpenAIProvider.
+  _extract_output_text` parcourt `output[]` à la recherche du premier item `type ==
+  "message"`, puis de son premier bloc `content[]` avec `type == "output_text"` — jamais
+  `output[0]` supposé sans validation (un modèle de raisonnement peut intercaler un item
+  `type: "reasoning"` avant le message final). Aucun `output_text` exploitable →
+  `AIResponseError` propre, jamais une exception brute (`IndexError`/`KeyError`).
 
 ---
 
@@ -294,13 +308,18 @@ exploitable — jamais de boucle indéfinie. Documenté et testé explicitement.
 - `tests/ai/test_context.py` — registre des contextes pédagogiques.
 - `tests/ai/test_fake_provider.py` — fournisseur factice déterministe.
 - `tests/ai/test_integrity.py` — signature/vérification HMAC.
-- `tests/ai/test_openai_provider.py` — fournisseur réel avec `httpx.post` intercepté
-  (succès, statut d'erreur, timeout, JSON malformé, absence de fuite de la clé API dans les
-  messages d'erreur).
+- `tests/ai/test_openai_provider.py` — fournisseur réel avec `httpx.post` intercepté :
+  succès (URL `/v1/responses`, `instructions`/`input`/`text.format` bien séparés du
+  payload), extraction `output_text` avec un item `reasoning` intercalé, `output` vide,
+  JSON de contenu invalide, statuts 400/401/429/500 (message OpenAI repris et tronqué,
+  jamais de fuite de clé), timeout, absence de clé, scénario exact du ticket #31
+  (`OPENAI_MODEL=gpt-5.6-luna`).
 - `tests/test_practice_ai_routes.py` — routes `/practice/api/ai/*` via `TestClient`,
   avec `app.practice.get_ai_provider` remplacé par `FakeAIProvider` (ou laissé tel quel pour
-  vérifier le cas « non configuré », qui ne nécessite aucun mock : l'environnement de test
-  ne définit jamais `OPENAI_API_KEY`).
+  vérifier le cas « non configuré », qui ne nécessite aucun mock : `tests/conftest.py`
+  force `OPENAI_API_KEY=""` dans l'environnement de test, y compris sur une machine —
+  comme staging — dont le `.env` réel porte une vraie clé, garantissant qu'aucun test ne
+  peut jamais déclencher un appel réseau réel).
 
 ---
 
@@ -329,22 +348,42 @@ Variables d'environnement lues par `app/config.py::Settings` (voir `.env.example
 | `OPENAI_MODEL` | Modèle utilisé pour les deux contrats (exercice unique et questionnaire). Configurable sans modification de code. | `gpt-4o-mini` |
 | `AI_REQUEST_TIMEOUT_SECONDS` | Timeout HTTP par appel (génération ou correction, y compris le lot groupé de correction sémantique). | `20` |
 
-**Choix du modèle par défaut** : `gpt-4o-mini` (déjà en place depuis le ticket #10) —
-économique, rapide, et compatible avec la sortie structurée stricte
-(`response_format: json_schema`, `strict: true`) utilisée par les deux contrats. Ce
-ticket ne le change pas arbitrairement : `OPENAI_MODEL` reste entièrement configurable via
-`.env`, sans toucher au code, si ChatGPT ou l'administrateur préfère un autre modèle au
-moment du déploiement réel — voir § Validation réelle sur staging ci-dessous.
+**Choix du modèle par défaut** : `gpt-4o-mini` dans `app/config.py` (valeur par défaut du
+code, utilisée en local/dev si `OPENAI_MODEL` n'est pas défini). `OPENAI_MODEL` reste
+entièrement configurable via `.env`, sans toucher au code — sur staging, il est
+explicitement positionné à `gpt-5.6-luna` (voir ticket #31).
 
 **SDK utilisé** : le projet appelle l'API OpenAI directement en HTTP via `httpx`
 (`app/ai/openai_provider.py`), pas le paquet Python `openai` (absent de `pyproject.toml`) —
-choix déjà fait au ticket #10, cohérent avec la philosophie du projet (dépendances
-minimales, déjà appliquée côté JS : « vanilla, aucune dépendance npm »). L'appel utilise
-`POST /v1/chat/completions` avec `response_format: {"type": "json_schema", "json_schema":
-{...}, "strict": true}` — le mécanisme de sortie structurée strict actuellement documenté
-par OpenAI pour garantir un JSON conforme à un schéma, plutôt qu'un prompt demandant du
-JSON en texte libre (fragile, à parser approximativement — explicitement exclu par le
-ticket #23). Ce ticket ne change pas ce choix : il reste correct et à jour.
+choix déjà fait au ticket #10 et confirmé au #31, cohérent avec la philosophie du projet
+(dépendances minimales, déjà appliquée côté JS : « vanilla, aucune dépendance npm »).
+
+**Migration ticket #31 — Responses API** : l'appel utilisait jusque-là `POST
+/v1/chat/completions` avec `response_format: {"type": "json_schema", "json_schema": {...},
+"strict": true}`. Ce point d'entrée renvoie **HTTP 400** avec les modèles réellement en
+service sur staging (ex. `gpt-5.6-luna`) — diagnostiqué en conditions réelles (appel direct
+`curl` depuis le serveur, voir le rapport de ticket). L'appel utilise désormais `POST
+/v1/responses` (Responses API, point d'entrée actuel d'OpenAI pour ce type d'usage) :
+
+| | Chat Completions (avant #31) | Responses API (depuis #31) |
+|---|---|---|
+| URL | `/v1/chat/completions` | `/v1/responses` |
+| Système + utilisateur | `messages: [{"role": "system", ...}, {"role": "user", ...}]` | `instructions` (système) + `input` (utilisateur), séparés au niveau racine |
+| Schéma structuré | `response_format: {"type": "json_schema", "json_schema": {"name", "strict", "schema"}}` | `text: {"format": {"type": "json_schema", "name", "strict", "schema"}}` (aplati, sans la clé `json_schema` imbriquée) |
+| Résultat | `choices[0].message.content` (chaîne JSON) | `output[]` → item `type: "message"` → `content[]` → item `type: "output_text"` → `text` (chaîne JSON) |
+
+`app/ai/prompts.py` (messages, schémas JSON, contrats #10/#23) est **entièrement
+inchangé** : seule la couche I/O (`OpenAIProvider._to_responses_payload`/`_call`/
+`_extract_output_text`/`_raise_for_error_response`) a été adaptée. `messages` continue
+d'être `[{"role": "system"|"user", "content": str}]`, réinterprété en `instructions`/
+`input` uniquement au moment de l'appel HTTP.
+
+**`temperature` retirée du payload** : l'ancien payload Chat Completions envoyait
+`"temperature": 0.7`. Les modèles GPT-5 de raisonnement (dont `gpt-5.6-luna`) rejettent ce
+paramètre avec un HTTP 400 (« Unsupported parameter: 'temperature' is not supported with
+this model »), quel que soit l'endpoint — un second bug latent qui aurait persisté même
+après la seule migration d'URL. Retiré entièrement plutôt que rendu conditionnel : aucun
+contrat métier des tickets #10/#23 ne dépend d'une température précise.
 
 ## Comportement sans clé configurée
 
@@ -356,42 +395,59 @@ publique (voir § Statut ci-dessous), propage directement l'exception à l'appel
 ticket qui construira la route #24/#25 devra la traiter de la même façon : 503, jamais un
 500). Dans les deux cas : **jamais** de page cassée, jamais de trace d'erreur brute.
 
-## Validation réelle sur staging (procédure, à exécuter après merge)
+## Validation réelle sur staging (procédure, à exécuter après merge + déploiement — ticket #31)
 
-Ce ticket ne configure pas la vraie clé ni ne déploie — ChatGPT guidera l'utilisateur pour
-l'ajouter après la fusion de la PR. Procédure exacte pour un administrateur :
+`OPENAI_API_KEY` et `OPENAI_MODEL=gpt-5.6-luna` sont **déjà configurés** sur staging (voir
+le rapport de ticket #31) — cette section ne demande donc plus d'ajouter la clé, seulement
+de déployer le correctif et de vérifier une génération/correction réelles avec le bloc
+MC01 existant (`block_id=79`, à confirmer via `sqlite3` avant de tester : cet id peut
+changer d'une base à l'autre selon l'historique de seed). Procédure pour un administrateur,
+après fusion de la PR #31 dans `develop` :
 
-1. Se connecter au serveur staging (accès déjà existant, hors périmètre de ce document).
-2. Éditer `/srv/jury-central/.env` (fichier déjà présent, hors Git — voir
-   `docs/deployment_staging.md`, § 1) et y ajouter, ou compléter, ces deux lignes :
+1. Déployer normalement (`./scripts/deploy_staging.sh` depuis `/srv/jury-central`, déjà
+   utilisé pour les tickets précédents) — synchronise `develop`, relance les tests,
+   redémarre `jury-central.service` uniquement si tout est vert.
+2. Confirmer l'id réel du bloc `ai_exercise` de MC01 (peut ne plus être 79 si la base a
+   évolué depuis le diagnostic) :
    ```
-   OPENAI_API_KEY=sk-...la-vraie-clé...
-   OPENAI_MODEL=gpt-4o-mini
+   sqlite3 /srv/jury-central/jury_central.db \
+     "SELECT id, title FROM lesson_blocks WHERE type = 'AI_EXERCISE';"
    ```
-   (`OPENAI_MODEL` peut être ajusté à un autre modèle si ChatGPT le demande — aucune
-   modification de code requise, voir § Configuration ci-dessus.)
-3. Redémarrer le service pour que la nouvelle valeur soit prise en compte
-   (`EnvironmentFile=/srv/jury-central/.env`, relu uniquement au démarrage) :
+3. Tester une génération réelle (remplacer `<id>` par la valeur confirmée à l'étape 2) :
    ```
-   sudo systemctl restart jury-central.service
+   curl -s -X POST http://127.0.0.1:8100/practice/api/ai/generate \
+     -H "Content-Type: application/json" \
+     -d '{"block_id": <id>, "difficulty": "moyen"}'
    ```
-4. Vérifier que le service est actif :
+   Attendu : HTTP 200, un JSON `{"exercise_type", "difficulty", "statement",
+   "statement_html", "statement_token"}` — **plus** de 502/HTTP 400 OpenAI.
+4. Tester la correction de l'exercice réellement généré à l'étape 3 (reprendre
+   exactement `exercise_type`/`statement`/`statement_token` de sa réponse) :
    ```
-   systemctl is-active jury-central.service
+   curl -s -X POST http://127.0.0.1:8100/practice/api/ai/correct \
+     -H "Content-Type: application/json" \
+     -d '{
+           "block_id": <id>,
+           "exercise_statement": "<statement reçu à l’étape 3>",
+           "exercise_type": "<exercise_type reçu à l’étape 3>",
+           "difficulty": "moyen",
+           "statement_token": "<statement_token reçu à l’étape 3>",
+           "answer": "Réponse de test."
+         }'
    ```
-5. Vérifier que la fonctionnalité IA est bien détectée comme configurée : ouvrir une page
-   contenant un bloc `ai_exercise` publié (ex. `/uaa/ampcr-mc01/practice` après le ticket
-   #22) et cliquer « Générer un exercice » — une génération réelle doit aboutir (au lieu du
-   message « Génération IA non configurée sur ce serveur » affiché sans clé).
-6. En cas d'échec, consulter les journaux sans jamais y chercher ni y afficher la clé
-   elle-même (elle n'y apparaît de toute façon jamais, voir § Sécurité) :
+   Attendu : HTTP 200, un JSON de correction structuré (`appreciation`, `correct_points`,
+   `errors`, `expected_answer_explained`, `score`, `max_score`).
+5. En cas d'échec, consulter les journaux — le nouveau diagnostic (#31) y fera apparaître
+   `error.type`/`error.code`/le message OpenAI tronqué, jamais la clé :
    ```
    sudo journalctl -u jury-central.service -n 100 --no-pager
    ```
 
 **Ce que Claude Code ne fait jamais** : ne demande pas la clé dans le terminal, ne l'écrit
-jamais dans un fichier suivi par Git, ne la mentionne jamais dans un rapport ou un message —
-uniquement cette procédure, destinée à être exécutée par l'administrateur humain.
+jamais dans un fichier suivi par Git, ne la mentionne jamais dans un rapport ou un message,
+ne déploie pas lui-même — uniquement cette procédure, destinée à être exécutée par
+l'administrateur humain (ou par Claude Code sur instruction explicite ultérieure, comme
+pour les déploiements précédents).
 
 ## Statut du contrat questionnaire (#23) — pas encore branché sur une route publique
 
