@@ -14,6 +14,7 @@ from app.ai_exercise_blocks import AIExerciseBlockConfig
 from app.answer_checking import answers_match
 from app.content import render_markdown
 from app.database import get_db
+from app.editorial_ai_correction import correct_editorial_item_with_ai
 from app.editorial_exercise import EditorialExerciseBlockConfig, check_editorial_answer
 from app.exercise_blocks import exercise_to_public_dict
 from app.quiz import QuizConfig
@@ -280,9 +281,15 @@ async def api_correct_ai_exercise(
 async def api_verify_editorial_exercise(
     block_id: int, payload: VerifyEditorialExerciseRequest, db: Session = Depends(get_db)  # noqa: B008
 ) -> JSONResponse:
-    """Vérifie la réponse à un item d'un bloc `editorial_exercise` (ticket #17). Le serveur
-    recharge toujours la configuration complète depuis la base : aucune réponse correcte
-    n'est jamais transmise au navigateur avant cet appel."""
+    """Vérifie la réponse à un item d'un bloc `editorial_exercise` (ticket #17, étendu au
+    #29). Le serveur recharge toujours la configuration complète depuis la base : aucune
+    réponse correcte n'est jamais transmise au navigateur avant cet appel.
+
+    Types déterministes (single_choice/true_false/short_answer-avec-accepted_answers/
+    classification/ordering) : corrigés localement, inchangé depuis #17/#21. Types
+    nécessitant une appréciation sémantique (long_answer/diagnostic, ou short_answer/
+    vocabulary sans accepted_answers) : corrigés via le fournisseur IA existant (#23),
+    voir `app/editorial_ai_correction.py` — jamais un second moteur IA."""
     block = db.get(models.LessonBlock, block_id)
     if (
         block is None
@@ -292,7 +299,37 @@ async def api_verify_editorial_exercise(
         raise HTTPException(status_code=404, detail="Exercice introuvable")
 
     config = EditorialExerciseBlockConfig.from_json(block.content)
-    correction = check_editorial_answer(config, payload.exercise_id, payload.answer)
-    if correction is None:
+    item = config.get_item(payload.exercise_id)
+    if item is None:
         raise HTTPException(status_code=404, detail="Question introuvable")
+
+    if not item.requires_ai_correction():
+        correction = check_editorial_answer(config, payload.exercise_id, payload.answer)
+        return JSONResponse(correction.to_dict())
+
+    if not isinstance(payload.answer, str):
+        raise HTTPException(status_code=422, detail="Réponse invalide pour cette question.")
+
+    pedagogical_context = (
+        ai_context.get_context(config.context_key) if config.context_key else None
+    )
+    if pedagogical_context is None:
+        raise HTTPException(
+            status_code=500, detail="Contexte pédagogique introuvable pour cet exercice."
+        )
+
+    try:
+        provider = get_ai_provider()
+    except AINotConfiguredError as exc:
+        raise HTTPException(
+            status_code=503, detail="Correction IA non configurée sur ce serveur."
+        ) from exc
+
+    try:
+        correction = correct_editorial_item_with_ai(
+            provider, item, payload.answer, pedagogical_context
+        )
+    except AIProviderError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     return JSONResponse(correction.to_dict())

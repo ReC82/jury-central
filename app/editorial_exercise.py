@@ -1,14 +1,15 @@
-"""Socle générique des exercices éditoriaux structurés (ticket #17, étendu au #21).
+"""Socle générique des exercices éditoriaux structurés (ticket #17, étendu aux #21/#29).
 
 Un bloc de leçon `editorial_exercise` regroupe plusieurs items structurés (voir
 `docs/claude-reports/2026-09-16_audit_interactivite.md`, section D, et
 `docs/editorial_exercise_engine.md`). Types pris en charge :
 `single_choice`, `true_false`, `short_answer` (ticket #17), `classification`, `ordering`
-(ticket #21) — uniquement lorsqu'une correction locale déterministe est fiable. Les types
-nécessitant une correction IA (`long_answer`) ou un appariement (`matching`) seront ajoutés
-par des tickets séparés — voir `docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md`
-et `docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md` pour la liste
-précise des exercices MC01 concernés.
+(ticket #21), `long_answer`, `diagnostic`, `vocabulary` (ticket #29). Un appariement
+(`matching`) pourra être ajouté par un ticket séparé si un contenu réel l'exige — voir
+`docs/claude-reports/2026-09-16_ticket-17_editorial-exercises.md`,
+`docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md` et
+`docs/claude-reports/2026-09-17_ticket-29_mc01-practice-interactive.md` pour la liste
+précise des exercices MC01 concernés par chaque tranche.
 
 Même principe de sécurité que `value_table`/`quiz`/`ai_exercise` : le serveur recharge
 toujours la configuration complète depuis `LessonBlock.content` pour corriger ; aucune
@@ -19,7 +20,15 @@ Pour `classification`/`ordering`, la réponse soumise n'est plus une simple cha�
 liste d'entiers (voir `EditorialExerciseItem.check`) — `check_editorial_answer` accepte donc
 `submitted: Any` depuis le ticket #21, tout en restant rétrocompatible avec les réponses
 `str` des types existants.
-"""
+
+Ticket #29 — correction sémantique (IA) : `long_answer`/`diagnostic` nécessitent toujours
+une appréciation sémantique (pas de réponse strictement déterministe possible) ;
+`short_answer`/`vocabulary` restent corrigés localement s'ils fournissent
+`accepted_answers`, sinon basculent aussi en correction sémantique — voir
+`EditorialExerciseItem.requires_ai_correction()`, consommée par la route
+(`app/practice.py`) et par le pont IA (`app/editorial_ai_correction.py`), jamais par ce
+module lui-même : `app/editorial_exercise.py` ne dépend jamais de `app/ai/` (ce module
+reste utilisable — et testable — sans le moteur IA)."""
 
 import json
 from dataclasses import dataclass, field
@@ -34,8 +43,18 @@ EDITORIAL_EXERCISE_TYPES = (
     "short_answer",
     "classification",
     "ordering",
+    "long_answer",
+    "diagnostic",
+    "vocabulary",
 )
 EDITORIAL_EXERCISE_MODES = ("practice", "exam")
+
+# Toujours corrigés par IA (appréciation sémantique nécessaire) — voir
+# `EditorialExerciseItem.requires_ai_correction`.
+_ALWAYS_SEMANTIC_TYPES = frozenset({"long_answer", "diagnostic"})
+# Corrigés localement UNIQUEMENT si `accepted_answers` est fourni ; sinon basculent en
+# correction sémantique IA, comme les types ci-dessus.
+_CONDITIONALLY_LOCAL_TYPES = frozenset({"short_answer", "vocabulary"})
 
 
 class EditorialExerciseValidationError(ValueError):
@@ -92,9 +111,21 @@ class EditorialExerciseItem:
                 raise EditorialExerciseValidationError(
                     f"{self.exercise_id} : correct_index invalide."
                 )
-        elif self.type == "short_answer" and not self.accepted_answers:
+        elif self.type in _CONDITIONALLY_LOCAL_TYPES:
+            # short_answer / vocabulary (ticket #29) : correction locale si
+            # accepted_answers est fourni, sinon correction sémantique IA — dans ce cas
+            # `explanation` sert de grille de correction transmise au modèle (jamais au
+            # candidat avant correction, voir to_public_dict) et doit donc être renseignée.
+            if not self.accepted_answers and not self.explanation.strip():
+                raise EditorialExerciseValidationError(
+                    f"{self.exercise_id} : {self.type} nécessite soit accepted_answers "
+                    "(correction locale), soit explanation non vide (grille de correction "
+                    "IA)."
+                )
+        elif self.type in _ALWAYS_SEMANTIC_TYPES and not self.explanation.strip():
             raise EditorialExerciseValidationError(
-                f"{self.exercise_id} : accepted_answers est requis pour short_answer."
+                f"{self.exercise_id} : explanation (utilisée comme grille de correction "
+                f"IA) est requise pour {self.type}."
             )
         elif self.type == "classification":
             if len(self.categories) < 2:
@@ -126,6 +157,19 @@ class EditorialExerciseItem:
                     "des index de order_items."
                 )
 
+    def requires_ai_correction(self) -> bool:
+        """Vrai si cet item doit être corrigé par le fournisseur IA plutôt que
+        localement (ticket #29) — voir `app.ai.schemas.QuestionnaireQuestion.
+        requires_ai_correction`, même règle, dupliquée ici en toute indépendance de
+        `app/ai/` (ce module ne dépend jamais du moteur IA, voir docstring du module).
+        Sûr à exposer publiquement (`to_public_dict`) : indique seulement la MODALITÉ de
+        correction, jamais la solution elle-même."""
+        if self.type in _ALWAYS_SEMANTIC_TYPES:
+            return True
+        if self.type in _CONDITIONALLY_LOCAL_TYPES:
+            return not self.accepted_answers
+        return False
+
     def to_public_dict(self) -> dict[str, Any]:
         """Représentation envoyée au navigateur avant correction : jamais `correct_index`,
         `accepted_answers`, `correct_categories`, `correct_order` ni `explanation`."""
@@ -135,6 +179,7 @@ class EditorialExerciseItem:
             "prompt": self.prompt,
             "prompt_html": render_markdown(self.prompt),
             "points": self.points,
+            "requires_ai": self.requires_ai_correction(),
         }
         if self.type in ("single_choice", "true_false"):
             data["choices"] = self.choices
@@ -161,7 +206,7 @@ class EditorialExerciseItem:
                 return int(submitted) == self.correct_index
             except (TypeError, ValueError):
                 return False
-        if self.type == "short_answer":
+        if self.type in ("short_answer", "vocabulary"):
             if not isinstance(submitted, str):
                 return False
             return text_answer_matches(self.accepted_answers, submitted)
@@ -194,7 +239,7 @@ class EditorialExerciseItem:
     def correct_answer_display(self) -> str:
         if self.type in ("single_choice", "true_false") and self.correct_index is not None:
             return self.choices[self.correct_index]
-        if self.type == "short_answer" and self.accepted_answers:
+        if self.type in ("short_answer", "vocabulary") and self.accepted_answers:
             return self.accepted_answers[0]
         if self.type == "classification" and self.correct_categories:
             pairs = zip(self.elements, self.correct_categories, strict=True)
@@ -214,6 +259,12 @@ class EditorialExerciseItem:
 class EditorialExerciseBlockConfig:
     mode: str = "practice"
     items: list[EditorialExerciseItem] = field(default_factory=list)
+    # Contexte pédagogique borné (clé de `app.ai.context.PEDAGOGICAL_CONTEXTS`), requis
+    # UNIQUEMENT si au moins un item du bloc nécessite une correction IA (ticket #29) —
+    # même convention que `AIExerciseBlockConfig.context_key` (ticket #10). Chaîne vide =
+    # aucun contexte associé, valeur par défaut rétrocompatible pour les blocs #17/#21
+    # entièrement locaux, qui n'en ont jamais eu besoin.
+    context_key: str = ""
 
     def __post_init__(self) -> None:
         if self.mode not in EDITORIAL_EXERCISE_MODES:
@@ -223,6 +274,10 @@ class EditorialExerciseBlockConfig:
             raise EditorialExerciseValidationError(
                 "exercise_id doit être unique au sein d'un même bloc."
             )
+        if not self.context_key and any(item.requires_ai_correction() for item in self.items):
+            raise EditorialExerciseValidationError(
+                "context_key est requis dès qu'un item du bloc nécessite une correction IA."
+            )
 
     def get_item(self, exercise_id: str) -> EditorialExerciseItem | None:
         return next((item for item in self.items if item.exercise_id == exercise_id), None)
@@ -231,6 +286,7 @@ class EditorialExerciseBlockConfig:
         return json.dumps(
             {
                 "mode": self.mode,
+                "context_key": self.context_key,
                 "items": [
                     {
                         "exercise_id": item.exercise_id,
@@ -290,12 +346,14 @@ class EditorialExerciseBlockConfig:
         mode = data.get("mode", "practice")
         if mode not in EDITORIAL_EXERCISE_MODES:
             mode = "practice"
+        context_key = data.get("context_key", "") or ""
         try:
-            return cls(mode=mode, items=items)
+            return cls(mode=mode, items=items, context_key=context_key)
         except EditorialExerciseValidationError:
-            # exercise_id dupliqués après filtrage : configuration incohérente, on ne
-            # publie aucun exercice plutôt que d'en publier un sous-ensemble ambigu.
-            return cls(mode=mode, items=[])
+            # exercise_id dupliqués après filtrage, ou context_key manquant pour un item
+            # IA après filtrage tolérant : configuration incohérente, on ne publie aucun
+            # exercice plutôt que d'en publier un sous-ensemble ambigu.
+            return cls(mode=mode, items=[], context_key=context_key)
 
     def to_public_dict(self) -> dict[str, Any]:
         return {"mode": self.mode, "items": [item.to_public_dict() for item in self.items]}
@@ -307,6 +365,13 @@ class EditorialExerciseCorrection:
     correct: bool
     correct_answer: str
     explanation: str
+    # Renseignés uniquement pour une correction sémantique IA (ticket #29) — `None`/liste
+    # vide pour une correction locale déterministe (types inchangés depuis #17/#21).
+    points_awarded: float | None = None
+    points_max: float | None = None
+    strengths: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    missing: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -318,6 +383,11 @@ class EditorialExerciseCorrection:
             else "",
             "explanation": self.explanation,
             "explanation_html": render_markdown(self.explanation) if self.explanation else "",
+            "points_awarded": self.points_awarded,
+            "points_max": self.points_max,
+            "strengths": self.strengths,
+            "errors": self.errors,
+            "missing": self.missing,
         }
 
 

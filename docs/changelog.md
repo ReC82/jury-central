@@ -2,6 +2,84 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-09-17 — S'entraîner : rendre les 12 exercices MC01 répondables (ticket #29)
+
+Termine la mise à niveau interactive de S'entraîner amorcée aux tickets #17/#21 : les 8
+derniers exercices MC01 encore en Markdown statique (3, 4, 5, 6, 7, 8, 10, 12) sont migrés
+en blocs `editorial_exercise` structurés, avec un contrôle de réponse réel et aucune
+correction visible avant validation. **MC01 ne contient plus aucun bloc Markdown
+d'exercice** — les 12 sont désormais des blocs `editorial_exercise`, tous en espace
+PRACTICE. Contenu pédagogique strictement inchangé (question + grille de correction
+reprises mot pour mot) : aucune simplification, aucune matière inventée.
+
+**Nouveaux types** (`app/editorial_exercise.py`) : `long_answer` (réponse rédigée libre,
+Ex3/5/6/7/8), `diagnostic` (composant en cause + justification, Ex4/10), `vocabulary`
+(Ex12 — grille de correction IA, car l'exercice demande une explication en plus du terme
+exact, pas seulement un mot). `short_answer`/`vocabulary` deviennent conditionnellement
+locaux : corrigés localement si `accepted_answers` est fourni, sinon la correction bascule
+en IA (`explanation` sert alors de grille de correction/rubric) — même règle que le
+contrat questionnaire #23, désormais partagée par les deux socles.
+
+**Correction sémantique IA sans second moteur** : nouveau pont
+`app/editorial_ai_correction.py`, qui traduit un `EditorialExerciseItem` vers
+`QuestionnaireQuestion` (#23) et appelle `AIProvider.correct_semantic_batch` — un seul
+appel par question, jamais un second moteur IA. `points_max` vient toujours de l'item
+(jamais de la réponse du fournisseur), `points_awarded` toujours borné à `[0, points_max]`
+(`app.ai.questionnaire.validate_semantic_correction`, promue publique pour être réutilisée
+ici). Nouveau champ `EditorialExerciseBlockConfig.context_key` (requis dès qu'un item du
+bloc nécessite l'IA, validé à la construction).
+
+**Route** (`app/practice.py`) : `/practice/api/editorial/{block_id}/verify` route
+désormais localement ou vers l'IA selon `item.requires_ai_correction()` — jamais
+d'appel IA pour ce qui peut être corrigé de façon fiable en local. Sans clé configurée :
+503 propre (jamais la solution) ; erreur fournisseur : 502 ; réponse non textuelle pour un
+type sémantique : 422.
+
+**Widget JS** (`app/static/js/editorial_exercise.js`) : nouveau contrôle textarea +
+bouton « Corriger » (libellé différent de « Vérifier », piloté par `item.requires_ai`,
+jamais deviné depuis le titre/type) pour les types à réponse libre. **Corrige au passage
+un gap identifié sur les types existants** : un échec réseau/503/502 laissait
+auparavant le bouton désactivé indéfiniment, sans aucun message — désormais le champ est
+réactivé et un message clair s'affiche (jamais la solution). Feedback enrichi
+(points obtenus, points forts, erreurs, manquant) affiché après correction sémantique,
+dégradé silencieusement pour une correction locale (champs absents/vides).
+
+**Sécurité** : aucune correction, grille de correction ni réponse acceptée n'est jamais
+transmise avant l'appel de vérification (`to_public_dict()` n'expose que `requires_ai:
+bool` — la modalité de correction, jamais la solution). Réponse candidate toujours
+transmise comme donnée délimitée à l'IA, jamais une instruction (même prompt système que
+#23).
+
+**Migration du staging déjà seedé, sans reset-db** : même mécanisme que #21/#22 — les 3
+blocs Markdown restants (leurs titres, désormais dans `MC01_OBSOLETE_TITLES`) sont retirés
+par `_seed_uaa(obsolete_titles=...)` au prochain `seed-db`, remplacés par les 8 nouveaux
+blocs structurés (titres différents, garantissant l'idempotence des seeds ultérieurs).
+Scénario testé explicitement (staging post-#22 reconstruit à la main → un seul `seed()` →
+forme post-#29 complète).
+
+**Découverte annexe corrigée en cours de développement** : `EditorialExerciseItem.check()`
+et `correct_answer_display()` ne géraient pas le type `vocabulary` pour la correction
+locale (seul `short_answer` était couvert) — trouvé et corrigé par les tests unitaires
+avant tout usage réel, aucun impact en production.
+
+**Tests** : +35 tests (431 au total) : `tests/test_editorial_exercise.py` (validation des
+3 nouveaux types, `requires_ai_correction`, absence de fuite dans `to_public_dict()`,
+validation de `context_key`) ; `tests/test_editorial_ai_correction.py` (nouveau — mapping
+vers `QuestionnaireQuestion`, un seul appel par correction, sévérité, points bornés,
+résultat manquant géré sans exception) ; `tests/test_ticket29_no_regression.py` (nouveau —
+12/12 exercices présents et répondables, 0 correction visible au chargement,
+classification/ordering non cassés, correction déterministe et IA via `FakeAIProvider`,
+absence de clé → 503, erreur fournisseur → 502, points bornés, aucun doublon Markdown,
+migration d'un staging pré-#29 sans reset, idempotence, MC02/MC03/Mathématiques non
+affectés). Tests existants (#17/#21/#22) ajustés à la nouvelle réalité (12 exercices
+structurés, plus 4) sans changer leur rôle de garde-fou. `ruff check .` : 36 erreurs,
+identiques à `develop` (comparé via worktree isolé) — aucune nouvelle erreur.
+
+**Documentation** : `docs/editorial_exercise_engine.md` (nouveaux types, correction
+sémantique IA, `context_key`, codes d'erreur, widget) ; `docs/current_state.md` ;
+`docs/claude-reports/2026-09-17_ticket-29_mc01-practice-interactive.md` (rapport de
+ticket).
+
 ## 2026-09-17 — Bug IA : migrer le provider OpenAI vers la Responses API (ticket #31)
 
 Corrige un bug bloquant diagnostiqué en conditions réelles sur staging : avec

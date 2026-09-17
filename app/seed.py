@@ -43,9 +43,17 @@ OBSOLETE_DEMO_BLOCK_TITLES = {
 # `docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md`, section
 # « Migration du contenu déjà seedé (staging) », pour le détail de la procédure de
 # déploiement (seed-db, sans reset-db).
+#
+# Ticket #29 : même mécanisme pour les 3 derniers blocs Markdown restants de MC01
+# (exercices 3/4, 5/6/7/8, 10/12), migrés en blocs `editorial_exercise`
+# (long_answer/diagnostic/vocabulary). Après ce ticket, MC01 ne contient plus AUCUN bloc
+# Markdown d'exercice — les 12 exercices sont tous des blocs `editorial_exercise`.
 MC01_OBSOLETE_TITLES = {
     "Architecture d'un PC — Exercices (1/3 : composants et rôles)",
     "Architecture d'un PC — Exercices (3/3 : scénario, diagnostic, vocabulaire)",
+    "Architecture d'un PC — Exercices (composants et rôles : suite)",
+    "Architecture d'un PC — Exercices (2/3 : RAM, stockage, GPU, PSU)",
+    "Architecture d'un PC — Exercices (diagnostic et vocabulaire : suite)",
 }
 
 _CONSTANT_FUNCTION_PRESENTATION = r"""# Fonction constante
@@ -1835,101 +1843,205 @@ comme repères historiques et vocabulaire de référentiel, pas comme du matéri
 recommander ou à installer aujourd'hui.
 """
 
-_MC01_EXERCICES_1 = r"""## Exercice 3 — expliquer
+# Ticket #29 : exercices 3, 4, 5, 6, 7, 8, 10, 12 migrés en blocs `editorial_exercise`
+# structurés (long_answer/diagnostic/vocabulary, corrigés par le fournisseur IA existant
+# — voir app/editorial_ai_correction.py). Contenu pédagogique IDENTIQUE à la version
+# Markdown d'origine (question et grille de correction reprises mot pour mot, voir
+# l'historique git de cette section) — seule la structure technique change (zone de
+# réponse + bouton « Corriger » au lieu d'un texte de correction visible sans action).
+# context_key requis : ce sont les premiers items MC01 dont la correction passe par l'IA.
 
-Explique en une ou deux phrases pourquoi on ne peut pas installer n'importe quel
-processeur sur n'importe quelle carte mère.
+_MC01_EXERCICE_3_LONG_ANSWER = EditorialExerciseBlockConfig(
+    mode="practice",
+    context_key="ampcr-mc01",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex3",
+            type="long_answer",
+            prompt=(
+                "Explique en une ou deux phrases pourquoi on ne peut pas installer "
+                "n'importe quel processeur sur n'importe quelle carte mère."
+            ),
+            explanation=(
+                "Le processeur doit être compatible avec le socket de la carte mère (sa "
+                "forme physique de connexion) et avec le chipset qui gère la "
+                "communication entre les composants. Sans cette compatibilité, le CPU ne "
+                "rentre pas physiquement ou ne fonctionne pas."
+            ),
+        )
+    ],
+)
 
-**Correction :** Le processeur doit être compatible avec le socket de la carte mère (sa
-forme physique de connexion) et avec le chipset qui gère la communication entre les
-composants. Sans cette compatibilité, le CPU ne rentre pas physiquement ou ne fonctionne
-pas.
+_MC01_EXERCICE_4_DIAGNOSTIC = EditorialExerciseBlockConfig(
+    mode="practice",
+    context_key="ampcr-mc01",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex4",
+            type="diagnostic",
+            prompt=(
+                "Un PC s'allume (les ventilateurs tournent, les voyants s'éclairent) mais "
+                "rien ne s'affiche à l'écran. En te basant sur le rôle de chaque "
+                "composant, cite deux composants ou connexions à vérifier en priorité, et "
+                "explique pourquoi."
+            ),
+            explanation=(
+                "À vérifier en priorité : la carte graphique (ou la connexion GPU/écran) "
+                "et le câble/connecteur reliant le PC à l'écran, car ce sont eux qui "
+                "produisent et transmettent l'image. Le fait que le PC démarre "
+                "(ventilateurs, voyants) montre que l'alimentation et une partie au moins "
+                "de la carte mère fonctionnent ; le problème est donc probablement "
+                "localisé du côté de l'affichage plutôt que de l'alimentation générale."
+            ),
+        )
+    ],
+)
 
-## Exercice 4 — diagnostiquer
+_MC01_EXERCICE_5_LONG_ANSWER = EditorialExerciseBlockConfig(
+    mode="practice",
+    context_key="ampcr-mc01",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex5",
+            type="long_answer",
+            prompt=(
+                "Explique la différence entre la RAM et le stockage (HDD/SSD) en deux "
+                "points précis."
+            ),
+            explanation=(
+                "1) La RAM est une mémoire de travail temporaire et volatile (son contenu "
+                "est perdu à l'extinction du PC), alors que le stockage conserve les "
+                "données de façon durable, même hors tension. 2) La RAM sert à ce que le "
+                "CPU utilise *pendant* l'exécution d'un programme, alors que le stockage "
+                "conserve les fichiers et programmes *entre* deux utilisations."
+            ),
+        )
+    ],
+)
 
-Un PC s'allume (les ventilateurs tournent, les voyants s'éclairent) mais rien ne
-s'affiche à l'écran. En te basant sur le rôle de chaque composant, cite deux composants ou
-connexions à vérifier en priorité, et explique pourquoi.
+_MC01_EXERCICE_6_LONG_ANSWER = EditorialExerciseBlockConfig(
+    mode="practice",
+    context_key="ampcr-mc01",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex6",
+            type="long_answer",
+            prompt=(
+                "Un ami te dit : « J'ai 32 Go dans mon PC, donc je peux stocker "
+                "énormément de vidéos ! » Explique pourquoi cette phrase est ambiguë, et "
+                "ce qu'il faudrait lui demander pour vérifier si son raisonnement est "
+                "correct."
+            ),
+            explanation=(
+                "La phrase est ambiguë car « 32 Go » peut désigner la RAM ou le stockage, "
+                "qui n'ont rien à voir. 32 Go de RAM ne permet pas de stocker des vidéos "
+                "de façon durable (la RAM est temporaire et bien plus chère au Go) ; il "
+                "faudrait lui demander s'il parle de la RAM ou de la capacité de son "
+                "disque dur/SSD pour savoir combien d'espace de stockage il possède "
+                "réellement."
+            ),
+        )
+    ],
+)
 
-**Correction :** À vérifier en priorité : la carte graphique (ou la connexion GPU/écran) et
-le câble/connecteur reliant le PC à l'écran, car ce sont eux qui produisent et transmettent
-l'image. Le fait que le PC démarre (ventilateurs, voyants) montre que l'alimentation et une
-partie au moins de la carte mère fonctionnent ; le problème est donc probablement localisé
-du côté de l'affichage plutôt que de l'alimentation générale.
-"""
+_MC01_EXERCICE_7_LONG_ANSWER = EditorialExerciseBlockConfig(
+    mode="practice",
+    context_key="ampcr-mc01",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex7",
+            type="long_answer",
+            prompt=(
+                "Explique la différence entre un GPU intégré et une carte graphique "
+                "dédiée, en précisant ce qu'est la VRAM. Donne un exemple de situation où "
+                "chacun est suffisant/nécessaire."
+            ),
+            explanation=(
+                "Un GPU intégré est directement intégré au CPU ou à la carte mère et "
+                "partage la RAM du système ; une carte graphique dédiée est un composant "
+                "séparé, avec sa propre mémoire appelée VRAM, réservée aux calculs "
+                "graphiques. Un GPU intégré suffit pour de la bureautique ou de la vidéo "
+                "classique ; une carte dédiée devient nécessaire pour un jeu vidéo récent "
+                "ou du montage vidéo, qui demandent beaucoup de calcul graphique."
+            ),
+        )
+    ],
+)
 
-_MC01_EXERCICES_2 = r"""## Exercice 5 — expliquer
+_MC01_EXERCICE_8_LONG_ANSWER = EditorialExerciseBlockConfig(
+    mode="practice",
+    context_key="ampcr-mc01",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex8",
+            type="long_answer",
+            prompt=(
+                "Une alimentation est annoncée « 750 W ». Explique ce que signifie "
+                "réellement ce chiffre, et cite une règle de sécurité essentielle à "
+                "propos de ce composant."
+            ),
+            explanation=(
+                "750 W est la puissance **maximale** que l'alimentation peut fournir, pas "
+                "ce qu'elle consomme en permanence : la consommation réelle varie selon "
+                "l'activité du PC à chaque instant. Règle de sécurité : on ne démonte "
+                "jamais une alimentation, même débranchée, car elle peut conserver une "
+                "charge électrique dangereuse dans ses condensateurs."
+            ),
+        )
+    ],
+)
 
-Explique la différence entre la RAM et le stockage (HDD/SSD) en deux points précis.
+_MC01_EXERCICE_10_DIAGNOSTIC = EditorialExerciseBlockConfig(
+    mode="practice",
+    context_key="ampcr-mc01",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex10",
+            type="diagnostic",
+            prompt=(
+                "Un utilisateur se plaint : dès qu'il ouvre plusieurs programmes en même "
+                "temps, son PC ralentit fortement. Son disque dispose pourtant de "
+                "beaucoup d'espace libre. Quel composant est le plus probablement en "
+                "cause, et pourquoi ?"
+            ),
+            explanation=(
+                "La RAM est la piste la plus probable : ouvrir plusieurs programmes en "
+                "même temps demande de plus en plus de mémoire de travail, et si la RAM "
+                "disponible est insuffisante, le système ralentit fortement. Le fait que "
+                "l'espace disque libre soit important écarte un problème de stockage "
+                "plein — le symptôme correspond typiquement à un manque de RAM."
+            ),
+        )
+    ],
+)
 
-**Correction :** 1) La RAM est une mémoire de travail temporaire et volatile (son contenu
-est perdu à l'extinction du PC), alors que le stockage conserve les données de façon
-durable, même hors tension. 2) La RAM sert à ce que le CPU utilise *pendant* l'exécution
-d'un programme, alors que le stockage conserve les fichiers et programmes *entre* deux
-utilisations.
-
-## Exercice 6 — expliquer une ambiguïté
-
-Un ami te dit : « J'ai 32 Go dans mon PC, donc je peux stocker énormément de vidéos ! »
-Explique pourquoi cette phrase est ambiguë, et ce qu'il faudrait lui demander pour vérifier
-si son raisonnement est correct.
-
-**Correction :** La phrase est ambiguë car « 32 Go » peut désigner la RAM ou le stockage,
-qui n'ont rien à voir. 32 Go de RAM ne permet pas de stocker des vidéos de façon durable
-(la RAM est temporaire et bien plus chère au Go) ; il faudrait lui demander s'il parle de
-la RAM ou de la capacité de son disque dur/SSD pour savoir combien d'espace de stockage il
-possède réellement.
-
-## Exercice 7 — expliquer
-
-Explique la différence entre un GPU intégré et une carte graphique dédiée, en précisant ce
-qu'est la VRAM. Donne un exemple de situation où chacun est suffisant/nécessaire.
-
-**Correction :** Un GPU intégré est directement intégré au CPU ou à la carte mère et
-partage la RAM du système ; une carte graphique dédiée est un composant séparé, avec sa
-propre mémoire appelée VRAM, réservée aux calculs graphiques. Un GPU intégré suffit pour de
-la bureautique ou de la vidéo classique ; une carte dédiée devient nécessaire pour un jeu
-vidéo récent ou du montage vidéo, qui demandent beaucoup de calcul graphique.
-
-## Exercice 8 — expliquer
-
-Une alimentation est annoncée « 750 W ». Explique ce que signifie réellement ce chiffre, et
-cite une règle de sécurité essentielle à propos de ce composant.
-
-**Correction :** 750 W est la puissance **maximale** que l'alimentation peut fournir, pas
-ce qu'elle consomme en permanence : la consommation réelle varie selon l'activité du PC à
-chaque instant. Règle de sécurité : on ne démonte jamais une alimentation, même débranchée,
-car elle peut conserver une charge électrique dangereuse dans ses condensateurs.
-"""
-
-_MC01_EXERCICES_3 = r"""## Exercice 10 — diagnostiquer
-
-Un utilisateur se plaint : dès qu'il ouvre plusieurs programmes en même temps, son PC
-ralentit fortement. Son disque dispose pourtant de beaucoup d'espace libre. Quel composant
-est le plus probablement en cause, et pourquoi ?
-
-**Correction :** La RAM est la piste la plus probable : ouvrir plusieurs programmes en même
-temps demande de plus en plus de mémoire de travail, et si la RAM disponible est
-insuffisante, le système ralentit fortement. Le fait que l'espace disque libre soit
-important écarte un problème de stockage plein — le symptôme correspond typiquement à un
-manque de RAM.
-
-## Exercice 12 — vocabulaire
-
-Donne l'équivalent anglais des quatre termes français suivants, et explique brièvement ce
-que désigne chacun : mémoire vive, disque dur, carte mère, alimentation.
-
-**Correction :** Mémoire vive → RAM (*Random Access Memory*), mémoire de travail temporaire
-et volatile. Disque dur → HDD (*Hard Disk Drive*), stockage magnétique durable. Carte mère
-→ Motherboard, support qui interconnecte tous les composants. Alimentation → Power supply /
-PSU (*Power Supply Unit*), transforme et distribue l'énergie électrique aux composants.
-"""
+_MC01_EXERCICE_12_VOCABULARY = EditorialExerciseBlockConfig(
+    mode="practice",
+    context_key="ampcr-mc01",
+    items=[
+        EditorialExerciseItem(
+            exercise_id="mc01-ex12",
+            type="vocabulary",
+            prompt=(
+                "Donne l'équivalent anglais des quatre termes français suivants, et "
+                "explique brièvement ce que désigne chacun : mémoire vive, disque dur, "
+                "carte mère, alimentation."
+            ),
+            explanation=(
+                "Mémoire vive → RAM (*Random Access Memory*), mémoire de travail "
+                "temporaire et volatile. Disque dur → HDD (*Hard Disk Drive*), stockage "
+                "magnétique durable. Carte mère → Motherboard, support qui interconnecte "
+                "tous les composants. Alimentation → Power supply / PSU (*Power Supply "
+                "Unit*), transforme et distribue l'énergie électrique aux composants."
+            ),
+        )
+    ],
+)
 
 # Ticket #21 : exercices 1, 2, 9, 11 migrés en blocs `editorial_exercise` structurés
 # (classification/ordering). Contenu pédagogique identique à la version Markdown d'origine
-# (voir historique git de `_MC01_EXERCICES_1`/`_MC01_EXERCICES_3`) — seule la structure
-# technique change (boutons de catégorie / boutons monter-descendre au lieu d'un texte de
-# correction statique).
+# (voir historique git) — seule la structure technique change (boutons de catégorie /
+# boutons monter-descendre au lieu d'un texte de correction statique).
 
 _MC01_EXERCICE_1_CLASSIFICATION = EditorialExerciseBlockConfig(
     mode="practice",
@@ -2325,25 +2437,52 @@ MC01_BLOCKS = [
         "space": BlockSpace.PRACTICE,
     },
     {
-        # Titre volontairement DIFFÉRENT de la version pré-#21 (qui portait encore Ex1/Ex2)
-        # — ce bloc ne contient plus que les exercices 3 et 4. `MC01_OBSOLETE_TITLES`
-        # référence l'ANCIEN titre pour le retirer sur un staging déjà seedé ; ce nouveau
-        # titre garantit qu'un second `seed-db` ne le recrée pas indéfiniment (règle
-        # générale du projet : un contenu déjà seedé n'est jamais réécrit). Voir le rapport
-        # de ticket, section « Migration du contenu déjà seedé ».
-        "title": "Architecture d'un PC — Exercices (composants et rôles : suite)",
-        "type": BlockType.MARKDOWN,
-        "content": _MC01_EXERCICES_1,
+        # Ticket #29 : titre nouveau (n'était pas un bloc structuré avant), donc aucun
+        # besoin de figurer dans MC01_OBSOLETE_TITLES pour celui-ci.
+        "title": "Exercice 3 — Compatibilité CPU/carte mère (réponse rédigée)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_3_LONG_ANSWER.to_json(),
         "position": 15,
         "is_published": True,
         "space": BlockSpace.PRACTICE,
     },
     {
-        # Inchangé par le ticket #21 (exercices 5 à 8, aucune migration).
-        "title": "Architecture d'un PC — Exercices (2/3 : RAM, stockage, GPU, PSU)",
-        "type": BlockType.MARKDOWN,
-        "content": _MC01_EXERCICES_2,
+        "title": "Exercice 4 — Diagnostic : rien ne s'affiche (diagnostic)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_4_DIAGNOSTIC.to_json(),
         "position": 16,
+        "is_published": True,
+        "space": BlockSpace.PRACTICE,
+    },
+    {
+        "title": "Exercice 5 — RAM et stockage (réponse rédigée)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_5_LONG_ANSWER.to_json(),
+        "position": 17,
+        "is_published": True,
+        "space": BlockSpace.PRACTICE,
+    },
+    {
+        "title": "Exercice 6 — Ambiguïté des Go (réponse rédigée)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_6_LONG_ANSWER.to_json(),
+        "position": 18,
+        "is_published": True,
+        "space": BlockSpace.PRACTICE,
+    },
+    {
+        "title": "Exercice 7 — GPU intégré ou dédié (réponse rédigée)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_7_LONG_ANSWER.to_json(),
+        "position": 19,
+        "is_published": True,
+        "space": BlockSpace.PRACTICE,
+    },
+    {
+        "title": "Exercice 8 — Puissance de l'alimentation (réponse rédigée)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_8_LONG_ANSWER.to_json(),
+        "position": 20,
         "is_published": True,
         "space": BlockSpace.PRACTICE,
     },
@@ -2351,7 +2490,15 @@ MC01_BLOCKS = [
         "title": "Exercice 9 — Lancement d'un programme (ordering)",
         "type": BlockType.EDITORIAL_EXERCISE,
         "content": _MC01_EXERCICE_9_ORDERING.to_json(),
-        "position": 17,
+        "position": 21,
+        "is_published": True,
+        "space": BlockSpace.PRACTICE,
+    },
+    {
+        "title": "Exercice 10 — Diagnostic : le PC ralentit (diagnostic)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_10_DIAGNOSTIC.to_json(),
+        "position": 22,
         "is_published": True,
         "space": BlockSpace.PRACTICE,
     },
@@ -2359,18 +2506,15 @@ MC01_BLOCKS = [
         "title": "Exercice 11 — Entrée, sortie ou mixte (classification)",
         "type": BlockType.EDITORIAL_EXERCISE,
         "content": _MC01_EXERCICE_11_CLASSIFICATION.to_json(),
-        "position": 18,
+        "position": 23,
         "is_published": True,
         "space": BlockSpace.PRACTICE,
     },
     {
-        # Même logique de renommage que ci-dessus : ne contient plus que les exercices 10
-        # et 12 (9 et 11 migrés ci-dessus). Titre différent de l'ancien pour garantir
-        # l'idempotence des seeds ultérieurs.
-        "title": "Architecture d'un PC — Exercices (diagnostic et vocabulaire : suite)",
-        "type": BlockType.MARKDOWN,
-        "content": _MC01_EXERCICES_3,
-        "position": 19,
+        "title": "Exercice 12 — Vocabulaire FR/EN (vocabulaire)",
+        "type": BlockType.EDITORIAL_EXERCISE,
+        "content": _MC01_EXERCICE_12_VOCABULARY.to_json(),
+        "position": 24,
         "is_published": True,
         "space": BlockSpace.PRACTICE,
     },
@@ -2385,7 +2529,7 @@ MC01_BLOCKS = [
                 "L'exercice reste strictement dans la matière de ce mini-cours."
             ),
         ).to_json(),
-        "position": 20,
+        "position": 25,
         "is_published": True,
         "space": BlockSpace.PRACTICE,
     },
@@ -2393,7 +2537,7 @@ MC01_BLOCKS = [
         "title": "Fiche mémo — Architecture générale d'un PC",
         "type": BlockType.MARKDOWN,
         "content": _MC01_MEMO,
-        "position": 21,
+        "position": 26,
         "is_published": True,
         "space": BlockSpace.COURSE,
     },
@@ -2401,7 +2545,7 @@ MC01_BLOCKS = [
         "title": "Examen final — Architecture générale d'un PC (10 questions, 20 points)",
         "type": BlockType.MARKDOWN,
         "content": _MC01_EXAMEN,
-        "position": 22,
+        "position": 27,
         "is_published": True,
         "space": BlockSpace.EXAM,
     },
@@ -2409,7 +2553,7 @@ MC01_BLOCKS = [
         "title": "Examen final — Corrigé (réservé formateur, non publié)",
         "type": BlockType.MARKDOWN,
         "content": _MC01_EXAMEN_CORRIGE,
-        "position": 23,
+        "position": 28,
         "is_published": False,
         "space": BlockSpace.EXAM,
     },

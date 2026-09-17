@@ -15,7 +15,13 @@ soit leur type de bloc.
 Mise à jour ticket #22 : les 12 exercices ne sont plus servis sur `/uaa/{slug}` (page
 Cours, théorie uniquement) mais sur `/uaa/{slug}/practice` (espace S'entraîner) — voir
 docs/claude-reports/2026-09-16_ticket-22_separation-cours-practice-exam.md et
-tests/test_ticket22_no_regression.py."""
+tests/test_ticket22_no_regression.py.
+
+Mise à jour ticket #29 : les 8 exercices restants (3, 4, 5, 6, 7, 8, 10, 12) sont à leur
+tour migrés en blocs `editorial_exercise` (long_answer/diagnostic/vocabulary) — MC01 ne
+contient plus AUCUN bloc Markdown d'exercice. Voir
+docs/claude-reports/2026-09-17_ticket-29_mc01-practice-interactive.md et
+tests/test_ticket29_no_regression.py."""
 
 from app.models import UAA, BlockType, LessonBlock
 from app.seed import MC01_BLOCKS, MC02_BLOCKS, MC03_BLOCKS, seed
@@ -33,8 +39,9 @@ def test_mc01_content_is_untouched_by_ticket_17(client, db_session):
         .filter_by(uaa_id=uaa.id, type=BlockType.EDITORIAL_EXERCISE)
         .count()
     )
-    # 4 exercices MC01 (1, 2, 9, 11) migrés par le ticket #21 — voir docstring du module.
-    assert editorial_blocks == 4
+    # Les 12 exercices MC01 sont désormais tous des blocs editorial_exercise (4 depuis
+    # #21, 8 de plus depuis #29) — voir docstring du module.
+    assert editorial_blocks == 12
 
     # Ticket #22 : les 12 exercices sont désormais sur l'espace S'entraîner, pas Cours.
     response = client.get("/uaa/ampcr-mc01/practice")

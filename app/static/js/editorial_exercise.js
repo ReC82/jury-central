@@ -1,18 +1,24 @@
 /*
  * Jury Central — widget générique des exercices éditoriaux structurés (ticket #17,
- * étendu au #21).
+ * étendu aux #21/#29).
  *
  * Un bloc `.editorial-exercise-block` porte `data-verify-url` (POST accepte
  * {exercise_id, answer}, voir app/practice.py et app/editorial_exercise.py) et
- * `data-items` (JSON, représentation publique — jamais la réponse correcte). Ce fichier
- * construit un composant par item selon son `type` : single_choice, true_false,
- * short_answer (ticket #17), classification, ordering (ticket #21). Aucune correction
- * n'est présente dans le DOM avant l'appel de vérification ; aucun rechargement de page.
+ * `data-items` (JSON, représentation publique — jamais la réponse correcte, jamais la
+ * grille de correction IA). Ce fichier construit un composant par item selon son `type` :
+ * single_choice, true_false, short_answer (ticket #17), classification, ordering
+ * (ticket #21), long_answer, diagnostic, vocabulary (ticket #29). Aucune correction n'est
+ * présente dans le DOM avant l'appel de vérification ; aucun rechargement de page.
  *
  * classification/ordering envoient une réponse `list[int]` (et non une chaîne) : voir
  * `answer: Any` côté serveur (app/practice.py). L'interaction est exclusivement au clic
  * (boutons de catégorie pour classification, boutons monter/descendre pour ordering) —
  * aucun glisser-déposer requis, pour rester utilisable au clavier comme au tactile.
+ *
+ * `item.requires_ai` (ticket #29, jamais un secret — indique seulement la MODALITÉ de
+ * correction) détermine le libellé du bouton (« Vérifier » local / « Corriger » IA) et le
+ * comportement en cas d'échec réseau/503/502 : le champ de saisie reste toujours
+ * utilisable, un message clair s'affiche, jamais la solution, jamais un plantage silencieux.
  */
 
 async function submitEditorialAnswer(verifyUrl, exerciseId, answer) {
@@ -27,25 +33,61 @@ async function submitEditorialAnswer(verifyUrl, exerciseId, answer) {
             }),
         });
     } catch (networkError) {
-        return null;
+        return { ok: false, status: 0 };
     }
+
+    let body = null;
+    try {
+        body = await response.json();
+    } catch (parseError) {
+        body = null;
+    }
+
     if (!response.ok) {
-        return null;
+        return { ok: false, status: response.status, detail: body && body.detail };
     }
-    return response.json();
+    return { ok: true, result: body };
+}
+
+function renderEditorialList(resultBox, title, entries) {
+    if (!entries || !entries.length) {
+        return;
+    }
+    const label = document.createElement("p");
+    label.className = "small fw-semibold mb-1 mt-2";
+    label.textContent = title;
+    resultBox.appendChild(label);
+
+    const list = document.createElement("ul");
+    list.className = "small mb-1 ps-3";
+    entries.forEach((entry) => {
+        const item = document.createElement("li");
+        item.textContent = entry;
+        list.appendChild(item);
+    });
+    resultBox.appendChild(list);
 }
 
 function renderEditorialCorrection(resultBox, result) {
     resultBox.innerHTML = "";
+    resultBox.classList.remove("editorial-exercise-unavailable");
 
     const verdict = document.createElement("p");
     verdict.className = "fw-semibold mb-1 " + (result.correct ? "text-success" : "text-danger");
-    verdict.textContent = result.correct ? "✓ Correct" : "✗ Incorrect";
+    let verdictText = result.correct ? "✓ Correct" : "✗ Incorrect";
+    if (typeof result.points_awarded === "number" && typeof result.points_max === "number") {
+        verdictText += " (" + result.points_awarded + " / " + result.points_max + " points)";
+    }
+    verdict.textContent = verdictText;
     resultBox.appendChild(verdict);
+
+    renderEditorialList(resultBox, "Points forts :", result.strengths);
+    renderEditorialList(resultBox, "Erreurs :", result.errors);
+    renderEditorialList(resultBox, "Manquant :", result.missing);
 
     if (!result.correct && result.correct_answer) {
         const expectedLabel = document.createElement("p");
-        expectedLabel.className = "small text-muted mb-1 fw-semibold";
+        expectedLabel.className = "small text-muted mb-1 fw-semibold mt-2";
         expectedLabel.textContent = "Réponse attendue :";
         resultBox.appendChild(expectedLabel);
 
@@ -57,11 +99,30 @@ function renderEditorialCorrection(resultBox, result) {
 
     if (result.explanation) {
         const explanationBody = document.createElement("div");
-        explanationBody.className = "small text-muted";
+        explanationBody.className = "small text-muted mt-2";
         resultBox.appendChild(explanationBody);
         renderRichContent(explanationBody, result.explanation_html || result.explanation);
     }
 
+    resultBox.classList.remove("d-none");
+}
+
+function renderEditorialUnavailable(resultBox, outcome) {
+    resultBox.innerHTML = "";
+    const message = document.createElement("p");
+    message.className = "small text-muted mb-0 editorial-exercise-unavailable";
+    if (outcome.status === 503) {
+        message.textContent =
+            "Correction IA indisponible sur ce serveur pour le moment. Ta réponse n'a pas " +
+            "été perdue : réessaie dans un instant.";
+    } else if (outcome.status === 404) {
+        message.textContent = "Exercice introuvable. Recharge la page et réessaie.";
+    } else {
+        message.textContent =
+            "La correction n'a pas pu être obtenue (problème réseau ou serveur). " +
+            "Réessaie dans un instant.";
+    }
+    resultBox.appendChild(message);
     resultBox.classList.remove("d-none");
 }
 
@@ -82,10 +143,15 @@ function buildChoiceControl(item, onAnswer) {
         button.textContent = choice;
         button.dataset.index = String(index);
         button.addEventListener("click", () => {
-            Array.from(controls.children).forEach((child) => {
+            const buttons = Array.from(controls.children);
+            buttons.forEach((child) => {
                 child.disabled = true;
             });
-            onAnswer(index);
+            onAnswer(index, () => {
+                buttons.forEach((child) => {
+                    child.disabled = false;
+                });
+            });
         });
         controls.appendChild(button);
     });
@@ -106,18 +172,64 @@ function buildShortAnswerControl(item, onAnswer) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "btn btn-outline-primary editorial-verify-btn";
-    button.textContent = "Vérifier";
+    button.textContent = item.requires_ai ? "Corriger" : "Vérifier";
     button.addEventListener("click", () => {
         if (!input.value.trim()) {
             return;
         }
         input.disabled = true;
         button.disabled = true;
-        onAnswer(input.value);
+        onAnswer(input.value, () => {
+            input.disabled = false;
+            button.disabled = false;
+        });
     });
 
     controls.appendChild(input);
     controls.appendChild(button);
+    return controls;
+}
+
+function buildTextareaControl(item, onAnswer) {
+    const controls = document.createElement("div");
+    controls.className = "mb-2 d-print-none";
+
+    const textarea = document.createElement("textarea");
+    textarea.className = "form-control editorial-textarea-input mb-2";
+    textarea.rows = 5;
+    textarea.setAttribute("aria-label", "Ta réponse");
+    controls.appendChild(textarea);
+
+    const actionRow = document.createElement("div");
+    actionRow.className = "d-flex align-items-center gap-2";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-dark editorial-correct-btn";
+    button.textContent = "Corriger";
+    actionRow.appendChild(button);
+
+    const loading = document.createElement("span");
+    loading.className = "small text-muted d-none";
+    loading.textContent = "Un instant…";
+    actionRow.appendChild(loading);
+
+    controls.appendChild(actionRow);
+
+    button.addEventListener("click", async () => {
+        if (!textarea.value.trim()) {
+            return;
+        }
+        textarea.disabled = true;
+        button.disabled = true;
+        loading.classList.remove("d-none");
+        await onAnswer(textarea.value, () => {
+            textarea.disabled = false;
+            button.disabled = false;
+        });
+        loading.classList.add("d-none");
+    });
+
     return controls;
 }
 
@@ -133,6 +245,8 @@ function buildClassificationControl(item, onAnswer) {
     verifyButton.textContent = "Vérifier";
     verifyButton.disabled = true;
 
+    const groups = [];
+
     item.elements.forEach((element, elementIndex) => {
         const row = document.createElement("div");
         row.className = "mb-3";
@@ -146,6 +260,7 @@ function buildClassificationControl(item, onAnswer) {
         group.className = "d-flex flex-wrap gap-2";
         group.setAttribute("role", "group");
         group.setAttribute("aria-label", "Catégorie pour " + element);
+        groups.push(group);
 
         item.categories.forEach((category, categoryIndex) => {
             const button = document.createElement("button");
@@ -168,10 +283,16 @@ function buildClassificationControl(item, onAnswer) {
     });
 
     verifyButton.addEventListener("click", () => {
-        controls.querySelectorAll("button").forEach((btn) => {
+        const allButtons = controls.querySelectorAll("button");
+        allButtons.forEach((btn) => {
             btn.disabled = true;
         });
-        onAnswer(assignment);
+        onAnswer(assignment, () => {
+            allButtons.forEach((btn) => {
+                btn.disabled = false;
+            });
+            verifyButton.disabled = assignment.some((value) => value === null);
+        });
     });
     controls.appendChild(verifyButton);
 
@@ -248,11 +369,15 @@ function buildOrderingControl(item, onAnswer) {
     verifyButton.className = "btn btn-outline-primary editorial-verify-btn";
     verifyButton.textContent = "Vérifier";
     verifyButton.addEventListener("click", () => {
-        list.querySelectorAll("button").forEach((btn) => {
+        const allButtons = list.querySelectorAll("button");
+        allButtons.forEach((btn) => {
             btn.disabled = true;
         });
         verifyButton.disabled = true;
-        onAnswer(currentOrder);
+        onAnswer(currentOrder, () => {
+            renderList();
+            verifyButton.disabled = false;
+        });
     });
     controls.appendChild(verifyButton);
 
@@ -270,12 +395,14 @@ function initEditorialExerciseItem(container, verifyUrl, item) {
 
     const resultBox = buildResultBox();
 
-    const onAnswer = async (answer) => {
-        const result = await submitEditorialAnswer(verifyUrl, item.exercise_id, answer);
-        if (!result) {
+    const onAnswer = async (answer, reEnable) => {
+        const outcome = await submitEditorialAnswer(verifyUrl, item.exercise_id, answer);
+        if (!outcome.ok) {
+            renderEditorialUnavailable(resultBox, outcome);
+            reEnable();
             return;
         }
-        renderEditorialCorrection(resultBox, result);
+        renderEditorialCorrection(resultBox, outcome.result);
     };
 
     if (item.type === "single_choice" || item.type === "true_false") {
@@ -286,9 +413,16 @@ function initEditorialExerciseItem(container, verifyUrl, item) {
         card.appendChild(buildClassificationControl(item, onAnswer));
     } else if (item.type === "ordering") {
         card.appendChild(buildOrderingControl(item, onAnswer));
+    } else if (
+        item.type === "long_answer" ||
+        item.type === "diagnostic" ||
+        item.type === "vocabulary"
+    ) {
+        card.appendChild(buildTextareaControl(item, onAnswer));
     } else {
-        // Type non pris en charge par cette version du widget (ex. long_answer —
-        // ticket suivant) : pas de contrôle, pas d'appel.
+        // Type non pris en charge par cette version du widget : pas de contrôle, pas
+        // d'appel — ne devrait jamais arriver pour un item publié (voir la validation
+        // stricte à l'auteurisation, app/editorial_exercise.py).
         return;
     }
 
