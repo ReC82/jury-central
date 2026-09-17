@@ -56,6 +56,31 @@ MC01_OBSOLETE_TITLES = {
     "Architecture d'un PC — Exercices (diagnostic et vocabulaire : suite)",
 }
 
+# Ticket #37 : `_seed_uaa` ne met jamais à jour `position` pour un bloc déjà existant
+# (voir sa docstring — au même titre que `content`/`title`/`is_published`, `position` est
+# modifiable depuis l'admin et ne doit donc jamais être écrasé en silence pour un bloc
+# quelconque). Or les 6 blocs ci-dessous existaient déjà AVANT le ticket #29 (créés au
+# #21, ou avant) : ils ont gardé la valeur de `position` de l'époque, alors que les 8
+# nouveaux blocs d'exercices insérés par #29 ont reçu la position actuellement déclarée
+# dans `MC01_BLOCKS` — d'où des positions dupliquées (ex. 16, 17, 18) et un ordre
+# d'affichage incorrect (Exercice 9 et Exercice 11 intercalés), documenté dans le rapport
+# de validation staging du ticket #29. Liste explicite et bornée à MC01 (jamais un
+# mécanisme générique appliqué à tous les blocs, voir `_seed_uaa(reposition_titles=...)`)
+# : seuls ces 6 titres verront leur `position` resynchronisée sur la valeur de
+# `MC01_BLOCKS` si elle diverge, garantissant que les 12 exercices s'affichent dans
+# l'ordre pédagogique strict 1→12 même sur un staging déjà seedé avant ce ticket, sans
+# reset-db. Voir `docs/claude-reports/2026-09-17_ticket-37_mc01-practice-order.md`.
+MC01_PRACTICE_REPOSITION_TITLES = frozenset(
+    {
+        "Exercice 9 — Lancement d'un programme (ordering)",
+        "Exercice 11 — Entrée, sortie ou mixte (classification)",
+        "Architecture d'un PC — Génère ton propre exercice (IA)",
+        "Fiche mémo — Architecture générale d'un PC",
+        "Examen final — Architecture générale d'un PC (10 questions, 20 points)",
+        "Examen final — Corrigé (réservé formateur, non publié)",
+    }
+)
+
 _CONSTANT_FUNCTION_PRESENTATION = r"""# Fonction constante
 
 ## Présentation
@@ -4461,6 +4486,8 @@ def _seed_uaa(
     kept: dict,
     obsolete_titles: frozenset[str] = frozenset(),
     reclassified: dict | None = None,
+    reposition_titles: frozenset[str] = frozenset(),
+    repositioned: dict | None = None,
 ) -> int:
     """Crée (ou complète) une UAA et ses blocs, sans jamais écraser l'existant.
 
@@ -4475,6 +4502,15 @@ def _seed_uaa(
     ajoutée avec la valeur par défaut COURSE, voir `app.database.ensure_schema_migrations`)
     reclasse correctement ses exercices/examens déjà existants vers PRACTICE/EXAM au
     prochain `seed-db`, sans `reset-db` ni duplication de contenu.
+
+    `reposition_titles`/`repositioned` (optionnels, ticket #37) : contrairement à
+    `reclassified`, ce mécanisme n'est PAS appliqué à tous les blocs — `position` est
+    modifiable depuis l'admin (voir `app/admin.py`), donc l'écraser silencieusement pour
+    un bloc quelconque romprait la garantie « un contenu édité depuis l'admin n'est
+    jamais écrasé par un second seed ». Seuls les titres explicitement listés dans
+    `reposition_titles` voient leur `position` resynchronisée sur la valeur déclarée dans
+    `blocks` si elle diverge (voir `MC01_PRACTICE_REPOSITION_TITLES`) ; tout autre bloc
+    garde sa position actuelle, quelle que soit sa valeur.
     """
     uaa = next((u for u in module.uaas if u.code == code), None)
     if uaa is None:
@@ -4513,6 +4549,11 @@ def _seed_uaa(
             if existing_block.space != target_space:
                 existing_block.space = target_space
                 reclassified["blocks"] += 1
+        if repositioned is not None and block_data["title"] in reposition_titles:
+            target_position = block_data["position"]
+            if existing_block.position != target_position:
+                existing_block.position = target_position
+                repositioned["blocks"] += 1
 
     return removed_obsolete
 
@@ -4533,6 +4574,7 @@ def seed() -> None:
     created = {"subjects": 0, "modules": 0, "uaas": 0, "blocks": 0}
     kept = {"subjects": 0, "modules": 0, "uaas": 0, "blocks": 0}
     reclassified = {"blocks": 0}
+    repositioned = {"blocks": 0}
     removed_obsolete = 0
 
     Base.metadata.create_all(engine)
@@ -4572,9 +4614,15 @@ def seed() -> None:
         # (où `space` vaut COURSE partout par défaut) affiche correctement ses exercices en
         # PRACTICE et son examen en EXAM, sans reset-db. Voir le rapport de ticket, section
         # « Migration du contenu déjà seedé (staging) ».
+        # Ticket #37 : `reposition_titles=MC01_PRACTICE_REPOSITION_TITLES` resynchronise en
+        # place la `position` des 6 blocs MC01 créés avant #29 (jamais mise à jour par ce
+        # mécanisme pour aucun autre bloc), corrigeant l'ordre d'affichage des 12 exercices
+        # sur un staging déjà seedé, sans reset-db. Voir
+        # `docs/claude-reports/2026-09-17_ticket-37_mc01-practice-order.md`.
         removed_obsolete += _seed_uaa(
             db, ampcr, MC01_CODE, MC01_TITLE, 1, MC01_BLOCKS, created, kept,
             obsolete_titles=MC01_OBSOLETE_TITLES, reclassified=reclassified,
+            reposition_titles=MC01_PRACTICE_REPOSITION_TITLES, repositioned=repositioned,
         )
         # Mini-cours 02 (ticket #12) : même mécanisme, purement additif — ne touche jamais
         # MC01 ni Mathématiques.
@@ -4608,6 +4656,11 @@ def seed() -> None:
             print(
                 f"  Reclassé (espace pédagogique COURSE/PRACTICE/EXAM mis à jour, "
                 f"contenu inchangé) : {reclassified['blocks']} bloc(s)"
+            )
+        if repositioned["blocks"]:
+            print(
+                f"  Repositionné (ordre d'affichage MC01 corrigé, contenu inchangé) : "
+                f"{repositioned['blocks']} bloc(s)"
             )
     finally:
         db.close()
