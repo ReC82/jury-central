@@ -33,10 +33,11 @@ détectée sur les routes existantes.
   HTTP trop court (20 s) pour la latence réelle de ce modèle de raisonnement sur cet
   appel spécifique**, pas un défaut du code migré par #31.
 
-**REAL_AI_CHAIN = FAIL** (au sens strict demandé : succès de bout en bout via les
-routes réellement déployées, sans contournement). Cause identifiée avec certitude,
-non corrigée dans ce rapport (« aucun nouveau développement » explicitement demandé) —
-voir § 8 pour la recommandation.
+**Mise à jour (même journée, après validation du diagnostic par ChatGPT)** :
+`AI_REQUEST_TIMEOUT_SECONDS` porté de 20 s (défaut) à **60 s** dans
+`/srv/jury-central/.env`, service redémarré, nouvelle génération **et** nouvelle
+correction refaites intégralement via les routes réelles. **Résultat final :
+`REAL_AI_CHAIN = PASS`** — voir §§ 11 à 14.
 
 ---
 
@@ -274,11 +275,157 @@ nécessaire. Décision et exécution laissées à ChatGPT/l'administrateur.
 
 ---
 
+## 11. Décision de configuration : `AI_REQUEST_TIMEOUT_SECONDS=60`
+
+Suite à validation du diagnostic (§ 8.2) par ChatGPT, seule modification autorisée et
+appliquée : `/srv/jury-central/.env`.
+
+```
+$ grep "^AI_REQUEST_TIMEOUT_SECONDS=" /srv/jury-central/.env
+(absente avant modification — confirmé sans afficher aucune autre variable du fichier)
+
+$ echo "AI_REQUEST_TIMEOUT_SECONDS=60" >> /srv/jury-central/.env
+$ grep -c "^AI_REQUEST_TIMEOUT_SECONDS=" /srv/jury-central/.env
+1
+$ grep "^AI_REQUEST_TIMEOUT_SECONDS=" /srv/jury-central/.env
+AI_REQUEST_TIMEOUT_SECONDS=60
+```
+
+Variable absente du fichier (valeur par défaut du code, 20 s, utilisée jusque-là) →
+ajoutée en une seule ligne, une seule occurrence confirmée (pas de doublon). Aucune
+autre ligne du fichier `.env` lue, modifiée ou affichée — en particulier
+`OPENAI_API_KEY` jamais montrée.
+
+```
+$ sudo systemctl restart jury-central.service
+$ systemctl is-active jury-central.service
+active
+$ .venv/bin/python -c "from app.config import settings; print(settings.ai_request_timeout_seconds)"
+60.0
+```
+
+Valeur effective confirmée à 60,0 côté application après redémarrage.
+
+**Vérification post-redémarrage** :
+```
+$ curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8100/health
+200
+$ curl -s -o /dev/null -w "%{http_code}" https://jury-central.lodylands.com/health
+200
+```
+
+Aucune modification de nginx, Certbot, systemd, code applicatif, ni de la base de
+données. Seule la valeur de `AI_REQUEST_TIMEOUT_SECONDS` dans `.env` a changé.
+
+---
+
+## 12. Nouvelle génération réelle (après augmentation du timeout)
+
+**Requête** : `{"block_id": 79, "difficulty": "moyen"}`
+
+**Résultat** : **HTTP 200**, ~8 s de latence (log serveur : `08:29:12 ... "POST
+/practice/api/ai/generate HTTP/1.1" 200 OK`).
+
+**Exercice généré** (nouveau, différent du § 6 — chaque génération est unique) :
+- `exercise_type` : `"mise en situation"`
+- `statement` (résumé) : mise en situation autour d'un PC (SSD, CPU 4 cœurs, 8 Go de
+  RAM, graphics card 4 Go de VRAM, motherboard, PSU 500 W, clavier/souris/écran),
+  demandant de distinguer hardware/software, classer les périphériques input/output,
+  décrire le chemin storage → RAM → CPU → GPU → écran, expliquer motherboard/PSU, et
+  utiliser au moins six termes du vocabulaire attendu.
+- `statement_token` : signature HMAC présente, valeur omise (comme au § 6, sans
+  utilité pour le rapport).
+
+Aucun 502, aucun HTTP 400 OpenAI.
+
+---
+
+## 13. Nouvelle correction réelle VIA LA ROUTE (après augmentation du timeout)
+
+**Réponse candidate de test** (volontairement imparfaite mais pertinente, nouvelles
+erreurs délibérées : hardware/software inversés, input/output inversés, RAM présentée
+comme stockage permanent, motherboard réduite au rôle du PSU) :
+
+```
+Le hardware c'est le clavier, la souris et l'écran, et le software c'est tout ce qui
+est à l'intérieur du boîtier comme le CPU et la RAM. Le clavier et la souris servent à
+donner des informations à l'ordinateur donc ce sont des périphériques d'output, et
+l'écran reçoit l'image donc c'est un input. Quand on lance le logiciel, le CPU va
+chercher les données directement sur le SSD et les affiche sur l'écran. La RAM sert à
+stocker les documents de façon définitive, comme le SSD, donc si on éteint le PC les
+données restent dans la RAM. La motherboard sert uniquement à donner l'électricité aux
+composants, c'est le même rôle que le power supply.
+```
+
+**Requête** : `POST /practice/api/ai/correct`, `block_id=79`,
+`exercise_statement`/`exercise_type`/`statement_token` repris exactement de la
+génération du § 12, `difficulty="moyen"`, `answer` ci-dessus.
+
+**Résultat : HTTP 200**, **durée ≈ 38 s** (log serveur : requête à `08:29:59`, appel de
+génération précédent à `08:29:12` → correction lancée juste après, complétée en une
+seule requête sans retry ni timeout ; mesure par chronométrage du `curl` local :
+`duration=38s`). Aucun 502, aucun timeout, aucune erreur fournisseur.
+
+**Résultat de correction reçu** (texte intégral, aucun secret) :
+- `score` : `2` / `max_score` : `10`
+- `appreciation` : « La réponse utilise plusieurs termes du vocabulaire demandé et
+  identifie correctement l'idée générale que le clavier et la souris servent à
+  transmettre des informations à l'ordinateur. Cependant, plusieurs rôles essentiels
+  des composants et le chemin des données sont inversés ou incomplets. »
+- `correct_points` (3) : clavier/souris bien présentés comme transmettant des
+  informations à l'ordinateur ; vocabulaire attendu employé (hardware, software, CPU,
+  RAM, SSD, motherboard, power supply) ; composants correctement cités même si mal
+  expliqués.
+- `errors` (10 points détaillés) : hardware/software correctement redéfinis
+  (l'ensemble du matériel vs les logiciels) ; input/output du clavier/souris/écran
+  corrigés ; chemin storage → RAM → CPU → GPU → écran rétabli et complété ; rôle exact
+  du CPU (exécution d'instructions, pas simple lecture-affichage) ; volatilité de la
+  RAM rétablie face à la persistance du SSD ; rôle du GPU (absent de la réponse)
+  expliqué ; rôle réel de la motherboard (liaison/communication des composants, pas
+  alimentation électrique) distingué de celui du PSU ; caractéristiques numériques de
+  l'énoncé (4 cœurs, 8 Go, 4 Go de VRAM, 500 W) signalées comme non exploitées.
+- `expected_answer_explained` : explication complète et correcte, reprenant
+  explicitement les caractéristiques numériques de l'énoncé (CPU 4 cœurs, VRAM 4 Go,
+  PSU 500 W).
+
+**Analyse** : la correction est sémantiquement précise, détecte exactement les 4
+catégories d'erreurs délibérément introduites, et va au-delà d'une simple détection
+d'erreur en exploitant les détails numériques spécifiques de l'énoncé généré au § 12 —
+preuve que le modèle traite réellement le contenu généré, pas une réponse générique.
+
+---
+
+## 14. Conclusion finale
+
+| Étape | Avant (`AI_REQUEST_TIMEOUT_SECONDS=20`, défaut) | Après (`=60`) |
+|---|---|---|
+| Génération via la route | HTTP 200 (~10 s) | HTTP 200 (~8 s) |
+| Correction via la route | **HTTP 502** (timeout, ×2 reproductible) | **HTTP 200** (~38 s) |
+
+**Critères du ticket, tous vérifiés** :
+- `GENERATE_HTTP=200` ;
+- `CORRECT_HTTP=200` ;
+- correction sémantique exploitable (§ 13) ;
+- aucun timeout, aucun 502 ;
+- aucun secret dans les sorties/logs (vérifié à chaque étape, `OPENAI_API_KEY` jamais
+  affichée ni journalisée) ;
+- aucune modification de nginx/Certbot/systemd/base de données ; seule
+  `AI_REQUEST_TIMEOUT_SECONDS` changée dans `.env`, `.env` jamais commité.
+
+**`REAL_AI_CHAIN = PASS`**, cette fois au sens strict de bout en bout via les routes
+réellement exposées, sans aucun contournement. La migration Responses API du ticket
+#31 est validée en conditions réelles pour les deux opérations (génération et
+correction), avec le modèle réellement configuré sur staging (`gpt-5.6-luna`).
+
+---
+
 ## Statut
 
-Déploiement effectué avec succès. Validation réelle de la chaîne IA effectuée
-intégralement (génération et correction, avec un vrai appel OpenAI, aucun mock).
-Résultat rapporté honnêtement : génération opérationnelle en conditions réelles,
-correction fonctionnelle mais bridée par un timeout HTTP trop court pour ce modèle sur
-cet appel. Aucune modification de code, de configuration, de nginx, Certbot, systemd,
-ni d'aucun autre service AWS. Ticket #29 non démarré. En attente de ChatGPT.
+Déploiement effectué avec succès (PR #32, `e28d502`). Validation réelle de la chaîne
+IA effectuée intégralement à deux reprises : une première fois révélant un timeout HTTP
+trop court (20 s) pour la correction, corrigée par un ajustement de configuration
+autorisé (`AI_REQUEST_TIMEOUT_SECONDS=60`), puis une seconde fois confirmant un succès
+complet de bout en bout (génération + correction, HTTP 200, aucun timeout, correction
+sémantique exploitable). Aucune modification de code, de nginx, Certbot, systemd, ni de
+la base de données. `.env` jamais commité, `OPENAI_API_KEY` jamais affichée. Ticket #29
+non démarré. **`REAL_AI_CHAIN = PASS`** — en attente de ChatGPT.
