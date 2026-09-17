@@ -62,7 +62,7 @@ def test_mc01_covers_the_mandatory_content(client, db_session):
     assert "Lecteur de disquettes" in text
 
 
-def test_mc01_has_twelve_exercises_with_hidden_corrections(client, db_session):
+def test_mc01_has_twelve_exercises_with_hidden_corrections(authenticated_client, db_session):
     """Depuis le ticket #22, les 12 exercices sont sur la page S'entraîner
     (`/uaa/{slug}/practice`). Depuis le ticket #29, les 12 sont des blocs
     `editorial_exercise` structurés (plus aucun Markdown statique) : aucune correction
@@ -70,7 +70,7 @@ def test_mc01_has_twelve_exercises_with_hidden_corrections(client, db_session):
     tests/test_ticket29_no_regression.py pour la non-régression détaillée."""
     seed()
 
-    response = client.get("/uaa/ampcr-mc01/practice")
+    response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     text = response.text
 
     # Les 12 énoncés sont présents (titre de carte = titre du bloc, ex.
@@ -93,11 +93,11 @@ def test_mc01_has_twelve_exercises_with_hidden_corrections(client, db_session):
     assert '"rubric"' not in text
 
 
-def test_exam_is_published_without_visible_correction(client, db_session):
+def test_exam_is_published_without_visible_correction(authenticated_client, db_session):
     """Depuis le ticket #22, l'examen est sur la page S'évaluer (`/uaa/{slug}/exam`)."""
     seed()
 
-    response = client.get("/uaa/ampcr-mc01/exam")
+    response = authenticated_client.get("/uaa/ampcr-mc01/exam")
     text = response.text
 
     assert "Examen final" in text

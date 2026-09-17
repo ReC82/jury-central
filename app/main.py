@@ -21,6 +21,8 @@ from app.practice import router as practice_router
 from app.quiz import QuizConfig
 from app.templating import templates
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
+from app.v1.auth import require_user
+from app.v1.routes import router as v1_auth_router
 from app.value_table import value_table_public_dict
 from generators.base import GeneratedExercise
 from generators.exercise_types import InteractiveExercise
@@ -31,10 +33,18 @@ Base.metadata.create_all(bind=engine)
 ensure_schema_migrations()
 
 app = FastAPI(title="Jury Central")
-app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
+# `https_only` : voir app/config.py::Settings.app_env — False tant que .env ne déclare
+# pas explicitement APP_ENV=staging/prod (comportement inchangé par défaut, voir
+# docs/auth_v1.md, § Session).
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.secret_key,
+    https_only=settings.app_env in ("staging", "prod"),
+)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 app.include_router(admin_router)
 app.include_router(practice_router)
+app.include_router(v1_auth_router)
 
 
 @app.get("/health")
@@ -249,7 +259,10 @@ async def uaa_detail(
 
 @app.get("/uaa/{uaa_slug}/practice", response_class=HTMLResponse)
 async def uaa_practice(
-    uaa_slug: str, request: Request, db: Session = Depends(get_db)  # noqa: B008
+    uaa_slug: str,
+    request: Request,
+    db: Session = Depends(get_db),  # noqa: B008
+    _user=Depends(require_user),  # noqa: B008
 ) -> HTMLResponse:
     uaa = _get_published_uaa(uaa_slug, db)
     rendered_blocks, needs_plotly = _render_lesson_blocks(
@@ -270,7 +283,10 @@ async def uaa_practice(
 
 @app.get("/uaa/{uaa_slug}/exam", response_class=HTMLResponse)
 async def uaa_exam(
-    uaa_slug: str, request: Request, db: Session = Depends(get_db)  # noqa: B008
+    uaa_slug: str,
+    request: Request,
+    db: Session = Depends(get_db),  # noqa: B008
+    _user=Depends(require_user),  # noqa: B008
 ) -> HTMLResponse:
     uaa = _get_published_uaa(uaa_slug, db)
     rendered_blocks, needs_plotly = _render_lesson_blocks(

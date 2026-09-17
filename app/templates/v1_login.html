@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-sm-8 col-md-5">
+        <div class="p-4 bg-white rounded shadow-sm">
+            <h1 class="h4 mb-4">Connexion</h1>
+
+            {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+            {% endif %}
+
+            <form method="post" action="/login">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="next" value="{{ next }}">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        name="email"
+                        autocomplete="email"
+                        required
+                        autofocus>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="password"
+                        name="password"
+                        autocomplete="current-password"
+                        required>
+                </div>
+                <button type="submit" class="btn btn-dark w-100">Se connecter</button>
+            </form>
+
+            <p class="mt-3 mb-0 small text-center">
+                Pas encore de compte ?
+                <a href="/register">Créer un compte</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

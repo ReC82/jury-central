@@ -66,10 +66,10 @@ def _create_editorial_block(db_session, *, is_published: bool = True) -> LessonB
     return block
 
 
-def test_verify_correct_single_choice_answer(client, db_session):
+def test_verify_correct_single_choice_answer(authenticated_client, db_session):
     block = _create_editorial_block(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "q1", "answer": "0"},
     )
@@ -81,10 +81,10 @@ def test_verify_correct_single_choice_answer(client, db_session):
     assert data["explanation"]
 
 
-def test_verify_incorrect_single_choice_answer(client, db_session):
+def test_verify_incorrect_single_choice_answer(authenticated_client, db_session):
     block = _create_editorial_block(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "q1", "answer": "1"},
     )
@@ -95,10 +95,10 @@ def test_verify_incorrect_single_choice_answer(client, db_session):
     assert data["correct_answer"] == "Oui"
 
 
-def test_verify_short_answer_correct_and_normalized(client, db_session):
+def test_verify_short_answer_correct_and_normalized(authenticated_client, db_session):
     block = _create_editorial_block(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "q2", "answer": "  ram  "},
     )
@@ -107,10 +107,10 @@ def test_verify_short_answer_correct_and_normalized(client, db_session):
     assert response.json()["correct"] is True
 
 
-def test_verify_correct_classification_answer(client, db_session):
+def test_verify_correct_classification_answer(authenticated_client, db_session):
     block = _create_editorial_block(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "q3", "answer": [0, 1]},
     )
@@ -121,10 +121,10 @@ def test_verify_correct_classification_answer(client, db_session):
     assert "Carte graphique" in data["correct_answer"]
 
 
-def test_verify_incorrect_classification_answer(client, db_session):
+def test_verify_incorrect_classification_answer(authenticated_client, db_session):
     block = _create_editorial_block(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "q3", "answer": [1, 1]},
     )
@@ -133,10 +133,10 @@ def test_verify_incorrect_classification_answer(client, db_session):
     assert response.json()["correct"] is False
 
 
-def test_verify_correct_ordering_answer(client, db_session):
+def test_verify_correct_ordering_answer(authenticated_client, db_session):
     block = _create_editorial_block(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "q4", "answer": [0, 1]},
     )
@@ -147,10 +147,10 @@ def test_verify_correct_ordering_answer(client, db_session):
     assert "Lecture SSD" in data["correct_answer"]
 
 
-def test_verify_incorrect_ordering_answer(client, db_session):
+def test_verify_incorrect_ordering_answer(authenticated_client, db_session):
     block = _create_editorial_block(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "q4", "answer": [1, 0]},
     )
@@ -159,10 +159,10 @@ def test_verify_incorrect_ordering_answer(client, db_session):
     assert response.json()["correct"] is False
 
 
-def test_verify_unknown_exercise_id_returns_404(client, db_session):
+def test_verify_unknown_exercise_id_returns_404(authenticated_client, db_session):
     block = _create_editorial_block(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "does-not-exist", "answer": "0"},
     )
@@ -170,10 +170,10 @@ def test_verify_unknown_exercise_id_returns_404(client, db_session):
     assert response.status_code == 404
 
 
-def test_verify_unknown_block_id_returns_404(client, db_session):
+def test_verify_unknown_block_id_returns_404(authenticated_client, db_session):
     _create_editorial_block(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         "/practice/api/editorial/999999/verify",
         json={"exercise_id": "q1", "answer": "0"},
     )
@@ -181,10 +181,10 @@ def test_verify_unknown_block_id_returns_404(client, db_session):
     assert response.status_code == 404
 
 
-def test_verify_unpublished_block_returns_404(client, db_session):
+def test_verify_unpublished_block_returns_404(authenticated_client, db_session):
     block = _create_editorial_block(db_session, is_published=False)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "q1", "answer": "0"},
     )
@@ -192,7 +192,7 @@ def test_verify_unpublished_block_returns_404(client, db_session):
     assert response.status_code == 404
 
 
-def test_verify_wrong_block_type_returns_404(client, db_session):
+def test_verify_wrong_block_type_returns_404(authenticated_client, db_session):
     subject = Subject(name="Matière test 2", slug="matiere-test-2")
     db_session.add(subject)
     db_session.flush()
@@ -208,7 +208,7 @@ def test_verify_wrong_block_type_returns_404(client, db_session):
     db_session.add(markdown_block)
     db_session.commit()
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{markdown_block.id}/verify",
         json={"exercise_id": "q1", "answer": "0"},
     )

@@ -19,6 +19,8 @@ from app.editorial_exercise import EditorialExerciseBlockConfig, check_editorial
 from app.exercise_blocks import exercise_to_public_dict
 from app.quiz import QuizConfig
 from app.templating import templates
+from app.v1.auth import require_user_api
+from app.v1.models import User
 from app.value_table import check_value_table_answers
 from generators.base import GeneratedExercise
 from generators.exercise_types import InteractiveExercise
@@ -197,12 +199,17 @@ def _resolve_pedagogical_context(config: AIExerciseBlockConfig):
 
 @router.post("/api/ai/generate")
 async def api_generate_ai_exercise(
-    payload: GenerateAIExerciseRequest, db: Session = Depends(get_db)  # noqa: B008
+    payload: GenerateAIExerciseRequest,
+    db: Session = Depends(get_db),  # noqa: B008
+    _user: User = Depends(require_user_api),  # noqa: B008
 ) -> JSONResponse:
     """Génère un exercice à la demande, borné au contexte pédagogique du cours (voir
     app/ai/context.py). Ne stocke jamais l'exercice : l'énoncé est signé (HMAC) et renvoyé
     tel quel au client, qui devra le re-présenter intact pour la correction (voir
-    app/ai/integrity.py)."""
+    app/ai/integrity.py).
+
+    Protégée par authentification (ticket #39) : fait partie de l'expérience
+    S'entraîner, dont la page (`/uaa/{slug}/practice`) exige désormais un compte."""
     config = _load_ai_exercise_config(payload.block_id, db)
     pedagogical_context = _resolve_pedagogical_context(config)
 
@@ -231,11 +238,15 @@ async def api_generate_ai_exercise(
 
 @router.post("/api/ai/correct")
 async def api_correct_ai_exercise(
-    payload: CorrectAIExerciseRequest, db: Session = Depends(get_db)  # noqa: B008
+    payload: CorrectAIExerciseRequest,
+    db: Session = Depends(get_db),  # noqa: B008
+    _user: User = Depends(require_user_api),  # noqa: B008
 ) -> JSONResponse:
     """Corrige une réponse via l'IA. La réponse du candidat est transmise au fournisseur
     comme une donnée à évaluer, jamais comme une instruction (voir app/ai/prompts.py) ;
-    aucune correction IA ne modifie jamais le contenu du bloc en base."""
+    aucune correction IA ne modifie jamais le contenu du bloc en base.
+
+    Protégée par authentification (ticket #39) : voir `api_generate_ai_exercise`."""
     config = _load_ai_exercise_config(payload.block_id, db)
     pedagogical_context = _resolve_pedagogical_context(config)
 
@@ -279,7 +290,10 @@ async def api_correct_ai_exercise(
 
 @router.post("/api/editorial/{block_id}/verify")
 async def api_verify_editorial_exercise(
-    block_id: int, payload: VerifyEditorialExerciseRequest, db: Session = Depends(get_db)  # noqa: B008
+    block_id: int,
+    payload: VerifyEditorialExerciseRequest,
+    db: Session = Depends(get_db),  # noqa: B008
+    _user: User = Depends(require_user_api),  # noqa: B008
 ) -> JSONResponse:
     """Vérifie la réponse à un item d'un bloc `editorial_exercise` (ticket #17, étendu au
     #29). Le serveur recharge toujours la configuration complète depuis la base : aucune
@@ -289,7 +303,12 @@ async def api_verify_editorial_exercise(
     classification/ordering) : corrigés localement, inchangé depuis #17/#21. Types
     nécessitant une appréciation sémantique (long_answer/diagnostic, ou short_answer/
     vocabulary sans accepted_answers) : corrigés via le fournisseur IA existant (#23),
-    voir `app/editorial_ai_correction.py` — jamais un second moteur IA."""
+    voir `app/editorial_ai_correction.py` — jamais un second moteur IA.
+
+    Protégée par authentification (ticket #39) : tous les blocs `editorial_exercise`
+    actuellement seedés sont en espace PRACTICE (voir
+    docs/claude-reports/2026-09-17_ticket-39_v1-auth.md, audit) — cette route fait donc
+    intégralement partie de l'expérience S'entraîner désormais réservée aux comptes."""
     block = db.get(models.LessonBlock, block_id)
     if (
         block is None

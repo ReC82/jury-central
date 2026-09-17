@@ -46,7 +46,7 @@ def test_the_four_ticket21_exercises_are_still_editorial_exercise_blocks(client,
     }.issubset(titles)
 
 
-def test_migrated_exercises_no_longer_appear_in_markdown_form(client, db_session):
+def test_migrated_exercises_no_longer_appear_in_markdown_form(authenticated_client, db_session):
     """Les exercices 1, 2, 9, 11 ne doivent plus exister sous leur ancien texte Markdown —
     aucun doublon entre le bloc structuré et un reliquat statique."""
     seed()
@@ -62,7 +62,7 @@ def test_migrated_exercises_no_longer_appear_in_markdown_form(client, db_session
     assert "## Exercice 11 — classer" not in markdown_text
 
     # Ticket #22 : les exercices sont désormais sur l'espace S'entraîner, pas Cours.
-    response = client.get("/uaa/ampcr-mc01/practice")
+    response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     assert response.status_code == 200
     assert response.text.count("Exercice 1 —") == 1
     assert response.text.count("Exercice 2 —") == 1

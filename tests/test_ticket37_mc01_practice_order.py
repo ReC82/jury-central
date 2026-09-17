@@ -123,12 +123,12 @@ def _practice_exercise_titles_in_order(client) -> list[str]:
 # --- Reproduction du problème -----------------------------------------------------------
 
 
-def test_drifted_state_reproduces_the_reported_wrong_order(client, db_session):
+def test_drifted_state_reproduces_the_reported_wrong_order(authenticated_client, db_session):
     """Confirme que l'état reconstruit reproduit bien l'ordre erroné observé en staging
     (1, 2, 3, 4, 9, 5, 11, 6, 7, 8, 10, 12) — avant toute correction."""
     _build_drifted_staging_state(db_session)
 
-    titles = _practice_exercise_titles_in_order(client)
+    titles = _practice_exercise_titles_in_order(authenticated_client)
     numbers = [int(t.split()[1]) for t in titles]
     assert numbers == [1, 2, 3, 4, 9, 5, 11, 6, 7, 8, 10, 12]
 
@@ -143,13 +143,13 @@ def test_drifted_state_has_position_collisions(db_session):
 # --- Correction par migration additive/idempotente ---------------------------------------
 
 
-def test_seed_fixes_the_order_on_a_drifted_staging_state(client, db_session):
+def test_seed_fixes_the_order_on_a_drifted_staging_state(authenticated_client, db_session):
     _build_drifted_staging_state(db_session)
 
     seed()
     db_session.expire_all()
 
-    titles = _practice_exercise_titles_in_order(client)
+    titles = _practice_exercise_titles_in_order(authenticated_client)
     numbers = [int(t.split()[1]) for t in titles]
     assert numbers == list(range(1, 13))
 
@@ -165,12 +165,12 @@ def test_seed_removes_all_position_collisions(db_session):
     assert len(positions) == len(set(positions)), f"positions dupliquées : {positions}"
 
 
-def test_fresh_seed_already_has_the_correct_order(client, db_session):
+def test_fresh_seed_already_has_the_correct_order(authenticated_client, db_session):
     """Une base jamais seedée (ou déjà à jour) doit directement afficher le bon ordre —
     la migration ne doit pas être requise pour un nouveau déploiement."""
     seed()
 
-    titles = _practice_exercise_titles_in_order(client)
+    titles = _practice_exercise_titles_in_order(authenticated_client)
     numbers = [int(t.split()[1]) for t in titles]
     assert numbers == list(range(1, 13))
 
@@ -268,7 +268,7 @@ def test_exam_blocks_unaffected_by_repositioning(db_session):
     }
 
 
-def test_local_correction_still_works_after_fix(client, db_session):
+def test_local_correction_still_works_after_fix(authenticated_client, db_session):
     """Classification (Exercice 1) toujours corrigeable localement après repositionnement."""
     _build_drifted_staging_state(db_session)
     seed()
@@ -276,7 +276,7 @@ def test_local_correction_still_works_after_fix(client, db_session):
     uaa = _mc01_uaa(db_session)
     ex1 = next(b for b in uaa.lesson_blocks if b.title.startswith("Exercice 1"))
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{ex1.id}/verify",
         json={"exercise_id": "mc01-ex1", "answer": [0, 1, 0, 1, 0]},
     )
