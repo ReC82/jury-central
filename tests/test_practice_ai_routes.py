@@ -20,11 +20,11 @@ def _get_ai_block_id(db_session) -> int:
     return block.id
 
 
-def test_generate_without_configuration_returns_clear_503(client, db_session):
+def test_generate_without_configuration_returns_clear_503(authenticated_client, db_session):
     seed()
     block_id = _get_ai_block_id(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         "/practice/api/ai/generate", json={"block_id": block_id, "difficulty": "facile"}
     )
 
@@ -32,32 +32,32 @@ def test_generate_without_configuration_returns_clear_503(client, db_session):
     assert "configurée" in response.json()["detail"].lower()
 
 
-def test_generate_unknown_block_returns_404(client, db_session):
+def test_generate_unknown_block_returns_404(authenticated_client, db_session):
     seed()
-    response = client.post(
+    response = authenticated_client.post(
         "/practice/api/ai/generate", json={"block_id": 999999, "difficulty": "facile"}
     )
     assert response.status_code == 404
 
 
-def test_generate_rejects_invalid_difficulty(client, db_session):
+def test_generate_rejects_invalid_difficulty(authenticated_client, db_session):
     seed()
     block_id = _get_ai_block_id(db_session)
 
-    response = client.post(
+    response = authenticated_client.post(
         "/practice/api/ai/generate", json={"block_id": block_id, "difficulty": "impossible"}
     )
     assert response.status_code == 422
 
 
-def test_generate_with_fake_provider_returns_signed_exercise(client, db_session, monkeypatch):
+def test_generate_with_fake_provider_returns_signed_exercise(authenticated_client, db_session, monkeypatch):
     seed()
     block_id = _get_ai_block_id(db_session)
 
     fake = FakeAIProvider()
     monkeypatch.setattr("app.practice.get_ai_provider", lambda: fake)
 
-    response = client.post(
+    response = authenticated_client.post(
         "/practice/api/ai/generate", json={"block_id": block_id, "difficulty": "moyen"}
     )
 
@@ -73,19 +73,19 @@ def test_generate_with_fake_provider_returns_signed_exercise(client, db_session,
     assert "api_key" not in str(data).lower()
 
 
-def test_correct_with_fake_provider_returns_structured_result(client, db_session, monkeypatch):
+def test_correct_with_fake_provider_returns_structured_result(authenticated_client, db_session, monkeypatch):
     seed()
     block_id = _get_ai_block_id(db_session)
 
     fake = FakeAIProvider()
     monkeypatch.setattr("app.practice.get_ai_provider", lambda: fake)
 
-    generate_response = client.post(
+    generate_response = authenticated_client.post(
         "/practice/api/ai/generate", json={"block_id": block_id, "difficulty": "difficile"}
     )
     generated = generate_response.json()
 
-    correct_response = client.post(
+    correct_response = authenticated_client.post(
         "/practice/api/ai/correct",
         json={
             "block_id": block_id,
@@ -115,18 +115,18 @@ def test_correct_with_fake_provider_returns_structured_result(client, db_session
     assert fake.correct_calls[0][4] == "Le CPU exécute les instructions du programme."
 
 
-def test_correct_rejects_tampered_statement(client, db_session, monkeypatch):
+def test_correct_rejects_tampered_statement(authenticated_client, db_session, monkeypatch):
     seed()
     block_id = _get_ai_block_id(db_session)
 
     fake = FakeAIProvider()
     monkeypatch.setattr("app.practice.get_ai_provider", lambda: fake)
 
-    generated = client.post(
+    generated = authenticated_client.post(
         "/practice/api/ai/generate", json={"block_id": block_id, "difficulty": "facile"}
     ).json()
 
-    tampered_response = client.post(
+    tampered_response = authenticated_client.post(
         "/practice/api/ai/correct",
         json={
             "block_id": block_id,
@@ -142,9 +142,9 @@ def test_correct_rejects_tampered_statement(client, db_session, monkeypatch):
     assert len(fake.correct_calls) == 0  # le fournisseur n'est jamais appelé
 
 
-def test_correct_unknown_block_returns_404(client, db_session):
+def test_correct_unknown_block_returns_404(authenticated_client, db_session):
     seed()
-    response = client.post(
+    response = authenticated_client.post(
         "/practice/api/ai/correct",
         json={
             "block_id": 999999,

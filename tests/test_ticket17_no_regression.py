@@ -27,7 +27,7 @@ from app.models import UAA, BlockType, LessonBlock
 from app.seed import MC01_BLOCKS, MC02_BLOCKS, MC03_BLOCKS, seed
 
 
-def test_mc01_content_is_untouched_by_ticket_17(client, db_session):
+def test_mc01_content_is_untouched_by_ticket_17(authenticated_client, db_session):
     seed()
 
     uaa = db_session.query(UAA).filter_by(code="MC01").first()
@@ -44,7 +44,7 @@ def test_mc01_content_is_untouched_by_ticket_17(client, db_session):
     assert editorial_blocks == 12
 
     # Ticket #22 : les 12 exercices sont désormais sur l'espace S'entraîner, pas Cours.
-    response = client.get("/uaa/ampcr-mc01/practice")
+    response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     assert response.status_code == 200
     for n in range(1, 13):
         assert f"Exercice {n} —" in response.text

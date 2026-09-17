@@ -166,9 +166,9 @@ def test_javascript_widget_handles_all_twelve_types():
 # --- Aucune correction visible au chargement --------------------------------------------
 
 
-def test_no_correction_visible_in_initial_html_for_any_exercise(client, db_session):
+def test_no_correction_visible_in_initial_html_for_any_exercise(authenticated_client, db_session):
     seed()
-    response = client.get("/uaa/ampcr-mc01/practice")
+    response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     assert response.status_code == 200
     text = response.text
 
@@ -190,14 +190,14 @@ def test_no_correction_visible_in_initial_html_for_any_exercise(client, db_sessi
 # --- Classification / ordering (#21) toujours fonctionnels -----------------------------
 
 
-def test_classification_still_corrects_deterministically(client, db_session):
+def test_classification_still_corrects_deterministically(authenticated_client, db_session):
     seed()
     block = next(
         b
         for b in _mc01_editorial_blocks(db_session)
         if "mc01-ex1" in b.content
     )
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "mc01-ex1", "answer": [0, 1, 0, 1, 0]},
     )
@@ -205,14 +205,14 @@ def test_classification_still_corrects_deterministically(client, db_session):
     assert response.json()["correct"] is True
 
 
-def test_ordering_still_corrects_deterministically(client, db_session):
+def test_ordering_still_corrects_deterministically(authenticated_client, db_session):
     seed()
     block = next(
         b
         for b in _mc01_editorial_blocks(db_session)
         if "mc01-ex9" in b.content
     )
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "mc01-ex9", "answer": [1, 3, 2, 0]},
     )
@@ -224,7 +224,7 @@ def test_ordering_still_corrects_deterministically(client, db_session):
 
 
 def test_long_answer_correction_uses_fake_provider_via_existing_contract(
-    client, db_session, monkeypatch
+    authenticated_client, db_session, monkeypatch
 ):
     seed()
     block = next(
@@ -233,7 +233,7 @@ def test_long_answer_correction_uses_fake_provider_via_existing_contract(
     fake = FakeAIProvider()
     monkeypatch.setattr("app.practice.get_ai_provider", lambda: fake)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "mc01-ex3", "answer": "Une réponse de test suffisamment longue."},
     )
@@ -245,7 +245,7 @@ def test_long_answer_correction_uses_fake_provider_via_existing_contract(
     assert fake.semantic_calls == [(("mc01-ex3",), "standard")]
 
 
-def test_diagnostic_correction_uses_fake_provider(client, db_session, monkeypatch):
+def test_diagnostic_correction_uses_fake_provider(authenticated_client, db_session, monkeypatch):
     seed()
     block = next(
         b for b in _mc01_editorial_blocks(db_session) if "mc01-ex4" in b.content
@@ -253,7 +253,7 @@ def test_diagnostic_correction_uses_fake_provider(client, db_session, monkeypatc
     fake = FakeAIProvider()
     monkeypatch.setattr("app.practice.get_ai_provider", lambda: fake)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "mc01-ex4", "answer": "La carte graphique et l'écran."},
     )
@@ -261,7 +261,7 @@ def test_diagnostic_correction_uses_fake_provider(client, db_session, monkeypatc
     assert fake.semantic_calls == [(("mc01-ex4",), "standard")]
 
 
-def test_vocabulary_correction_uses_fake_provider(client, db_session, monkeypatch):
+def test_vocabulary_correction_uses_fake_provider(authenticated_client, db_session, monkeypatch):
     seed()
     block = next(
         b for b in _mc01_editorial_blocks(db_session) if "mc01-ex12" in b.content
@@ -269,7 +269,7 @@ def test_vocabulary_correction_uses_fake_provider(client, db_session, monkeypatc
     fake = FakeAIProvider()
     monkeypatch.setattr("app.practice.get_ai_provider", lambda: fake)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "mc01-ex12", "answer": "RAM, HDD, motherboard, PSU."},
     )
@@ -277,14 +277,14 @@ def test_vocabulary_correction_uses_fake_provider(client, db_session, monkeypatc
     assert fake.semantic_calls == [(("mc01-ex12",), "standard")]
 
 
-def test_ai_correction_without_key_returns_clean_503_answer_not_lost(client, db_session):
+def test_ai_correction_without_key_returns_clean_503_answer_not_lost(authenticated_client, db_session):
     """Sans clé configurée (comportement par défaut de l'environnement de test) : 503
     propre, jamais un 500, jamais la solution."""
     seed()
     block = next(
         b for b in _mc01_editorial_blocks(db_session) if "mc01-ex3" in b.content
     )
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "mc01-ex3", "answer": "Une réponse de test."},
     )
@@ -294,7 +294,7 @@ def test_ai_correction_without_key_returns_clean_503_answer_not_lost(client, db_
     assert "Le processeur doit être compatible avec le socket" not in body_text
 
 
-def test_ai_provider_error_returns_clean_502(client, db_session, monkeypatch):
+def test_ai_provider_error_returns_clean_502(authenticated_client, db_session, monkeypatch):
     class _FailingProvider(FakeAIProvider):
         def correct_semantic_batch(self, questions, answers, severity, contexts):
             raise AIProviderError("panne simulée du fournisseur")
@@ -304,21 +304,21 @@ def test_ai_provider_error_returns_clean_502(client, db_session, monkeypatch):
     block = next(
         b for b in _mc01_editorial_blocks(db_session) if "mc01-ex3" in b.content
     )
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "mc01-ex3", "answer": "Une réponse de test."},
     )
     assert response.status_code == 502
 
 
-def test_non_string_answer_rejected_for_semantic_types(client, db_session, monkeypatch):
+def test_non_string_answer_rejected_for_semantic_types(authenticated_client, db_session, monkeypatch):
     fake = FakeAIProvider()
     monkeypatch.setattr("app.practice.get_ai_provider", lambda: fake)
     seed()
     block = next(
         b for b in _mc01_editorial_blocks(db_session) if "mc01-ex3" in b.content
     )
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "mc01-ex3", "answer": [1, 2, 3]},
     )
@@ -329,7 +329,7 @@ def test_non_string_answer_rejected_for_semantic_types(client, db_session, monke
 # --- Points bornés, jamais confiance aveugle dans l'IA ----------------------------------
 
 
-def test_semantic_correction_points_are_bounded_server_side(client, db_session, monkeypatch):
+def test_semantic_correction_points_are_bounded_server_side(authenticated_client, db_session, monkeypatch):
     class _OverclaimingProvider(FakeAIProvider):
         def correct_semantic_batch(self, questions, answers, severity, contexts):
             from app.ai.schemas import QuestionCorrection
@@ -347,7 +347,7 @@ def test_semantic_correction_points_are_bounded_server_side(client, db_session, 
     block = next(
         b for b in _mc01_editorial_blocks(db_session) if "mc01-ex3" in b.content
     )
-    response = client.post(
+    response = authenticated_client.post(
         f"/practice/api/editorial/{block.id}/verify",
         json={"exercise_id": "mc01-ex3", "answer": "x"},
     )
@@ -360,7 +360,7 @@ def test_semantic_correction_points_are_bounded_server_side(client, db_session, 
 # --- Migration d'un staging déjà seedé avant #29 (forme post-#22) ----------------------
 
 
-def test_staging_seeded_before_ticket_29_is_migrated_without_reset(client, db_session):
+def test_staging_seeded_before_ticket_29_is_migrated_without_reset(authenticated_client, db_session):
     """Reproduit un staging seedé après #21/#22 mais AVANT #29 : Ex1/Ex2/Ex9/Ex11 déjà
     structurés, Ex3/4/5/6/7/8/10/12 encore répartis dans 3 blocs Markdown sous leurs
     anciens titres (aujourd'hui dans MC01_OBSOLETE_TITLES). Un seul seed() doit retirer
@@ -421,7 +421,7 @@ def test_staging_seeded_before_ticket_29_is_migrated_without_reset(client, db_se
     ]
     assert len(editorial_blocks) == 12
 
-    response = client.get("/uaa/ampcr-mc01/practice")
+    response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     assert response.status_code == 200
     assert "ancien contenu pré-#29" not in response.text
     for n in range(1, 13):
@@ -442,14 +442,14 @@ def test_seed_is_idempotent_after_ticket_29_migration(client, db_session):
 # --- Non-régression MC02/MC03/Mathématiques ---------------------------------------------
 
 
-def test_mc02_and_mc03_unaffected_by_ticket_29(client, db_session):
+def test_mc02_and_mc03_unaffected_by_ticket_29(authenticated_client, db_session):
     seed()
     mc02 = db_session.query(UAA).filter_by(code="MC02").first()
     mc03 = db_session.query(UAA).filter_by(code="MC03").first()
     assert len(mc02.lesson_blocks) == len(MC02_BLOCKS)
     assert len(mc03.lesson_blocks) == len(MC03_BLOCKS)
-    assert client.get("/uaa/ampcr-mc02/practice").status_code == 200
-    assert client.get("/uaa/ampcr-mc03/practice").status_code == 200
+    assert authenticated_client.get("/uaa/ampcr-mc02/practice").status_code == 200
+    assert authenticated_client.get("/uaa/ampcr-mc03/practice").status_code == 200
 
 
 def test_mathematiques_unaffected_by_ticket_29(client, db_session):

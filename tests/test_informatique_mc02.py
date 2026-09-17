@@ -56,11 +56,11 @@ def test_mc02_covers_the_mandatory_content(client, db_session):
     assert "M.2" in text
 
 
-def test_mc02_has_at_least_ten_exercises_with_hidden_corrections(client, db_session):
+def test_mc02_has_at_least_ten_exercises_with_hidden_corrections(authenticated_client, db_session):
     """Depuis le ticket #22, les exercices sont sur la page S'entraîner."""
     seed()
 
-    response = client.get("/uaa/ampcr-mc02/practice")
+    response = authenticated_client.get("/uaa/ampcr-mc02/practice")
     text = response.text
 
     for n in range(1, 13):
@@ -68,11 +68,11 @@ def test_mc02_has_at_least_ten_exercises_with_hidden_corrections(client, db_sess
     assert text.count("Correction :") >= 12
 
 
-def test_mc02_exam_is_published_without_visible_correction(client, db_session):
+def test_mc02_exam_is_published_without_visible_correction(authenticated_client, db_session):
     """Depuis le ticket #22, l'examen est sur la page S'évaluer."""
     seed()
 
-    response = client.get("/uaa/ampcr-mc02/exam")
+    response = authenticated_client.get("/uaa/ampcr-mc02/exam")
     text = response.text
 
     assert "Examen final" in text
@@ -130,7 +130,7 @@ def _get_ai_block_id(db_session, uaa_code: str) -> int:
 
 
 def test_mc02_ai_generation_uses_the_shared_engine_with_mc02_context(
-    client, db_session, monkeypatch
+    authenticated_client, db_session, monkeypatch
 ):
     """Le même moteur générique (#10) est réutilisé, avec le contexte MC02 — pas de
     second moteur IA."""
@@ -140,7 +140,7 @@ def test_mc02_ai_generation_uses_the_shared_engine_with_mc02_context(
     fake = FakeAIProvider()
     monkeypatch.setattr("app.practice.get_ai_provider", lambda: fake)
 
-    response = client.post(
+    response = authenticated_client.post(
         "/practice/api/ai/generate", json={"block_id": block_id, "difficulty": "difficile"}
     )
     assert response.status_code == 200
@@ -152,7 +152,7 @@ def test_mc02_ai_generation_uses_the_shared_engine_with_mc02_context(
     assert called_context.course_key == "ampcr-mc02"
     assert difficulty == "difficile"
 
-    correct_response = client.post(
+    correct_response = authenticated_client.post(
         "/practice/api/ai/correct",
         json={
             "block_id": block_id,

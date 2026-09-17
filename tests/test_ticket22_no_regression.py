@@ -169,30 +169,30 @@ def test_course_route_returns_only_course_blocks(client, db_session):
     assert "Examen X" not in response.text
 
 
-def test_practice_route_returns_only_practice_blocks(client, db_session):
+def test_practice_route_returns_only_practice_blocks(authenticated_client, db_session):
     _build_uaa_with_three_spaces(db_session)
-    response = client.get("/uaa/uaa-test-22/practice")
+    response = authenticated_client.get("/uaa/uaa-test-22/practice")
     assert response.status_code == 200
     assert "Exercice X" in response.text
     assert "Théorie X" not in response.text
     assert "Examen X" not in response.text
 
 
-def test_exam_route_returns_only_exam_blocks(client, db_session):
+def test_exam_route_returns_only_exam_blocks(authenticated_client, db_session):
     _build_uaa_with_three_spaces(db_session)
-    response = client.get("/uaa/uaa-test-22/exam")
+    response = authenticated_client.get("/uaa/uaa-test-22/exam")
     assert response.status_code == 200
     assert "Examen X" in response.text
     assert "Théorie X" not in response.text
     assert "Exercice X" not in response.text
 
 
-def test_unknown_slug_returns_404_on_all_three_routes(client, db_session):
+def test_unknown_slug_returns_404_on_all_three_routes(authenticated_client, db_session):
     for path in ("/uaa/does-not-exist", "/uaa/does-not-exist/practice", "/uaa/does-not-exist/exam"):
-        assert client.get(path).status_code == 404
+        assert authenticated_client.get(path).status_code == 404
 
 
-def test_unpublished_uaa_returns_404_on_all_three_routes(client, db_session):
+def test_unpublished_uaa_returns_404_on_all_three_routes(authenticated_client, db_session):
     subject = Subject(name="Matière non publiée", slug="matiere-non-publiee")
     db_session.add(subject)
     db_session.flush()
@@ -207,18 +207,18 @@ def test_unpublished_uaa_returns_404_on_all_three_routes(client, db_session):
     db_session.commit()
 
     for path in ("/uaa/uaa-non-publiee", "/uaa/uaa-non-publiee/practice", "/uaa/uaa-non-publiee/exam"):
-        assert client.get(path).status_code == 404
+        assert authenticated_client.get(path).status_code == 404
 
 
 # --- Navigation entre espaces -----------------------------------------------------------
 
 
-def test_space_nav_links_and_active_state(client, db_session):
+def test_space_nav_links_and_active_state(authenticated_client, db_session):
     _build_uaa_with_three_spaces(db_session)
 
-    course = client.get("/uaa/uaa-test-22").text
-    practice = client.get("/uaa/uaa-test-22/practice").text
-    exam = client.get("/uaa/uaa-test-22/exam").text
+    course = authenticated_client.get("/uaa/uaa-test-22").text
+    practice = authenticated_client.get("/uaa/uaa-test-22/practice").text
+    exam = authenticated_client.get("/uaa/uaa-test-22/exam").text
 
     for page in (course, practice, exam):
         assert "/uaa/uaa-test-22" in page
@@ -250,7 +250,7 @@ def test_space_nav_css_has_adequate_touch_target_size():
 # --- Migration du contenu déjà seedé (staging pré-#22) --------------------------------------
 
 
-def test_staging_seeded_before_ticket_22_is_reclassified_without_reset(client, db_session):
+def test_staging_seeded_before_ticket_22_is_reclassified_without_reset(authenticated_client, db_session):
     """Reproduit un staging seedé AVANT le ticket #22 : la colonne `space` vient d'être
     ajoutée par `ensure_schema_migrations` avec sa valeur par défaut COURSE pour TOUTES les
     lignes existantes, y compris les exercices et l'examen. Un seul seed() doit reclasser
@@ -293,9 +293,9 @@ def test_staging_seeded_before_ticket_22_is_reclassified_without_reset(client, d
         # Le contenu n'est jamais touché par la reclassification.
         assert actual_block.content == block_data["content"]
 
-    exam_response = client.get("/uaa/ampcr-mc01/exam")
+    exam_response = authenticated_client.get("/uaa/ampcr-mc01/exam")
     assert "Examen final" in exam_response.text
-    course_response = client.get("/uaa/ampcr-mc01")
+    course_response = authenticated_client.get("/uaa/ampcr-mc01")
     assert "Examen final" not in course_response.text
     assert "Exercice 1 —" not in course_response.text
 

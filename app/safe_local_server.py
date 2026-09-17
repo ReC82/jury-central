@@ -47,12 +47,17 @@ import os
 
 
 def force_safe_local_environment() -> None:
-    """Empêche tout repli implicite sur la vraie clé OpenAI de `.env`.
+    """Empêche tout repli implicite sur la vraie clé OpenAI de `.env`, et sur le vrai
+    `APP_ENV` de `.env` (ticket #39 : `.env` porte `APP_ENV=staging` sur ce serveur, ce
+    qui active `https_only` sur le cookie de session — un navigateur/outil de test en
+    HTTP local ne renverrait alors jamais ce cookie, rendant impossible toute vérification
+    manuelle de connexion/session sur ce mode local).
 
     Doit être appelée avant tout import de `app.config`/`app.main` dans ce process : voir
     la docstring du module pour pourquoi un simple `setdefault` ne suffit pas.
     """
     os.environ["OPENAI_API_KEY"] = ""
+    os.environ["APP_ENV"] = "local"
 
 
 force_safe_local_environment()
@@ -86,6 +91,8 @@ def main() -> None:
     print("MODE TEST LOCAL SÛR (ticket #35)")
     print("OPENAI_API_KEY forcée à vide pour ce process : aucun appel OpenAI réel n'est")
     print("possible, quel que soit le contenu de .env.")
+    print("APP_ENV forcée à 'local' : le cookie de session n'est pas marqué Secure,")
+    print("utilisable normalement en HTTP local (ticket #39).")
     print(f"Écoute sur http://{args.host}:{args.port}")
     print("=" * 78)
 

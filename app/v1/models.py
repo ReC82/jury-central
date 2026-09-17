@@ -84,9 +84,17 @@ class UserPlan(str, enum.Enum):
 
 
 class User(Base):
-    """Un compte = un utilisateur V1 (voir docstring du module). Les champs
-    d'authentification (mot de passe, jetons de session) sont volontairement absents :
-    ticket #39."""
+    """Un compte = un utilisateur V1 (voir docstring du module).
+
+    Authentification (ticket #39) : `email` est stocké déjà normalisé (minuscules,
+    espaces superflus retirés — voir `app.v1.auth.normalize_email`) — pas de colonne
+    `email_normalized` séparée, choix documenté dans `docs/auth_v1.md` (§ Choix
+    ambigus) : la comparaison/l'unicité normalisée n'a besoin que d'une seule
+    représentation stockée, une seconde colonne aurait été redondante. `password_hash`
+    est nullable au niveau base (permet une migration additive sans valeur par défaut
+    factice) mais toujours renseigné par `app.v1.auth.register_user`, le seul point
+    d'entrée prévu pour créer un utilisateur avec mot de passe — jamais de mot de passe
+    en clair stocké nulle part."""
 
     __tablename__ = "v1_users"
 
@@ -96,6 +104,10 @@ class User(Base):
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.STUDENT)
     plan: Mapped[UserPlan] = mapped_column(Enum(UserPlan), default=UserPlan.FREE)
     is_active: Mapped[bool] = mapped_column(default=True)
+    # Nullable au niveau base : voir docstring de la classe (migration additive #39 sur
+    # une table v1_users potentiellement déjà existante depuis #38).
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow

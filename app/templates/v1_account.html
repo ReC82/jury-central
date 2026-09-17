@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Mon compte — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-sm-8 col-md-6">
+        <div class="p-4 bg-white rounded shadow-sm">
+            <h1 class="h4 mb-4">Mon compte</h1>
+
+            <dl class="row mb-4">
+                <dt class="col-4 col-sm-3">Email</dt>
+                <dd class="col-8 col-sm-9">{{ account_user.email }}</dd>
+
+                {% if account_user.display_name %}
+                <dt class="col-4 col-sm-3">Nom affiché</dt>
+                <dd class="col-8 col-sm-9">{{ account_user.display_name }}</dd>
+                {% endif %}
+
+                <dt class="col-4 col-sm-3">Rôle</dt>
+                <dd class="col-8 col-sm-9">{{ account_user.role.value }}</dd>
+
+                <dt class="col-4 col-sm-3">Plan</dt>
+                <dd class="col-8 col-sm-9">{{ account_user.plan.value }}</dd>
+            </dl>
+
+            <form method="post" action="/logout">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-outline-dark">Se déconnecter</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

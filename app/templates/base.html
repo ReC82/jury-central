@@ -46,6 +46,28 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/practice/equations">S'entraîner</a>
                     </li>
+                    {% if current_user %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/account">
+                            {{ current_user.display_name or current_user.email }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form method="post" action="/logout" class="px-3 px-md-0">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="nav-link btn btn-link p-0 border-0">
+                                Déconnexion
+                            </button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Connexion</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">Créer un compte</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

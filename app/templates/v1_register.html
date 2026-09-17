@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Créer un compte — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-sm-8 col-md-5">
+        <div class="p-4 bg-white rounded shadow-sm">
+            <h1 class="h4 mb-4">Créer un compte</h1>
+            <p class="text-muted small">
+                Un compte est nécessaire pour S'entraîner et S'évaluer. Les cours restent
+                consultables sans compte.
+            </p>
+
+            {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+            {% endif %}
+
+            <form method="post" action="/register">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        name="email"
+                        autocomplete="email"
+                        required
+                        autofocus>
+                </div>
+                <div class="mb-3">
+                    <label for="display_name" class="form-label">
+                        Nom affiché <span class="text-muted">(optionnel)</span>
+                    </label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="display_name"
+                        name="display_name"
+                        autocomplete="nickname"
+                        maxlength="150">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="password"
+                        name="password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required>
+                    <div class="form-text">Au moins 8 caractères.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="password_confirm" class="form-label">
+                        Confirmer le mot de passe
+                    </label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="password_confirm"
+                        name="password_confirm"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required>
+                </div>
+                <button type="submit" class="btn btn-dark w-100">Créer mon compte</button>
+            </form>
+
+            <p class="mt-3 mb-0 small text-center">
+                Déjà un compte ?
+                <a href="/login">Se connecter</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
