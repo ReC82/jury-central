@@ -320,6 +320,11 @@ exploitable — jamais de boucle indéfinie. Documenté et testé explicitement.
   force `OPENAI_API_KEY=""` dans l'environnement de test, y compris sur une machine —
   comme staging — dont le `.env` réel porte une vraie clé, garantissant qu'aucun test ne
   peut jamais déclencher un appel réseau réel).
+- `tests/test_ticket35_safe_openai_config.py` (ticket #35) — reproduit et vérifie la
+  correction du risque de fallback implicite sur la vraie clé de `.env` pour toute
+  vérification manuelle/locale hors pytest ; voir `app/safe_local_server.py` (commande
+  `safe-local-server`, documentée dans `docs/development.md`) et
+  `docs/claude-reports/2026-09-17_ticket-35_safe-openai-local-tests.md`.
 
 ---
 

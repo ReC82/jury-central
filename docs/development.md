@@ -119,6 +119,39 @@ ruff check .
 
 ---
 
+# Serveur de test local sûr (ticket #35)
+
+**Ne jamais lancer un second `uvicorn app.main:app ...` ad hoc pour une vérification
+manuelle sur une machine où `/srv/jury-central/.env` contient une vraie clé (le serveur
+staging) : `app.config.Settings` (pydantic-settings) retombe silencieusement sur la
+lecture de `.env` dès qu'une variable comme `OPENAI_API_KEY` est absente du process — ce
+qui a provoqué un appel OpenAI réel non intentionnel pendant le développement du ticket
+#29.**
+
+Utiliser à la place :
+
+```bash
+safe-local-server                     # http://127.0.0.1:8099, --reload possible
+safe-local-server --port 8123 --reload
+```
+
+Cette commande force `OPENAI_API_KEY=""` dans le process avant même d'importer
+l'application : la génération/correction IA répond systématiquement « non configurée »
+(503), sans jamais pouvoir appeler l'API OpenAI réelle, quel que soit le contenu de
+`.env`. Les autres réglages (base de données, identifiants admin, etc.) restent lus
+normalement depuis `.env`/l'environnement — seule `OPENAI_API_KEY` est neutralisée. Voir
+`app/safe_local_server.py` (docstring) et
+`docs/claude-reports/2026-09-17_ticket-35_safe-openai-local-tests.md` pour le détail de
+l'incident et de la correction.
+
+Le service staging réel (`jury-central.service`, systemd) n'est pas concerné par ce
+risque et n'utilise jamais cette commande : `EnvironmentFile=/srv/jury-central/.env`
+positionne `OPENAI_API_KEY` comme une vraie variable d'environnement du process avant le
+démarrage d'uvicorn, donc `Settings()` ne retombe jamais sur la lecture de `.env` dans ce
+cas (une variable de process a toujours priorité).
+
+---
+
 # Commandes utiles
 
 Réinitialiser la base :
@@ -127,10 +160,11 @@ Réinitialiser la base :
 reset-db
 ```
 
-Lancer un second serveur :
+Lancer un second serveur, ou toute vérification manuelle ponctuelle (voir « Serveur de
+test local sûr » ci-dessous) :
 
 ```bash
-uvicorn app.main:app --port 8001
+safe-local-server
 ```
 
 ---
