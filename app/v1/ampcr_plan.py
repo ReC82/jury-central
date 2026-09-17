@@ -1,5 +1,5 @@
 """Plan complet AMPCR (MC01→MC38) et contextes pédagogiques V1 associés (ticket #55,
-recadrage « INFORMATIQUE AMPCR COMPLET »).
+recadrage « INFORMATIQUE AMPCR COMPLET », puis correctif de revue PR #56).
 
 **Autorité pédagogique** : les 38 codes/titres/catégories ci-dessous sont ceux fournis
 directement par ChatGPT (chef de projet) dans le corps du ticket #55 — même modalité de
@@ -7,18 +7,21 @@ traçabilité déjà appliquée à MC01/MC02/MC03 (cahier des charges dans le ti
 voir `docs/content_plan_informatique_francais.md`, § 0). Ce module ne redéfinit jamais ce
 qui doit être enseigné : il STRUCTURE la liste fournie.
 
-**Limite assumée et documentée (voir aussi le rapport de ticket)** : MC01/MC02/MC03
-disposent d'un contenu pédagogique réellement rédigé (`app/ai/context.py::
-PEDAGOGICAL_CONTEXTS`, cahiers des charges des tickets #10/#12/#14) — leurs contextes sont
-repris ici tels quels. MC04 à MC38 n'ont, à ce jour, aucun contenu pédagogique rédigé dans
-ce dépôt (confirmé par `docs/content_plan_informatique_francais.md`, § 3.2 : « aucune
-source officielle, aucun brouillon ChatGPT déposé ») — leurs contextes ci-dessous ne
-contiennent que le TITRE déjà fourni par ChatGPT, sans notions détaillées inventées : `Claude
-ne redéfinit jamais le contenu pédagogique` (règle du projet) s'applique aussi à ce
-ticket. Ces contextes bornent volontairement l'IA au sujet du titre pour empêcher toute
-dérive hors programme, mais restent MINIMAUX et attendent une revue/un enrichissement par
-ChatGPT avant tout usage à grande échelle — voir
-`docs/ampcr_v1_functional.md`, colonne `bank_seed`."""
+**MC01/MC02/MC03** disposent d'un contenu pédagogique réellement rédigé (`app/ai/
+context.py::PEDAGOGICAL_CONTEXTS`, cahiers des charges des tickets #10/#12/#14) — leurs
+contextes sont repris ici tels quels, inchangés.
+
+**MC04 à MC38** : la revue de la PR #56 a signalé que ces contextes se limitaient au seul
+titre, insuffisant pour borner fiablement la génération avant l'examen. ChatGPT a alors
+transmis l'objectif pédagogique EXACT de chaque mini-cours, tel que défini dans le plan
+AMPCR validé (`_OBJECTIVES_BY_CODE` ci-dessous, reproduit verbatim, jamais reformulé ni
+complété par une notion technique inventée par Claude). Chaque contexte MC04-38 combine
+désormais : le titre, cet objectif exact, et les types de question déjà recommandés pour
+sa catégorie (`_RECOMMENDED_TYPES_BY_CATEGORY`, inchangé depuis la livraison initiale du
+ticket #55). Ces contextes restent volontairement plus sommaires que MC01-03 (pas de
+cahier des charges complet, pas de vocabulaire FR/EN, pas de contraintes pédagogiques
+détaillées) et attendent un enrichissement éditorial ultérieur — voir
+`docs/ampcr_v1_functional.md`."""
 
 from dataclasses import dataclass
 
@@ -110,23 +113,83 @@ AMPCR_PLAN: tuple[AMPCRModulePlan, ...] = tuple(
 
 AMPCR_PLAN_BY_CODE: dict[str, AMPCRModulePlan] = {plan.code: plan for plan in AMPCR_PLAN}
 
+# Objectifs pédagogiques EXACTS du plan AMPCR validé, transmis verbatim par ChatGPT
+# (revue de la PR #56) pour les 38 mini-cours. Reproduits tels quels, jamais reformulés ni
+# complétés par une notion technique inventée par Claude. MC01-03 sont listés ici pour
+# traçabilité complète du plan mais conservent leur contexte riche existant
+# (`PEDAGOGICAL_CONTEXTS`), plus détaillé que ce seul objectif.
+_OBJECTIVES_BY_CODE: dict[str, str] = {
+    "MC01": (
+        "Comprendre l'architecture d'un ordinateur, le rôle CPU/RAM/stockage/carte "
+        "mère/GPU/alimentation et leurs interactions."
+    ),
+    "MC02": "Sockets, chipsets, ATX/mATX/ITX, PCIe, SATA, M.2, USB, headers et alimentations ATX/EPS.",
+    "MC03": "CPU, cœurs/threads/fréquence/cache, DDR3/4/5, dual channel, compatibilités et pannes courantes.",
+    "MC04": "Technologies de stockage, interfaces, SMART, performances, fiabilité et sauvegarde.",
+    "MC05": "PSU, puissance, connecteurs, pâte thermique, flux d'air, ESD et risques électriques.",
+    "MC06": "Procédure complète, outils, contrôle, upgrade, réutilisation de composants et validation.",
+    "MC07": "Firmware, POST, ordre de boot, Secure Boot, paramètres essentiels et dépannage de démarrage.",
+    "MC08": "Partitions, volumes, EFI, NTFS/FAT32/exFAT/ext4, formatage et précautions.",
+    "MC09": "Préparation, clé bootable, installation, pilotes, mises à jour, comptes et tests.",
+    "MC10": "Arborescence, utilisateurs, permissions, services, périphériques, CMD et PowerShell.",
+    "MC11": "Arborescence, utilisateurs, sudo, permissions, services, apt et commandes de diagnostic.",
+    "MC12": "Drivers, périphériques inconnus, installation/désinstallation, compatibilité et conflits.",
+    "MC13": "Types de réseaux, couches OSI/TCP-IP, encapsulation, trames, paquets et équipements.",
+    "MC14": "Rôles, différences, table MAC, routage de base et réseau domestique/pro.",
+    "MC15": "UTP/STP, catégories, paires torsadées, brochage, sertissage, droit/croisé et testeur.",
+    "MC16": "IPv4, binaire utile, réseau/hôte, RFC1918, loopback, APIPA et passerelle.",
+    "MC17": "/24 à /30, masques décimaux, incréments, nombre d'hôtes et méthode mentale.",
+    "MC18": "Réseau/broadcast/plage, même sous-réseau, choix de masque et exercices contextualisés.",
+    "MC19": "Bail DHCP, DORA, APIPA, réservations, dépannage et renouvellement.",
+    "MC20": "Résolution de noms, cache DNS, ARP IPv4-MAC, ping/ICMP et diagnostic.",
+    "MC21": "TCP/UDP, ports, sockets, HTTP(S), DNS, DHCP, SSH, RDP et services courants.",
+    "MC22": "Passerelle, route par défaut, NAT/PAT, IP publique/privée et chemin vers Internet.",
+    "MC23": "Étoile, broadcast, table MAC, domaines de collision/broadcast et segmentation.",
+    "MC24": "VLAN, access, trunk 802.1Q, segmentation et cas simple d'entreprise.",
+    "MC25": "802.11, 2,4/5/6 GHz, canaux, largeur, SSID/BSSID, interférences et roaming.",
+    "MC26": "WEP/WPA/WPA2/WPA3, PSK, 802.1X/RADIUS, invité, isolation client et WPS.",
+    "MC27": "Pare-feu, ACL, segmentation, 802.1X, port security, VPN, DMZ et moindre privilège.",
+    "MC28": "Malware, ransomware, phishing, MITM, Evil Twin, MFA, sauvegardes et mises à jour.",
+    "MC29": "PC mort, pas d'image, RAM, PSU, GPU, stockage, surchauffe et configuration minimale.",
+    "MC30": "Logs, services, pilotes, lenteurs, SFC/DISM, journalctl/systemctl, stockage et mémoire.",
+    "MC31": "Physique → IP → passerelle → Internet → DNS → application, avec commandes de test.",
+    "MC32": "Nettoyage, températures, mises à jour, stockage, sauvegardes, inventaire et suivi.",
+    "MC33": "Partage de dossiers/imprimantes, comptes, groupes, droits NTFS/partage et bonnes pratiques.",
+    "MC34": (
+        "Inventorier postes/composants, numéros de série, état, stock et notions simples "
+        "de base de données."
+    ),
+    "MC35": (
+        "Risques électriques/incendie, ergonomie, pictogrammes, tri DEEE, confidentialité "
+        "et données clients."
+    ),
+    "MC36": "Questionner, expliquer simplement, vocabulaire FR/EN, fiche d'intervention et rapport.",
+    "MC37": "Montage, OS, RJ45, IP, partage, Wi-Fi, sécurité et pannes volontaires dans un scénario complet.",
+    "MC38": "Synthèse, fiches mémo, pièges, exercices transversaux et examen type qualification.",
+}
 
-def _minimal_context(plan: AMPCRModulePlan) -> PedagogicalContext:
-    """Contexte minimal pour un MC sans contenu pédagogique rédigé (voir docstring du
-    module) : ne contient QUE le titre déjà fourni par ChatGPT — jamais de notions
-    détaillées inventées par ce ticket."""
+
+def _detailed_context(plan: AMPCRModulePlan) -> PedagogicalContext:
+    """Contexte pour un MC sans cahier des charges complet (MC04-38, voir docstring du
+    module) : titre + objectif EXACT du plan AMPCR validé (`_OBJECTIVES_BY_CODE`) + types
+    de question déjà recommandés pour sa catégorie — jamais de notion technique inventée
+    au-delà de cet objectif transmis par ChatGPT."""
+    objective = _OBJECTIVES_BY_CODE[plan.code]
     return PedagogicalContext(
         course_key=plan.course_key,
         course_title=plan.title,
         level="CESS Professionnel, filière Assistant/Assistante de maintenance PC-réseaux (AMPCR), niveau débutant",
-        allowed_notions=[plan.title],
-        competencies=[],
+        allowed_notions=[plan.title, objective],
+        competencies=[
+            f"Objectif du plan AMPCR pour {plan.code} : {objective}",
+            f"Types de question adaptés à ce mini-cours : {', '.join(plan.recommended_types)}",
+        ],
         vocabulary=[],
         constraints=(
-            "Contexte minimal (ticket #55) : reste strictement dans le sujet exact du titre "
-            f"« {plan.title} », niveau débutant. N'invente aucune notion technique au-delà de "
-            "ce que ce titre couvre explicitement — ce contexte n'a pas encore été enrichi "
-            "par un cahier des charges pédagogique détaillé."
+            f"Reste strictement dans l'objectif pédagogique défini pour « {plan.title} » : "
+            f"{objective} N'invente aucune notion technique au-delà de cet objectif et du "
+            "titre — ce contexte n'a pas encore été enrichi par un cahier des charges "
+            "pédagogique complet comme MC01 à MC03."
         ),
     )
 
@@ -137,7 +200,7 @@ def _build_contexts() -> dict[str, PedagogicalContext]:
         if plan.has_authored_content and plan.course_key in PEDAGOGICAL_CONTEXTS:
             contexts[plan.course_key] = PEDAGOGICAL_CONTEXTS[plan.course_key]
         else:
-            contexts[plan.course_key] = _minimal_context(plan)
+            contexts[plan.course_key] = _detailed_context(plan)
     return contexts
 
 

@@ -45,15 +45,16 @@ Deux nouveaux parcours globaux :
 #10/#12/#14) — contexte pédagogique riche (`app.ai.context.PEDAGOGICAL_CONTEXTS`),
 inchangé.
 
-**MC04 à MC38** : ChatGPT a fourni code, titre et catégorie dans le ticket #55 — **aucun
-contenu pédagogique détaillé n'existe encore** dans ce dépôt pour ces 35 mini-cours
-(confirmé par `docs/content_plan_informatique_francais.md`). Leur contexte pédagogique
-(`app.v1.ampcr_plan._minimal_context`) ne contient donc QUE ce titre, avec pour seule
-consigne de rester strictement dans son sujet — **aucune notion technique détaillée n'a
-été inventée par ce ticket** (règle du projet : Claude ne redéfinit jamais le contenu
-pédagogique). Ces contextes minimaux bornent l'IA (empêchent une dérive hors programme)
-mais restent volontairement pauvres : ils attendent un enrichissement éditorial (objectifs
-détaillés, notions autorisées/hors scope, vocabulaire) dans un prochain ticket.
+**MC04 à MC38** : ChatGPT a fourni code, titre et catégorie dans le ticket #55, puis
+(revue de la PR #56) l'objectif pédagogique EXACT de chacun des 38 mini-cours, tel que
+défini dans le plan AMPCR validé. Leur contexte pédagogique
+(`app.v1.ampcr_plan._detailed_context`, dict `_OBJECTIVES_BY_CODE`) combine désormais le
+titre, cet objectif transmis verbatim, et les types de question déjà recommandés pour la
+catégorie — **aucune notion technique n'a été inventée par Claude au-delà de cet
+objectif** (règle du projet : Claude ne redéfinit jamais le contenu pédagogique). Ces
+contextes restent plus sommaires que MC01-03 (pas de cahier des charges complet, pas de
+vocabulaire FR/EN, pas de contraintes pédagogiques détaillées par notion) et attendent un
+enrichissement éditorial complet dans un prochain ticket.
 
 **Conséquence directe sur la banque** : voir § 4.
 
@@ -66,41 +67,41 @@ détaillés, notions autorisées/hors scope, vocabulaire) dans un prochain ticke
 | MC01 | Architecture générale d'un PC | hardware | riche (#10) | multiple_choice, classification, vocabulary | 12 questions importées (`editorial_exercise`) | ✅ | ✅ |
 | MC02 | Carte mère, formats, bus et connectiques | hardware | riche (#12) | multiple_choice, classification, vocabulary | 0 pré-chargée (génération à la demande) | ✅ | ✅ |
 | MC03 | Processeur et mémoire RAM | hardware | riche (#14) | multiple_choice, classification, vocabulary | 0 pré-chargée (génération à la demande) | ✅ | ✅ |
-| MC04 | Stockage : HDD, SSD SATA et NVMe | hardware | minimal | multiple_choice, classification, vocabulary | génération à la demande | ✅ | ✅ |
-| MC05 | Alimentation, refroidissement, ESD et sécurité électrique | hardware | minimal | multiple_choice, classification, vocabulary | génération à la demande | ✅ | ✅ |
-| MC06 | Montage, démontage et reconditionnement d'un PC | hardware | minimal | multiple_choice, classification, vocabulary | génération à la demande | ✅ | ✅ |
-| MC07 | BIOS, UEFI, POST et démarrage | systems | minimal | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
-| MC08 | Partitionnement, GPT/MBR et formatage | systems | minimal | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
-| MC09 | Installer Windows proprement | systems | minimal | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
-| MC10 | Windows : administration et commandes essentielles | systems | minimal | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
-| MC11 | Linux : bases utiles au technicien PC-réseaux | systems | minimal | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
-| MC12 | Pilotes, périphériques et logiciels | systems | minimal | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
-| MC13 | Fondamentaux réseau : LAN, WAN, OSI et TCP/IP | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC14 | Équipements réseau : switch, routeur, point d'accès, modem | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC15 | Câblage Ethernet et RJ45 : T568A/T568B | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC16 | IPv4 : adresses, masque, passerelle et plages privées | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC17 | Subnetting 1 : masques et CIDR | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC18 | Subnetting 2 : réseau, broadcast et exercices avancés | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC19 | DHCP : attribution automatique des paramètres IP | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC20 | DNS, ARP et ICMP | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC21 | TCP, UDP et ports réseau | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC22 | Internet, NAT/PAT et routage de base | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC23 | Switching, topologies et segmentation | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC24 | VLAN, trunk et réseau invité | networks | minimal | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
-| MC25 | Wi-Fi : normes, bandes, canaux et couverture | wifi | minimal | multiple_choice, true_false, vocabulary | génération à la demande | ✅ | ✅ |
-| MC26 | Sécurité Wi-Fi : WPA2, WPA3, PSK, Enterprise | wifi | minimal | multiple_choice, true_false, vocabulary | génération à la demande | ✅ | ✅ |
-| MC27 | Sécurité réseau traditionnelle | security | minimal | multiple_choice, true_false, diagnostic | génération à la demande | ✅ | ✅ |
-| MC28 | Menaces informatiques et protection des postes | security | minimal | multiple_choice, true_false, diagnostic | génération à la demande | ✅ | ✅ |
-| MC29 | Dépannage matériel : méthode et pannes courantes | troubleshooting | minimal | diagnostic, troubleshooting, ordering | génération à la demande | ✅ | ✅ |
-| MC30 | Dépannage Windows et Linux | troubleshooting | minimal | diagnostic, troubleshooting, ordering | génération à la demande | ✅ | ✅ |
-| MC31 | Dépannage réseau méthodique | troubleshooting | minimal | diagnostic, troubleshooting, ordering | génération à la demande | ✅ | ✅ |
-| MC32 | Maintenance préventive et entretien | troubleshooting | minimal | diagnostic, troubleshooting, ordering | génération à la demande | ✅ | ✅ |
-| MC33 | Partage de ressources, comptes, droits et permissions | professional | minimal | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
-| MC34 | Inventaire matériel et gestion simple des ressources | professional | minimal | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
-| MC35 | Ergonomie, sécurité, environnement et confidentialité | professional | minimal | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
-| MC36 | Communication client et rapport technique | professional | minimal | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
-| MC37 | Laboratoire intégrateur PC + réseau | final | minimal | multiple_choice, classification, ordering | génération à la demande | ✅ | ✅ |
-| MC38 | Révision finale et examen blanc AMPCR | final | minimal | multiple_choice, classification, ordering | génération à la demande | ✅ | ✅ |
+| MC04 | Stockage : HDD, SSD SATA et NVMe | hardware | détaillé (objectif exact) | multiple_choice, classification, vocabulary | génération à la demande | ✅ | ✅ |
+| MC05 | Alimentation, refroidissement, ESD et sécurité électrique | hardware | détaillé (objectif exact) | multiple_choice, classification, vocabulary | génération à la demande | ✅ | ✅ |
+| MC06 | Montage, démontage et reconditionnement d'un PC | hardware | détaillé (objectif exact) | multiple_choice, classification, vocabulary | génération à la demande | ✅ | ✅ |
+| MC07 | BIOS, UEFI, POST et démarrage | systems | détaillé (objectif exact) | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
+| MC08 | Partitionnement, GPT/MBR et formatage | systems | détaillé (objectif exact) | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
+| MC09 | Installer Windows proprement | systems | détaillé (objectif exact) | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
+| MC10 | Windows : administration et commandes essentielles | systems | détaillé (objectif exact) | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
+| MC11 | Linux : bases utiles au technicien PC-réseaux | systems | détaillé (objectif exact) | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
+| MC12 | Pilotes, périphériques et logiciels | systems | détaillé (objectif exact) | multiple_choice, ordering, short_answer | génération à la demande | ✅ | ✅ |
+| MC13 | Fondamentaux réseau : LAN, WAN, OSI et TCP/IP | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC14 | Équipements réseau : switch, routeur, point d'accès, modem | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC15 | Câblage Ethernet et RJ45 : T568A/T568B | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC16 | IPv4 : adresses, masque, passerelle et plages privées | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC17 | Subnetting 1 : masques et CIDR | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC18 | Subnetting 2 : réseau, broadcast et exercices avancés | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC19 | DHCP : attribution automatique des paramètres IP | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC20 | DNS, ARP et ICMP | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC21 | TCP, UDP et ports réseau | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC22 | Internet, NAT/PAT et routage de base | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC23 | Switching, topologies et segmentation | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC24 | VLAN, trunk et réseau invité | networks | détaillé (objectif exact) | numeric, calculation, multiple_choice | génération à la demande | ✅ | ✅ |
+| MC25 | Wi-Fi : normes, bandes, canaux et couverture | wifi | détaillé (objectif exact) | multiple_choice, true_false, vocabulary | génération à la demande | ✅ | ✅ |
+| MC26 | Sécurité Wi-Fi : WPA2, WPA3, PSK, Enterprise | wifi | détaillé (objectif exact) | multiple_choice, true_false, vocabulary | génération à la demande | ✅ | ✅ |
+| MC27 | Sécurité réseau traditionnelle | security | détaillé (objectif exact) | multiple_choice, true_false, diagnostic | génération à la demande | ✅ | ✅ |
+| MC28 | Menaces informatiques et protection des postes | security | détaillé (objectif exact) | multiple_choice, true_false, diagnostic | génération à la demande | ✅ | ✅ |
+| MC29 | Dépannage matériel : méthode et pannes courantes | troubleshooting | détaillé (objectif exact) | diagnostic, troubleshooting, ordering | génération à la demande | ✅ | ✅ |
+| MC30 | Dépannage Windows et Linux | troubleshooting | détaillé (objectif exact) | diagnostic, troubleshooting, ordering | génération à la demande | ✅ | ✅ |
+| MC31 | Dépannage réseau méthodique | troubleshooting | détaillé (objectif exact) | diagnostic, troubleshooting, ordering | génération à la demande | ✅ | ✅ |
+| MC32 | Maintenance préventive et entretien | troubleshooting | détaillé (objectif exact) | diagnostic, troubleshooting, ordering | génération à la demande | ✅ | ✅ |
+| MC33 | Partage de ressources, comptes, droits et permissions | professional | détaillé (objectif exact) | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
+| MC34 | Inventaire matériel et gestion simple des ressources | professional | détaillé (objectif exact) | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
+| MC35 | Ergonomie, sécurité, environnement et confidentialité | professional | détaillé (objectif exact) | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
+| MC36 | Communication client et rapport technique | professional | détaillé (objectif exact) | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
+| MC37 | Laboratoire intégrateur PC + réseau | final | détaillé (objectif exact) | multiple_choice, classification, ordering | génération à la demande | ✅ | ✅ |
+| MC38 | Révision finale et examen blanc AMPCR | final | détaillé (objectif exact) | multiple_choice, classification, ordering | génération à la demande | ✅ | ✅ |
 
 « Practice »/« Exam » = ✅ signifie : la route existe, exige un compte, protège la
 correction jusqu'à la soumission, autosave, reprise, et peut produire un questionnaire
