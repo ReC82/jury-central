@@ -140,7 +140,9 @@ def correct_questionnaire(
         )
         for question in semantic_questions:
             raw_correction = semantic_results.get(question.question_id)
-            corrections[question.question_id] = _validated_correction(question, raw_correction)
+            corrections[question.question_id] = validate_semantic_correction(
+                question, raw_correction
+            )
 
     ordered_corrections = [
         corrections[question.question_id]
@@ -154,13 +156,18 @@ def correct_questionnaire(
     )
 
 
-def _validated_correction(
+def validate_semantic_correction(
     question: QuestionnaireQuestion, raw_correction: QuestionCorrection | None
 ) -> QuestionCorrection:
     """`points_max` vient toujours de `question` (jamais de la réponse IA) ; `points_awarded`
     est toujours borné à `[0, points_max]`, quel que soit ce que le fournisseur a renvoyé —
     y compris si le fournisseur n'a renvoyé aucune correction pour cette question (traité
-    comme 0 point, jamais une exception qui bloquerait tout le questionnaire)."""
+    comme 0 point, jamais une exception qui bloquerait tout le questionnaire).
+
+    Fonction publique (ticket #29) : réutilisée par `app/editorial_ai_correction.py` pour
+    corriger un item `editorial_exercise` unique (persisté, hors questionnaire éphémère
+    #23) avec la même garantie de validation serveur des points — jamais un second
+    mécanisme de bornage écrit en parallèle."""
     if raw_correction is None:
         return QuestionCorrection(
             question_id=question.question_id,

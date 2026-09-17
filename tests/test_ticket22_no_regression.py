@@ -312,9 +312,12 @@ def test_seed_second_run_reclassifies_nothing(client, db_session, capsys):
 
 
 def test_mc01_mc02_mc03_block_space_distribution(client, db_session):
+    """MC01 : 13 PRACTICE depuis le ticket #29 (12 exercices structurés + 1 bloc IA), tous
+    d'anciens blocs Markdown d'exercice ayant été migrés — voir
+    tests/test_ticket29_no_regression.py pour la non-régression spécifique à ce ticket."""
     seed()
     expectations = [
-        ("MC01", 13, 8, 2),
+        ("MC01", 13, 13, 2),
         ("MC02", 18, 4, 2),
         ("MC03", 19, 4, 2),
     ]

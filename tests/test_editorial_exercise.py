@@ -1,5 +1,6 @@
-"""Tests unitaires du socle `editorial_exercise` (ticket #17) : sérialisation, validation
-de configuration, représentation publique, absence de fuite de réponse, correction."""
+"""Tests unitaires du socle `editorial_exercise` (ticket #17, étendu aux #21/#29) :
+sérialisation, validation de configuration, représentation publique, absence de fuite de
+réponse, correction."""
 
 import pytest
 
@@ -44,6 +45,39 @@ def _short_answer_item(**overrides):
         "prompt": "Sigle anglais de la mémoire vive ?",
         "accepted_answers": ["RAM", "Random Access Memory"],
         "explanation": "RAM = Random Access Memory.",
+    }
+    defaults.update(overrides)
+    return EditorialExerciseItem(**defaults)
+
+
+def _long_answer_item(**overrides):
+    defaults = {
+        "exercise_id": "q_la",
+        "type": "long_answer",
+        "prompt": "Explique le rôle du CPU.",
+        "explanation": "Le CPU exécute les instructions des programmes.",
+    }
+    defaults.update(overrides)
+    return EditorialExerciseItem(**defaults)
+
+
+def _diagnostic_item(**overrides):
+    defaults = {
+        "exercise_id": "q_diag",
+        "type": "diagnostic",
+        "prompt": "Rien ne s'affiche à l'écran, que vérifier ?",
+        "explanation": "La carte graphique et le câble écran en priorité.",
+    }
+    defaults.update(overrides)
+    return EditorialExerciseItem(**defaults)
+
+
+def _vocabulary_item(**overrides):
+    defaults = {
+        "exercise_id": "q_vocab",
+        "type": "vocabulary",
+        "prompt": "Équivalent anglais de « mémoire vive » ?",
+        "explanation": "RAM (Random Access Memory).",
     }
     defaults.update(overrides)
     return EditorialExerciseItem(**defaults)
@@ -111,9 +145,21 @@ def test_choice_item_requires_valid_correct_index():
         _single_choice_item(correct_index=None)
 
 
-def test_short_answer_requires_accepted_answers():
+def test_short_answer_requires_accepted_answers_or_explanation_as_rubric():
+    """Depuis le ticket #29 : short_answer sans accepted_answers bascule en correction IA
+    si (et seulement si) une explanation (grille de correction) est fournie."""
     with pytest.raises(EditorialExerciseValidationError):
-        _short_answer_item(accepted_answers=[])
+        _short_answer_item(accepted_answers=[], explanation="")
+
+
+def test_short_answer_without_accepted_answers_falls_back_to_ai_with_rubric():
+    item = _short_answer_item(accepted_answers=[], explanation="Doit mentionner RAM.")
+    assert item.requires_ai_correction() is True
+
+
+def test_short_answer_with_accepted_answers_is_never_ai_corrected():
+    item = _short_answer_item()
+    assert item.requires_ai_correction() is False
 
 
 def test_classification_requires_at_least_two_categories():
@@ -389,5 +435,91 @@ def test_correction_to_dict_shape():
         "correct_answer_html",
         "explanation",
         "explanation_html",
+        "points_awarded",
+        "points_max",
+        "strengths",
+        "errors",
+        "missing",
     ]:
         assert key in data
+    # Correction locale : les champs propres à l'IA restent à leurs valeurs par défaut.
+    assert data["points_awarded"] is None
+    assert data["points_max"] is None
+    assert data["strengths"] == []
+
+
+# --- Ticket #29 : long_answer / diagnostic / vocabulary ------------------------------------
+
+
+def test_long_answer_and_diagnostic_require_explanation_as_rubric():
+    with pytest.raises(EditorialExerciseValidationError):
+        _long_answer_item(explanation="")
+    with pytest.raises(EditorialExerciseValidationError):
+        _diagnostic_item(explanation="")
+    # Constructions valides (garde-fou : ne doivent pas lever).
+    _long_answer_item()
+    _diagnostic_item()
+
+
+def test_long_answer_and_diagnostic_are_always_ai_corrected():
+    assert _long_answer_item().requires_ai_correction() is True
+    assert _diagnostic_item().requires_ai_correction() is True
+
+
+def test_vocabulary_requires_accepted_answers_or_explanation_as_rubric():
+    with pytest.raises(EditorialExerciseValidationError):
+        _vocabulary_item(explanation="")
+
+
+def test_vocabulary_is_locally_corrected_when_accepted_answers_present():
+    item = _vocabulary_item(accepted_answers=["RAM"])
+    assert item.requires_ai_correction() is False
+    assert item.check("ram") is True
+
+
+def test_vocabulary_is_ai_corrected_when_no_accepted_answers():
+    item = _vocabulary_item()
+    assert item.requires_ai_correction() is True
+
+
+def test_long_answer_diagnostic_vocabulary_public_dict_never_leaks_rubric():
+    for item in (_long_answer_item(), _diagnostic_item(), _vocabulary_item()):
+        public = item.to_public_dict()
+        assert "explanation" not in public
+        assert "rubric" not in public
+        assert public["requires_ai"] is True
+        # Aucune fuite du contenu de la grille de correction, même sous un autre nom de champ.
+        assert item.explanation not in str(public)
+
+
+def test_long_answer_diagnostic_vocabulary_have_no_extra_public_fields():
+    """Contrairement à classification/ordering/single_choice, ces types n'exposent aucune
+    structure supplémentaire (choix, catégories, ordre) — seulement prompt/points/type."""
+    for item in (_long_answer_item(), _diagnostic_item(), _vocabulary_item()):
+        public = item.to_public_dict()
+        assert set(public.keys()) == {
+            "exercise_id", "type", "prompt", "prompt_html", "points", "requires_ai",
+        }
+
+
+# --- Ticket #29 : context_key requis dès qu'un item nécessite l'IA ---------------------
+
+
+def test_block_config_requires_context_key_when_an_item_needs_ai():
+    with pytest.raises(EditorialExerciseValidationError):
+        EditorialExerciseBlockConfig(items=[_long_answer_item()])  # pas de context_key
+
+    # Avec context_key, la construction réussit.
+    EditorialExerciseBlockConfig(items=[_long_answer_item()], context_key="ampcr-mc01")
+
+
+def test_block_config_does_not_require_context_key_for_purely_local_items():
+    EditorialExerciseBlockConfig(items=[_single_choice_item(), _classification_item()])
+
+
+def test_block_config_to_json_from_json_roundtrip_preserves_context_key():
+    config = EditorialExerciseBlockConfig(
+        items=[_long_answer_item()], context_key="ampcr-mc01"
+    )
+    restored = EditorialExerciseBlockConfig.from_json(config.to_json())
+    assert restored.context_key == "ampcr-mc01"

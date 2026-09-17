@@ -100,15 +100,18 @@ générateur réel (exercice fixe).
   contexte pédagogique par cours (`app/ai/context.py`). Complémentaire aux deux moteurs
   ci-dessus, pas un remplacement. Non configuré par défaut.
 - **Socle des exercices éditoriaux interactifs** (bloc `editorial_exercise`, ticket #17,
-  étendu au #21, voir `docs/editorial_exercise_engine.md`) : types disponibles —
+  étendu aux #21/#29, voir `docs/editorial_exercise_engine.md`) : types disponibles —
   `single_choice`, `true_false`, `short_answer` (ticket #17), `classification`, `ordering`
-  (ticket #21) — à correction locale déterministe, saisie + vérification AJAX + score,
-  sans rechargement de page. Prévisualisable via `/admin/editorial-exercise-demo`. **4 des
-  12 exercices de MC01** (1, 2, 9, 11) sont migrés dans ce format ; les 8 restants
-  nécessitent `long_answer` (correction IA, ticket futur) — voir
-  `docs/claude-reports/2026-09-16_ticket-21_classification-ordering.md`. Depuis le ticket
-  #22, ces exercices sont servis sur l'espace S'entraîner (`/uaa/{slug}/practice`), plus
-  dans le flux de théorie.
+  (ticket #21), `long_answer`, `diagnostic`, `vocabulary` (ticket #29). Correction locale
+  déterministe pour les premiers ; correction sémantique via le fournisseur IA existant
+  (#23, `app/editorial_ai_correction.py`, aucun second moteur) pour `long_answer`/
+  `diagnostic`, et `short_answer`/`vocabulary` sans `accepted_answers`. Saisie +
+  vérification AJAX + score, sans rechargement de page. Prévisualisable via
+  `/admin/editorial-exercise-demo`. **Les 12 exercices de MC01 sont désormais tous migrés
+  dans ce format** (plus aucun bloc Markdown d'exercice) — voir
+  `docs/claude-reports/2026-09-17_ticket-29_mc01-practice-interactive.md`. Servis sur
+  l'espace S'entraîner (`/uaa/{slug}/practice`, ticket #22), jamais dans le flux de
+  théorie ; aucune correction visible avant validation explicite.
 
 ---
 

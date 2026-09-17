@@ -64,34 +64,33 @@ def test_mc01_covers_the_mandatory_content(client, db_session):
 
 def test_mc01_has_twelve_exercises_with_hidden_corrections(client, db_session):
     """Depuis le ticket #22, les 12 exercices sont sur la page S'entraîner
-    (`/uaa/{slug}/practice`), plus dans le flux Cours (voir aussi
-    test_course_page_no_longer_contains_practice_or_exam_content)."""
+    (`/uaa/{slug}/practice`). Depuis le ticket #29, les 12 sont des blocs
+    `editorial_exercise` structurés (plus aucun Markdown statique) : aucune correction
+    n'est jamais visible dans le HTML initial, pour aucun des 12 — voir
+    tests/test_ticket29_no_regression.py pour la non-régression détaillée."""
     seed()
 
     response = client.get("/uaa/ampcr-mc01/practice")
     text = response.text
 
-    # Les 12 énoncés sont présents. Depuis le ticket #21, les exercices 1, 2, 9 et 11 sont
-    # des blocs `editorial_exercise` (titre du bloc affiché comme titre de carte, ex.
-    # « Exercice 1 — Matériel ou logiciel (classification) ») ; les 8 autres restent des
-    # blocs Markdown (« ## Exercice N — ... » -> <h2>Exercice N — ...</h2>).
+    # Les 12 énoncés sont présents (titre de carte = titre du bloc, ex.
+    # « Exercice 1 — Matériel ou logiciel (classification) »).
     for n in range(1, 13):
         assert f"Exercice {n} —" in text, f"exercice {n} manquant"
 
-    # Les 8 exercices restés en Markdown (3, 4, 5, 6, 7, 8, 10, 12) contiennent bien un
-    # paragraphe de correction : le Markdown est rendu côté serveur tel quel (comme pour
-    # Solides/Patrons en Géométrie), le masquage jusqu'à la demande explicite est appliqué
-    # ensuite côté client par app/static/js/design_system.js::splitExerciseCorrections() —
-    # pas testable via TestClient (pas de JS), donc on vérifie ici que le texte est bien
-    # présent et sera capturé par ce mécanisme générique (déjà couvert par la convention
-    # existante).
-    assert text.count("Correction :") >= 8
+    # Plus aucune correction Markdown statique visible sans action explicite (les 12
+    # exercices sont désormais tous structurés — ticket #29).
+    assert "Correction :" not in text
 
-    # Les 4 exercices migrés (ticket #21) n'affichent, eux, JAMAIS leur correction dans le
-    # HTML initial : elle n'existe côté serveur que derrière l'appel de vérification AJAX
-    # (voir app/editorial_exercise.py, app/practice.py). Garde-fou anti-fuite explicite.
+    # Aucune fuite de solution, pour aucun type (single_choice/true_false, classification,
+    # ordering, long_answer/diagnostic/vocabulary) : la grille de correction IA
+    # (`explanation`, transmise comme `rubric`) n'est jamais envoyée avant la correction.
     assert "correct_categories" not in text
     assert "correct_order" not in text
+    assert '"correct_index"' not in text
+    assert '"accepted_answers"' not in text
+    assert '"explanation"' not in text
+    assert '"rubric"' not in text
 
 
 def test_exam_is_published_without_visible_correction(client, db_session):

@@ -26,7 +26,10 @@ def _mc01_uaa(db_session):
     return db_session.query(UAA).filter_by(code="MC01").first()
 
 
-def test_exactly_four_mc01_exercises_are_editorial_exercise_blocks(client, db_session):
+def test_the_four_ticket21_exercises_are_still_editorial_exercise_blocks(client, db_session):
+    """Ticket #29 a migré les 8 exercices restants, mais ne doit JAMAIS casser les 4
+    exercices structurés du ticket #21 (« ne pas casser #21 », consigne explicite) — voir
+    tests/test_ticket29_no_regression.py pour le compte total (12) après #29."""
     seed()
     uaa = _mc01_uaa(db_session)
     assert uaa is not None
@@ -34,14 +37,13 @@ def test_exactly_four_mc01_exercises_are_editorial_exercise_blocks(client, db_se
     editorial_blocks = [
         block for block in uaa.lesson_blocks if block.type == BlockType.EDITORIAL_EXERCISE
     ]
-    assert len(editorial_blocks) == 4
     titles = {block.title for block in editorial_blocks}
-    assert titles == {
+    assert {
         "Exercice 1 — Matériel ou logiciel (classification)",
         "Exercice 2 — Unité centrale ou périphérique (classification)",
         "Exercice 9 — Lancement d'un programme (ordering)",
         "Exercice 11 — Entrée, sortie ou mixte (classification)",
-    }
+    }.issubset(titles)
 
 
 def test_migrated_exercises_no_longer_appear_in_markdown_form(client, db_session):
@@ -68,35 +70,48 @@ def test_migrated_exercises_no_longer_appear_in_markdown_form(client, db_session
     assert response.text.count("Exercice 11 —") == 1
 
 
-def test_untouched_exercises_keep_their_exact_original_markdown_text(client, db_session):
-    """Les exercices 3, 4, 5, 6, 7, 8, 10, 12 ne sont pas modifiés par ce ticket."""
+def test_exercises_3_to_12_pedagogical_content_preserved_after_ticket_29(client, db_session):
+    """Les exercices 3, 4, 5, 6, 7, 8, 10, 12 étaient encore du Markdown statique au
+    ticket #21 (non modifiés par #21 lui-même) ; le ticket #29 les migre à leur tour en
+    blocs `editorial_exercise`, mais leur CONTENU pédagogique (question + grille de
+    correction) reste identique mot pour mot — voir
+    docs/claude-reports/2026-09-17_ticket-29_mc01-practice-interactive.md."""
+    from app.editorial_exercise import EditorialExerciseBlockConfig
+
     seed()
     uaa = _mc01_uaa(db_session)
-    markdown_text = "\n".join(
-        block.content for block in uaa.lesson_blocks if block.type == BlockType.MARKDOWN
-    )
+    editorial_by_exercise_id = {}
+    for block in uaa.lesson_blocks:
+        if block.type != BlockType.EDITORIAL_EXERCISE:
+            continue
+        config = EditorialExerciseBlockConfig.from_json(block.content)
+        for item in config.items:
+            editorial_by_exercise_id[item.exercise_id] = item
 
-    for heading, correction_excerpt in [
+    for exercise_id, prompt_excerpt, correction_excerpt in [
         (
-            "## Exercice 3 — expliquer",
+            "mc01-ex3",
+            "pourquoi on ne peut pas installer n'importe quel processeur",
             "Le processeur doit être compatible avec le socket de la carte mère",
         ),
-        ("## Exercice 4 — diagnostiquer", "la carte graphique (ou la connexion GPU/écran)"),
-        ("## Exercice 5 — expliquer", "La RAM est une mémoire de travail temporaire"),
-        ("## Exercice 6 — expliquer une ambiguïté", "32 Go » peut désigner la RAM"),
-        ("## Exercice 7 — expliquer", "Un GPU intégré est directement intégré au CPU"),
-        ("## Exercice 8 — expliquer", "750 W est la puissance **maximale**"),
-        ("## Exercice 10 — diagnostiquer", "La RAM est la piste la plus probable"),
-        ("## Exercice 12 — vocabulaire", "Mémoire vive → RAM"),
+        ("mc01-ex4", "rien ne s'affiche à l'écran", "la carte graphique (ou la connexion GPU/écran)"),
+        ("mc01-ex5", "différence entre la RAM et le stockage", "La RAM est une mémoire de travail temporaire"),
+        ("mc01-ex6", "32 Go dans mon PC", "32 Go » peut désigner la RAM"),
+        ("mc01-ex7", "GPU intégré et une carte graphique dédiée", "Un GPU intégré est directement intégré au CPU"),
+        ("mc01-ex8", "750 W", "750 W est la puissance **maximale**"),
+        ("mc01-ex10", "ralentit fortement", "La RAM est la piste la plus probable"),
+        ("mc01-ex12", "équivalent anglais des quatre termes", "Mémoire vive → RAM"),
     ]:
-        assert heading in markdown_text
-        assert correction_excerpt in markdown_text
+        item = editorial_by_exercise_id.get(exercise_id)
+        assert item is not None, exercise_id
+        assert prompt_excerpt in item.prompt, exercise_id
+        assert correction_excerpt in item.explanation, exercise_id
 
 
 def test_mc01_block_count_matches_mc01_blocks_constant(client, db_session):
     seed()
     uaa = _mc01_uaa(db_session)
-    assert len(uaa.lesson_blocks) == len(MC01_BLOCKS) == 23
+    assert len(uaa.lesson_blocks) == len(MC01_BLOCKS) == 28
 
 
 def test_seed_is_idempotent_after_migration(client, db_session):
@@ -134,8 +149,14 @@ def test_staging_already_seeded_before_ticket_21_is_migrated_without_reset(clien
     db_session.add(uaa)
     db_session.flush()
 
-    old_titles = sorted(MC01_OBSOLETE_TITLES)
-    assert len(old_titles) == 2
+    # Scénario ciblé sur les 2 titres spécifiques au ticket #21 (MC01_OBSOLETE_TITLES en
+    # contient désormais 5 au total depuis le ticket #29 — voir
+    # tests/test_ticket29_no_regression.py pour le scénario complet post-#29).
+    old_titles = [
+        "Architecture d'un PC — Exercices (1/3 : composants et rôles)",
+        "Architecture d'un PC — Exercices (3/3 : scénario, diagnostic, vocabulaire)",
+    ]
+    assert set(old_titles).issubset(MC01_OBSOLETE_TITLES)
     db_session.add(
         LessonBlock(
             uaa=uaa,
@@ -169,7 +190,10 @@ def test_staging_already_seeded_before_ticket_21_is_migrated_without_reset(clien
     editorial_blocks = [
         block for block in uaa.lesson_blocks if block.type == BlockType.EDITORIAL_EXERCISE
     ]
-    assert len(editorial_blocks) == 4
+    # Cette UAA de test ne contenait que les 2 blocs obsolètes avant seed() : tous les
+    # blocs modernes de MC01_BLOCKS sont donc créés d'un coup, y compris les 12 exercices
+    # structurés (4 du ticket #21 + 8 du ticket #29).
+    assert len(editorial_blocks) == 12
 
     # Ticket #22 : le contenu migré vit désormais sur l'espace S'entraîner, pas Cours —
     # on vérifie l'absence de l'ancien contenu sur les deux pages.
