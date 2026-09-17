@@ -7,6 +7,7 @@ from app.exercise_blocks import ExerciseBlockConfig
 from app.models import UAA, BlockSpace, BlockType, LessonBlock, Module, Subject
 from app.quiz import QuizConfig
 from app.slugify import slugify
+from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 
 SUBJECT_NAME = "Mathématiques"
 MODULE_CODES = ["MB32", "MQ32", "MQ34"]

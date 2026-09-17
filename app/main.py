@@ -20,6 +20,7 @@ from app.exercise_blocks import ExerciseBlockConfig, exercise_to_public_dict, ge
 from app.practice import router as practice_router
 from app.quiz import QuizConfig
 from app.templating import templates
+from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.value_table import value_table_public_dict
 from generators.base import GeneratedExercise
 from generators.exercise_types import InteractiveExercise
