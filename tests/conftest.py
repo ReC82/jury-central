@@ -16,6 +16,12 @@ os.environ["DATABASE_URL"] = f"sqlite:///{_TEST_DB_PATH}"
 os.environ.setdefault("ADMIN_USERNAME", "test-admin")
 os.environ.setdefault("ADMIN_PASSWORD", "test-password")
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
+# Force-cleared (pas setdefault) : sur une machine où /srv/jury-central/.env porte une
+# vraie clé (staging), pydantic-settings la lirait sinon directement depuis le fichier dès
+# qu'aucune variable d'environnement OPENAI_API_KEY n'est déjà positionnée — un simple
+# `setdefault` ne suffit pas à empêcher ce repli. Garantit qu'aucun test ne peut jamais
+# déclencher un appel réseau réel vers OpenAI (voir docs/ai_exercise_engine.md, § Tests).
+os.environ["OPENAI_API_KEY"] = ""
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

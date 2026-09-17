@@ -1,11 +1,20 @@
-"""Fournisseur IA réel : appelle l'API Chat Completions d'OpenAI, exclusivement côté
-serveur.
+"""Fournisseur IA réel : appelle la Responses API d'OpenAI (`POST /v1/responses`),
+exclusivement côté serveur.
+
+Ticket #31 : migré depuis `/v1/chat/completions` (`response_format: json_schema`), qui
+renvoie HTTP 400 avec les modèles actuels (ex. `gpt-5.6-luna`) — la Responses API est le
+point d'entrée actuel d'OpenAI pour ce type d'appel. Migration de la seule couche I/O :
+`app/ai/prompts.py` (messages, schémas JSON) et les contrats métier des tickets #10/#23
+restent inchangés — `_call()` adapte simplement `messages` (`[{"role", "content"}, ...]`,
+inchangé) vers `instructions`/`input`, et le schéma JSON existant (`{"name", "strict",
+"schema"}`) vers `text.format` (aplati, sans la clé `json_schema` imbriquée qu'utilisait
+Chat Completions).
 
 La clé API n'est jamais transmise au navigateur ni journalisée : elle ne quitte cette
 classe que dans l'en-tête HTTP `Authorization` d'une requête sortante vers OpenAI, jamais
 dans un message d'erreur, une exception ou un log (voir `_headers`/`_call`). La sortie est
-forcée en JSON strict (`response_format: json_schema`) : le modèle ne peut pas renvoyer de
-texte libre non structuré (voir `app/ai/prompts.py`).
+forcée en JSON strict (`text.format: {"type": "json_schema", ...}`) : le modèle ne peut pas
+renvoyer de texte libre non structuré (voir `app/ai/prompts.py`).
 """
 
 import json
@@ -34,7 +43,12 @@ from app.ai.schemas import (
     QuestionnaireRequest,
 )
 
-CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
+RESPONSES_URL = "https://api.openai.com/v1/responses"
+
+# Longueur maximale du message d'erreur OpenAI repris dans nos propres exceptions — un
+# message d'erreur fournisseur ne doit jamais faire gonfler indéfiniment nos logs/réponses,
+# et ne contient de toute façon jamais de secret (voir _raise_for_error_response).
+_MAX_ERROR_MESSAGE_LENGTH = 200
 
 
 class OpenAIProvider:
@@ -52,16 +66,94 @@ class OpenAIProvider:
             "Content-Type": "application/json",
         }
 
-    def _call(self, messages: list[dict[str, str]], json_schema: dict) -> dict:
-        payload = {
+    def _to_responses_payload(self, messages: list[dict[str, str]], json_schema: dict) -> dict:
+        """Adapte `messages` (`[{"role": "system"|"user", "content": str}, ...]`, format
+        déjà produit par `app/ai/prompts.py`, inchangé par ce ticket) et le schéma JSON
+        existant (`{"name", "strict", "schema"}`) au format attendu par `/v1/responses` :
+        `instructions` (système) + `input` (utilisateur) séparés au niveau racine, et
+        `text.format` (schéma JSON aplati, sans la clé `json_schema` imbriquée qu'utilisait
+        Chat Completions) — jamais un simple copier-coller du payload Chat Completions."""
+        instructions = "\n\n".join(
+            message["content"] for message in messages if message.get("role") == "system"
+        )
+        input_text = "\n\n".join(
+            message["content"] for message in messages if message.get("role") != "system"
+        )
+        return {
             "model": self._model,
-            "messages": messages,
-            "response_format": {"type": "json_schema", "json_schema": json_schema},
-            "temperature": 0.7,
+            "instructions": instructions,
+            "input": input_text,
+            "text": {
+                "format": {
+                    "type": "json_schema",
+                    "name": json_schema["name"],
+                    "strict": json_schema["strict"],
+                    "schema": json_schema["schema"],
+                }
+            },
+            # Pas de `temperature` : rejetée (HTTP 400, "Unsupported parameter: 'temperature'
+            # is not supported with this model") par les modèles de raisonnement de la
+            # famille GPT-5, dont `gpt-5.6-luna` (voir le rapport de ticket #31) — l'envoyer
+            # inconditionnellement aurait réintroduit un 400 même après la migration
+            # d'endpoint. Aucun contrat métier ne dépend d'une température précise.
         }
+
+    @staticmethod
+    def _extract_output_text(data: dict) -> str:
+        """Extraction robuste du texte structuré depuis `output[]` : ne suppose jamais un
+        index fixe (voir la conversation sur les items `reasoning` intercalés avant le
+        `message` avec les modèles de raisonnement) — cherche le premier item `type ==
+        "message"`, puis le premier bloc de son `content[]` dont `type == "output_text"`.
+        Lève `AIResponseError` si rien d'exploitable n'est trouvé, jamais un `IndexError`
+        ou un `KeyError` brut."""
+        for item in data.get("output") or []:
+            if not isinstance(item, dict) or item.get("type") != "message":
+                continue
+            for content_item in item.get("content") or []:
+                if not isinstance(content_item, dict):
+                    continue
+                if content_item.get("type") == "output_text":
+                    text = content_item.get("text")
+                    if isinstance(text, str) and text:
+                        return text
+        raise AIResponseError("Réponse du service IA illisible ou incomplète.")
+
+    @staticmethod
+    def _raise_for_error_response(response: httpx.Response) -> None:
+        """Diagnostic amélioré (ticket #31) : reprend `error.type`/`error.code`/
+        `error.message` d'OpenAI si présents (message tronqué à 200 caractères), sans
+        jamais inclure les en-têtes de la requête, le payload envoyé, ni la clé API — voir
+        le docstring du module."""
+        error_payload: dict = {}
+        try:
+            body = response.json()
+            if isinstance(body, dict) and isinstance(body.get("error"), dict):
+                error_payload = body["error"]
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+        details = []
+        error_type = error_payload.get("type")
+        if error_type:
+            details.append(f"type={error_type}")
+        error_code = error_payload.get("code")
+        if error_code:
+            details.append(f"code={error_code}")
+        error_message = error_payload.get("message")
+        if error_message:
+            truncated = str(error_message)[:_MAX_ERROR_MESSAGE_LENGTH]
+            details.append(f"message={truncated!r}")
+
+        detail_text = f" ({', '.join(details)})" if details else ""
+        raise AIResponseError(
+            f"Le service IA a répondu avec le statut {response.status_code}{detail_text}."
+        )
+
+    def _call(self, messages: list[dict[str, str]], json_schema: dict) -> dict:
+        payload = self._to_responses_payload(messages, json_schema)
         try:
             response = httpx.post(
-                CHAT_COMPLETIONS_URL,
+                RESPONSES_URL,
                 headers=self._headers(),
                 json=payload,
                 timeout=self._timeout_seconds,
@@ -75,15 +167,17 @@ class OpenAIProvider:
             raise AIResponseError(f"Erreur réseau vers le service IA : {exc}") from exc
 
         if response.status_code != 200:
-            raise AIResponseError(
-                f"Le service IA a répondu avec le statut {response.status_code}."
-            )
+            self._raise_for_error_response(response)
 
         try:
             data = response.json()
-            content = data["choices"][0]["message"]["content"]
-            parsed = json.loads(content)
-        except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise AIResponseError("Réponse du service IA illisible ou incomplète.") from exc
+
+        output_text = self._extract_output_text(data)
+        try:
+            parsed = json.loads(output_text)
+        except json.JSONDecodeError as exc:
             raise AIResponseError("Réponse du service IA illisible ou incomplète.") from exc
 
         if not isinstance(parsed, dict):
