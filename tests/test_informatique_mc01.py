@@ -63,28 +63,28 @@ def test_mc01_covers_the_mandatory_content(client, db_session):
 
 
 def test_mc01_has_twelve_exercises_with_hidden_corrections(authenticated_client, db_session):
-    """Depuis le ticket #22, les 12 exercices sont sur la page S'entraîner
-    (`/uaa/{slug}/practice`). Depuis le ticket #29, les 12 sont des blocs
-    `editorial_exercise` structurés (plus aucun Markdown statique) : aucune correction
-    n'est jamais visible dans le HTML initial, pour aucun des 12 — voir
-    tests/test_ticket29_no_regression.py pour la non-régression détaillée."""
+    """Depuis le ticket #55, `/uaa/ampcr-mc01/practice` affiche le nouveau parcours de
+    session V1 (choix de difficulté, puis questionnaire de 10 questions) plutôt que les
+    12 exercices `editorial_exercise` empilés du ticket #29 — voir
+    `docs/claude-reports/2026-09-17_ticket-55_urgent-ampcr-full.md`. Le contenu
+    pédagogique des 12 exercices reste inchangé en base (`app.seed.MC01_BLOCKS`) et sert
+    désormais de banque V1 initiale (`app.v1.bank.import_mc01_legacy_to_bank`) — voir
+    `tests/test_ticket55_urgent_ampcr_full.py` pour la non-régression détaillée du
+    contenu."""
     seed()
 
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     text = response.text
 
-    # Les 12 énoncés sont présents (titre de carte = titre du bloc, ex.
-    # « Exercice 1 — Matériel ou logiciel (classification) »).
-    for n in range(1, 13):
-        assert f"Exercice {n} —" in text, f"exercice {n} manquant"
+    assert response.status_code == 200
+    assert "Commencer l'entraînement" in text
 
-    # Plus aucune correction Markdown statique visible sans action explicite (les 12
-    # exercices sont désormais tous structurés — ticket #29).
+    # Aucune correction ni contenu d'exercice visible avant qu'une session ne soit créée.
     assert "Correction :" not in text
+    for n in range(1, 13):
+        assert f"Exercice {n} —" not in text
 
-    # Aucune fuite de solution, pour aucun type (single_choice/true_false, classification,
-    # ordering, long_answer/diagnostic/vocabulary) : la grille de correction IA
-    # (`explanation`, transmise comme `rubric`) n'est jamais envoyée avant la correction.
+    # Aucune fuite de solution, pour aucun type.
     assert "correct_categories" not in text
     assert "correct_order" not in text
     assert '"correct_index"' not in text
@@ -94,16 +94,18 @@ def test_mc01_has_twelve_exercises_with_hidden_corrections(authenticated_client,
 
 
 def test_exam_is_published_without_visible_correction(authenticated_client, db_session):
-    """Depuis le ticket #22, l'examen est sur la page S'évaluer (`/uaa/{slug}/exam`)."""
+    """Depuis le ticket #55, `/uaa/ampcr-mc01/exam` affiche le nouveau parcours de
+    session V1 — plus l'ancien examen Markdown statique."""
     seed()
 
     response = authenticated_client.get("/uaa/ampcr-mc01/exam")
     text = response.text
 
-    assert "Examen final" in text
-    assert "Question 10 (2 pts)" in text
+    assert response.status_code == 200
+    assert "Commencer l'évaluation" in text
 
-    # Le corrigé (bloc non publié) ne doit jamais apparaître sur la page publique.
+    # Le corrigé (bloc non publié) ni l'ancien examen statique ne doivent jamais
+    # apparaître sur la nouvelle page publique.
     assert "Corrigé" not in text
     assert "0,5 pt par rôle correct" not in text
     assert "notation qualitative" not in text

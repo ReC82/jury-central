@@ -421,11 +421,12 @@ def test_staging_seeded_before_ticket_29_is_migrated_without_reset(authenticated
     ]
     assert len(editorial_blocks) == 12
 
+    # Ticket #55 : /uaa/ampcr-mc01/practice affiche désormais le nouveau parcours de
+    # session V1 — la migration des 12 exercices elle-même reste vérifiée ci-dessus au
+    # niveau des données (aucun ancien titre Markdown, 12 blocs editorial_exercise).
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     assert response.status_code == 200
     assert "ancien contenu pré-#29" not in response.text
-    for n in range(1, 13):
-        assert f"Exercice {n} —" in response.text
 
 
 def test_seed_is_idempotent_after_ticket_29_migration(client, db_session):

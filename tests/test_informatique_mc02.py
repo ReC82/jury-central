@@ -57,26 +57,33 @@ def test_mc02_covers_the_mandatory_content(client, db_session):
 
 
 def test_mc02_has_at_least_ten_exercises_with_hidden_corrections(authenticated_client, db_session):
-    """Depuis le ticket #22, les exercices sont sur la page S'entraîner."""
+    """Depuis le ticket #55, /uaa/ampcr-mc02/practice affiche le nouveau parcours de
+    session V1 (choix de difficulté) plutôt que les exercices Markdown empilés — le
+    contenu pédagogique MC02 lui-même reste vérifié sur la page Cours
+    (`test_mc02_covers_the_mandatory_content`) et via app.seed.MC02_BLOCKS, inchangés."""
     seed()
 
     response = authenticated_client.get("/uaa/ampcr-mc02/practice")
     text = response.text
 
+    assert response.status_code == 200
+    assert "Commencer l'entraînement" in text
+    # Aucune correction ni contenu d'exercice visible avant qu'une session ne soit créée.
+    assert "Correction :" not in text
     for n in range(1, 13):
-        assert f"Exercice {n} —" in text, f"exercice {n} manquant"
-    assert text.count("Correction :") >= 12
+        assert f"Exercice {n} —" not in text
 
 
 def test_mc02_exam_is_published_without_visible_correction(authenticated_client, db_session):
-    """Depuis le ticket #22, l'examen est sur la page S'évaluer."""
+    """Depuis le ticket #55, /uaa/ampcr-mc02/exam affiche le nouveau parcours de session
+    V1 — plus l'ancien examen Markdown statique."""
     seed()
 
     response = authenticated_client.get("/uaa/ampcr-mc02/exam")
     text = response.text
 
-    assert "Examen final" in text
-    assert "Question 10 (2 pts)" in text
+    assert response.status_code == 200
+    assert "Commencer l'évaluation" in text
     assert "Corrigé" not in text
     assert "notation qualitative" not in text
 

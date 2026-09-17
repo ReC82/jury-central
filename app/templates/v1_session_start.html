@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}{{ mode_label }} — {{ uaa.title if uaa else global_title }} — Jury Central{% endblock %}
+
+{% block content %}
+{% if uaa %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/subjects">Matières</a></li>
+        <li class="breadcrumb-item">
+            <a href="/subjects/{{ uaa.module.subject.slug }}">{{ uaa.module.subject.name }}</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="/modules/{{ uaa.module.slug }}">{{ uaa.module.code }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ uaa.code }}</li>
+    </ol>
+</nav>
+{% include "_uaa_space_nav.html" %}
+{% endif %}
+
+<div class="mb-4">
+    <p class="text-uppercase text-muted small fw-semibold mb-1">{{ mode_label }}</p>
+    <h1 class="h3 mb-0">
+        {% if uaa %}{{ uaa.title }} <small class="text-muted">({{ uaa.code }})</small>{% else %}{{ global_title }}{% endif %}
+    </h1>
+</div>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">{{ error }}</div>
+{% endif %}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+
+        {% if resumable %}
+        <div class="p-4 bg-white rounded shadow-sm mb-3">
+            <h2 class="h5 mb-3">Session en cours</h2>
+            <p class="text-muted small">
+                Tu as déjà une session {{ mode_label|lower }} en cours pour ce mini-cours.
+            </p>
+            <a href="/sessions/{{ resumable.id }}" class="btn btn-dark w-100">
+                Reprendre l'entraînement en cours
+            </a>
+        </div>
+        {% endif %}
+
+        {% if not resumable or allow_new_while_in_progress %}
+        <div class="p-4 bg-white rounded shadow-sm">
+            <h2 class="h5 mb-3">{% if resumable %}Nouvelle session{% else %}Nouvel entraînement{% endif %}</h2>
+            <form method="post" action="{{ start_url }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <fieldset class="mb-3">
+                    <legend class="form-label h6">Difficulté</legend>
+                    {% for value, label in difficulties %}
+                    <div class="form-check">
+                        <input
+                            class="form-check-input"
+                            type="radio"
+                            name="difficulty"
+                            id="difficulty-{{ value.value }}"
+                            value="{{ value.value }}"
+                            {% if loop.index0 == 1 %}checked{% endif %}>
+                        <label class="form-check-label" for="difficulty-{{ value.value }}">{{ label }}</label>
+                    </div>
+                    {% endfor %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" disabled>
+                        <label class="form-check-label text-muted">Adaptatif (bientôt disponible)</label>
+                    </div>
+                </fieldset>
+                <button type="submit" class="btn btn-dark w-100">
+                    {% if mode == "exam" %}Commencer l'évaluation{% else %}Commencer l'entraînement{% endif %}
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

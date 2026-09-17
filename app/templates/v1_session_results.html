@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Résultats — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-9 col-lg-8">
+
+        <p class="text-uppercase text-muted small fw-semibold mb-1">
+            {% if session.mode.value == "exam" %}S'évaluer — résultat{% else %}S'entraîner — résultat{% endif %}
+        </p>
+        <h1 class="h3 mb-1">Score : {{ session.score }} / {{ session.question_count }}</h1>
+        <p class="text-muted mb-4">Session terminée le {{ session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else '' }} — définitive, non modifiable.</p>
+
+        <div class="accordion" id="results-accordion">
+            {% for item in results %}
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#result-{{ item.position }}">
+                        Question {{ item.position }} — {{ item.points_awarded }} / {{ item.feedback.points_max or 1 }} point(s)
+                    </button>
+                </h2>
+                <div id="result-{{ item.position }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                     data-bs-parent="#results-accordion">
+                    <div class="accordion-body">
+                        <p class="fw-semibold">{{ item.prompt }}</p>
+
+                        <p class="mb-1"><span class="text-muted small text-uppercase">Ta réponse</span></p>
+                        <p class="border rounded p-2 bg-light">{{ item.user_answer }}</p>
+
+                        {% if item.feedback.expected_answer %}
+                        <p class="mb-1 mt-3"><span class="text-muted small text-uppercase">Attendu / critères</span></p>
+                        <p class="border rounded p-2">{{ item.feedback.expected_answer }}</p>
+                        {% endif %}
+
+                        {% if item.feedback.strengths %}
+                        <p class="mb-1 mt-3 text-success small text-uppercase">Points forts</p>
+                        <ul>{% for s in item.feedback.strengths %}<li>{{ s }}</li>{% endfor %}</ul>
+                        {% endif %}
+
+                        {% if item.feedback.errors %}
+                        <p class="mb-1 mt-3 text-danger small text-uppercase">Erreurs</p>
+                        <ul>{% for e in item.feedback.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                        {% endif %}
+
+                        {% if item.feedback.missing %}
+                        <p class="mb-1 mt-3 text-warning small text-uppercase">Éléments manquants</p>
+                        <ul>{% for m in item.feedback.missing %}<li>{{ m }}</li>{% endfor %}</ul>
+                        {% endif %}
+
+                        {% if item.feedback.feedback %}
+                        <p class="mb-1 mt-3 text-muted small text-uppercase">Explication</p>
+                        <p>{{ item.feedback.feedback }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="/" class="btn btn-outline-dark">Retour à l'accueil</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

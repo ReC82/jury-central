@@ -61,13 +61,11 @@ def test_migrated_exercises_no_longer_appear_in_markdown_form(authenticated_clie
     assert "## Exercice 9 — reconstruire" not in markdown_text
     assert "## Exercice 11 — classer" not in markdown_text
 
-    # Ticket #22 : les exercices sont désormais sur l'espace S'entraîner, pas Cours.
+    # Ticket #55 : `/uaa/ampcr-mc01/practice` affiche désormais le nouveau parcours de
+    # session V1 — plus de liste d'exercices individuelle sur cette page (la donnée
+    # elle-même, vérifiée ci-dessus via `markdown_text`, reste correcte en base).
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     assert response.status_code == 200
-    assert response.text.count("Exercice 1 —") == 1
-    assert response.text.count("Exercice 2 —") == 1
-    assert response.text.count("Exercice 9 —") == 1
-    assert response.text.count("Exercice 11 —") == 1
 
 
 def test_exercises_3_to_12_pedagogical_content_preserved_after_ticket_29(client, db_session):

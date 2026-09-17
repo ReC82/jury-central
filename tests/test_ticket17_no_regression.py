@@ -43,11 +43,12 @@ def test_mc01_content_is_untouched_by_ticket_17(authenticated_client, db_session
     # #21, 8 de plus depuis #29) — voir docstring du module.
     assert editorial_blocks == 12
 
-    # Ticket #22 : les 12 exercices sont désormais sur l'espace S'entraîner, pas Cours.
+    # Ticket #55 : `/uaa/ampcr-mc01/practice` affiche désormais le nouveau parcours de
+    # session V1 (voir tests/test_informatique_mc01.py) — les 12 exercices restent en
+    # espace PRACTICE en base (vérifié ci-dessus), même s'ils ne sont plus listés
+    # individuellement sur cette page.
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     assert response.status_code == 200
-    for n in range(1, 13):
-        assert f"Exercice {n} —" in response.text
 
 
 def test_mc02_and_mc03_unaffected(client, db_session):
