@@ -16,7 +16,13 @@ from app.answer_checking import normalize_text
 from app.models import UAA, Module
 from app.seed import seed
 from app.v1.francais_bank import import_francais_c01_to_bank
-from app.v1.francais_content import MAIN_DOCUMENT_TITLE, SECOND_DOCUMENT_TITLE
+from app.v1.francais_content import (
+    CODING_DEBATE_DOCUMENT_TITLE,
+    DIGITAL_LIFE_DOCUMENT_TITLE,
+    MAIN_DOCUMENT_TITLE,
+    SECOND_DOCUMENT_TITLE,
+    TRAINING_DOCUMENT_TITLE,
+)
 from app.v1.models import Question, QuestionnaireSession, SourceDocument, SourceDocumentVersion
 
 
@@ -79,25 +85,32 @@ def _answer_all_and_submit(client, session_url: str, total: int) -> None:
 
 
 def test_francais_bank_import_creates_shared_source_documents(db_session):
+    """Corpus étendu (overnight mission du 2026-09-19, § Phases 5-7) : 5 SourceDocument,
+    40 questions — voir docs/francais_v1_functional.md pour le détail."""
     seed()
     francais = db_session.query(Module).filter_by(code="FRANCAIS").first()
     c01 = db_session.query(UAA).filter_by(slug="francais-c01").first()
     imported = import_francais_c01_to_bank(db_session, francais, c01)
     db_session.commit()
-    assert imported == 11
+    assert imported == 40
 
     documents = db_session.query(SourceDocument).all()
-    assert len(documents) == 2
+    assert len(documents) == 5
     titles = {doc.current_version.title for doc in documents}
-    assert titles == {MAIN_DOCUMENT_TITLE, SECOND_DOCUMENT_TITLE}
+    assert titles == {
+        MAIN_DOCUMENT_TITLE, SECOND_DOCUMENT_TITLE, DIGITAL_LIFE_DOCUMENT_TITLE,
+        TRAINING_DOCUMENT_TITLE, CODING_DEBATE_DOCUMENT_TITLE,
+    }
 
 
-def test_fait_opinion_classification_explanation_matches_correct_categories(db_session):
-    """Bug identifié en review : l'explication de la classification Fait/Opinion
-    contredisait `correct_categories` (« les deux premières... la deuxième est un
-    jugement » — contradictoire). `correct_categories=[0, 1, 0]` (Fait/Opinion/Fait)
-    était déjà correct ; seul le texte l'était pas. Corrigé pour refléter fidèlement le
-    mapping : la 1re et la 3e affirmations sont des faits, la 2e une opinion."""
+def test_fait_opinion_classification_explanations_match_correct_categories(db_session):
+    """Bug identifié en review : l'explication de la classification Fait/Opinion (texte
+    smartphone) contredisait `correct_categories` (« les deux premières... la deuxième
+    est un jugement » — contradictoire). `correct_categories=[0, 1, 0]` (Fait/Opinion/
+    Fait) était déjà correct ; seul le texte l'était pas. Corrigé pour refléter
+    fidèlement le mapping : la 1re et la 3e affirmations sont des faits, la 2e une
+    opinion. Le corpus étendu ajoute une seconde classification Fait/Opinion (texte
+    numérique au quotidien) — vérifiée avec la même exigence de cohérence."""
     seed()
     francais = db_session.query(Module).filter_by(code="FRANCAIS").first()
     c01 = db_session.query(UAA).filter_by(slug="francais-c01").first()
@@ -108,14 +121,15 @@ def test_fait_opinion_classification_explanation_matches_correct_categories(db_s
         q for q in db_session.query(Question).filter_by(uaa_id=c01.id)
         if q.current_version.question_type == "classification"
     ]
-    assert len(classification_questions) == 1
-    content = classification_questions[0].current_version.content_json
-    assert content["correct_categories"] == [0, 1, 0]
-    explanation = normalize_text(content["explanation"])
-    assert "premiere" in explanation
-    assert "troisieme" in explanation
-    # Non-régression explicite du bug : l'ancienne formulation contradictoire a disparu.
-    assert "deux premieres" not in explanation
+    assert len(classification_questions) == 2
+    for question in classification_questions:
+        content = question.current_version.content_json
+        assert content["correct_categories"] == [0, 1, 0]
+        explanation = normalize_text(content["explanation"])
+        assert "premiere" in explanation
+        assert "troisieme" in explanation
+        # Non-régression explicite du bug : l'ancienne formulation contradictoire a disparu.
+        assert "deux premieres" not in explanation
 
 
 def test_francais_bank_import_is_idempotent(db_session):
@@ -126,7 +140,7 @@ def test_francais_bank_import_is_idempotent(db_session):
     db_session.commit()
     second = import_francais_c01_to_bank(db_session, francais, c01)
     assert second == 0
-    assert db_session.query(SourceDocumentVersion).count() == 2
+    assert db_session.query(SourceDocumentVersion).count() == 5
 
 
 def test_multiple_questions_reference_the_same_document(db_session):
@@ -141,16 +155,32 @@ def test_multiple_questions_reference_the_same_document(db_session):
     from app.v1.models import Question
 
     questions = db_session.query(Question).filter_by(uaa_id=c01.id).all()
-    referencing_main_doc = [
+    referencing_a_document = [
         q for q in questions
         if q.current_version.content_json.get("source_document_version_id")
         or q.current_version.content_json.get("source_document_version_ids")
     ]
-    # document_analysis x2 + source_comparison x1 référencent le document principal.
-    assert len(referencing_main_doc) == 3
+    # Corpus étendu : 4 document_analysis + 4 source_comparison + 1 long_answer référençant
+    # explicitement son document déclencheur (débat programmation) = 9 questions.
+    assert len(referencing_a_document) == 9
+
+    main_doc_version = (
+        db_session.query(SourceDocumentVersion)
+        .join(SourceDocument, SourceDocument.current_version_id == SourceDocumentVersion.id)
+        .filter(SourceDocumentVersion.title == MAIN_DOCUMENT_TITLE)
+        .one()
+    )
+    main_doc_questions = [
+        q for q in referencing_a_document
+        if q.current_version.content_json.get("source_document_version_id") == main_doc_version.id
+        or main_doc_version.id in (q.current_version.content_json.get("source_document_version_ids") or [])
+    ]
+    # Le document principal (smartphone) sert, à lui seul, à plusieurs questions
+    # (2 document_analysis + 4 source_comparison) — jamais dupliqué malgré ce nombre.
+    assert len(main_doc_questions) >= 3
     # Aucun texte long dupliqué dans une question : seule une référence (id), jamais
     # `content_text`, n'apparaît dans le content_json d'une question.
-    for question in referencing_main_doc:
+    for question in referencing_a_document:
         assert "content_text" not in question.current_version.content_json
         assert MAIN_DOCUMENT_TITLE not in str(question.current_version.content_json)
 
@@ -307,9 +337,12 @@ def test_document_context_is_provided_once_per_document_not_per_question(authent
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
     contexts = _document_contexts_for(db_session, session_questions)
-    # Au plus 2 documents existent dans ce pilote (principal + second) — jamais un
-    # contexte par QUESTION qui les référence.
-    assert len(contexts) <= 2
+    # Au plus 5 documents existent dans le corpus (§ Phases 5-7) — et une session de 10
+    # questions ne peut de toute façon jamais en référencer plus que son propre nombre de
+    # questions — jamais un contexte par QUESTION qui les référence (donc jamais plus que
+    # le nombre de documents DISTINCTS réellement cités par cette session précise).
+    assert len(contexts) <= 5
+    assert len(contexts) <= len(session_questions)
     for context in contexts:
         # Le texte n'apparaît qu'une fois dans le contexte de ce document.
         assert context.constraints.count(context.course_title) <= 1
