@@ -191,7 +191,28 @@ GENERATE_QUESTIONNAIRE_SYSTEM_PROMPT = (
     "assure-toi que la somme des barèmes s'en approche. Ne remplis que les champs "
     "pertinents pour le type de question choisi ; laisse les autres à `null` ou liste "
     "vide. Réponds exclusivement selon le format JSON demandé, sans aucun texte hors de "
-    "ce format."
+    "ce format.\n\n"
+    "QUALITÉ (impératif, ticket #64) :\n"
+    "- Diagnostic/procédure/dépannage et réponse courte réseau/système : construis une "
+    "vraie mise en situation concrète (poste, symptôme observé, valeur mesurée...), "
+    "jamais une formulation générique et vague. Mauvais exemple à ne jamais reproduire : "
+    "« Après un test d'accès à Internet réussi, quel service faut-il vérifier ensuite ? ». "
+    "Bon exemple à suivre : « Un poste obtient une IP correcte, ping la passerelle et "
+    "8.8.8.8 répond, mais intranet.local ne s'ouvre pas. Quelle vérification fais-tu "
+    "ensuite et pourquoi ? ».\n"
+    "- Ordering : précise TOUJOURS explicitement, dans l'énoncé lui-même, le point de "
+    "départ, le point d'arrivée et le sens du classement demandé (ex. « du plus grand au "
+    "plus petit », « de la première à la dernière étape ») — jamais une double consigne "
+    "ambiguë ni un ordre sous-entendu.\n"
+    "- Classification/QCM : évite les classifications triviales à 1-parmi-2 quand une "
+    "question plus riche est possible — préfère 3 à 6 propositions plausibles avec des "
+    "distracteurs crédibles et un contexte concret ; un choix à 2 options reste "
+    "acceptable seulement s'il est réellement justifié pédagogiquement (ex. vrai/faux "
+    "binaire par nature).\n"
+    "- Varie réellement d'une question à l'autre sur une même notion : change le "
+    "scénario, les valeurs numériques, le matériel/logiciel cité, le symptôme, les "
+    "distracteurs ou l'ordre de présentation — jamais une simple reformulation ou un "
+    "réordonnancement des mêmes options, qui ne compte pas comme une vraie variante."
 )
 
 
@@ -211,6 +232,18 @@ def _questionnaire_context_block(contexts: tuple[PedagogicalContext, ...]) -> st
     return "\n\n".join(blocks)
 
 
+def _avoid_prompts_block(avoid_prompts: tuple[str, ...]) -> str:
+    if not avoid_prompts:
+        return ""
+    listed = "\n".join(f'- """{prompt}"""' for prompt in avoid_prompts)
+    return (
+        "Questions déjà vues récemment par cet utilisateur, à NE JAMAIS reproduire à "
+        "l'identique ni sous une forme à peine reformulée ou réordonnée (change de "
+        "scénario, de valeurs, de matériel, de symptôme ou de distracteurs pour rester "
+        "sur une notion proche — voir consignes QUALITÉ ci-dessus) :\n" + listed + "\n\n"
+    )
+
+
 def build_generate_questionnaire_messages(request: QuestionnaireRequest) -> list[dict[str, str]]:
     total_points_line = (
         f"Total de points visé pour l'ensemble du questionnaire : {request.total_points}.\n"
@@ -224,7 +257,8 @@ def build_generate_questionnaire_messages(request: QuestionnaireRequest) -> list
         f"Difficulté demandée : {request.difficulty}.\n"
         f"Nombre de questions exact à produire : {request.question_count}.\n"
         f"Types de question autorisés : {', '.join(request.allowed_types)}.\n"
-        f"{total_points_line}"
+        f"{total_points_line}\n"
+        f"{_avoid_prompts_block(request.avoid_prompts)}"
         "Génère le questionnaire conforme à ce périmètre, à ce mode et à cette "
         "difficulté."
     )
