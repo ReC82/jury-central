@@ -417,6 +417,44 @@ def test_global_ampcr_exam_has_twenty_questions(authenticated_client, db_session
     assert session.mode.value == "exam"
 
 
+def test_global_ampcr_exam_start_not_hijacked_by_an_in_progress_mc_exam(
+    authenticated_client, db_session, monkeypatch
+):
+    """Bug constaté en validation staging (ticket #55) : démarrer un examen MC01, puis
+    démarrer l'examen blanc GLOBAL redirigeait à tort vers l'examen MC01 en cours (10
+    questions) au lieu de créer une vraie session globale (20 questions), car
+    `get_in_progress_session(uaa_id=None)` retournait n'importe quelle session EXAM en
+    cours plutôt qu'une session réellement globale."""
+    seed()
+    ampcr = db_session.query(Module).filter_by(code="AMPCR").first()
+    mc01 = db_session.query(UAA).filter_by(slug="ampcr-mc01").first()
+    import_mc01_legacy_to_bank(db_session, ampcr, mc01)
+    db_session.commit()
+    _patch_fake_provider(monkeypatch)
+
+    response = authenticated_client.get("/uaa/ampcr-mc01/exam")
+    token = _csrf(response.text)
+    response = authenticated_client.post(
+        "/uaa/ampcr-mc01/exam/start", data={"csrf_token": token, "difficulty": "medium"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    mc01_exam_id = int(response.headers["location"].rsplit("/", 1)[-1])
+
+    response = authenticated_client.get("/modules/ampcr/exam")
+    token = _csrf(response.text)
+    response = authenticated_client.post(
+        "/modules/ampcr/exam/start", data={"csrf_token": token, "difficulty": "medium"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    global_exam_id = int(response.headers["location"].rsplit("/", 1)[-1])
+
+    assert global_exam_id != mc01_exam_id
+    global_session = db_session.get(QuestionnaireSession, global_exam_id)
+    assert global_session.question_count == 20
+
+
 # --- 14. MC01-MC03 non régressés (contenu/données) ----------------------------------------------
 
 
