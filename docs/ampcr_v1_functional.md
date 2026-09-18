@@ -1,9 +1,16 @@
-# Jury Central — AMPCR V1 : état fonctionnel MC01→MC38 (ticket #55)
+# Jury Central — AMPCR V1 : état fonctionnel MC01→MC38 (tickets #55, #58)
 
 Livraison verticale urgente (examens Informatique 23/09/2026 et Français 25/09/2026) :
 condense #41 (banque)/#42 (sessions)/#43 (génération batch)/#44 (correction globale)/#24
 (UX entraînement)/#25 (UX évaluation) en un parcours réellement utilisable pour les 38
 mini-cours du programme AMPCR, avant de commencer le Français.
+
+**Ticket #58** a corrigé deux problèmes pédagogiques bloquants découverts après la mise en
+ligne du ticket #55 : (1) MC04→MC37 affichaient un stub de cours minimal, remplacé par un
+vrai cours de révision express (§ 2bis) ; (2) MC38 générait des questions MÉTA sur le
+processus de révision lui-même au lieu de vraies questions d'informatique, corrigé en
+faisant tirer practice/exam de MC38 exclusivement dans les mini-cours réels MC01→MC37
+(§ 4bis).
 
 ---
 
@@ -60,6 +67,26 @@ enrichissement éditorial complet dans un prochain ticket.
 
 ---
 
+# 2bis. Cours (ticket #58) — distinct du contexte de génération ci-dessus
+
+Le tableau du § 2 décrit le contexte pédagogique utilisé pour BORNER la génération de
+QUESTIONS. La page **Cours** (`/uaa/{slug}`, publique, système de contenu existant —
+`LessonBlock`/`BlockSpace.COURSE`) est un contenu séparé, indépendant de la banque de
+questions V1.
+
+- **MC01-03** : cours déjà rédigés (tickets #10/#12/#14), inchangés.
+- **MC04-37** (ticket #58) : remplacent le stub « contenu pas encore rédigé » du ticket
+  #55 par un vrai cours de révision express — 8 sections fixes (Ce qu'il faut savoir /
+  Définitions essentielles / Notions principales / Procédure-méthode / Exemple concret /
+  Pièges fréquents / Vocabulaire FR-EN / À retenir pour l'examen), strictement borné à
+  l'objectif déjà validé du plan AMPCR pour ce MC (`app.v1.ampcr_plan._OBJECTIVES_BY_CODE`)
+  — voir `app.v1.ampcr_courses.AMPCR_COURSE_MARKDOWN`.
+- **MC38** : cours distinct, qui explique le principe de la révision finale transversale
+  (practice/exam tirent dans MC01→MC37, voir § 4bis) — contenu informatif légitime, à ne
+  jamais confondre avec les QUESTIONS de quiz générées pour MC38 (§ 4bis, garde anti-méta).
+
+---
+
 # 3. Tableau MC01 → MC38
 
 | Code | Titre | Catégorie | Contexte | Types recommandés | Banque initiale | Practice | Exam |
@@ -101,7 +128,7 @@ enrichissement éditorial complet dans un prochain ticket.
 | MC35 | Ergonomie, sécurité, environnement et confidentialité | professional | détaillé (objectif exact) | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
 | MC36 | Communication client et rapport technique | professional | détaillé (objectif exact) | short_answer, multiple_choice, true_false | génération à la demande | ✅ | ✅ |
 | MC37 | Laboratoire intégrateur PC + réseau | final | détaillé (objectif exact) | multiple_choice, classification, ordering | génération à la demande | ✅ | ✅ |
-| MC38 | Révision finale et examen blanc AMPCR | final | détaillé (objectif exact) | multiple_choice, classification, ordering | génération à la demande | ✅ | ✅ |
+| MC38 | Révision finale et examen blanc AMPCR | final | transversal MC01→MC37 (§ 4bis, ticket #58) | selon les MC tirés | banque combinée MC01-37 + génération transversale | ✅ (10q) | ✅ (20q) |
 
 « Practice »/« Exam » = ✅ signifie : la route existe, exige un compte, protège la
 correction jusqu'à la soumission, autosave, reprise, et peut produire un questionnaire
@@ -131,6 +158,46 @@ solution au navigateur.
 
 ---
 
+# 4bis. MC38 — révision finale réellement transversale (ticket #58)
+
+**Problème corrigé** : MC38 utilisait son propre contexte pédagogique (objectif du plan :
+« synthèse, fiches mémo, pièges, exercices transversaux et examen type qualification »),
+ce qui poussait la génération IA à produire des questions MÉTA sur le processus de
+révision lui-même (« Quel est l'objectif principal d'une révision finale AMPCR ? »,
+« Que faut-il faire après avoir corrigé un exercice transversal ou un examen blanc ? ») —
+jamais de vraies questions d'informatique.
+
+**Mécanisme corrigé** (`app.v1.mc38_transversal`, `app.v1.session_service.
+_start_mc38_transversal_session`) :
+
+- **Sélection banque** : `app.v1.bank.select_transversal_bank_questions` puise dans les
+  mini-cours réels MC01→MC37 (et dans le bucket propre de MC38, où sont stockées les
+  questions déjà générées par une session MC38 précédente — jamais dans le CONTEXTE
+  pédagogique MC38 pour la génération).
+- **Diversité de catégories** (§ 6 du ticket) : `_category_balanced_oversample` plafonne
+  la représentation d'une seule catégorie AMPCR (hardware/systems/networks/wifi/security/
+  troubleshooting/professional/final) avant la sélection par type, pour qu'aucune ne
+  puisse dominer une session — sans garantir de proportions exactes si la banque
+  disponible ne le permet pas.
+- **Génération** : si la banque ne suffit pas, `pick_transversal_contexts` fournit un
+  échantillon de contextes MC01→MC37 diversifié par catégorie (jamais le contexte MC38)
+  à `generate_questionnaire` — toujours UN seul appel par session.
+- **Garde anti-méta** : `is_meta_revision_question` filtre, par SENS (pas une liste noire
+  de mots isolés — le mot « examen » seul n'est jamais bloqué), toute question générée qui
+  porterait sur le processus de révision lui-même plutôt que sur du contenu technique,
+  avant persistance. Appliquée aussi en lecture (défense en profondeur contre d'éventuelles
+  questions méta déjà en banque avant ce ticket).
+- **Examen MC38** : 20 questions (comme l'examen blanc global), au lieu des 10 par défaut
+  des autres examens per-MC.
+- **Reprise/anti-doublon** : une session MC38 est repérée par un marqueur explicite
+  (`QuestionnaireSession.parameters_json = {"scope": "mc38"}`, colonne JSON déjà présente,
+  aucune migration nécessaire) plutôt que par `uaa_id` (qui ne correspondrait jamais à
+  MC38 lui-même) — et exclue explicitement de la détection des sessions du parcours
+  global `/modules/ampcr/...` (même classe de bug que celui corrigé en #57 entre examens
+  per-MC et examen global, appliquée ici entre MC38 et le parcours global).
+
+---
+
 # 5. Génération et correction (rappel du mécanisme, détail dans le rapport de ticket)
 
 - **Génération** : au plus UN appel `generate_questionnaire` par session créée, uniquement
@@ -148,16 +215,18 @@ solution au navigateur.
 
 ---
 
-# 6. Ce qui reste hors périmètre de ce ticket
+# 6. Ce qui reste hors périmètre
 
-- Contenu pédagogique détaillé pour MC04-MC38 (objectifs, notions précises) : à rédiger
-  par ChatGPT/l'équipe pédagogique dans un ticket dédié.
 - Français (aucune UAA, aucun contexte, explicitement reporté).
 - #45 (rating), #46 (admin complet), #48 (visuels avancés), paiement, quotas réels,
   analytics avancées.
-- Composition équilibrée précise par catégorie pour le parcours global (§ 16 du ticket) :
-  la sélection actuelle tire aléatoirement parmi toutes les questions déjà taguées
-  `uaa_id`, sans pondération stricte par catégorie hardware/systems/réseaux/... — une
-  répartition fine est reportée à un ticket ultérieur, plusieurs sessions successives
-  restant nécessaires pour couvrir tout le programme (accepté explicitement par le
-  ticket : « ne pas garantir 1 question sur chaque MC dans 10 questions »).
+- Composition équilibrée précise par catégorie pour le parcours GLOBAL `/modules/ampcr/...`
+  (§ 16 du ticket #55, toujours vrai après #58) : la sélection tire aléatoirement parmi
+  toutes les questions déjà taguées `uaa_id`, sans le plafonnage par catégorie introduit
+  pour MC38 spécifiquement (§ 4bis) — une répartition fine du parcours global reste
+  reportée à un ticket ultérieur.
+- Cours MC04-37 (ticket #58) : révision express courte et dense, pas un cahier des charges
+  complet comme MC01-03 (pas de vocabulaire FR/EN exhaustif par notion, pas de contraintes
+  pédagogiques détaillées) — un enrichissement éditorial complet reste possible dans un
+  ticket ultérieur si souhaité, sans urgence fonctionnelle (le cours actuel est déjà
+  réellement utilisable pour réviser avant l'examen).

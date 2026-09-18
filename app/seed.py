@@ -4447,40 +4447,34 @@ MC03_BLOCKS = [
     },
 ]
 
-# Mini-cours 04 à 38 (ticket #55, recadrage « INFORMATIQUE AMPCR COMPLET ») : contrairement
-# à MC01/MC02/MC03, AUCUN contenu pédagogique rédigé n'existe encore pour ces 35 cours
-# (confirmé par docs/content_plan_informatique_francais.md, § 3.2) — seuls code/titre/
-# catégorie ont été fournis par ChatGPT dans le ticket (voir `app.v1.ampcr_plan.AMPCR_PLAN`,
-# seule source de vérité pour ces 38 entrées, réutilisée ici plutôt que redupliquée). Ce
-# bloc COURS est donc un STUB minimal et honnête (annonce explicitement l'absence de
-# contenu rédigé) — pas un cours complet — qui pose uniquement la structure Module/UAA
-# nécessaire pour que /uaa/{slug}/practice et /uaa/{slug}/exam (moteur V1 générique,
-# app/v1/session_service.py) fonctionnent réellement pour ces 35 mini-cours avant les
-# épreuves. Un futur ticket éditorial pourra remplacer ce bloc unique par un vrai cours
-# structuré sans toucher au moteur V1 (le contenu COURS est indépendant de la banque de
-# questions V1, stockée séparément — voir docs/ampcr_v1_functional.md).
+# Mini-cours 04 à 38 (ticket #55 puis #58) : MC01/MC02/MC03 restent les seuls à disposer
+# d'un cahier des charges pédagogique complet (tickets #10/#12/#14). MC04 à MC37
+# disposaient, depuis le ticket #55, d'un STUB honnête (« contenu pas encore rédigé ») —
+# remplacé par le ticket #58 par un vrai cours court, dense et orienté examen
+# (`app.v1.ampcr_courses.AMPCR_COURSE_MARKDOWN`), strictement borné à l'objectif déjà
+# validé du plan AMPCR pour chaque MC (`app.v1.ampcr_plan._OBJECTIVES_BY_CODE`). MC38 a son
+# propre contenu distinct (`app.v1.ampcr_courses.MC38_COURSE_MARKDOWN`) : il explique le
+# principe de la révision finale transversale (S'entraîner/S'évaluer tirent dans MC01→MC37,
+# voir `app.v1.mc38_transversal`) — un contenu de COURS légitime, à ne pas confondre avec
+# les QUESTIONS de quiz générées pour MC38, qui ne portent elles jamais sur ce mécanisme.
+#
+# `AMPCR_STUB_OBSOLETE_TITLES` retire, par son ANCIEN titre (« Plan du mini-cours », ticket
+# #55), le bloc stub déjà présent sur un staging déjà seedé, remplacé par le nouveau bloc
+# « Cours de révision express » — même mécanisme que `OBSOLETE_DEMO_BLOCK_TITLES` plus haut,
+# purement additif au niveau du Module/UAA, jamais de reset-db.
+
+AMPCR_STUB_OBSOLETE_TITLES = frozenset({"Plan du mini-cours"})
 
 
-def _ampcr_stub_course_markdown(title: str) -> str:
-    return (
-        f"# {title}\n\n"
-        "Ce mini-cours fait partie du programme complet AMPCR (Assistant/Assistante de "
-        "maintenance PC-réseaux). Son contenu de cours détaillé n'est pas encore rédigé "
-        "dans Jury Central — seuls le titre et la catégorie ont été validés par le "
-        "responsable pédagogique à ce stade (voir "
-        "`docs/content_plan_informatique_francais.md`).\n\n"
-        "S'entraîner et S'évaluer restent toutefois déjà utilisables pour ce mini-cours : "
-        "les questions proposées sont générées et validées automatiquement dans le même "
-        "programme, en attendant la rédaction du cours complet.\n"
-    )
+def _ampcr_course_blocks(code: str) -> list[dict]:
+    from app.v1.ampcr_courses import AMPCR_COURSE_MARKDOWN, MC38_COURSE_MARKDOWN
 
-
-def _ampcr_stub_blocks(title: str) -> list[dict]:
+    content = MC38_COURSE_MARKDOWN if code == "MC38" else AMPCR_COURSE_MARKDOWN[code]
     return [
         {
-            "title": "Plan du mini-cours",
+            "title": "Cours de révision express",
             "type": BlockType.MARKDOWN,
-            "content": _ampcr_stub_course_markdown(title),
+            "content": content,
             "position": 1,
             "is_published": True,
             "space": BlockSpace.COURSE,
@@ -4490,7 +4484,7 @@ def _ampcr_stub_blocks(title: str) -> list[dict]:
 
 # {code: blocks} — position 4..38 dans le module AMPCR (MC01=1, MC02=2, MC03=3 déjà pris).
 AMPCR_STUB_MODULE_BLOCKS: dict[str, list[dict]] = {
-    plan.code: _ampcr_stub_blocks(plan.title) for plan in AMPCR_PLAN if not plan.has_authored_content
+    plan.code: _ampcr_course_blocks(plan.code) for plan in AMPCR_PLAN if not plan.has_authored_content
 }
 
 
@@ -4684,17 +4678,19 @@ def seed() -> None:
             db, ampcr, MC03_CODE, MC03_TITLE, 3, MC03_BLOCKS, created, kept,
             reclassified=reclassified,
         )
-        # Mini-cours 04 à 38 (ticket #55) : stubs minimaux (voir AMPCR_STUB_MODULE_BLOCKS,
-        # docstring ci-dessus) — même mécanisme additif générique, purement additif, ne
-        # touche jamais MC01/MC02/MC03 ni Mathématiques. Position = rang dans AMPCR_PLAN
-        # (MC04=4 .. MC38=38), après MC01/MC02/MC03 (1/2/3).
+        # Mini-cours 04 à 38 (ticket #55, cours réels ticket #58) : voir
+        # AMPCR_STUB_MODULE_BLOCKS/docstring ci-dessus — même mécanisme additif générique,
+        # purement additif, ne touche jamais MC01/MC02/MC03 ni Mathématiques.
+        # `obsolete_titles=AMPCR_STUB_OBSOLETE_TITLES` retire l'ancien bloc stub (ticket
+        # #55) déjà présent sur un staging déjà seedé, remplacé par le vrai cours. Position
+        # = rang dans AMPCR_PLAN (MC04=4 .. MC38=38), après MC01/MC02/MC03 (1/2/3).
         for plan in AMPCR_PLAN:
             if plan.has_authored_content:
                 continue
             position = int(plan.code.removeprefix("MC"))
-            _seed_uaa(
+            removed_obsolete += _seed_uaa(
                 db, ampcr, plan.code, plan.title, position, AMPCR_STUB_MODULE_BLOCKS[plan.code],
-                created, kept, reclassified=reclassified,
+                created, kept, obsolete_titles=AMPCR_STUB_OBSOLETE_TITLES, reclassified=reclassified,
             )
 
         db.commit()

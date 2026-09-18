@@ -160,6 +160,55 @@ def select_bank_questions(
     return selected
 
 
+def _question_prompt_text(question: Question) -> str:
+    content = question.current_version.content_json if question.current_version else {}
+    return str(content.get("prompt", "")) if isinstance(content, dict) else ""
+
+
+def select_transversal_bank_questions(
+    db: Session, *, user_id: int, module_id: int, limit: int
+) -> list[Question]:
+    """Sélection dédiée à MC38 (ticket #58, révision transversale). Puise dans les
+    mini-cours MC01→MC37 réels ET dans le bucket propre de MC38 (où sont stockées les
+    questions déjà générées par une session MC38 précédente, voir
+    `app.v1.session_service._start_mc38_transversal_session`) — jamais dans le CONTEXTE
+    pédagogique MC38 pour la GÉNÉRATION (voir `app.v1.mc38_transversal.
+    pick_transversal_contexts`, qui ignore toujours MC38). Exclut par sécurité toute
+    question déjà en banque qui ressemblerait à une question MÉTA sur le processus de
+    révision (garde défensive contre d'éventuelles questions déjà générées avant ce
+    ticket — voir le rapport de ticket)."""
+    from app.models import UAA
+    from app.v1.mc38_transversal import MC38_CODE, is_meta_revision_question, mc01_to_mc37_codes
+
+    uaa_ids = [
+        row[0]
+        for row in db.query(UAA.id).filter(
+            UAA.module_id == module_id, UAA.code.in_([*mc01_to_mc37_codes(), MC38_CODE])
+        )
+    ]
+    if not uaa_ids:
+        return []
+
+    seen_question_ids = {
+        row[0]
+        for row in db.query(UserQuestionHistory.question_id).filter_by(user_id=user_id).distinct()
+    }
+
+    query = db.query(Question).filter(
+        Question.module_id == module_id,
+        Question.status == ContentStatus.ACTIVE,
+        Question.uaa_id.in_(uaa_ids),
+    )
+    all_active = [q for q in query.order_by(func.random()).all() if not is_meta_revision_question(_question_prompt_text(q))]
+    unseen = [q for q in all_active if q.id not in seen_question_ids]
+    seen = [q for q in all_active if q.id in seen_question_ids]
+
+    selected = unseen[:limit]
+    if len(selected) < limit:
+        selected += seen[: limit - len(selected)]
+    return selected
+
+
 def persist_generated_questions(
     db: Session, *, module_id: int, uaa_id: int | None, questions: list[QuestionnaireQuestion]
 ) -> list[Question]:
