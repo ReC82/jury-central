@@ -16,6 +16,7 @@ Aucun second mécanisme de correction n'est créé : `correct_questionnaire` res
 point d'appel réseau, appelé au plus une fois par soumission de session (voir
 `app/v1/session_service.py`)."""
 
+import random
 from typing import Any
 
 from app.ai.schemas import QuestionnaireQuestion
@@ -97,6 +98,32 @@ def content_to_questionnaire_question(
     raise BridgeError(f"Type non pris en charge par le pont IA : {question_type!r}.")
 
 
+def shuffle_ordering_items(items: list[dict[str, Any]], correct_order: list[str]) -> list[dict[str, Any]]:
+    """Mélange l'ordre d'AFFICHAGE de `items` (ticket #69 § 2 — bug réel constaté : les
+    éléments d'une question `ordering` générée étaient parfois affichés directement dans
+    le bon ordre, rendant l'exercice trivial : « il suffit de choisir 1, 2, 3, 4, 5, 6 »).
+
+    Ne modifie JAMAIS `correct_order` (source de vérité privée, une liste d'`id` — pas de
+    positions dans `items` — voir `OrderingContent`, `app.v1.question_types`) : seule la
+    séquence PHYSIQUE de la liste `items` change, ce qui ne change ni les id/label de
+    chaque élément ni la définition de la bonne réponse. Garantit que la séquence affichée
+    ne correspond JAMAIS exactement à `correct_order`, sauf impossibilité mathématique
+    (un seul élément) — reshuffle si le tirage aléatoire retombe sur l'ordre exact
+    attendu (§ 2 : « si le shuffle retombe sur l'ordre exact attendu, reshuffle »), avec un
+    filet de sécurité déterministe (rotation d'un cran) si le tirage aléatoire échoue à
+    plusieurs reprises (espace de permutations minuscule, ex. 2 éléments)."""
+    if len(items) < 2:
+        return items
+    shuffled = list(items)
+    attempts = 0
+    while [item["id"] for item in shuffled] == correct_order and attempts < 20:
+        random.shuffle(shuffled)
+        attempts += 1
+    if [item["id"] for item in shuffled] == correct_order:
+        shuffled = shuffled[1:] + shuffled[:1]
+    return shuffled
+
+
 def questionnaire_question_to_content(question: QuestionnaireQuestion) -> dict[str, Any]:
     """Convertit une `QuestionnaireQuestion` générée par l'IA en `content_json` conforme
     au registre #40 — toujours revalidé par `app.v1.question_engine.validate_content`
@@ -126,6 +153,7 @@ def questionnaire_question_to_content(question: QuestionnaireQuestion) -> dict[s
     if question.type == "ordering":
         items = [{"id": f"item{index}", "label": label} for index, label in enumerate(question.order_items)]
         correct_order = [items[index]["id"] for index in question.correct_order]
+        items = shuffle_ordering_items(items, correct_order)
         return {"prompt": question.prompt, "items": items, "correct_order": correct_order}
     if question.type in ("short_answer", "vocabulary"):
         return {

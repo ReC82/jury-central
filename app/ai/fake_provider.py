@@ -178,7 +178,17 @@ def _fake_question(
             prompt="Question factice à réponse courte.",
             accepted_answers=["réponse factice"],
         )
-    # long_answer / diagnostic / procedure : toujours sémantiques, nécessitent un rubric.
+    if question_type == "diagnostic":
+        # Contient un marqueur concret (adresse IP factice) pour ne pas se faire rejeter
+        # par `app.v1.quality_validation` (ticket #69, § « diagnostic autosuffisant ») —
+        # ce garde-fou est un comportement RÉEL et voulu, pas une raison d'affaiblir le
+        # contenu factice de test au point de ne plus ressembler à une vraie question.
+        return QuestionnaireQuestion(
+            **common,
+            prompt="Poste factice à l'adresse 192.0.2.1. Quelle vérification effectues-tu ensuite ?",
+            rubric="Grille de correction factice : vérifier la présence des notions clés.",
+        )
+    # long_answer / procedure : toujours sémantiques, nécessitent un rubric.
     return QuestionnaireQuestion(
         **common,
         prompt=f"Question factice de type {question_type}.",
