@@ -240,7 +240,12 @@ class LongAnswerContent(BaseModel):
     prompt: str = Field(min_length=1)
     rubric: str = Field(min_length=1)
     expected_points: list[str] = Field(default_factory=list)
-    max_length: int = Field(default=2000, gt=0)
+    # Ticket #73 : 2000 bloquait silencieusement toute réponse rédigée au-delà de ~300
+    # mots (constaté en usage réel, Français #47) — 20000 laisse une vraie marge pour un
+    # texte argumenté de plusieurs pages, sans risque identifié en aval (DB JSON non
+    # bornée, prompt IA non tronqué, export/impression non bornés — voir
+    # docs/claude-reports/2026-09-19_ticket-73_long-answer-capacity.md).
+    max_length: int = Field(default=20000, gt=0)
     max_score: float = Field(default=1.0, gt=0)
 
 
@@ -520,6 +525,11 @@ class DiagnosticContent(BaseModel):
     rubric: str = Field(min_length=1)
     expected_points: list[str] = Field(default_factory=list)
     critical_points: list[str] = Field(default_factory=list)
+    # Ticket #73 : avant ce champ, ce type n'exposait aucun `max_length` — le template
+    # retombait sur un plafond de 2000 caractères codé en dur
+    # (`app/templates/v1_session_question.html`), bloquant silencieusement toute réponse
+    # plus longue. Explicite désormais, comme `long_answer`.
+    max_length: int = Field(default=20000, gt=0)
     max_score: float = Field(default=1.0, gt=0)
 
 
@@ -537,7 +547,7 @@ QUESTION_TYPE_REGISTRY.register(
         source_document_requirement=SourceDocumentRequirement.NONE,
         content_model=DiagnosticContent,
         answer_model=DiagnosticAnswer,
-        to_public=lambda c: {"prompt": c.prompt},
+        to_public=lambda c: {"prompt": c.prompt, "max_length": c.max_length},
         check_answer=None,
     )
 )
@@ -552,6 +562,8 @@ class ProcedureContent(BaseModel):
     prompt: str = Field(min_length=1)
     rubric: str = Field(min_length=1)
     expected_steps: list[str] = Field(default_factory=list)
+    # Ticket #73 : voir DiagnosticContent.max_length, même correctif.
+    max_length: int = Field(default=20000, gt=0)
     max_score: float = Field(default=1.0, gt=0)
 
 
@@ -569,7 +581,7 @@ QUESTION_TYPE_REGISTRY.register(
         source_document_requirement=SourceDocumentRequirement.NONE,
         content_model=ProcedureContent,
         answer_model=ProcedureAnswer,
-        to_public=lambda c: {"prompt": c.prompt},
+        to_public=lambda c: {"prompt": c.prompt, "max_length": c.max_length},
         check_answer=None,
     )
 )
@@ -1164,6 +1176,9 @@ class DocumentAnalysisContent(BaseModel):
     source_document_version_id: int = Field(gt=0)
     rubric: str = Field(min_length=1)
     expected_points: list[str] = Field(default_factory=list)
+    # Ticket #73 : voir DiagnosticContent.max_length, même correctif — prioritaire pour
+    # Français (analyse de document en réponse rédigée).
+    max_length: int = Field(default=20000, gt=0)
     max_score: float = Field(default=1.0, gt=0)
 
 
@@ -1184,6 +1199,7 @@ QUESTION_TYPE_REGISTRY.register(
         to_public=lambda c: {
             "prompt": c.prompt,
             "source_document_version_id": c.source_document_version_id,
+            "max_length": c.max_length,
         },
         check_answer=None,
         description="Référence toujours une SourceDocumentVersion — jamais de texte dupliqué dans content_json.",
@@ -1201,6 +1217,9 @@ class SourceComparisonContent(BaseModel):
     source_document_version_ids: list[int] = Field(min_length=2)
     rubric: str = Field(min_length=1)
     expected_points: list[str] = Field(default_factory=list)
+    # Ticket #73 : voir DiagnosticContent.max_length, même correctif — prioritaire pour
+    # Français (comparaison de sources en réponse rédigée).
+    max_length: int = Field(default=20000, gt=0)
     max_score: float = Field(default=1.0, gt=0)
 
     @model_validator(mode="after")
@@ -1228,6 +1247,7 @@ QUESTION_TYPE_REGISTRY.register(
         to_public=lambda c: {
             "prompt": c.prompt,
             "source_document_version_ids": c.source_document_version_ids,
+            "max_length": c.max_length,
         },
         check_answer=None,
     )
@@ -1396,6 +1416,8 @@ class TroubleshootingContent(BaseModel):
     expected_points: list[str] = Field(default_factory=list)
     critical_points: list[str] = Field(default_factory=list)
     forbidden_claims: list[str] = Field(default_factory=list)
+    # Ticket #73 : voir DiagnosticContent.max_length, même correctif.
+    max_length: int = Field(default=20000, gt=0)
     max_score: float = Field(default=1.0, gt=0)
 
 
@@ -1413,7 +1435,7 @@ QUESTION_TYPE_REGISTRY.register(
         source_document_requirement=SourceDocumentRequirement.NONE,
         content_model=TroubleshootingContent,
         answer_model=TroubleshootingAnswer,
-        to_public=lambda c: {"prompt": c.prompt},
+        to_public=lambda c: {"prompt": c.prompt, "max_length": c.max_length},
         check_answer=None,
     )
 )

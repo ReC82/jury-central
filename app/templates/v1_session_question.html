@@ -80,12 +80,19 @@
                     {% endfor %}
 
                 {% else %}
+                    {# Ticket #73 : le plafond vient TOUJOURS de payload.max_length (chaque
+                       type texte expose désormais le sien, app/v1/question_types.py) — le
+                       repli à 20000 ci-dessous n'est qu'une défense en profondeur, jamais
+                       la valeur réellement utilisée en pratique. #}
+                    {% set text_max_length = payload.max_length or 20000 %}
                     <textarea
                         class="form-control"
                         name="text"
-                        rows="{{ 8 if qtype in ('long_answer', 'diagnostic') else 3 }}"
-                        maxlength="{{ payload.max_length or 2000 }}"
+                        id="answer-textarea"
+                        rows="{{ 8 if qtype in ('long_answer', 'diagnostic', 'procedure', 'document_analysis', 'source_comparison', 'troubleshooting') else 3 }}"
+                        maxlength="{{ text_max_length }}"
                         placeholder="Ta réponse…">{{ display.answer_json.get('text', '') }}</textarea>
+                    <p class="form-text text-end mb-0" id="answer-char-counter" data-max-length="{{ text_max_length }}"></p>
                 {% endif %}
 
                 <div class="d-flex justify-content-between mt-4">
@@ -117,4 +124,31 @@
         <p class="text-muted small text-center mt-2">Ta progression est enregistrée automatiquement.</p>
     </div>
 </div>
+
+{% if qtype not in ("multiple_choice", "classification", "ordering") %}
+<script>
+    (function () {
+        // Compteur de caractères visible (ticket #73) : "1 842 caractères" ou, avec
+        // limite, "1 842 / 10 000 caractères" — jamais un blocage silencieux, la limite
+        // réelle est toujours visible. Uniquement injecté pour les types à réponse
+        // texte libre (voir la condition Jinja ci-dessus) — jamais pour QCM/
+        // classification/ordering, qui n'ont pas de zone de texte.
+        var textarea = document.getElementById("answer-textarea");
+        var counter = document.getElementById("answer-char-counter");
+        if (!textarea || !counter) return;
+        var max = parseInt(counter.getAttribute("data-max-length"), 10) || 0;
+        function format(n) {
+            return n.toLocaleString("fr-BE");
+        }
+        function update() {
+            var length = textarea.value.length;
+            counter.textContent = max
+                ? format(length) + " / " + format(max) + " caractères"
+                : format(length) + " caractères";
+        }
+        textarea.addEventListener("input", update);
+        update();
+    })();
+</script>
+{% endif %}
 {% endblock %}
