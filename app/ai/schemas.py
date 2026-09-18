@@ -362,6 +362,14 @@ class QuestionnaireRequest:
     question_count: int
     allowed_types: tuple[str, ...]
     total_points: float | None = None
+    # Ticket #64 § 3 (anti-répétition, variantes réelles) : énoncés déjà vus par
+    # l'utilisateur pour ce contexte, les plus récents en premier — transmis au prompt
+    # (voir `app.ai.prompts.build_generate_questionnaire_messages`) pour que la génération
+    # produise une VRAIE variante (autre scénario/valeur/matériel/symptôme/distracteurs/
+    # ordre) plutôt qu'une question déjà couverte sous une autre forme. Optionnel et vide
+    # par défaut : n'affecte aucun appelant existant (`app.editorial_ai_correction` ne
+    # construit jamais de `QuestionnaireRequest`).
+    avoid_prompts: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.contexts:

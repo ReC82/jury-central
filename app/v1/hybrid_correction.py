@@ -15,7 +15,20 @@ requête/réponse (`CORRECT_SEMANTIC_JSON_SCHEMA`) ne change pas, donc `editoria
 seuls les champs textuels (`strengths`/`errors`/`missing`/`feedback`) de l'IA sont retenus
 pour ces questions — `points_awarded`/`points_max`/`correct`/`expected_answer` restent
 strictement ceux de la correction locale, quoi que l'IA renvoie (§ 3 du ticket :
-« l'IA n'a PAS le droit de modifier ce score »)."""
+« l'IA n'a PAS le droit de modifier ce score »).
+
+Exception délibérée (ticket #64 § 7) : `short_answer`/`vocabulary` corrigées localement par
+égalité textuelle normalisée (voir `app.answer_checking.text_answer_matches`) peuvent
+produire un FAUX négatif — une formulation humaine correcte mais absente de
+`accepted_answers` (ex. « l'écart entre deux débuts de sous-réseaux » vs. « le nombre entre
+le début d'un sous-réseau et le début du suivant »). Pour ces deux types SEULEMENT, une
+réponse locale INCORRECTE n'est donc pas verrouillée comme les autres types déterministes :
+elle est envoyée en évaluation sémantique complète (score potentiellement réévalué par
+l'IA, borné comme une question sémantique ordinaire via `validate_semantic_correction`) —
+jamais ordering/classification/QCM/numeric/etc., qui restent strictement déterministes,
+score inchangé (§ 7 : « Pour ordering/classification/QCM : score déterministe inchangé »).
+Une réponse locale déjà CORRECTE pour ces deux types n'est, comme avant, jamais envoyée à
+l'IA (aucun coût inutile)."""
 
 import dataclasses
 
@@ -23,12 +36,19 @@ from app.ai.local_correction import correct_locally, requires_ai_correction
 from app.ai.provider import AIProvider
 from app.ai.questionnaire import validate_semantic_correction
 from app.ai.schemas import (
+    CONDITIONALLY_LOCAL_QUESTION_TYPES,
     PedagogicalContext,
     QuestionCorrection,
     Questionnaire,
     QuestionnaireCorrection,
     QuestionnaireQuestion,
 )
+
+# short_answer/vocabulary : voir docstring du module, § exception ticket #64 § 7. Pas
+# d'autres types — une correction textuelle stricte reste voulue pour fill_blank (réponse
+# attendue très contrainte, un seul mot/valeur), contrairement à short_answer/vocabulary où
+# plusieurs formulations humaines équivalentes sont normales.
+RESCORABLE_LOCAL_TYPES = CONDITIONALLY_LOCAL_QUESTION_TYPES
 
 
 def _explanation_rubric(question: QuestionnaireQuestion, local: QuestionCorrection) -> str:
@@ -44,6 +64,26 @@ def _explanation_rubric(question: QuestionnaireQuestion, local: QuestionCorrecti
         "trouver la bonne réponse, et QUELLE notion réviser. Le champ points_awarded est "
         "requis par le format mais sera intégralement ignoré par le serveur — n'indique "
         "aucune note ni barème dans ton texte."
+    )
+    return f"{question.rubric}\n\n{instruction}" if question.rubric else instruction
+
+
+def _semantic_rescoring_rubric(question: QuestionnaireQuestion, local: QuestionCorrection) -> str:
+    """Grille pour la ré-évaluation sémantique d'un `short_answer`/`vocabulary` jugé
+    incorrect par la comparaison textuelle locale (ticket #64 § 7) — explique à l'IA que
+    cette comparaison stricte a pu produire un faux négatif et lui délègue un VRAI jugement
+    sémantique, contrairement à `_explanation_rubric` qui ne demande qu'un texte."""
+    accepted = ", ".join(f"« {answer} »" for answer in question.accepted_answers) or "(aucune listée)"
+    instruction = (
+        "IMPORTANT : une comparaison textuelle automatique a jugé cette réponse "
+        f"INCORRECTE car elle ne correspond littéralement à aucune formulation acceptée "
+        f"({accepted}), mais plusieurs formulations humaines équivalentes sont possibles "
+        "pour ce type de question — n'impose JAMAIS une égalité textuelle stricte. "
+        "Évalue réellement le sens de la réponse du candidat par rapport à la notion "
+        "attendue : si elle est sémantiquement équivalente à une formulation acceptée, "
+        "corrige-la comme correcte (score plein, dans la limite du barème indiqué), même "
+        "si sa formulation diffère. Sinon, explique pourquoi et attribue un score "
+        "cohérent avec la sévérité demandée."
     )
     return f"{question.rubric}\n\n{instruction}" if question.rubric else instruction
 
@@ -99,6 +139,7 @@ def correct_session_hybrid(
     corrections: dict[str, QuestionCorrection] = {}
     semantic_questions: list[QuestionnaireQuestion] = []
     explain_only_questions: list[QuestionnaireQuestion] = []
+    rescorable_questions: list[QuestionnaireQuestion] = []
 
     for question in questionnaire.questions:
         if requires_ai_correction(question):
@@ -106,22 +147,33 @@ def correct_session_hybrid(
             continue
         local = correct_locally(question, answers.get(question.question_id))
         corrections[question.question_id] = local
-        if not local.correct:
+        if local.correct:
+            continue
+        if question.type in RESCORABLE_LOCAL_TYPES:
+            # Voir docstring du module, § exception ticket #64 § 7 : short_answer/
+            # vocabulary incorrects localement méritent une VRAIE ré-évaluation
+            # sémantique (score potentiellement révisé), pas seulement une explication.
+            rescorable_questions.append(
+                dataclasses.replace(question, rubric=_semantic_rescoring_rubric(question, local))
+            )
+        else:
             explain_only_questions.append(
                 dataclasses.replace(question, rubric=_explanation_rubric(question, local))
             )
 
-    batch_questions = [*semantic_questions, *explain_only_questions]
+    batch_questions = [*semantic_questions, *rescorable_questions, *explain_only_questions]
     if batch_questions:
         batch_answers: dict[str, object] = {
             q.question_id: answers.get(q.question_id) for q in semantic_questions
         }
+        for q in rescorable_questions:
+            batch_answers[q.question_id] = human_readable_answers.get(q.question_id, "")
         for q in explain_only_questions:
             batch_answers[q.question_id] = human_readable_answers.get(q.question_id, "")
 
         raw_results = provider.correct_semantic_batch(batch_questions, batch_answers, severity, contexts)
 
-        for question in semantic_questions:
+        for question in [*semantic_questions, *rescorable_questions]:
             corrections[question.question_id] = validate_semantic_correction(
                 question, raw_results.get(question.question_id)
             )

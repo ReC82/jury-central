@@ -33,9 +33,11 @@ from app.v1.ai_bridge import (
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
 from app.v1.bank import (
     persist_generated_questions,
+    recent_seen_prompts,
     select_bank_questions,
     select_transversal_bank_questions,
 )
+from app.v1.dedup import is_near_duplicate, question_signature
 from app.v1.hybrid_correction import correct_session_hybrid
 from app.v1.mc38_transversal import (
     MC38_CODE,
@@ -147,34 +149,34 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
     return selected
 
 
-def _category_balanced_oversample(pool: list[Question], target_count: int) -> list[Question]:
-    """Plafonne la représentation d'une seule catégorie AMPCR (hardware/systems/networks/
-    ...) dans le pool transmis à `compose_selection`, pour MC38 (§ 6 du ticket #58 :
-    « plusieurs catégories obligatoires », pas nécessairement toutes ni des proportions
-    exactes).
+def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn) -> list[Question]:
+    """Plafonne la représentation d'une seule valeur de `key_fn` (catégorie AMPCR pour
+    MC38 — ticket #58 § 6 ; mini-cours/UAA pour l'examen blanc global — ticket #64 § 8)
+    dans le pool transmis à `compose_selection`. `key_fn(question) -> str | None` ; une
+    valeur `None` place la question hors regroupement (jamais plafonnée, ajoutée en
+    excédent si besoin — ex. question sans UAA connue).
 
     IMPORTANT : `compose_selection` regroupe son entrée par TYPE de question sans jamais
     tenir compte de l'ORDRE — réordonner `pool` sans réellement en exclure une partie
-    n'aurait donc AUCUN effet sur la diversité de catégories du résultat final. Cette
-    fonction retire donc réellement l'excédent d'une catégorie dominante (au-delà de la
-    moitié de `target_count`) plutôt que de se contenter de le réordonner, sauf si cela
-    laisserait trop peu de questions au total (repli explicite, § 6 : « pas besoin de
-    respecter exactement ces nombres si la banque disponible ne le permet pas »)."""
-    by_category: dict[str, list[Question]] = defaultdict(list)
+    n'aurait donc AUCUN effet sur la diversité obtenue en sortie. Cette fonction retire
+    donc réellement l'excédent d'une valeur dominante (au-delà de la moitié de
+    `target_count`) plutôt que de se contenter de le réordonner, sauf si cela laisserait
+    trop peu de questions au total (repli explicite, comme pour MC38 : pas besoin de
+    respecter exactement ces nombres si la banque disponible ne le permet pas)."""
+    by_key: dict[str, list[Question]] = defaultdict(list)
     for question in pool:
-        code = question.uaa.code if question.uaa else None
-        plan = AMPCR_PLAN_BY_CODE.get(code) if code else None
-        if plan is None:
+        key = key_fn(question)
+        if key is None:
             continue
-        by_category[plan.category].append(question)
-    for bucket in by_category.values():
+        by_key[key].append(question)
+    for bucket in by_key.values():
         random.shuffle(bucket)
 
-    if len(by_category) <= 1:
+    if len(by_key) <= 1:
         return pool
 
-    max_per_category = max(1, -(-target_count // 2))  # ceil(target_count / 2)
-    capped = [question for bucket in by_category.values() for question in bucket[:max_per_category]]
+    max_per_key = max(1, -(-target_count // 2))  # ceil(target_count / 2)
+    capped = [question for bucket in by_key.values() for question in bucket[:max_per_key]]
     random.shuffle(capped)
 
     if len(capped) < target_count:
@@ -183,6 +185,59 @@ def _category_balanced_oversample(pool: list[Question], target_count: int) -> li
         random.shuffle(leftovers)
         capped.extend(leftovers[: target_count * 3 - len(capped)])
     return capped
+
+
+def _ampcr_category_key(question: Question) -> str | None:
+    code = question.uaa.code if question.uaa else None
+    plan = AMPCR_PLAN_BY_CODE.get(code) if code else None
+    return plan.category if plan else None
+
+
+def _category_balanced_oversample(pool: list[Question], target_count: int) -> list[Question]:
+    """MC38 (§ 6 du ticket #58 : « plusieurs catégories obligatoires », pas nécessairement
+    toutes ni des proportions exactes) — voir `_diversity_capped_oversample`."""
+    return _diversity_capped_oversample(pool, target_count, _ampcr_category_key)
+
+
+def _uaa_key(question: Question) -> str | None:
+    return question.uaa.code if question.uaa else None
+
+
+def _uaa_balanced_oversample(pool: list[Question], target_count: int) -> list[Question]:
+    """Examen blanc global AMPCR (§ 8 du ticket #64 : « plusieurs mini-cours » obligatoires
+    parmi les 20 questions) — voir `_diversity_capped_oversample`."""
+    return _diversity_capped_oversample(pool, target_count, _uaa_key)
+
+
+def _limit_near_duplicate_clusters(pool: list[Question], *, max_per_cluster: int = 2) -> list[Question]:
+    """Plafonne à `max_per_cluster` le nombre de questions quasi-identiques (même
+    signature structurelle, voir `app.v1.dedup`) au sein d'un même pool — évite qu'une
+    session (en particulier l'examen blanc 20Q) présente 3 variantes ou plus très proches
+    de la même micro-notion (§ 8 du ticket #64 : « pas plus de 2 questions très proches sur
+    la même micro-notion »). Conserve l'ordre reçu (le pool est déjà mélangé en amont par
+    `select_bank_questions`, tiré aléatoirement en base)."""
+    kept: list[Question] = []
+    kept_signatures: list = []
+    cluster_counts: list[int] = []
+    for question in pool:
+        version = question.current_version
+        if version is None:
+            kept.append(question)
+            continue
+        signature = question_signature(version.question_type, version.content_json)
+        cluster_index = next(
+            (i for i, existing in enumerate(kept_signatures) if is_near_duplicate(signature, existing)),
+            None,
+        )
+        if cluster_index is None:
+            kept.append(question)
+            kept_signatures.append(signature)
+            cluster_counts.append(1)
+        elif cluster_counts[cluster_index] < max_per_cluster:
+            kept.append(question)
+            cluster_counts[cluster_index] += 1
+        # sinon : cluster déjà à `max_per_cluster`, question écartée du pool.
+    return kept
 
 
 def get_in_progress_session(
@@ -314,11 +369,16 @@ def _start_mc38_transversal_session(
     ligne UAA) plutôt que sans attribution : la banque grandit organiquement d'une session
     à l'autre, comme pour tous les autres mini-cours — `select_transversal_bank_questions`
     inclut explicitement ce bucket dans son périmètre de lecture, jamais dans les contextes
-    de génération (voir `app.v1.bank`)."""
+    de génération (voir `app.v1.bank`).
+
+    Anti-répétition (ticket #64 § 1) : la sélection banque initiale n'interroge QUE des
+    questions jamais vues (`only_unseen=True`) — une question déjà vue n'est reprise qu'en
+    tout dernier recours, ci-dessous, après tentative de génération."""
     oversample = select_transversal_bank_questions(
-        db, user_id=user.id, module_id=module_id, limit=question_count * 3
+        db, user_id=user.id, module_id=module_id, limit=question_count * 3, only_unseen=True
     )
     oversample = _category_balanced_oversample(oversample, question_count)
+    oversample = _limit_near_duplicate_clusters(oversample)
     selected = compose_selection(oversample, question_count)
 
     if len(selected) < question_count:
@@ -333,12 +393,14 @@ def _start_mc38_transversal_session(
         )
         contexts = pick_transversal_contexts()
         difficulty_fr = _DIFFICULTY_TO_FRENCH[difficulty]
+        avoid_prompts = tuple(recent_seen_prompts(db, user_id=user.id, module_id=module_id))
         request = QuestionnaireRequest(
             contexts=contexts,
             mode=mode.value,
             difficulty=difficulty_fr,
             question_count=missing,
             allowed_types=allowed_types,
+            avoid_prompts=avoid_prompts,
         )
         try:
             questionnaire = generate_questionnaire(provider, request)
@@ -354,6 +416,10 @@ def _start_mc38_transversal_session(
             pass  # repli ci-dessous : jamais d'échec de session pour ce seul motif.
 
     if len(selected) < question_count:
+        # Dernier recours (§ 1 du ticket #64 : « réutiliser une ancienne question
+        # uniquement en dernier recours ») : `only_unseen=False` (par défaut) autorise de
+        # nouveau les questions déjà vues, seulement maintenant que banque-jamais-vue et
+        # génération ont toutes deux été tentées.
         fallback_pool = select_transversal_bank_questions(
             db, user_id=user.id, module_id=module_id, limit=question_count * 5
         )
@@ -398,9 +464,18 @@ def start_session(
             provider=provider, question_count=question_count,
         )
 
+    # Anti-répétition (ticket #64 § 1) : la sélection banque initiale n'interroge QUE des
+    # questions jamais vues — une question déjà vue n'est reprise qu'en tout dernier
+    # recours, plus bas, après tentative de génération.
     oversample = select_bank_questions(
-        db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 3
+        db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 3,
+        only_unseen=True,
     )
+    if uaa_id is None:
+        # Parcours global/examen blanc AMPCR (§ 8 du ticket #64) : plusieurs mini-cours
+        # obligatoires — jamais pertinent pour une session scopée à un seul UAA.
+        oversample = _uaa_balanced_oversample(oversample, question_count)
+    oversample = _limit_near_duplicate_clusters(oversample)
     selected = compose_selection(oversample, question_count)
 
     if len(selected) < question_count:
@@ -418,12 +493,16 @@ def start_session(
         )
         context = _pedagogical_context_for(uaa_code)
         difficulty_fr = _DIFFICULTY_TO_FRENCH[difficulty]
+        avoid_prompts = tuple(
+            recent_seen_prompts(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id)
+        )
         request = QuestionnaireRequest(
             contexts=(context,),
             mode=mode.value,
             difficulty=difficulty_fr,
             question_count=missing,
             allowed_types=allowed_types,
+            avoid_prompts=avoid_prompts,
         )
         try:
             questionnaire = generate_questionnaire(provider, request)
@@ -435,9 +514,11 @@ def start_session(
             pass  # repli ci-dessous : jamais d'échec de session pour ce seul motif.
 
     if len(selected) < question_count:
-        # Dernier repli explicite (§ GÉNÉRATION du ticket #55) : réutilise ce qui existe
-        # déjà, y compris en répétant et en dépassant exceptionnellement le plafond
-        # sémantique, plutôt que de refuser de créer la session.
+        # Dernier repli explicite (§ GÉNÉRATION du ticket #55, § 1 du ticket #64 :
+        # « réutiliser une ancienne question uniquement en dernier recours ») : réutilise
+        # ce qui existe déjà (`only_unseen=False`, par défaut), y compris en répétant et en
+        # dépassant exceptionnellement le plafond sémantique, plutôt que de refuser de
+        # créer la session.
         fallback_pool = select_bank_questions(
             db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5
         )
