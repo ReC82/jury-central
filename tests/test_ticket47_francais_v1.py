@@ -75,7 +75,7 @@ def _answer_payload_for(html: str) -> dict:
     return {"text": "Réponse de test couvrant plusieurs phrases pour valider la correction."}
 
 
-def _answer_all_and_submit(client, session_url: str, total: int) -> None:
+def _answer_all_and_submit(client, session_url: str, total: int, severity: int | None = None) -> None:
     for position in range(1, total + 1):
         response = client.get(f"{session_url}?q={position}")
         assert response.status_code == 200
@@ -87,7 +87,10 @@ def _answer_all_and_submit(client, session_url: str, total: int) -> None:
         assert response.status_code == 303, response.text
     response = client.get(f"{session_url}/submit-confirm")
     token = _csrf(response.text)
-    response = client.post(f"{session_url}/submit", data={"csrf_token": token}, follow_redirects=False)
+    submit_data = {"csrf_token": token}
+    if severity is not None:
+        submit_data["severity"] = severity
+    response = client.post(f"{session_url}/submit", data=submit_data, follow_redirects=False)
     assert response.status_code == 303
 
 
@@ -648,3 +651,114 @@ def test_ampcr_mc01_practice_still_works(authenticated_client, db_session, monke
         follow_redirects=False,
     )
     assert response.status_code == 303
+
+
+# --- 8. Sévérité, export, impression, historique, déconnexion — vérifiés pour Français --------
+# --- (mission de nuit § Phase 12 : fonctionnalités génériques #62, jamais testées avec un ------
+# --- module Français jusqu'ici) -----------------------------------------------------------------
+
+
+def test_severity_one_three_five_all_accepted_and_persisted_for_francais(
+    authenticated_client, db_session, monkeypatch
+):
+    seed()
+    for severity in (1, 3, 5):
+        _patch_fake_provider(monkeypatch)
+        session_url = _start_session(authenticated_client, mode="practice")
+        session_id = int(session_url.rsplit("/", 1)[-1])
+        session = db_session.get(QuestionnaireSession, session_id)
+        _answer_all_and_submit(authenticated_client, session_url, session.question_count, severity=severity)
+
+        db_session.expire_all()
+        session = db_session.get(QuestionnaireSession, session_id)
+        assert session.status.value == "completed"
+        assert (session.parameters_json or {}).get("severity") == severity
+
+        response = authenticated_client.get(session_url)
+        assert response.status_code == 200
+
+
+def test_export_markdown_contains_francais_session_content(authenticated_client, db_session, monkeypatch):
+    seed()
+    _patch_fake_provider(monkeypatch)
+    session_url = _start_session(authenticated_client, mode="practice")
+    session_id = int(session_url.rsplit("/", 1)[-1])
+    session = db_session.get(QuestionnaireSession, session_id)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+
+    response = authenticated_client.get(f"{session_url}/export.md")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/markdown")
+    assert "attachment" in response.headers["content-disposition"]
+    assert "# Métadonnées" in response.text
+    assert "Français" in response.text
+    for position in range(1, session.question_count + 1):
+        assert f"## Question {position}" in response.text
+    assert "### Ma réponse" in response.text
+    assert "### Explication" in response.text
+
+
+def test_print_button_and_css_present_for_francais_results(authenticated_client, db_session, monkeypatch):
+    seed()
+    _patch_fake_provider(monkeypatch)
+    session_url = _start_session(authenticated_client, mode="practice")
+    session_id = int(session_url.rsplit("/", 1)[-1])
+    session = db_session.get(QuestionnaireSession, session_id)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+
+    response = authenticated_client.get(session_url)
+    assert response.status_code == 200
+    assert "window.print()" in response.text
+    assert "@media print" in response.text
+    for position in range(1, session.question_count + 1):
+        assert f"Question {position} —" in response.text
+
+
+def test_mes_sessions_shows_francais_session(authenticated_client, db_session, monkeypatch):
+    seed()
+    _patch_fake_provider(monkeypatch)
+    session_url = _start_session(authenticated_client, mode="practice")
+    session_id = int(session_url.rsplit("/", 1)[-1])
+    session = db_session.get(QuestionnaireSession, session_id)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+
+    response = authenticated_client.get("/mes-sessions")
+    assert response.status_code == 200
+    assert "Français" in response.text
+    assert f'/sessions/{session_id}"' in response.text
+
+
+def test_logout_then_login_preserves_francais_history(authenticated_client, db_session, monkeypatch):
+    """Se déconnecter puis se reconnecter ne doit rien perdre : la session Français
+    complétée reste visible dans l'historique après une nouvelle connexion (§ Phase 12)."""
+    seed()
+    _patch_fake_provider(monkeypatch)
+    session_url = _start_session(authenticated_client, mode="practice")
+    session_id = int(session_url.rsplit("/", 1)[-1])
+    session = db_session.get(QuestionnaireSession, session_id)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+
+    account_response = authenticated_client.get("/account")
+    assert account_response.status_code == 200
+    token = _csrf(account_response.text)
+    logout_response = authenticated_client.post(
+        "/logout", data={"csrf_token": token}, follow_redirects=False
+    )
+    assert logout_response.status_code == 303
+
+    protected_response = authenticated_client.get("/mes-sessions", follow_redirects=False)
+    assert protected_response.status_code == 303
+    assert protected_response.headers["location"].startswith("/login")
+
+    login_page = authenticated_client.get("/login")
+    token = _csrf(login_page.text)
+    login_response = authenticated_client.post(
+        "/login",
+        data={"csrf_token": token, "email": "eleve-test@example.test", "password": "test-password-1234"},
+        follow_redirects=False,
+    )
+    assert login_response.status_code == 303
+
+    history_response = authenticated_client.get("/mes-sessions")
+    assert history_response.status_code == 200
+    assert f'/sessions/{session_id}"' in history_response.text
