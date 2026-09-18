@@ -88,7 +88,17 @@ class FakeAIProvider:
         contexts: list[PedagogicalContext],
     ) -> dict[str, QuestionCorrection]:
         self.semantic_calls.append((tuple(q.question_id for q in questions), severity))
-        factor = {"lenient": 1.0, "standard": 0.75, "strict": 0.5}[severity]
+        # "lenient"/"standard"/"strict" gardent leurs valeurs historiques (voir
+        # tests/ai/test_questionnaire.py::test_correct_questionnaire_severity_changes_points_not_facts) ;
+        # "very_lenient"/"very_strict" (ticket #62, échelle 1-5) étendent l'échelle sans
+        # modifier les 3 valeurs déjà testées.
+        factor = {
+            "very_lenient": 1.0,
+            "lenient": 1.0,
+            "standard": 0.75,
+            "strict": 0.5,
+            "very_strict": 0.25,
+        }[severity]
 
         results: dict[str, QuestionCorrection] = {}
         for question in questions:

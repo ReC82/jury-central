@@ -3,6 +3,29 @@
 {% block title %}Résultats — Jury Central{% endblock %}
 
 {% block content %}
+<style>
+    @media print {
+        /* Bootstrap masque un .collapse sans .show via display:none — forcé visible à
+           l'impression quel que soit l'état d'ouverture (§ 12 du ticket #62). */
+        .accordion-collapse {
+            display: block !important;
+            height: auto !important;
+            visibility: visible !important;
+        }
+        .accordion-button::after {
+            display: none;
+        }
+        .accordion-item {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+    }
+</style>
+
 <div class="row justify-content-center">
     <div class="col-12 col-md-9 col-lg-8">
 
@@ -10,7 +33,22 @@
             {% if session.mode.value == "exam" %}S'évaluer — résultat{% else %}S'entraîner — résultat{% endif %}
         </p>
         <h1 class="h3 mb-1">Score : {{ session.score }} / {{ session.question_count }}</h1>
-        <p class="text-muted mb-4">Session terminée le {{ session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else '' }} — définitive, non modifiable.</p>
+        <p class="text-muted mb-1">{{ subject_name }} — {{ scope_label }}</p>
+        <p class="text-muted mb-1">
+            Session terminée le {{ session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else '' }} — définitive, non modifiable.
+        </p>
+        {% if severity_label %}
+        <p class="text-muted mb-4">Sévérité de correction : {{ severity_label }}</p>
+        {% else %}
+        <p class="mb-4"></p>
+        {% endif %}
+
+        <div class="d-flex flex-wrap gap-2 mb-3 d-print-none">
+            <button type="button" id="expand-all" class="btn btn-outline-dark btn-sm">Tout déplier</button>
+            <button type="button" id="collapse-all" class="btn btn-outline-dark btn-sm">Tout replier</button>
+            <button type="button" onclick="window.print()" class="btn btn-outline-dark btn-sm">Imprimer / PDF</button>
+            <a href="/sessions/{{ session.id }}/export.md" class="btn btn-outline-dark btn-sm">Exporter (Markdown)</a>
+        </div>
 
         <div class="accordion" id="results-accordion">
             {% for item in results %}
@@ -21,8 +59,7 @@
                         Question {{ item.position }} — {{ item.points_awarded }} / {{ item.feedback.points_max or 1 }} point(s)
                     </button>
                 </h2>
-                <div id="result-{{ item.position }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
-                     data-bs-parent="#results-accordion">
+                <div id="result-{{ item.position }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}">
                     <div class="accordion-body">
                         <p class="fw-semibold">{{ item.prompt }}</p>
 
@@ -59,9 +96,29 @@
             {% endfor %}
         </div>
 
-        <div class="mt-4 text-center">
+        <div class="mt-4 text-center d-print-none">
             <a href="/" class="btn btn-outline-dark">Retour à l'accueil</a>
         </div>
     </div>
 </div>
+
+<script>
+    (function () {
+        // Chaque .accordion-collapse est indépendant (pas de data-bs-parent, ticket #62
+        // § 10 : plusieurs résultats doivent pouvoir rester ouverts simultanément).
+        function panels() {
+            return Array.prototype.slice.call(document.querySelectorAll("#results-accordion .accordion-collapse"));
+        }
+        function setAll(show) {
+            panels().forEach(function (panel) {
+                var instance = bootstrap.Collapse.getOrCreateInstance(panel, { toggle: false });
+                if (show) { instance.show(); } else { instance.hide(); }
+            });
+        }
+        var expandBtn = document.getElementById("expand-all");
+        var collapseBtn = document.getElementById("collapse-all");
+        if (expandBtn) { expandBtn.addEventListener("click", function () { setAll(true); }); }
+        if (collapseBtn) { collapseBtn.addEventListener("click", function () { setAll(false); }); }
+    })();
+</script>
 {% endblock %}

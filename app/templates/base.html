@@ -48,6 +48,9 @@
                     </li>
                     {% if current_user %}
                     <li class="nav-item">
+                        <a class="nav-link" href="/mes-sessions">Mes entraînements</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="/account">
                             {{ current_user.display_name or current_user.email }}
                         </a>

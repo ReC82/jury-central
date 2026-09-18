@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Mes entraînements — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+        <h1 class="h4 mb-3">Mes entraînements / évaluations</h1>
+
+        {% if not rows %}
+        <p class="text-muted">Aucune session pour l'instant — commence un entraînement depuis une matière.</p>
+        {% endif %}
+
+        {% for row in rows %}
+        {% set session = row.session %}
+        <div class="p-3 bg-white rounded shadow-sm mb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <p class="text-muted small mb-1">
+                        {{ session.created_at.strftime('%d/%m/%Y à %H:%M') if session.created_at else '' }}
+                    </p>
+                    <p class="fw-semibold mb-1">{{ row.subject_name }} — {{ row.scope_label }}</p>
+                    <p class="small mb-1">
+                        <span class="badge {{ 'bg-dark' if session.mode.value == 'exam' else 'bg-secondary' }}">
+                            {{ 'Évaluation' if session.mode.value == 'exam' else 'Entraînement' }}
+                        </span>
+                        <span class="badge {{ 'bg-success' if session.status.value == 'completed' else 'bg-warning text-dark' }}">
+                            {{ 'Terminé' if session.status.value == 'completed' else 'En cours' }}
+                        </span>
+                    </p>
+                    <p class="small text-muted mb-0">
+                        {{ session.question_count }} question(s)
+                        {% if session.status.value == 'completed' %}
+                        — score : {{ session.score }} / {{ session.question_count }}
+                        {% if row.severity_label %} — sévérité : {{ row.severity_label }}{% endif %}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="d-flex align-items-center">
+                    {% if session.status.value == 'completed' %}
+                    <a href="/sessions/{{ session.id }}" class="btn btn-outline-dark btn-sm">Voir les résultats</a>
+                    {% else %}
+                    <a href="/sessions/{{ session.id }}" class="btn btn-dark btn-sm">Reprendre</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
