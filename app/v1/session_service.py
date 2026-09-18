@@ -122,7 +122,20 @@ def get_in_progress_session(
     )
     sessions = query.order_by(QuestionnaireSession.created_at.desc()).all()
     if uaa_id is None:
-        return sessions[0] if sessions else None
+        # Parcours global (§ 16/17 du ticket #55) : `uaa_id=None` doit repérer une session
+        # GLOBALE déjà en cours, jamais une session per-MC — sinon un examen MC01 en cours
+        # empêcherait à tort de démarrer l'examen blanc global AMPCR en redirigeant vers ce
+        # mauvais examen (bug constaté en validation staging du ticket #55). Une session
+        # est considérée globale si ses questions couvrent plus d'un mini-cours distinct.
+        for candidate in sessions:
+            uaa_ids = {
+                sq.question_version.question.uaa_id
+                for sq in candidate.session_questions
+                if sq.question_version.question.uaa_id is not None
+            }
+            if len(uaa_ids) != 1:
+                return candidate
+        return None
     for candidate in sessions:
         first_question = candidate.session_questions[0] if candidate.session_questions else None
         if first_question and first_question.question_version.question.uaa_id == uaa_id:
