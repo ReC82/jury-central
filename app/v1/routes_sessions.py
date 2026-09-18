@@ -137,6 +137,7 @@ def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLR
             "resumable": resumable,
             "difficulties": list(_DIFFICULTY_LABELS.items()),
             "allow_new_while_in_progress": True,
+            "active_space": "practice",
         },
     )
 
@@ -160,6 +161,7 @@ def render_exam_landing(request: Request, db, uaa: UAA, user: User) -> HTMLRespo
             # Évite plusieurs examens IN_PROGRESS identiques (choix documenté, ticket #55
             # § 12/§ RESUME) : si un examen est déjà en cours, seule la reprise est proposée.
             "allow_new_while_in_progress": False,
+            "active_space": "exam",
         },
     )
 

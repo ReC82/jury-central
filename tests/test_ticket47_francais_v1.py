@@ -762,3 +762,46 @@ def test_logout_then_login_preserves_francais_history(authenticated_client, db_s
     history_response = authenticated_client.get("/mes-sessions")
     assert history_response.status_code == 200
     assert f'/sessions/{session_id}"' in history_response.text
+
+
+# --- 9. Navigation Cours / S'entraîner / S'évaluer (ticket #22, générique) -- vérifiée --------
+# --- explicitement pour l'espace Français (mission de nuit § Phase 13) -----------------------
+
+
+def test_francais_space_nav_present_on_course_practice_and_exam_pages(authenticated_client, db_session):
+    """La navigation à 3 onglets (`_uaa_space_nav.html`, ticket #22) est générique (basée
+    uniquement sur `uaa.slug`) et déjà incluse par `uaa_detail.html` et
+    `v1_session_start.html` : aucune UI/route nouvelle n'était nécessaire pour le Français
+    (§ Phase 13). Ce test a révélé un vrai bug pré-existant (partagé avec AMPCR, pas
+    spécifique au Français) : `render_practice_landing`/`render_exam_landing`
+    (`app/v1/routes_sessions.py`) ne passaient jamais `active_space` au template, donc
+    aucun onglet n'était jamais surligné actif sur les pages practice/exam. Corrigé par un
+    ajout d'une clé de contexte manquante (aucune nouvelle architecture)."""
+    seed()
+    pages_and_active_space = (
+        ("/uaa/francais-c01", "course"),
+        ("/uaa/francais-c01/practice", "practice"),
+        ("/uaa/francais-c01/exam", "exam"),
+    )
+    for url, active_space in pages_and_active_space:
+        response = authenticated_client.get(url)
+        assert response.status_code == 200, url
+        assert 'class="jc-space-nav' in response.text
+        assert '📘 Cours' in response.text
+        assert "📝 S'entraîner" in response.text
+        assert "📝 S'évaluer" not in response.text  # jamais le mauvais emoji collé
+        assert "🎓 S'évaluer" in response.text
+        assert 'href="/uaa/francais-c01"' in response.text
+        assert 'href="/uaa/francais-c01/practice"' in response.text
+        assert 'href="/uaa/francais-c01/exam"' in response.text
+        active_href = {
+            "course": "/uaa/francais-c01",
+            "practice": "/uaa/francais-c01/practice",
+            "exam": "/uaa/francais-c01/exam",
+        }[active_space]
+        anchor_match = re.search(
+            rf'<a[^>]*href="{re.escape(active_href)}"[^>]*>.*?</a>', response.text, re.DOTALL
+        )
+        assert anchor_match, (url, active_space)
+        assert "active" in anchor_match.group(0), (url, active_space)
+        assert 'aria-current="page"' in anchor_match.group(0), (url, active_space)
