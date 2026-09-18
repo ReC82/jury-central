@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from app.ai.local_correction import correct_locally, requires_ai_correction
 from app.ai.provider import AIProvider, AIProviderError
-from app.ai.questionnaire import correct_questionnaire, generate_questionnaire
+from app.ai.questionnaire import generate_questionnaire
 from app.ai.schemas import (
     PedagogicalContext,
     QuestionCorrection,
@@ -28,6 +28,7 @@ from app.v1.ai_bridge import (
     BRIDGE_TYPES,
     answer_json_to_submitted,
     content_to_questionnaire_question,
+    describe_submitted_answer,
 )
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
 from app.v1.bank import (
@@ -35,6 +36,7 @@ from app.v1.bank import (
     select_bank_questions,
     select_transversal_bank_questions,
 )
+from app.v1.hybrid_correction import correct_session_hybrid
 from app.v1.mc38_transversal import (
     MC38_CODE,
     MC38_SESSION_SCOPE,
@@ -59,13 +61,33 @@ DEFAULT_QUESTION_COUNT = 10
 GLOBAL_EXAM_QUESTION_COUNT = 20
 LONG_SEMANTIC_TYPES = frozenset({"long_answer", "diagnostic", "procedure", "troubleshooting"})
 MAX_LONG_SEMANTIC_PER_SESSION = 3
-CORRECTION_SEVERITY = "standard"
 
 _DIFFICULTY_TO_FRENCH = {
     SessionDifficultyRequest.EASY: "facile",
     SessionDifficultyRequest.MEDIUM: "moyen",
     SessionDifficultyRequest.HARD: "difficile",
     SessionDifficultyRequest.ADAPTIVE: "moyen",
+}
+
+# Sévérité de correction (ticket #62, § 5/6/7) : sélecteur UI 1-5, mappé sur les 5 niveaux
+# internes du contrat #23 (`app.ai.schemas.SEVERITY_LEVELS`). N'influence QUE la notation/
+# le feedback sémantique (voir `app.v1.hybrid_correction`) — jamais la correction
+# déterministe, calculée indépendamment par `correct_locally`.
+SEVERITY_UI_LEVELS = (1, 2, 3, 4, 5)
+SEVERITY_UI_DEFAULT = 3
+SEVERITY_UI_LABELS = {
+    1: "Très bienveillante",
+    2: "Bienveillante",
+    3: "Standard",
+    4: "Stricte",
+    5: "Très stricte / niveau examen",
+}
+_SEVERITY_UI_TO_INTERNAL = {
+    1: "very_lenient",
+    2: "lenient",
+    3: "standard",
+    4: "strict",
+    5: "very_strict",
 }
 
 
@@ -440,6 +462,41 @@ def get_owned_session(db: DBSession, *, session_id: int, user_id: int) -> Questi
     return session
 
 
+def describe_session_scope(session: QuestionnaireSession) -> str:
+    """Libellé humain « module / mini-cours » d'une session, pour l'historique (ticket
+    #62 § 8) — dérivé sans nouvelle colonne : marqueur `parameters_json["scope"]` (#58)
+    en priorité, sinon la/les UAA réellement couvertes par les questions de la session
+    (une seule UAA pour une session per-MC, plusieurs pour un parcours global)."""
+    if (session.parameters_json or {}).get("scope") == MC38_SESSION_SCOPE:
+        return "MC38 — Révision transversale (MC01→MC37)"
+
+    uaa_titles: list[str] = []
+    seen_ids: set[int] = set()
+    for session_question in session.session_questions:
+        question = session_question.question_version.question
+        uaa = question.uaa if question else None
+        if uaa is not None and uaa.id not in seen_ids:
+            seen_ids.add(uaa.id)
+            uaa_titles.append(f"{uaa.code} — {uaa.title}")
+
+    if len(uaa_titles) == 1:
+        return uaa_titles[0]
+    if len(uaa_titles) > 1:
+        return f"Parcours global ({len(uaa_titles)} mini-cours)"
+    return session.module.code if session.module else "—"
+
+
+def list_user_sessions(db: DBSession, *, user_id: int) -> list[QuestionnaireSession]:
+    """Sessions de l'utilisateur, les plus récentes d'abord (ticket #62 § 8) — isolation
+    stricte par `user_id`, jamais une autre session que la sienne."""
+    return (
+        db.query(QuestionnaireSession)
+        .filter_by(user_id=user_id)
+        .order_by(QuestionnaireSession.created_at.desc())
+        .all()
+    )
+
+
 def build_question_display(session_question: SessionQuestion) -> QuestionDisplay:
     from app.v1.question_engine import public_payload
 
@@ -468,17 +525,30 @@ def save_answer(db: DBSession, *, session_question: SessionQuestion, answer_json
     return existing
 
 
-def submit_session(db: DBSession, *, session: QuestionnaireSession, provider: AIProvider) -> QuestionnaireSession:
-    """Correction globale unique (§ 15 du ticket #55) : construit un `Questionnaire`
-    (#23) à partir des `SessionQuestion` de la session, appelle `correct_questionnaire`
-    (correction locale immédiate + UN SEUL appel IA groupé pour le reste), puis marque la
-    session `COMPLETED` (immuable — voir `QuestionnaireSession.is_locked`)."""
+def submit_session(
+    db: DBSession,
+    *,
+    session: QuestionnaireSession,
+    provider: AIProvider,
+    severity_ui: int = SEVERITY_UI_DEFAULT,
+) -> QuestionnaireSession:
+    """Correction globale hybride (ticket #62, étend § 15 du ticket #55) : construit un
+    `Questionnaire` (#23) à partir des `SessionQuestion` de la session, appelle
+    `correct_session_hybrid` — UN SEUL appel IA groupé qui note les questions sémantiques
+    ET explique pédagogiquement les questions déterministes incorrectes (score verrouillé,
+    jamais modifié par l'IA — voir `app.v1.hybrid_correction`) — puis marque la session
+    `COMPLETED` (immuable — voir `QuestionnaireSession.is_locked`).
+
+    `severity_ui` (1-5, § 5/6/7 du ticket #62) : n'influence QUE la notation/le feedback
+    sémantique (via `_SEVERITY_UI_TO_INTERNAL`) — jamais la correction déterministe, qui
+    reste calculée par `correct_locally` indépendamment de la sévérité choisie."""
     if session.is_locked():
         return session
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
     questionnaire_questions = []
     answers: dict[str, object] = {}
+    human_readable_answers: dict[str, str] = {}
     for session_question in session_questions:
         version = session_question.question_version
         question_id = f"sq{session_question.id}"
@@ -491,6 +561,9 @@ def submit_session(db: DBSession, *, session: QuestionnaireSession, provider: AI
         questionnaire_questions.append(qq)
         raw_answer = session_question.answer.answer_json if session_question.answer else {}
         answers[question_id] = answer_json_to_submitted(version.question_type, version.content_json, raw_answer or {})
+        human_readable_answers[question_id] = describe_submitted_answer(
+            version.question_type, version.content_json, raw_answer or {}
+        )
 
     questionnaire = Questionnaire(mode=session.mode.value, questions=questionnaire_questions)
     uaa_code = None
@@ -499,16 +572,22 @@ def submit_session(db: DBSession, *, session: QuestionnaireSession, provider: AI
         uaa = first_question.uaa
         uaa_code = uaa.code if uaa else None
     context = _pedagogical_context_for(uaa_code)
+    severity_internal = _SEVERITY_UI_TO_INTERNAL.get(severity_ui, "standard")
 
     try:
-        correction = correct_questionnaire(provider, questionnaire, answers, CORRECTION_SEVERITY, [context])
+        correction = correct_session_hybrid(
+            provider, questionnaire, answers, human_readable_answers, severity_internal, (context,)
+        )
         corrections_by_id = {c.question_id: c for c in correction.questions}
         score = correction.score
     except AIProviderError:
-        # Repli explicite (§ 13/§ CORRECTION du ticket #55) : la correction IA groupée a
-        # échoué (service indisponible) — corrige localement ce qui peut l'être plutôt que
-        # de faire échouer toute la soumission ; les questions sémantiques restent
-        # honnêtement signalées comme non corrigées (jamais un score inventé).
+        # Repli explicite (§ 13/§ CORRECTION du ticket #55, § 16 du ticket #62) : la
+        # correction IA groupée a échoué (service indisponible) — corrige localement ce
+        # qui peut l'être plutôt que de faire échouer toute la soumission ; les questions
+        # sémantiques restent honnêtement signalées comme non corrigées (jamais un score
+        # inventé) ; les questions déterministes gardent leur score local ET leur
+        # explication locale minimale existante (message générique, faute d'IA
+        # disponible) — jamais de perte de soumission.
         corrections_by_id = {}
         for qq in questionnaire_questions:
             if requires_ai_correction(qq):
@@ -554,5 +633,10 @@ def submit_session(db: DBSession, *, session: QuestionnaireSession, provider: AI
     session.score = round(score, 2)
     session.status = SessionStatus.COMPLETED
     session.completed_at = datetime.now(UTC)
+    # Persistance de la sévérité (§ 7 du ticket #62) : fusionnée dans parameters_json sans
+    # écraser d'éventuelles autres clés déjà présentes (ex. {"scope": "mc38"}, ticket #58).
+    updated_parameters = dict(session.parameters_json or {})
+    updated_parameters["severity"] = severity_ui
+    session.parameters_json = updated_parameters
     db.commit()
     return session

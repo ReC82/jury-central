@@ -17,7 +17,7 @@ chemins appellent la même fonction `save_answer()`, jamais deux mécanismes dis
 from typing import Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from app.ai.factory import get_ai_provider
 from app.ai.provider import AINotConfiguredError
@@ -38,10 +38,15 @@ from app.v1.models import (
 from app.v1.session_service import (
     DEFAULT_QUESTION_COUNT,
     GLOBAL_EXAM_QUESTION_COUNT,
+    SEVERITY_UI_DEFAULT,
+    SEVERITY_UI_LABELS,
+    SEVERITY_UI_LEVELS,
     SessionCreationError,
     build_question_display,
+    describe_session_scope,
     get_in_progress_session,
     get_owned_session,
+    list_user_sessions,
     save_answer,
     start_session,
     submit_session,
@@ -397,21 +402,18 @@ async def view_session(
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
 
     if session.status != SessionStatus.IN_PROGRESS:
-        results = [
-            {
-                "position": sq.position,
-                "question_type": sq.question_version.question_type,
-                "prompt": sq.question_version.content_json.get("prompt", ""),
-                "user_answer": _describe_answer(sq),
-                "feedback": (sq.answer.feedback_json if sq.answer else {}) or {},
-                "points_awarded": sq.answer.points_awarded if sq.answer else 0.0,
-            }
-            for sq in session_questions
-        ]
+        results = _build_results_rows(session_questions)
+        severity_ui = (session.parameters_json or {}).get("severity")
         return templates.TemplateResponse(
             request=request,
             name="v1_session_results.html",
-            context={"session": session, "results": results},
+            context={
+                "session": session,
+                "results": results,
+                "scope_label": describe_session_scope(session),
+                "subject_name": session.module.subject.name if session.module else "—",
+                "severity_label": SEVERITY_UI_LABELS.get(severity_ui),
+            },
         )
 
     position = max(1, min(q, len(session_questions)))
@@ -441,6 +443,22 @@ def _describe_answer(session_question) -> str:
     if version.question_type not in BRIDGE_TYPES:
         return "(sans réponse)"
     return describe_submitted_answer(version.question_type, version.content_json, answer_json)
+
+
+def _build_results_rows(session_questions: list) -> list[dict]:
+    """Ligne de résultat par question — factorisé (ticket #62) entre l'écran HTML
+    (`v1_session_results.html`) et l'export Markdown, jamais deux implémentations."""
+    return [
+        {
+            "position": sq.position,
+            "question_type": sq.question_version.question_type,
+            "prompt": sq.question_version.content_json.get("prompt", ""),
+            "user_answer": _describe_answer(sq),
+            "feedback": (sq.answer.feedback_json if sq.answer else {}) or {},
+            "points_awarded": sq.answer.points_awarded if sq.answer else 0.0,
+        }
+        for sq in session_questions
+    ]
 
 
 @router.post("/sessions/{session_id}/answer")
@@ -488,7 +506,14 @@ async def submit_confirm(
     if session.status != SessionStatus.IN_PROGRESS:
         return RedirectResponse(url=f"/sessions/{session_id}", status_code=303)
     return templates.TemplateResponse(
-        request=request, name="v1_session_submit_confirm.html", context={"session": session}
+        request=request,
+        name="v1_session_submit_confirm.html",
+        context={
+            "session": session,
+            "severity_levels": SEVERITY_UI_LEVELS,
+            "severity_labels": SEVERITY_UI_LABELS,
+            "severity_default": SEVERITY_UI_DEFAULT,
+        },
     )
 
 
@@ -497,12 +522,16 @@ async def submit_session_route(
     session_id: int,
     db=Depends(get_db),  # noqa: B008
     user: User = Depends(require_user),  # noqa: B008
+    severity: int = Form(SEVERITY_UI_DEFAULT),
 ):
     session = get_owned_session(db, session_id=session_id, user_id=user.id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session introuvable")
     if session.status == SessionStatus.IN_PROGRESS:
-        submit_session(db, session=session, provider=_get_provider_or_unconfigured())
+        severity_ui = severity if severity in SEVERITY_UI_LEVELS else SEVERITY_UI_DEFAULT
+        submit_session(
+            db, session=session, provider=_get_provider_or_unconfigured(), severity_ui=severity_ui
+        )
     return RedirectResponse(url=f"/sessions/{session_id}", status_code=303)
 
 
@@ -538,3 +567,131 @@ async def api_autosave_answer(
     # ne retourne QUE la confirmation d'enregistrement.
     save_answer(db, session_question=session_question, answer_json=answer_json)
     return {"saved": True}
+
+
+# --- Historique utilisateur (ticket #62 § 8) -----------------------------------------------
+
+
+@router.get("/mes-sessions", response_class=HTMLResponse)
+async def my_sessions(
+    request: Request, db=Depends(get_db), user: User = Depends(require_user)  # noqa: B008
+) -> HTMLResponse:
+    sessions = list_user_sessions(db, user_id=user.id)
+    rows = [
+        {
+            "session": session,
+            "scope_label": describe_session_scope(session),
+            "subject_name": session.module.subject.name if session.module else "—",
+            "severity_label": SEVERITY_UI_LABELS.get((session.parameters_json or {}).get("severity")),
+        }
+        for session in sessions
+    ]
+    return templates.TemplateResponse(
+        request=request, name="v1_history.html", context={"rows": rows}
+    )
+
+
+# --- Export Markdown (ticket #62 § 13) -------------------------------------------------------
+
+
+def _export_slug(session: QuestionnaireSession) -> str:
+    """Identifiant court pour le nom de fichier d'export — le code de la première UAA
+    référencée si une seule est en jeu (cas per-MC courant), sinon un repli générique
+    dérivé du module/scope (jamais un slug vide)."""
+    uaa_codes = {
+        sq.question_version.question.uaa.code
+        for sq in session.session_questions
+        if sq.question_version.question and sq.question_version.question.uaa
+    }
+    if len(uaa_codes) == 1:
+        return next(iter(uaa_codes)).lower()
+    if (session.parameters_json or {}).get("scope") == MC38_SESSION_SCOPE:
+        return "mc38-transversal"
+    if len(uaa_codes) > 1:
+        return "global"
+    return session.module.code.lower() if session.module else "session"
+
+
+def _build_session_export_markdown(session: QuestionnaireSession, results: list[dict]) -> str:
+    """Contenu Markdown de l'export (ticket #62 § 13) — structure imposée : métadonnées
+    puis une section par question (énoncé, ma réponse, attendu/critères, points, points
+    forts, erreurs, éléments manquants, explication). Aucune donnée d'un autre
+    utilisateur : construit exclusivement à partir de `session`/`results`, déjà scopés à
+    l'appelant (voir `get_owned_session`)."""
+    severity_ui = (session.parameters_json or {}).get("severity")
+    lines = [
+        "# Métadonnées",
+        "",
+        f"- Matière : {session.module.subject.name if session.module else '—'}",
+        f"- Module / mini-cours : {describe_session_scope(session)}",
+        f"- Mode : {'Évaluation' if session.mode.value == 'exam' else 'Entraînement'}",
+        f"- Date : {session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else ''}",
+        f"- Score : {session.score} / {session.question_count}",
+        f"- Sévérité : {SEVERITY_UI_LABELS.get(severity_ui, '—')}",
+        "",
+    ]
+    for row in results:
+        feedback = row["feedback"]
+        strengths_lines = [f"- {s}" for s in feedback.get("strengths") or []] or ["—"]
+        errors_lines = [f"- {e}" for e in feedback.get("errors") or []] or ["—"]
+        missing_lines = [f"- {m}" for m in feedback.get("missing") or []] or ["—"]
+        lines += [
+            f"## Question {row['position']}",
+            "",
+            row["prompt"],
+            "",
+            "### Ma réponse",
+            "",
+            row["user_answer"] or "(sans réponse)",
+            "",
+            "### Attendu / critères",
+            "",
+            feedback.get("expected_answer") or "—",
+            "",
+            "### Points",
+            "",
+            f"{row['points_awarded']} / {feedback.get('points_max', 1)}",
+            "",
+            "### Points forts",
+            "",
+            *strengths_lines,
+            "",
+            "### Erreurs",
+            "",
+            *errors_lines,
+            "",
+            "### Éléments manquants",
+            "",
+            *missing_lines,
+            "",
+            "### Explication",
+            "",
+            feedback.get("feedback") or "—",
+            "",
+        ]
+    return "\n".join(lines)
+
+
+@router.get("/sessions/{session_id}/export.md")
+async def export_session_markdown(
+    session_id: int, db=Depends(get_db), user: User = Depends(require_user)  # noqa: B008
+) -> Response:
+    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session introuvable")
+    if session.status != SessionStatus.COMPLETED:
+        raise HTTPException(status_code=409, detail="Session pas encore terminée : rien à exporter.")
+
+    session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
+    results = _build_results_rows(session_questions)
+    content = _build_session_export_markdown(session, results)
+
+    mode_slug = "exam" if session.mode.value == "exam" else "practice"
+    date_slug = session.completed_at.strftime("%Y-%m-%d") if session.completed_at else "session"
+    filename = f"jury-central_{_export_slug(session)}_{mode_slug}_{date_slug}.md"
+
+    return Response(
+        content=content,
+        media_type="text/markdown; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

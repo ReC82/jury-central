@@ -34,7 +34,10 @@ EXERCISE_TYPES = (
 
 QUESTIONNAIRE_MODES = ("practice", "exam")
 
-SEVERITY_LEVELS = ("lenient", "standard", "strict")
+# Échelle interne à 5 niveaux (ticket #62, sélecteur UI 1-5) — "lenient"/"standard"/
+# "strict" existaient déjà (ticket #23) et gardent leur sens/comportement inchangés ;
+# "very_lenient"/"very_strict" étendent l'échelle aux deux extrêmes sans rien retirer.
+SEVERITY_LEVELS = ("very_lenient", "lenient", "standard", "strict", "very_strict")
 
 QUESTION_TYPES = (
     "single_choice",

@@ -147,21 +147,34 @@ CORRECT_JSON_SCHEMA = {
 # --- Contrat générique « questionnaire » (ticket #23) ---------------------------------------
 
 SEVERITY_INSTRUCTIONS = {
+    "very_lenient": (
+        "Sévérité TRÈS BIENVEILLANTE (niveau 1/5) : accorde un crédit large dès qu'une "
+        "trace de compréhension du concept clé est présente, même très imparfaitement "
+        "formulée ou incomplète. Privilégie l'encouragement — ne pénalise quasiment "
+        "jamais la forme, seulement une réponse hors sujet ou vide."
+    ),
     "lenient": (
-        "Sévérité BIENVEILLANTE : accorde du crédit partiel dès que le concept clé est "
-        "compris, même avec une formulation imparfaite, incomplète ou un vocabulaire "
-        "approximatif. Ne pénalise pas les imprécisions mineures qui n'affectent pas la "
-        "compréhension du fond."
+        "Sévérité BIENVEILLANTE (niveau 2/5) : accorde du crédit partiel dès que le "
+        "concept clé est compris, même avec une formulation imparfaite, incomplète ou un "
+        "vocabulaire approximatif. Ne pénalise pas les imprécisions mineures qui "
+        "n'affectent pas la compréhension du fond."
     ),
     "standard": (
-        "Sévérité STANDARD : applique le niveau d'exigence normalement attendu à un "
-        "examen — le fond doit être correct et l'essentiel des points clés couverts, sans "
-        "exiger une formulation parfaite."
+        "Sévérité STANDARD (niveau 3/5) : applique le niveau d'exigence normalement "
+        "attendu à un examen — le fond doit être correct et l'essentiel des points clés "
+        "couverts, sans exiger une formulation parfaite."
     ),
     "strict": (
-        "Sévérité STRICTE : exige un vocabulaire précis, une réponse complète, et une "
-        "justification lorsque la question l'appelle. Toute imprécision, tout point "
-        "attendu manquant ou toute justification absente doit coûter des points."
+        "Sévérité STRICTE (niveau 4/5) : exige un vocabulaire précis, une réponse "
+        "complète, et une justification lorsque la question l'appelle. Toute imprécision, "
+        "tout point attendu manquant ou toute justification absente doit coûter des "
+        "points."
+    ),
+    "very_strict": (
+        "Sévérité TRÈS STRICTE / NIVEAU EXAMEN (niveau 5/5) : exigence maximale, "
+        "comparable à un jury d'examen final. Exige précision, exhaustivité et "
+        "justification systématique ; toute approximation, même mineure, coûte des "
+        "points. Aucune indulgence sur la forme ni sur le fond."
     ),
 }
 
