@@ -7,12 +7,15 @@ Ne construit pas l'admin #46. Fournit uniquement :
   l'utilisateur quand c'est possible (repli sur les questions déjà vues sinon, jamais un
   échec de session pour ce motif — voir § BANQUE MVP du ticket) ;
 - persistance de questions générées par lot (voir `app/v1/ai_bridge.py`), toujours
-  revalidées par `app.v1.question_engine.validate_content` avant stockage.
+  revalidées par `app.v1.question_engine.validate_content` (registre #40, structurel) PUIS
+  `app.v1.domain_validation.validate_domain_question` (ticket #68, vérité technique —
+  ex. IPv4/subnetting) avant stockage.
 
 Aucun contenu legacy n'est supprimé : `app.editorial_exercise`/MC01_BLOCKS restent
 strictement inchangés (voir `app/main.py` pour le nouveau routage qui ne les rend plus
 pour les UAA migrées, sans jamais les retirer de la base)."""
 
+import logging
 from typing import Any
 
 from sqlalchemy import func
@@ -24,6 +27,7 @@ from app.models import UAA, BlockType, Module
 from app.v1 import question_types  # noqa: F401 — enregistre les 26 types (#40) au chargement
 from app.v1.ai_bridge import questionnaire_question_to_content
 from app.v1.dedup import find_near_duplicate, question_signature
+from app.v1.domain_validation import validate_domain_question
 from app.v1.models import (
     ContentStatus,
     GenerationSource,
@@ -32,6 +36,8 @@ from app.v1.models import (
     create_question,
 )
 from app.v1.question_engine import ContentValidationError, QuestionEngineError, validate_content
+
+logger = logging.getLogger(__name__)
 
 _EDITORIAL_TO_V1_TYPE = {
     "single_choice": "multiple_choice",
@@ -313,11 +319,29 @@ def select_transversal_bank_questions(
 
 
 def persist_generated_questions(
-    db: Session, *, module_id: int, uaa_id: int | None, questions: list[QuestionnaireQuestion]
+    db: Session,
+    *,
+    module_id: int,
+    uaa_id: int | None,
+    questions: list[QuestionnaireQuestion],
+    domain_rejections: list[str] | None = None,
 ) -> list[Question]:
-    """Valide (registre #40) puis persiste des questions générées par lot — voir
+    """Valide (registre #40, structurel) PUIS valide (ticket #68, métier — voir
+    `app.v1.domain_validation`) avant de persister des questions générées par lot — voir
     `app/v1/ai_bridge.py::questionnaire_question_to_content`. Une question dont la
-    conversion/validation échoue est ignorée plutôt que de faire échouer tout le lot.
+    conversion/validation structurelle échoue est ignorée plutôt que de faire échouer tout
+    le lot ; une question structurellement valide mais techniquement fausse (ex. une
+    adresse de broadcast présentée comme adresse de poste valide) est rejetée de la même
+    façon — jamais persistée, jamais servie — et journalisée (`DOMAIN_VALIDATION_REJECTED`).
+
+    `domain_rejections` (optionnel) : si fourni, le type de chaque question rejetée par la
+    validation MÉTIER (jamais structurelle ni dédoublonnage) y est ajouté — permet à
+    l'appelant (`app.v1.session_service._generate_with_domain_retry`, ticket #68 § 15) de
+    savoir si un manque après persistance vient réellement de la validation métier (auquel
+    cas un appel de complément ciblé est justifié) ou d'une autre cause (dédoublonnage
+    #64, contenu structurellement invalide) qui ne doit JAMAIS déclencher un second appel
+    IA — préserve l'invariant « un seul appel par session » du ticket #55 hors de ce cas
+    précis.
 
     Déduplication (ticket #64 § 2) : une question dont la signature structurelle (voir
     `app.v1.dedup`) est un quasi-doublon d'une question ACTIVE déjà en banque pour ce
@@ -326,6 +350,9 @@ def persist_generated_questions(
     faire grossir la banque d'une variante qui n'en est pas une. Comparée aussi aux
     questions déjà acceptées DANS CE MÊME lot (un lot généré en un appel peut lui-même
     contenir des quasi-doublons entre elles)."""
+    module = db.get(Module, module_id)
+    uaa = db.get(UAA, uaa_id) if uaa_id is not None else None
+
     existing_query = db.query(Question).filter_by(module_id=module_id, status=ContentStatus.ACTIVE)
     existing_query = (
         existing_query.filter_by(uaa_id=uaa_id) if uaa_id is not None else existing_query.filter(Question.uaa_id.is_(None))
@@ -344,6 +371,19 @@ def persist_generated_questions(
             validate_content(question.type, 1, content)
         except (ContentValidationError, QuestionEngineError, KeyError, ValueError):
             continue
+
+        domain_errors = validate_domain_question(module, uaa, question.type, content)
+        if domain_errors:
+            logger.warning(
+                "DOMAIN_VALIDATION_REJECTED uaa=%s question_type=%s reasons=%s",
+                uaa.code if uaa is not None else None,
+                question.type,
+                domain_errors,
+            )
+            if domain_rejections is not None:
+                domain_rejections.append(question.type)
+            continue
+
         candidate_signature = question_signature(question.type, content)
         if find_near_duplicate(candidate_signature, existing_signatures) is not None:
             continue
