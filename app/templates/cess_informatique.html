@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Informatique — Jury Central{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="/cess">CESS</a></li>
+        <li class="breadcrumb-item"><a href="/cess/{{ filiere.slug }}">{{ filiere.title }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Informatique</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4">Informatique</h1>
+
+{% for module in subject.modules %}
+{% if module.code == "AMPCR" %}
+<div class="jc-card jc-card--theory">
+    <div class="jc-card-header">
+        <span class="jc-card-label">Programme</span>
+    </div>
+    <h2 class="jc-card-title h5">Assistant/Assistante de maintenance PC-réseaux (AMPCR)</h2>
+    <p class="text-muted">38 mini-cours (MC01 à MC38) : cours, entraînement et évaluation.</p>
+    <div class="d-flex flex-wrap gap-2 mt-3">
+        <a href="/modules/{{ module.slug }}" class="btn btn-outline-dark">Cours</a>
+        <a href="/modules/{{ module.slug }}/practice" class="btn btn-dark">S'entraîner</a>
+        <a href="/modules/{{ module.slug }}/exam" class="btn btn-outline-dark">S'évaluer</a>
+    </div>
+</div>
+{% else %}
+<div class="jc-card">
+    <h2 class="jc-card-title h5">{{ module.code }}</h2>
+    <a href="/modules/{{ module.slug }}" class="btn btn-outline-dark">Accéder</a>
+</div>
+{% endif %}
+{% else %}
+<p class="text-muted">Aucun module disponible pour le moment.</p>
+{% endfor %}
+{% endblock %}

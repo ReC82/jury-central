@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{{ subject_link.title }} — Jury Central{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="/cess">CESS</a></li>
+        <li class="breadcrumb-item"><a href="/cess/{{ filiere.slug }}">{{ filiere.title }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ subject_link.title }}</li>
+    </ol>
+</nav>
+
+<div class="p-4 p-md-5 bg-white rounded shadow-sm text-center">
+    <h1 class="h4 mb-2">{{ subject_link.title }}</h1>
+    <p class="text-muted mb-0">Ce parcours arrive bientôt.</p>
+</div>
+{% endblock %}

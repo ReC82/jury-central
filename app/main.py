@@ -18,6 +18,7 @@ from app.database import Base, engine, ensure_schema_migrations, get_db
 from app.editorial_exercise import EditorialExerciseBlockConfig
 from app.exercise_blocks import ExerciseBlockConfig, exercise_to_public_dict, generate_exercises
 from app.practice import router as practice_router
+from app.programs import CESS_FILIERES, CESS_SUBJECTS_BY_FILIERE, get_filiere, get_subject_link
 from app.quiz import QuizConfig
 from app.templating import templates
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
@@ -59,9 +60,69 @@ async def health() -> dict[str, str]:
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
+    """Point d'entrée pédagogique (ticket #67, § 3/4) : un seul point de départ — CESS —
+    plutôt que le message « application en construction ». Ne liste pas encore d'autre
+    parcours que CESS (aucun autre n'existe) ; la structure reste extensible via
+    `app.programs`, jamais recréée en dur dans ce gabarit."""
     return templates.TemplateResponse(
         request=request,
         name="home.html",
+    )
+
+
+@app.get("/cess", response_class=HTMLResponse)
+async def cess_index(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="cess_index.html",
+        context={"filieres": CESS_FILIERES},
+    )
+
+
+@app.get("/cess/{filiere_slug}", response_class=HTMLResponse)
+async def cess_filiere_detail(filiere_slug: str, request: Request) -> HTMLResponse:
+    filiere = get_filiere(filiere_slug)
+    if filiere is None:
+        raise HTTPException(status_code=404, detail="Filière introuvable")
+    subjects = CESS_SUBJECTS_BY_FILIERE.get(filiere_slug, ())
+    return templates.TemplateResponse(
+        request=request,
+        name="cess_filiere.html",
+        context={"filiere": filiere, "subjects": subjects},
+    )
+
+
+@app.get("/cess/{filiere_slug}/{subject_slug}", response_class=HTMLResponse)
+async def cess_subject_detail(
+    filiere_slug: str, subject_slug: str, request: Request, db: Session = Depends(get_db)  # noqa: B008
+) -> HTMLResponse:
+    """Matière d'une filière CESS (ticket #67, § 4/5/9). Seule « informatique » est câblée
+    à du contenu réel aujourd'hui (programme AMPCR, ticket #55) : point d'entrée clair vers
+    les routes déjà existantes (`/modules/ampcr`, `/modules/ampcr/practice`,
+    `/modules/ampcr/exam`) — ne recrée AUCUN moteur de sélection/navigation de mini-cours,
+    se contente de les rendre plus faciles à découvrir depuis l'accueil. Toute autre
+    matière RÉELLEMENT annoncée dans `app.programs` (Français/Maths/Sciences, § 5) affiche
+    une page d'attente explicite plutôt qu'un 404 brut ; une matière inconnue reste un 404,
+    comme toute route inexistante."""
+    filiere = get_filiere(filiere_slug)
+    subject_link = get_subject_link(filiere_slug, subject_slug)
+    if filiere is None or subject_link is None:
+        raise HTTPException(status_code=404, detail="Matière introuvable")
+
+    if subject_link.available and subject_link.subject_slug is not None:
+        subject = db.query(models.Subject).filter_by(slug=subject_link.subject_slug).first()
+        if subject is None:
+            raise HTTPException(status_code=404, detail="Matière introuvable")
+        return templates.TemplateResponse(
+            request=request,
+            name="cess_informatique.html",
+            context={"filiere": filiere, "subject": subject},
+        )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="cess_subject_soon.html",
+        context={"filiere": filiere, "subject_link": subject_link},
     )
 
 

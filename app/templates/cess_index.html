@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}CESS — Jury Central{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Accueil</a></li>
+        <li class="breadcrumb-item active" aria-current="page">CESS</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-1">CESS</h1>
+<p class="text-muted mb-4">Choisis ta filière.</p>
+
+<div class="jc-tile-grid">
+    {% for filiere in filieres %}
+    {% if filiere.available %}
+    <a href="/cess/{{ filiere.slug }}" class="jc-tile">
+        <span class="jc-tile-title">{{ filiere.title }}</span>
+    </a>
+    {% else %}
+    <div class="jc-tile jc-tile-soon" aria-disabled="true">
+        <span class="jc-tile-title">{{ filiere.title }}</span>
+        <span class="jc-tile-badge">Bientôt disponible</span>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

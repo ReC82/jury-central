@@ -358,3 +358,94 @@ table.value-table tbody th {
     background: var(--jc-blue);
     transition: width 0.15s ease-out;
 }
+
+/* --- Tuiles de parcours CESS (ticket #67) --- */
+/* Mobile-first : une colonne par défaut, tuiles larges peu chargées en texte ; s'élargit
+   en grille à partir de la largeur tablette. Réutilise les couleurs du design system,
+   aucune nouvelle librairie. */
+
+.jc-tile-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+@media (min-width: 576px) {
+    .jc-tile-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+.jc-tile-grid-single {
+    max-width: 22rem;
+}
+
+.jc-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 0.35rem;
+    min-height: 7rem;
+    padding: 1.25rem;
+    background: #fff;
+    border: 1px solid #e3e6ea;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    color: inherit;
+    text-decoration: none;
+    transition: box-shadow 0.15s ease-out, transform 0.15s ease-out;
+}
+a.jc-tile:hover,
+a.jc-tile:focus-visible {
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+    transform: translateY(-1px);
+    color: inherit;
+    text-decoration: none;
+}
+a.jc-tile:focus-visible {
+    outline: 2px solid var(--jc-blue);
+    outline-offset: 2px;
+}
+.jc-tile-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+.jc-tile-sub {
+    font-size: 0.85rem;
+    color: var(--jc-gray);
+}
+.jc-tile-soon {
+    background: var(--jc-gray-bg);
+    color: var(--jc-gray);
+    cursor: default;
+}
+.jc-tile-badge {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: var(--jc-gray);
+}
+
+/* --- Lien de déconnexion (ticket #67 § 2) --- */
+/* Discret mais identifiable : même famille que les autres liens du header, sans devenir
+   un bouton d'action primaire. */
+
+.jc-nav-logout {
+    color: rgba(255, 255, 255, 0.65) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 0.3rem 0.85rem !important;
+    font-size: 0.9rem;
+    transition: color 0.15s ease-out, border-color 0.15s ease-out, background 0.15s ease-out;
+}
+.jc-nav-logout:hover,
+.jc-nav-logout:focus-visible {
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.08);
+}
+.jc-nav-logout:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}

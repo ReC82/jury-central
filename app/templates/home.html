@@ -3,10 +3,17 @@
 {% block title %}Accueil — Jury Central{% endblock %}
 
 {% block content %}
-<div class="p-4 p-md-5 bg-white rounded shadow-sm">
-    <h1 class="h3 mb-3">Jury Central</h1>
-    <p class="text-muted mb-0">
-        Bienvenue sur Jury Central. L'application est en cours de construction.
+<div class="text-center py-4 py-md-5">
+    <h1 class="h3 mb-2">Jury Central</h1>
+    <p class="text-muted mb-4 mb-md-5">
+        Prépare tes épreuves des Jurys de la Fédération Wallonie-Bruxelles, parcours par parcours.
     </p>
+
+    <div class="jc-tile-grid jc-tile-grid-single mx-auto">
+        <a href="/cess" class="jc-tile">
+            <span class="jc-tile-title">CESS</span>
+            <span class="jc-tile-sub">Certificat d'enseignement secondaire supérieur</span>
+        </a>
+    </div>
 </div>
 {% endblock %}
