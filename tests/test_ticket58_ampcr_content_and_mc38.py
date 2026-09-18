@@ -165,6 +165,51 @@ def test_meta_guard_never_blocks_the_word_examen_or_piege_alone(legit_example):
     assert is_meta_revision_question(legit_example) is False
 
 
+def test_meta_guard_inspects_categories_and_options_not_only_the_prompt():
+    """Bug constaté en validation staging (redéploiement PR #59) : une question de
+    classification dont l'énoncé est générique (« Classe chaque élément... ») mais dont
+    les CATÉGORIES sont méta (« Fiche mémo » / « Exercice transversal » / « Examen
+    blanc », ou « Révision et mémorisation » / « Entraînement et évaluation ») passait à
+    travers la garde, qui n'inspectait que `prompt`. Ce test rejoue les questions
+    RÉELLEMENT trouvées en banque staging (avant correctif) qui n'étaient pas détectées."""
+    from app.v1.mc38_transversal import question_full_text_from_content_json
+
+    real_staging_examples = [
+        {
+            "prompt": "Classe chaque activité selon sa fonction principale.",
+            "categories": ["Fiche mémo", "Exercice transversal", "Examen blanc"],
+            "elements": [
+                "Résumer les points essentiels sur une page",
+                "Combiner plusieurs notions dans une même situation",
+                "S'entraîner dans des conditions proches de la qualification",
+            ],
+        },
+        {"prompt": "Remets dans l'ordre les étapes d'une préparation finale cohérente."},
+        {
+            "prompt": "Quel élément rend un exercice réellement transversal ?",
+            "options": [
+                {"label": "Il porte sur un seul mot-clé à mémoriser"},
+                {"label": "Il demande de mobiliser plusieurs acquis dans une même situation"},
+            ],
+        },
+        {
+            "prompt": (
+                "Explique comment tu utiliserais un examen blanc pour améliorer ta "
+                "préparation à l'examen de qualification AMPCR."
+            )
+        },
+        {"prompt": "Quel comportement est le plus adapté pendant une épreuve type qualification ?"},
+        {
+            "prompt": "Classe chaque élément dans la catégorie qui convient le mieux.",
+            "categories": ["Révision et mémorisation", "Entraînement et évaluation"],
+            "elements": ["Synthèse", "Fiches mémo", "Exercices transversaux", "Examen blanc"],
+        },
+    ]
+    for content in real_staging_examples:
+        text = question_full_text_from_content_json(content)
+        assert is_meta_revision_question(text) is True, content["prompt"]
+
+
 def test_generated_meta_questions_are_filtered_out_before_being_shown(
     authenticated_client, db_session, monkeypatch
 ):

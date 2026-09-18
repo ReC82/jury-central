@@ -160,9 +160,14 @@ def select_bank_questions(
     return selected
 
 
-def _question_prompt_text(question: Question) -> str:
+def _question_full_text(question: Question) -> str:
+    """Texte complet (énoncé + catégories/options/éléments) pour la garde anti-méta MC38 —
+    le seul `prompt` ne suffit pas, voir `app.v1.mc38_transversal.
+    question_full_text_from_content_json`."""
+    from app.v1.mc38_transversal import question_full_text_from_content_json
+
     content = question.current_version.content_json if question.current_version else {}
-    return str(content.get("prompt", "")) if isinstance(content, dict) else ""
+    return question_full_text_from_content_json(content) if isinstance(content, dict) else ""
 
 
 def select_transversal_bank_questions(
@@ -199,7 +204,7 @@ def select_transversal_bank_questions(
         Question.status == ContentStatus.ACTIVE,
         Question.uaa_id.in_(uaa_ids),
     )
-    all_active = [q for q in query.order_by(func.random()).all() if not is_meta_revision_question(_question_prompt_text(q))]
+    all_active = [q for q in query.order_by(func.random()).all() if not is_meta_revision_question(_question_full_text(q))]
     unseen = [q for q in all_active if q.id not in seen_question_ids]
     seen = [q for q in all_active if q.id in seen_question_ids]
 
