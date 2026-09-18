@@ -95,11 +95,17 @@ def _francais_c01_questions(main_doc_version_id: int, second_doc_version_id: int
                         "répondre aux emails après une certaine heure."
                     ),
                 ],
+                # Bug identifié en review (#47) : l'explication disait auparavant « les
+                # deux premières affirmations rapportent des faits [...] ; la deuxième
+                # est un jugement de valeur » — contradictoire (la 2e ne peut pas être à
+                # la fois un fait ET un jugement). `correct_categories=[0, 1, 0]` était
+                # déjà correct (élément 0=Fait, 1=Opinion, 2=Fait) ; seul le texte de
+                # l'explication était faux. Corrigé pour refléter fidèlement le mapping.
                 "correct_categories": [0, 1, 0],
                 "explanation": (
-                    "Les deux premières affirmations rapportent des faits observables "
-                    "décrits dans le texte ; la deuxième est un jugement de valeur de "
-                    "l'auteur."
+                    "La première et la troisième affirmations rapportent des faits "
+                    "observables décrits dans le texte ; la deuxième est un jugement de "
+                    "valeur de l'auteur."
                 ),
             },
         ),

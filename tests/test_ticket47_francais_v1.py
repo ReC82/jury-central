@@ -12,11 +12,12 @@ Aucun appel OpenAI réel : toutes les corrections passent par `FakeAIProvider`."
 import re
 
 from app.ai.fake_provider import FakeAIProvider
+from app.answer_checking import normalize_text
 from app.models import UAA, Module
 from app.seed import seed
 from app.v1.francais_bank import import_francais_c01_to_bank
 from app.v1.francais_content import MAIN_DOCUMENT_TITLE, SECOND_DOCUMENT_TITLE
-from app.v1.models import QuestionnaireSession, SourceDocument, SourceDocumentVersion
+from app.v1.models import Question, QuestionnaireSession, SourceDocument, SourceDocumentVersion
 
 
 def _csrf(html: str) -> str:
@@ -89,6 +90,32 @@ def test_francais_bank_import_creates_shared_source_documents(db_session):
     assert len(documents) == 2
     titles = {doc.current_version.title for doc in documents}
     assert titles == {MAIN_DOCUMENT_TITLE, SECOND_DOCUMENT_TITLE}
+
+
+def test_fait_opinion_classification_explanation_matches_correct_categories(db_session):
+    """Bug identifié en review : l'explication de la classification Fait/Opinion
+    contredisait `correct_categories` (« les deux premières... la deuxième est un
+    jugement » — contradictoire). `correct_categories=[0, 1, 0]` (Fait/Opinion/Fait)
+    était déjà correct ; seul le texte l'était pas. Corrigé pour refléter fidèlement le
+    mapping : la 1re et la 3e affirmations sont des faits, la 2e une opinion."""
+    seed()
+    francais = db_session.query(Module).filter_by(code="FRANCAIS").first()
+    c01 = db_session.query(UAA).filter_by(slug="francais-c01").first()
+    import_francais_c01_to_bank(db_session, francais, c01)
+    db_session.commit()
+
+    classification_questions = [
+        q for q in db_session.query(Question).filter_by(uaa_id=c01.id)
+        if q.current_version.question_type == "classification"
+    ]
+    assert len(classification_questions) == 1
+    content = classification_questions[0].current_version.content_json
+    assert content["correct_categories"] == [0, 1, 0]
+    explanation = normalize_text(content["explanation"])
+    assert "premiere" in explanation
+    assert "troisieme" in explanation
+    # Non-régression explicite du bug : l'ancienne formulation contradictoire a disparu.
+    assert "deux premieres" not in explanation
 
 
 def test_francais_bank_import_is_idempotent(db_session):
