@@ -23,7 +23,17 @@ from app.v1.francais_content import (
     SECOND_DOCUMENT_TITLE,
     TRAINING_DOCUMENT_TITLE,
 )
-from app.v1.models import Question, QuestionnaireSession, SourceDocument, SourceDocumentVersion
+from app.v1.models import (
+    Question,
+    QuestionnaireSession,
+    SessionDifficultyRequest,
+    SessionMode,
+    SessionQuestion,
+    SessionStatus,
+    SourceDocument,
+    SourceDocumentVersion,
+    User,
+)
 
 
 def _csrf(html: str) -> str:
@@ -418,6 +428,141 @@ def test_no_public_solution_leak_anywhere_in_results(authenticated_client, db_se
     response = authenticated_client.get(session_url)
     for field in ("correct_option_ids", "correct_categories", "accepted_answers"):
         assert field not in response.text
+
+
+# --- 5b. Grille de correction (rubric) : clauses pédagogiques (§ Phases 10-11) réellement -----
+# --- transmises à l'IA, pas seulement présentes dans francais_bank.py -------------------------
+
+
+def _patch_fake_provider_with_rubric_spy(monkeypatch) -> list:
+    """Comme `_patch_fake_provider`, mais espionne aussi les questions réellement transmises
+    à `correct_semantic_batch` (jamais un vrai appel OpenAI) — pour vérifier que le
+    `rubric` de la banque atteint bien le pont IA (`app.v1.ai_bridge`,
+    `app.ai.prompts.build_correct_semantic_messages`), pas seulement qu'il existe dans
+    `francais_bank.py`."""
+    fake = FakeAIProvider()
+    captured: list = []
+    original = fake.correct_semantic_batch
+
+    def spy(questions, answers, severity, contexts):
+        captured.append(list(questions))
+        return original(questions, answers, severity, contexts)
+
+    monkeypatch.setattr(fake, "correct_semantic_batch", spy)
+    monkeypatch.setattr("app.v1.routes_sessions.get_ai_provider", lambda: fake)
+    return captured
+
+
+def _build_single_existing_question_session(db_session, question: Question, mode=SessionMode.PRACTICE) -> int:
+    """Construit une session à une seule question référençant une question RÉELLE déjà
+    importée de la banque Français (jamais une question synthétique) — pour tester le
+    contenu pédagogique réel, de façon déterministe (pas de sélection aléatoire à filtrer)."""
+    user = db_session.query(User).filter_by(email="eleve-test@example.test").first()
+    assert user is not None, "authenticated_client doit avoir déjà créé ce compte"
+    session = QuestionnaireSession(
+        user_id=user.id, mode=mode, module_id=question.module_id,
+        difficulty_requested=SessionDifficultyRequest.MEDIUM, status=SessionStatus.IN_PROGRESS,
+        question_count=1,
+    )
+    db_session.add(session)
+    db_session.flush()
+    db_session.add(
+        SessionQuestion(
+            session_id=session.id, question_version_id=question.current_version_id, position=1, points_max=1.0,
+        )
+    )
+    db_session.commit()
+    return session.id
+
+
+def _first_francais_question_with_rubric_containing(db_session, c01, needle: str) -> Question:
+    for question in db_session.query(Question).filter_by(uaa_id=c01.id):
+        rubric = question.current_version.content_json.get("rubric") or ""
+        if needle in rubric:
+            return question
+    raise AssertionError(f"aucune question Français n'a de rubric contenant {needle!r}")
+
+
+def test_opinion_neutrality_clause_reaches_the_ai_correction_prompt(
+    authenticated_client, db_session, monkeypatch
+):
+    """Phase 11 (mission de nuit) : la sévérité ne doit jamais juger l'opinion elle-même —
+    cette règle vit dans `_OPINION_NEUTRALITY_CLAUSE` (`francais_bank.py`). Ce test vérifie
+    qu'elle atteint réellement l'appel `correct_semantic_batch`, pas seulement qu'elle est
+    écrite dans le fichier de contenu."""
+    seed()
+    francais = db_session.query(Module).filter_by(code="FRANCAIS").first()
+    c01 = db_session.query(UAA).filter_by(slug="francais-c01").first()
+    import_francais_c01_to_bank(db_session, francais, c01)
+    db_session.commit()
+
+    question = _first_francais_question_with_rubric_containing(
+        db_session, c01, "Ne juge JAMAIS l'opinion exprimée elle-même"
+    )
+    captured = _patch_fake_provider_with_rubric_spy(monkeypatch)
+    session_id = _build_single_existing_question_session(db_session, question)
+
+    response = authenticated_client.get(f"/sessions/{session_id}?q=1")
+    token = _csrf(response.text)
+    response = authenticated_client.post(
+        f"/sessions/{session_id}/answer",
+        data={
+            "csrf_token": token, "position": 1, "direction": "submit",
+            "text": "Je pense que oui, pour plusieurs raisons développées ici.",
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    response = authenticated_client.get(f"/sessions/{session_id}/submit-confirm")
+    token = _csrf(response.text)
+    response = authenticated_client.post(
+        f"/sessions/{session_id}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False,
+    )
+    assert response.status_code == 303
+
+    assert len(captured) == 1
+    sent_rubrics = [q.rubric or "" for q in captured[0]]
+    assert any("Ne juge JAMAIS l'opinion exprimée elle-même" in r for r in sent_rubrics)
+
+
+def test_long_answer_feedback_structure_clause_reaches_the_ai_correction_prompt(
+    authenticated_client, db_session, monkeypatch
+):
+    """Phase 10 (mission de nuit) : le feedback IA d'une réponse longue doit être structuré
+    (STRUCTURE / ARGUMENTATION / UTILISATION DU DOCUMENT / LANGUE) —
+    `_LONG_ANSWER_FEEDBACK_STRUCTURE_CLAUSE`. Vérifié jusqu'à l'appel IA réel (factice)."""
+    seed()
+    francais = db_session.query(Module).filter_by(code="FRANCAIS").first()
+    c01 = db_session.query(UAA).filter_by(slug="francais-c01").first()
+    import_francais_c01_to_bank(db_session, francais, c01)
+    db_session.commit()
+
+    question = _first_francais_question_with_rubric_containing(db_session, c01, "STRUCTURE")
+    assert question.current_version.question_type == "long_answer"
+    captured = _patch_fake_provider_with_rubric_spy(monkeypatch)
+    session_id = _build_single_existing_question_session(db_session, question)
+
+    response = authenticated_client.get(f"/sessions/{session_id}?q=1")
+    token = _csrf(response.text)
+    response = authenticated_client.post(
+        f"/sessions/{session_id}/answer",
+        data={
+            "csrf_token": token, "position": 1, "direction": "submit",
+            "text": "Réponse longue et argumentée couvrant plusieurs paragraphes développés.",
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    response = authenticated_client.get(f"/sessions/{session_id}/submit-confirm")
+    token = _csrf(response.text)
+    response = authenticated_client.post(
+        f"/sessions/{session_id}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False,
+    )
+    assert response.status_code == 303
+
+    assert len(captured) == 1
+    sent_rubrics = [q.rubric or "" for q in captured[0]]
+    assert any("STRUCTURE" in r and "ARGUMENTATION" in r for r in sent_rubrics)
 
 
 # --- 6. Document reste lisible pendant la question (accordéon, mobile-first) ------------------
