@@ -170,6 +170,7 @@ def _start_session_for_uaa(
     module = uaa.module
     _ensure_bank_seeded(db, module, uaa)
     plan = get_plan_by_slug(uaa.slug)
+    francais_plan = None
     if plan is not None:
         uaa_code = plan.code
     else:
@@ -177,10 +178,13 @@ def _start_session_for_uaa(
         uaa_code = francais_plan.code if francais_plan else None
     # MC38 examen (ticket #58 § 6) : « utiliser 20 questions si le moteur le permet déjà »
     # — même volume que l'examen blanc global, cohérent avec sa nature transversale
-    # MC01→MC37 (voir app.v1.session_service._start_mc38_transversal_session).
+    # MC01→MC37 (voir app.v1.session_service._start_mc38_transversal_session). Français
+    # (overnight mission du 2026-09-19, § Phase 9) : même volume — le corpus (40
+    # questions, § Phases 5-7) le permet techniquement (vérifié : un examen de 20
+    # questions se compose entièrement depuis la banque, sans appel de génération).
     question_count = (
         GLOBAL_EXAM_QUESTION_COUNT
-        if uaa_code == "MC38" and mode == SessionMode.EXAM
+        if mode == SessionMode.EXAM and (uaa_code == "MC38" or francais_plan is not None)
         else DEFAULT_QUESTION_COUNT
     )
     return start_session(

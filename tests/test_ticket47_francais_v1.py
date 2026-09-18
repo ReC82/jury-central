@@ -262,17 +262,22 @@ def test_resume_offers_the_in_progress_session(authenticated_client, db_session,
     assert f"/sessions/{session_id}" in landing.text
 
 
-# --- 4. Exam : 10 questions minimum, immuable après soumission --------------------------------
+# --- 4. Exam : 20 questions (corpus § Phases 5-7 le permet), immuable après soumission -------
 
 
-def test_exam_session_has_at_least_ten_questions(authenticated_client, db_session, monkeypatch):
+def test_exam_session_has_twenty_questions(authenticated_client, db_session, monkeypatch):
+    """§ Phase 9 (overnight) : « 20 questions si techniquement raisonnable » — le corpus
+    étendu (40 questions, § Phases 5-7) le permet, vérifié ici sans appel de génération
+    (FakeAIProvider ne devrait même pas être sollicité si la banque suffit)."""
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, mode="exam")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    assert session.question_count >= 10
+    assert session.question_count == 20
+    assert len(session.session_questions) == 20
     assert session.mode.value == "exam"
+    assert len(fake.questionnaire_calls) == 0
 
 
 def test_exam_prevents_duplicate_in_progress_sessions(authenticated_client, db_session, monkeypatch):
