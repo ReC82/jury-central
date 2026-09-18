@@ -9,6 +9,7 @@ from app.quiz import QuizConfig
 from app.slugify import slugify
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.v1.ampcr_plan import AMPCR_PLAN
+from app.v1.francais_plan import FRANCAIS_MODULE_CODE, FRANCAIS_SUBJECT_NAME
 
 SUBJECT_NAME = "Mathématiques"
 MODULE_CODES = ["MB32", "MQ32", "MQ34"]
@@ -4488,6 +4489,49 @@ AMPCR_STUB_MODULE_BLOCKS: dict[str, list[dict]] = {
 }
 
 
+# =========================================================================================
+# Français — UAA pilote provisoire (ticket #47)
+# =========================================================================================
+#
+# Aucun contenu Français (source officielle ou brouillon ChatGPT) n'existait dans le dépôt
+# avant ce ticket (voir `docs/content_plan_informatique_francais.md` § 3.3 et
+# `app.v1.francais_content`, docstring). Une seule UAA pilote, EXPLICITEMENT provisoire
+# (texte technique de validation rédigé pour ce ticket, jamais un examen CESS officiel),
+# pose la structure Subject/Module/UAA nécessaire pour que /uaa/francais-c01/practice et
+# /exam fonctionnent réellement, en attendant un vrai corpus pédagogique.
+
+
+def _francais_c01_course_markdown() -> str:
+    from app.v1.francais_content import MAIN_DOCUMENT_TEXT, MAIN_DOCUMENT_TITLE
+
+    return (
+        f"# {FRANCAIS_C01_TITLE}\n\n"
+        "**Statut : contenu de validation technique provisoire — PAS un examen CESS "
+        "officiel.** Ce texte a été rédigé spécifiquement pour ce ticket, afin de valider "
+        "que le parcours S'entraîner/S'évaluer fonctionne réellement (document source "
+        "partagé, autosave, reprise, correction IA groupée en un seul appel, résultats "
+        "détaillés) avant qu'un vrai corpus pédagogique Français ne soit fourni par "
+        "l'équipe pédagogique.\n\n"
+        f"## {MAIN_DOCUMENT_TITLE}\n\n"
+        f"{MAIN_DOCUMENT_TEXT}"
+    )
+
+
+FRANCAIS_C01_CODE = "C01"
+FRANCAIS_C01_TITLE = "Lecture et compréhension — texte d'exemple (validation technique, provisoire)"
+
+FRANCAIS_C01_BLOCKS = [
+    {
+        "title": "Texte support (version technique provisoire)",
+        "type": BlockType.MARKDOWN,
+        "content": _francais_c01_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
 
@@ -4693,10 +4737,24 @@ def seed() -> None:
                 created, kept, obsolete_titles=AMPCR_STUB_OBSOLETE_TITLES, reclassified=reclassified,
             )
 
+        # Français (ticket #47) : UAA pilote provisoire — même mécanisme additif
+        # générique, purement additif, ne touche jamais Informatique/AMPCR ni
+        # Mathématiques. Voir la docstring de la section Français ci-dessus.
+        francais = _ensure_subject(db, FRANCAIS_SUBJECT_NAME, created, kept)
+        _ensure_modules(db, francais, [FRANCAIS_MODULE_CODE], created, kept)
+        cessp = next(module for module in francais.modules if module.code == FRANCAIS_MODULE_CODE)
+        _seed_uaa(
+            db, cessp, FRANCAIS_C01_CODE, FRANCAIS_C01_TITLE, 1, FRANCAIS_C01_BLOCKS,
+            created, kept,
+        )
+
         db.commit()
 
-        all_subjects = f"{SUBJECT_NAME} ({', '.join(MODULE_CODES)}), " \
-            f"{INFORMATIQUE_SUBJECT_NAME} ({', '.join(INFORMATIQUE_MODULE_CODES)})"
+        all_subjects = (
+            f"{SUBJECT_NAME} ({', '.join(MODULE_CODES)}), "
+            f"{INFORMATIQUE_SUBJECT_NAME} ({', '.join(INFORMATIQUE_MODULE_CODES)}), "
+            f"{FRANCAIS_SUBJECT_NAME} ({FRANCAIS_MODULE_CODE})"
+        )
         print(f"Seed terminé : {all_subjects}")
         print(
             f"  Créé   : {created['subjects']} matière(s), {created['modules']} module(s), "

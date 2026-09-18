@@ -27,6 +27,7 @@ from app.ai.schemas import (
 )
 from app.v1.ai_bridge import (
     BRIDGE_TYPES,
+    DOCUMENT_TYPES,
     answer_json_to_submitted,
     content_to_questionnaire_question,
     describe_submitted_answer,
@@ -39,6 +40,7 @@ from app.v1.bank import (
     select_transversal_bank_questions,
 )
 from app.v1.dedup import is_near_duplicate, question_signature
+from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE, get_francais_context
 from app.v1.hybrid_correction import correct_session_hybrid
 from app.v1.mc38_transversal import (
     MC38_CODE,
@@ -56,13 +58,14 @@ from app.v1.models import (
     SessionMode,
     SessionQuestion,
     SessionStatus,
+    SourceDocumentVersion,
     User,
     record_question_seen,
 )
 
 DEFAULT_QUESTION_COUNT = 10
 GLOBAL_EXAM_QUESTION_COUNT = 20
-LONG_SEMANTIC_TYPES = frozenset({"long_answer", "diagnostic", "procedure", "troubleshooting"})
+LONG_SEMANTIC_TYPES = frozenset({"long_answer", "diagnostic", "procedure", "troubleshooting"}) | DOCUMENT_TYPES
 MAX_LONG_SEMANTIC_PER_SESSION = 3
 
 # Ticket #68 § 15 : « priorité qualité > économie de tokens » — si la validation métier
@@ -118,6 +121,7 @@ class QuestionDisplay:
     question_type: str
     public_payload: dict
     answer_json: dict
+    source_documents: list[SourceDocumentVersion]
 
 
 def _generate_with_domain_retry(
@@ -344,6 +348,11 @@ def _pedagogical_context_for(uaa_code: str | None) -> PedagogicalContext:
 
         plan = AMPCR_PLAN_BY_CODE[uaa_code]
         return AMPCR_CONTEXTS[plan.course_key]
+    if uaa_code and uaa_code in FRANCAIS_PLAN_BY_CODE:
+        plan = FRANCAIS_PLAN_BY_CODE[uaa_code]
+        context = get_francais_context(plan.course_key)
+        if context is not None:
+            return context
     # Parcours global : contexte générique couvrant l'ensemble du programme AMPCR.
     return PedagogicalContext(
         course_key="ampcr-global",
@@ -383,11 +392,19 @@ def _finalize_session(
     db.flush()
 
     for position, question in enumerate(selected, start=1):
+        # Snapshot optionnel (§ H du modèle #38) : uniquement pour document_analysis
+        # (UN document) — jamais requis pour la relecture (résolue à l'affichage depuis
+        # content_json, voir `build_question_display`), simple dénormalisation utile.
+        # source_comparison référence plusieurs documents, non représentable par ce
+        # champ FK unique : laissé à None, sans conséquence fonctionnelle.
+        content = question.current_version.content_json or {}
+        source_document_version_id = content.get("source_document_version_id")
         session_question = SessionQuestion(
             session_id=session.id,
             question_version_id=question.current_version_id,
             position=position,
             points_max=1.0,
+            source_document_version_id=source_document_version_id,
         )
         db.add(session_question)
         record_question_seen(
@@ -638,18 +655,40 @@ def list_user_sessions(db: DBSession, *, user_id: int) -> list[QuestionnaireSess
     )
 
 
-def build_question_display(session_question: SessionQuestion) -> QuestionDisplay:
+def build_question_display(db: DBSession, session_question: SessionQuestion) -> QuestionDisplay:
     from app.v1.question_engine import public_payload
 
     version = session_question.question_version
     payload = public_payload(version.question_type, version.schema_version, version.content_json)
     answer = session_question.answer
+
+    # Français (ticket #47) : une question document_analysis/source_comparison référence
+    # un ou plusieurs SourceDocumentVersion par identifiant (jamais le texte dupliqué dans
+    # content_json, voir #40) — résolus ici pour le panneau/accordéon de lecture du
+    # template, une seule requête, jamais par question dans une boucle ailleurs.
+    doc_ids: list[int] = []
+    single_id = payload.get("source_document_version_id")
+    if single_id:
+        doc_ids = [single_id]
+    multiple_ids = payload.get("source_document_version_ids")
+    if multiple_ids:
+        doc_ids = list(multiple_ids)
+    source_documents: list[SourceDocumentVersion] = []
+    if doc_ids:
+        source_documents = (
+            db.query(SourceDocumentVersion)
+            .filter(SourceDocumentVersion.id.in_(doc_ids))
+            .order_by(SourceDocumentVersion.id)
+            .all()
+        )
+
     return QuestionDisplay(
         session_question=session_question,
         position=session_question.position,
         question_type=version.question_type,
         public_payload=payload,
         answer_json=(answer.answer_json if answer else {}) or {},
+        source_documents=source_documents,
     )
 
 
@@ -664,6 +703,49 @@ def save_answer(db: DBSession, *, session_question: SessionQuestion, answer_json
         existing.answered_at = datetime.now(UTC)
     db.commit()
     return existing
+
+
+def _document_contexts_for(db: DBSession, session_questions: list[SessionQuestion]) -> tuple[PedagogicalContext, ...]:
+    """Construit un contexte pédagogique par document référencé par au moins une question
+    de la session (ticket #47, § CORRECTION : « le document partagé doit être fourni une
+    seule fois dans le contexte logique du batch ») — jamais un contexte par QUESTION, un
+    seul par DOCUMENT distinct, quel que soit le nombre de questions qui le référencent.
+    Le texte complet n'apparaît donc qu'une fois dans le prompt de correction
+    (`app/ai/prompts.py::_questionnaire_context_block`, inchangé, itère sur les contextes
+    une seule fois avant la boucle sur les questions)."""
+    doc_ids: set[int] = set()
+    for session_question in session_questions:
+        content = session_question.question_version.content_json or {}
+        single_id = content.get("source_document_version_id")
+        if single_id:
+            doc_ids.add(single_id)
+        for multi_id in content.get("source_document_version_ids") or []:
+            doc_ids.add(multi_id)
+    if not doc_ids:
+        return ()
+
+    documents = (
+        db.query(SourceDocumentVersion)
+        .filter(SourceDocumentVersion.id.in_(doc_ids))
+        .order_by(SourceDocumentVersion.id)
+        .all()
+    )
+    return tuple(
+        PedagogicalContext(
+            course_key=f"source-document-{document.id}",
+            course_title=document.title or "Document source",
+            level="Texte de référence pour les questions de cette session qui le citent",
+            allowed_notions=[],
+            competencies=[],
+            vocabulary=[],
+            constraints=(
+                "Texte source de référence (fourni une seule fois pour toute la session, "
+                "valable pour toute question qui s'y réfère) :\n\"\"\"\n"
+                f"{document.content_text or ''}\n\"\"\""
+            ),
+        )
+        for document in documents
+    )
 
 
 def submit_session(
@@ -682,7 +764,12 @@ def submit_session(
 
     `severity_ui` (1-5, § 5/6/7 du ticket #62) : n'influence QUE la notation/le feedback
     sémantique (via `_SEVERITY_UI_TO_INTERNAL`) — jamais la correction déterministe, qui
-    reste calculée par `correct_locally` indépendamment de la sévérité choisie."""
+    reste calculée par `correct_locally` indépendamment de la sévérité choisie.
+
+    Documents partagés (ticket #47) : `_document_contexts_for` ajoute un contexte par
+    document réellement référencé par au moins une question de la session, en plus du
+    contexte de matière/UAA — le texte source n'apparaît donc qu'une fois dans le lot,
+    quel que soit le nombre de questions qui le citent."""
     if session.is_locked():
         return session
 
@@ -713,11 +800,12 @@ def submit_session(
         uaa = first_question.uaa
         uaa_code = uaa.code if uaa else None
     context = _pedagogical_context_for(uaa_code)
+    contexts = (context, *_document_contexts_for(db, session_questions))
     severity_internal = _SEVERITY_UI_TO_INTERNAL.get(severity_ui, "standard")
 
     try:
         correction = correct_session_hybrid(
-            provider, questionnaire, answers, human_readable_answers, severity_internal, (context,)
+            provider, questionnaire, answers, human_readable_answers, severity_internal, contexts
         )
         corrections_by_id = {c.question_id: c for c in correction.questions}
         score = correction.score

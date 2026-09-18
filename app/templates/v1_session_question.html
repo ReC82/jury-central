@@ -17,6 +17,28 @@
             </div>
         </div>
 
+        {% if display.source_documents %}
+        <div class="accordion mb-3" id="source-documents-accordion">
+            {% for doc in display.source_documents %}
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#source-doc-{{ doc.id }}"
+                            aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="source-doc-{{ doc.id }}">
+                        📄 {{ doc.title or "Document source" }}
+                    </button>
+                </h2>
+                <div id="source-doc-{{ doc.id }}"
+                     class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                     data-bs-parent="#source-documents-accordion">
+                    <div class="accordion-body" style="white-space: pre-line; max-height: 50vh; overflow-y: auto;">{{ doc.content_text }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="text-muted small mb-3">Le texte reste consultable ici pendant que tu réponds — inutile de revenir en arrière.</p>
+        {% endif %}
+
         <div class="p-4 bg-white rounded shadow-sm mb-3">
             <p class="mb-4">{{ display.public_payload.prompt }}</p>
 
@@ -83,7 +105,7 @@
                     <textarea
                         class="form-control"
                         name="text"
-                        rows="{{ 8 if qtype in ('long_answer', 'diagnostic') else 3 }}"
+                        rows="{{ 8 if qtype in ('long_answer', 'diagnostic', 'document_analysis', 'source_comparison') else 3 }}"
                         maxlength="{{ payload.max_length or 2000 }}"
                         placeholder="Ta réponse…">{{ display.answer_json.get('text', '') }}</textarea>
                 {% endif %}

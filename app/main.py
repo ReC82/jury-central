@@ -24,6 +24,7 @@ from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V
 from app.v1 import question_types as v1_question_types  # noqa: F401 — enregistre les 26 types (#40)
 from app.v1.ampcr_plan import get_plan_by_slug
 from app.v1.auth import require_user
+from app.v1.francais_plan import get_francais_plan_by_slug
 from app.v1.routes import router as v1_auth_router
 from app.v1.routes_sessions import render_exam_landing, render_practice_landing
 from app.v1.routes_sessions import router as v1_sessions_router
@@ -276,7 +277,7 @@ async def uaa_practice(
     # que le rendu legacy empilé — voir `app/v1/routes_sessions.py`. Le code legacy
     # (`_render_lesson_blocks`, `uaa_practice.html`) reste inchangé et continue de servir
     # toute UAA non migrée (Mathématiques, futur Français...), sans régression.
-    if get_plan_by_slug(uaa.slug) is not None:
+    if get_plan_by_slug(uaa.slug) is not None or get_francais_plan_by_slug(uaa.slug) is not None:
         return render_practice_landing(request, db, uaa, user)
 
     rendered_blocks, needs_plotly = _render_lesson_blocks(
@@ -304,7 +305,7 @@ async def uaa_exam(
 ) -> HTMLResponse:
     uaa = _get_published_uaa(uaa_slug, db)
 
-    if get_plan_by_slug(uaa.slug) is not None:
+    if get_plan_by_slug(uaa.slug) is not None or get_francais_plan_by_slug(uaa.slug) is not None:
         return render_exam_landing(request, db, uaa, user)
 
     rendered_blocks, needs_plotly = _render_lesson_blocks(

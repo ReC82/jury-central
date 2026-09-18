@@ -27,6 +27,8 @@ from app.templating import templates
 from app.v1.ampcr_plan import AMPCR_MODULE_CODE, get_plan_by_slug
 from app.v1.auth import require_user, require_user_api
 from app.v1.bank import get_uaa_by_slug, import_mc01_legacy_to_bank
+from app.v1.francais_bank import import_francais_c01_to_bank
+from app.v1.francais_plan import get_francais_plan_by_slug
 from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
 from app.v1.models import (
     QuestionnaireSession,
@@ -90,9 +92,15 @@ def _ampcr_module(db) -> Module:
     return module
 
 
-def _ensure_mc01_bank_seeded(db, module: Module, uaa: UAA) -> None:
+def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
+    """Amorce paresseuse de la banque hand-authored au premier accès practice/exam de
+    l'UAA concernée — MC01 (ticket #55) et Français C01 (ticket #47), même principe
+    (idempotent, jamais de doublon)."""
     if uaa.slug == "ampcr-mc01":
         import_mc01_legacy_to_bank(db, module, uaa)
+        db.commit()
+    elif uaa.slug == "francais-c01":
+        import_francais_c01_to_bank(db, module, uaa)
         db.commit()
 
 
@@ -114,7 +122,7 @@ def _resumable_session_for_uaa(db, *, user_id: int, module_id: int, mode: Sessio
 
 def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLResponse:
     module = uaa.module
-    _ensure_mc01_bank_seeded(db, module, uaa)
+    _ensure_bank_seeded(db, module, uaa)
     resumable = _resumable_session_for_uaa(
         db, user_id=user.id, module_id=module.id, mode=SessionMode.PRACTICE, uaa=uaa
     )
@@ -135,7 +143,7 @@ def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLR
 
 def render_exam_landing(request: Request, db, uaa: UAA, user: User) -> HTMLResponse:
     module = uaa.module
-    _ensure_mc01_bank_seeded(db, module, uaa)
+    _ensure_bank_seeded(db, module, uaa)
     resumable = _resumable_session_for_uaa(
         db, user_id=user.id, module_id=module.id, mode=SessionMode.EXAM, uaa=uaa
     )
@@ -160,9 +168,13 @@ def _start_session_for_uaa(
     db, *, uaa: UAA, user: User, mode: SessionMode, difficulty: SessionDifficultyRequest
 ) -> QuestionnaireSession:
     module = uaa.module
-    _ensure_mc01_bank_seeded(db, module, uaa)
+    _ensure_bank_seeded(db, module, uaa)
     plan = get_plan_by_slug(uaa.slug)
-    uaa_code = plan.code if plan else None
+    if plan is not None:
+        uaa_code = plan.code
+    else:
+        francais_plan = get_francais_plan_by_slug(uaa.slug)
+        uaa_code = francais_plan.code if francais_plan else None
     # MC38 examen (ticket #58 § 6) : « utiliser 20 questions si le moteur le permet déjà »
     # — même volume que l'examen blanc global, cohérent avec sa nature transversale
     # MC01→MC37 (voir app.v1.session_service._start_mc38_transversal_session).
@@ -418,7 +430,7 @@ async def view_session(
 
     position = max(1, min(q, len(session_questions)))
     current = session_questions[position - 1]
-    display = build_question_display(current)
+    display = build_question_display(db, current)
 
     return templates.TemplateResponse(
         request=request,
@@ -436,11 +448,11 @@ async def view_session(
 
 
 def _describe_answer(session_question) -> str:
-    from app.v1.ai_bridge import BRIDGE_TYPES, describe_submitted_answer
+    from app.v1.ai_bridge import CORRECTABLE_TYPES, describe_submitted_answer
 
     version = session_question.question_version
     answer_json = (session_question.answer.answer_json if session_question.answer else {}) or {}
-    if version.question_type not in BRIDGE_TYPES:
+    if version.question_type not in CORRECTABLE_TYPES:
         return "(sans réponse)"
     return describe_submitted_answer(version.question_type, version.content_json, answer_json)
 
