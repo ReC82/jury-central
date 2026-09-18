@@ -9,7 +9,8 @@ Ne construit pas l'admin #46. Fournit uniquement :
 - persistance de questions générées par lot (voir `app/v1/ai_bridge.py`), toujours
   revalidées par `app.v1.question_engine.validate_content` (registre #40, structurel) PUIS
   `app.v1.domain_validation.validate_domain_question` (ticket #68, vérité technique —
-  ex. IPv4/subnetting) avant stockage.
+  ex. IPv4/subnetting) PUIS `app.v1.quality_validation.validate_question_quality`
+  (ticket #69, clarté/qualité pédagogique) avant stockage.
 
 Aucun contenu legacy n'est supprimé : `app.editorial_exercise`/MC01_BLOCKS restent
 strictement inchangés (voir `app/main.py` pour le nouveau routage qui ne les rend plus
@@ -25,7 +26,7 @@ from app.ai.schemas import QuestionnaireQuestion
 from app.editorial_exercise import EditorialExerciseBlockConfig, EditorialExerciseItem
 from app.models import UAA, BlockType, Module
 from app.v1 import question_types  # noqa: F401 — enregistre les 26 types (#40) au chargement
-from app.v1.ai_bridge import questionnaire_question_to_content
+from app.v1.ai_bridge import questionnaire_question_to_content, shuffle_ordering_items
 from app.v1.dedup import find_near_duplicate, question_signature
 from app.v1.domain_validation import validate_domain_question
 from app.v1.models import (
@@ -35,6 +36,7 @@ from app.v1.models import (
     UserQuestionHistory,
     create_question,
 )
+from app.v1.quality_validation import validate_question_quality
 from app.v1.question_engine import ContentValidationError, QuestionEngineError, validate_content
 
 logger = logging.getLogger(__name__)
@@ -81,6 +83,7 @@ def _editorial_item_to_v1_content(item: EditorialExerciseItem) -> tuple[str, dic
     if v1_type == "ordering":
         items = [{"id": f"item{i}", "label": label} for i, label in enumerate(item.order_items)]
         correct_order = [items[i]["id"] for i in item.correct_order]
+        items = shuffle_ordering_items(items, correct_order)
         return v1_type, {"prompt": item.prompt, "items": items, "correct_order": correct_order, "explanation": item.explanation}
     if v1_type in ("short_answer", "vocabulary"):
         return v1_type, {
@@ -326,22 +329,24 @@ def persist_generated_questions(
     questions: list[QuestionnaireQuestion],
     domain_rejections: list[str] | None = None,
 ) -> list[Question]:
-    """Valide (registre #40, structurel) PUIS valide (ticket #68, métier — voir
-    `app.v1.domain_validation`) avant de persister des questions générées par lot — voir
+    """Valide, dans l'ordre, (1) registre #40 structurel, (2) `app.v1.domain_validation`
+    (ticket #68, vérité technique — ex. IPv4/subnetting), (3) `app.v1.quality_validation`
+    (ticket #69, clarté/qualité pédagogique — ex. ordering déjà trié, énoncé qui révèle sa
+    propre réponse) avant de persister des questions générées par lot — voir
     `app/v1/ai_bridge.py::questionnaire_question_to_content`. Une question dont la
     conversion/validation structurelle échoue est ignorée plutôt que de faire échouer tout
-    le lot ; une question structurellement valide mais techniquement fausse (ex. une
-    adresse de broadcast présentée comme adresse de poste valide) est rejetée de la même
-    façon — jamais persistée, jamais servie — et journalisée (`DOMAIN_VALIDATION_REJECTED`).
+    le lot ; une question structurellement valide mais techniquement fausse OU de mauvaise
+    qualité pédagogique est rejetée de la même façon — jamais persistée, jamais servie —
+    et journalisée (`DOMAIN_VALIDATION_REJECTED`/`QUALITY_VALIDATION_REJECTED`).
 
     `domain_rejections` (optionnel) : si fourni, le type de chaque question rejetée par la
-    validation MÉTIER (jamais structurelle ni dédoublonnage) y est ajouté — permet à
-    l'appelant (`app.v1.session_service._generate_with_domain_retry`, ticket #68 § 15) de
-    savoir si un manque après persistance vient réellement de la validation métier (auquel
-    cas un appel de complément ciblé est justifié) ou d'une autre cause (dédoublonnage
-    #64, contenu structurellement invalide) qui ne doit JAMAIS déclencher un second appel
-    IA — préserve l'invariant « un seul appel par session » du ticket #55 hors de ce cas
-    précis.
+    validation MÉTIER **ou** QUALITÉ (jamais structurelle ni dédoublonnage) y est ajouté —
+    permet à l'appelant (`app.v1.session_service._generate_with_domain_retry`, ticket #68
+    § 15) de savoir si un manque après persistance vient réellement d'un rejet
+    métier/qualité (auquel cas un appel de complément ciblé est justifié) ou d'une autre
+    cause (dédoublonnage #64, contenu structurellement invalide) qui ne doit JAMAIS
+    déclencher un second appel IA — préserve l'invariant « un seul appel par session » du
+    ticket #55 hors de ce cas précis.
 
     Déduplication (ticket #64 § 2) : une question dont la signature structurelle (voir
     `app.v1.dedup`) est un quasi-doublon d'une question ACTIVE déjà en banque pour ce
@@ -379,6 +384,18 @@ def persist_generated_questions(
                 uaa.code if uaa is not None else None,
                 question.type,
                 domain_errors,
+            )
+            if domain_rejections is not None:
+                domain_rejections.append(question.type)
+            continue
+
+        quality_errors = validate_question_quality(module, uaa, question.type, content)
+        if quality_errors:
+            logger.warning(
+                "QUALITY_VALIDATION_REJECTED uaa=%s question_type=%s reasons=%s",
+                uaa.code if uaa is not None else None,
+                question.type,
+                quality_errors,
             )
             if domain_rejections is not None:
                 domain_rejections.append(question.type)
