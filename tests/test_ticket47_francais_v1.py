@@ -453,6 +453,35 @@ def test_mobile_viewport_meta_present(authenticated_client, db_session, monkeypa
     assert 'name="viewport"' in response.text
 
 
+def test_document_accordion_is_scoped_and_bounded(authenticated_client, db_session, monkeypatch):
+    """Une question ne doit jamais afficher les 5 documents à la fois (Phase 8, mission
+    de nuit) : seul(s) le(s) document(s) réellement référencé(s) apparaissent, dans un
+    accordéon à hauteur bornée et défilable (pas un mur de texte permanent)."""
+    seed()
+    _patch_fake_provider(monkeypatch)
+    session_url = _start_session(authenticated_client, mode="practice")
+    session_id = int(session_url.rsplit("/", 1)[-1])
+    session = db_session.get(QuestionnaireSession, session_id)
+
+    single_doc_position = None
+    comparison_position = None
+    for sq in sorted(session.session_questions, key=lambda sq: sq.position):
+        qtype = sq.question_version.question_type
+        if qtype == "document_analysis" and single_doc_position is None:
+            single_doc_position = sq.position
+        if qtype == "source_comparison" and comparison_position is None:
+            comparison_position = sq.position
+
+    for position, expected_max in ((single_doc_position, 1), (comparison_position, 2)):
+        if position is None:
+            continue
+        response = authenticated_client.get(f"{session_url}?q={position}")
+        assert response.status_code == 200
+        assert response.text.count('class="accordion-item"') <= expected_max
+        assert "max-height: 50vh" in response.text
+        assert "overflow-y: auto" in response.text
+
+
 # --- 7. Non-régression AMPCR (le parcours Français ne casse rien d'existant) ------------------
 
 
