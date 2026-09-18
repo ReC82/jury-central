@@ -214,7 +214,10 @@ def _francais_c01_questions(main_doc_version_id: int, second_doc_version_id: int
                     "Au moins deux arguments distincts et justifiés",
                     "Expression écrite cohérente et adaptée au niveau CESS",
                 ],
-                "max_length": 6000,
+                # Ticket #73 : 6000 était déjà généreux mais restait sous le plancher de
+                # 10 000 caractères réellement supportés désormais — aligné sur le nouveau
+                # défaut (`LongAnswerContent.max_length`, app/v1/question_types.py).
+                "max_length": 20_000,
             },
         ),
         (
