@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Question {{ position }}/{{ total }} — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-7">
+
+        <p class="text-uppercase text-muted small fw-semibold mb-1">
+            {% if session.mode.value == "exam" %}S'évaluer{% else %}S'entraîner{% endif %}
+        </p>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h4 mb-0">Question {{ position }} / {{ total }}</h1>
+            <div class="progress flex-grow-1 ms-3" style="height: 8px;" role="progressbar"
+                 aria-valuenow="{{ position }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+                <div class="progress-bar bg-dark" style="width: {{ (position / total * 100)|round }}%;"></div>
+            </div>
+        </div>
+
+        <div class="p-4 bg-white rounded shadow-sm mb-3">
+            <p class="mb-4">{{ display.public_payload.prompt }}</p>
+
+            <form method="post" action="/sessions/{{ session.id }}/answer">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="position" value="{{ position }}">
+
+                {% set payload = display.public_payload %}
+                {% set qtype = display.question_type %}
+
+                {% if qtype == "multiple_choice" %}
+                    {% set is_multi = payload.max_selections > 1 %}
+                    {% for option in payload.options %}
+                    <div class="form-check mb-2">
+                        <input
+                            class="form-check-input"
+                            type="{{ 'checkbox' if is_multi else 'radio' }}"
+                            name="option_id"
+                            id="option-{{ option.option_id }}"
+                            value="{{ option.option_id }}"
+                            {% if option.option_id in display.answer_json.get('selected_option_ids', []) %}checked{% endif %}>
+                        <label class="form-check-label" for="option-{{ option.option_id }}">{{ option.label }}</label>
+                    </div>
+                    {% endfor %}
+                    {% if is_multi %}
+                    <p class="form-text">Sélectionne entre {{ payload.min_selections }} et {{ payload.max_selections }} réponses.</p>
+                    {% endif %}
+
+                {% elif qtype == "classification" %}
+                    {% set saved_assignments = display.answer_json.get('assignments', []) %}
+                    {% for element in payload.elements %}
+                    {% set element_index = loop.index0 %}
+                    {% set saved_category = saved_assignments[element_index] if saved_assignments|length > element_index else -1 %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">{{ element }}</label>
+                        <select class="form-select" name="category__{{ element_index }}">
+                            <option value="" disabled {% if saved_category < 0 %}selected{% endif %}>Choisir une catégorie…</option>
+                            {% for category in payload.categories %}
+                            <option value="{{ loop.index0 }}" {% if loop.index0 == saved_category %}selected{% endif %}>
+                                {{ category }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endfor %}
+
+                {% elif qtype == "ordering" %}
+                    {% set saved_order = display.answer_json.get('order', []) %}
+                    <p class="form-text">Attribue une position (1 = premier) à chaque élément.</p>
+                    {% for item in payload["items"] %}
+                    {% set saved_position = (saved_order.index(item.id) + 1) if item.id in saved_order else 0 %}
+                    <div class="mb-3 d-flex align-items-center gap-2">
+                        <select class="form-select" style="max-width: 6rem;" name="position__{{ item.id }}">
+                            <option value="0" {% if saved_position == 0 %}selected{% endif %}>—</option>
+                            {% for pos in range(1, payload["items"]|length + 1) %}
+                            <option value="{{ pos }}" {% if pos == saved_position %}selected{% endif %}>{{ pos }}</option>
+                            {% endfor %}
+                        </select>
+                        <span>{{ item.label }}</span>
+                    </div>
+                    {% endfor %}
+
+                {% else %}
+                    <textarea
+                        class="form-control"
+                        name="text"
+                        rows="{{ 8 if qtype in ('long_answer', 'diagnostic') else 3 }}"
+                        maxlength="{{ payload.max_length or 2000 }}"
+                        placeholder="Ta réponse…">{{ display.answer_json.get('text', '') }}</textarea>
+                {% endif %}
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" name="direction" value="previous" class="btn btn-outline-secondary"
+                            {% if not has_previous %}disabled{% endif %}>
+                        ← Précédent
+                    </button>
+                    {% if is_last %}
+                    <button type="submit" name="direction" value="submit" class="btn btn-dark">
+                        {% if session.mode.value == "exam" %}Terminer l'évaluation{% else %}Terminer et corriger{% endif %}
+                    </button>
+                    {% else %}
+                    <button type="submit" name="direction" value="next" class="btn btn-dark">Suivant →</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        {% if not is_last %}
+        <form method="post" action="/sessions/{{ session.id }}/answer" class="text-center">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="position" value="{{ position }}">
+            <button type="submit" name="direction" value="submit" class="btn btn-link btn-sm text-muted">
+                {% if session.mode.value == "exam" %}Terminer l'évaluation maintenant{% else %}Terminer et corriger maintenant{% endif %}
+            </button>
+        </form>
+        {% endif %}
+
+        <p class="text-muted small text-center mt-2">Ta progression est enregistrée automatiquement.</p>
+    </div>
+</div>
+{% endblock %}

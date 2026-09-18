@@ -21,8 +21,12 @@ from app.practice import router as practice_router
 from app.quiz import QuizConfig
 from app.templating import templates
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
+from app.v1 import question_types as v1_question_types  # noqa: F401 — enregistre les 26 types (#40)
+from app.v1.ampcr_plan import get_plan_by_slug
 from app.v1.auth import require_user
 from app.v1.routes import router as v1_auth_router
+from app.v1.routes_sessions import render_exam_landing, render_practice_landing
+from app.v1.routes_sessions import router as v1_sessions_router
 from app.value_table import value_table_public_dict
 from generators.base import GeneratedExercise
 from generators.exercise_types import InteractiveExercise
@@ -45,6 +49,7 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 app.include_router(admin_router)
 app.include_router(practice_router)
 app.include_router(v1_auth_router)
+app.include_router(v1_sessions_router)
 
 
 @app.get("/health")
@@ -262,9 +267,18 @@ async def uaa_practice(
     uaa_slug: str,
     request: Request,
     db: Session = Depends(get_db),  # noqa: B008
-    _user=Depends(require_user),  # noqa: B008
+    user=Depends(require_user),  # noqa: B008
 ) -> HTMLResponse:
     uaa = _get_published_uaa(uaa_slug, db)
+
+    # Ticket #55 : les UAA du programme AMPCR (MC01..MC38) utilisent désormais le
+    # parcours de session V1 générique (banque + génération/correction par lot) plutôt
+    # que le rendu legacy empilé — voir `app/v1/routes_sessions.py`. Le code legacy
+    # (`_render_lesson_blocks`, `uaa_practice.html`) reste inchangé et continue de servir
+    # toute UAA non migrée (Mathématiques, futur Français...), sans régression.
+    if get_plan_by_slug(uaa.slug) is not None:
+        return render_practice_landing(request, db, uaa, user)
+
     rendered_blocks, needs_plotly = _render_lesson_blocks(
         _space_blocks(uaa, models.BlockSpace.PRACTICE)
     )
@@ -286,9 +300,13 @@ async def uaa_exam(
     uaa_slug: str,
     request: Request,
     db: Session = Depends(get_db),  # noqa: B008
-    _user=Depends(require_user),  # noqa: B008
+    user=Depends(require_user),  # noqa: B008
 ) -> HTMLResponse:
     uaa = _get_published_uaa(uaa_slug, db)
+
+    if get_plan_by_slug(uaa.slug) is not None:
+        return render_exam_landing(request, db, uaa, user)
+
     rendered_blocks, needs_plotly = _render_lesson_blocks(
         _space_blocks(uaa, models.BlockSpace.EXAM)
     )

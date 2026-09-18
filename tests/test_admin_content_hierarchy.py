@@ -1,5 +1,6 @@
 from app.models import UAA, BlockType, LessonBlock, Module, Subject
 from app.seed import (
+    AMPCR_STUB_MODULE_BLOCKS,
     MC01_BLOCKS,
     MC02_BLOCKS,
     MC03_BLOCKS,
@@ -242,12 +243,15 @@ def test_seed_is_idempotent(db_session):
     seed()
     seed()
 
+    # Ticket #55 : 35 UAA stub supplémentaires (MC04..MC38, programme AMPCR complet) —
+    # voir AMPCR_STUB_MODULE_BLOCKS/app.v1.ampcr_plan.AMPCR_PLAN.
     assert db_session.query(Subject).count() == 2
     assert db_session.query(Module).count() == 4
-    assert db_session.query(UAA).count() == 5
+    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS)
     assert db_session.query(LessonBlock).count() == (
         len(UAA1_BLOCKS) + len(UAA2_BLOCKS) + len(MC01_BLOCKS) + len(MC02_BLOCKS)
         + len(MC03_BLOCKS)
+        + sum(len(blocks) for blocks in AMPCR_STUB_MODULE_BLOCKS.values())
     )
 
 

@@ -170,6 +170,13 @@ class Question(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     module_id: Mapped[int] = mapped_column(ForeignKey("modules.id"), index=True)
+    # Ticket #55 : un `Module` (ex. "AMPCR") peut regrouper plusieurs dizaines d'UAA/mini-
+    # cours (MC01..MC38) — `module_id` seul ne suffit plus à isoler la banque d'un mini-
+    # cours précis. Nullable (ajout additif — voir `ensure_schema_migrations`) : `None`
+    # signifie « question rattachée au module dans son ensemble » (utilisé par le parcours
+    # global AMPCR, § session_service.py), une valeur précise scope la question à CE
+    # mini-cours pour les sessions par MC.
+    uaa_id: Mapped[int | None] = mapped_column(ForeignKey("uaas.id"), nullable=True, index=True)
     # Nullable uniquement le temps très court, à la création, entre l'insertion de la
     # Question et celle de sa première QuestionVersion (référence circulaire) — voir
     # `create_question`. Une Question complètement créée a toujours une current_version.
@@ -206,6 +213,7 @@ class Question(Base):
     )
 
     module = relationship("Module")
+    uaa = relationship("UAA")
     versions: Mapped[list["QuestionVersion"]] = relationship(
         back_populates="question",
         foreign_keys="QuestionVersion.question_id",
@@ -226,7 +234,10 @@ class Question(Base):
         secondary="v1_question_concepts", back_populates="questions"
     )
 
-    __table_args__ = (Index("ix_v1_questions_module_status", "module_id", "status"),)
+    __table_args__ = (
+        Index("ix_v1_questions_module_status", "module_id", "status"),
+        Index("ix_v1_questions_uaa_status", "uaa_id", "status"),
+    )
 
 
 class QuestionVersion(Base):
@@ -837,6 +848,7 @@ def create_question(
     question_type: str,
     content_json: dict | list,
     generation_source: GenerationSource,
+    uaa_id: int | None = None,
     difficulty_declared: QuestionDifficulty | None = None,
     generator_model: str | None = None,
     prompt_version: str | None = None,
@@ -844,9 +856,14 @@ def create_question(
     source_document_version_id: int | None = None,
     concepts: list["Concept"] | None = None,
 ) -> Question:
-    """Crée une Question et sa première QuestionVersion (version=1) de façon atomique."""
+    """Crée une Question et sa première QuestionVersion (version=1) de façon atomique.
+
+    `uaa_id` (ticket #55) : scope la question à un mini-cours précis au sein d'un module
+    qui en regroupe plusieurs (ex. AMPCR/MC01..MC38) — `None` = question rattachée au
+    module dans son ensemble (parcours global)."""
     question = Question(
         module_id=module_id,
+        uaa_id=uaa_id,
         status=ContentStatus.ACTIVE,
         difficulty_declared=difficulty_declared,
         generation_source=generation_source,

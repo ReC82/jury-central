@@ -112,24 +112,32 @@ def _build_drifted_staging_state(db_session) -> UAA:
     return uaa
 
 
-def _practice_exercise_titles_in_order(client) -> list[str]:
-    response = client.get("/uaa/ampcr-mc01/practice")
-    assert response.status_code == 200
+def _exercise_numbers_in_position_order(db_session) -> list[int]:
+    """Ordre des 12 exercices MC01 par `LessonBlock.position` croissante — lu directement
+    en base plutôt que scrapé depuis `/uaa/ampcr-mc01/practice`, qui affiche désormais le
+    nouveau parcours de session V1 (ticket #55) et ne liste plus les exercices
+    individuellement. La garantie d'ordre du ticket #37 reste pertinente au niveau des
+    données : c'est cet ordre qui alimente `app.v1.bank.import_mc01_legacy_to_bank`."""
     import re
 
-    return re.findall(r"Exercice \d+ — [^<]*", response.text)
+    uaa = _mc01_uaa(db_session)
+    ordered_titles = [
+        block.title
+        for block in sorted(uaa.lesson_blocks, key=lambda b: b.position)
+        if block.title.startswith("Exercice ")
+    ]
+    return [int(re.match(r"Exercice (\d+)", title).group(1)) for title in ordered_titles]
 
 
 # --- Reproduction du problème -----------------------------------------------------------
 
 
-def test_drifted_state_reproduces_the_reported_wrong_order(authenticated_client, db_session):
+def test_drifted_state_reproduces_the_reported_wrong_order(db_session):
     """Confirme que l'état reconstruit reproduit bien l'ordre erroné observé en staging
     (1, 2, 3, 4, 9, 5, 11, 6, 7, 8, 10, 12) — avant toute correction."""
     _build_drifted_staging_state(db_session)
 
-    titles = _practice_exercise_titles_in_order(authenticated_client)
-    numbers = [int(t.split()[1]) for t in titles]
+    numbers = _exercise_numbers_in_position_order(db_session)
     assert numbers == [1, 2, 3, 4, 9, 5, 11, 6, 7, 8, 10, 12]
 
 
@@ -143,14 +151,13 @@ def test_drifted_state_has_position_collisions(db_session):
 # --- Correction par migration additive/idempotente ---------------------------------------
 
 
-def test_seed_fixes_the_order_on_a_drifted_staging_state(authenticated_client, db_session):
+def test_seed_fixes_the_order_on_a_drifted_staging_state(db_session):
     _build_drifted_staging_state(db_session)
 
     seed()
     db_session.expire_all()
 
-    titles = _practice_exercise_titles_in_order(authenticated_client)
-    numbers = [int(t.split()[1]) for t in titles]
+    numbers = _exercise_numbers_in_position_order(db_session)
     assert numbers == list(range(1, 13))
 
 
@@ -165,13 +172,12 @@ def test_seed_removes_all_position_collisions(db_session):
     assert len(positions) == len(set(positions)), f"positions dupliquées : {positions}"
 
 
-def test_fresh_seed_already_has_the_correct_order(authenticated_client, db_session):
-    """Une base jamais seedée (ou déjà à jour) doit directement afficher le bon ordre —
-    la migration ne doit pas être requise pour un nouveau déploiement."""
+def test_fresh_seed_already_has_the_correct_order(db_session):
+    """Une base jamais seedée (ou déjà à jour) doit directement avoir le bon ordre en
+    base — la migration ne doit pas être requise pour un nouveau déploiement."""
     seed()
 
-    titles = _practice_exercise_titles_in_order(authenticated_client)
-    numbers = [int(t.split()[1]) for t in titles]
+    numbers = _exercise_numbers_in_position_order(db_session)
     assert numbers == list(range(1, 13))
 
 

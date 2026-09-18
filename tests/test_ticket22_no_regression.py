@@ -293,8 +293,12 @@ def test_staging_seeded_before_ticket_22_is_reclassified_without_reset(authentic
         # Le contenu n'est jamais touché par la reclassification.
         assert actual_block.content == block_data["content"]
 
+    # Ticket #55 : /uaa/ampcr-mc01/exam affiche désormais le nouveau parcours de session
+    # V1 (plus l'ancien examen Markdown statique) — la reclassification en espace EXAM
+    # elle-même reste vérifiée ci-dessus au niveau des données.
     exam_response = authenticated_client.get("/uaa/ampcr-mc01/exam")
-    assert "Examen final" in exam_response.text
+    assert exam_response.status_code == 200
+    assert "Commencer l'évaluation" in exam_response.text
     course_response = authenticated_client.get("/uaa/ampcr-mc01")
     assert "Examen final" not in course_response.text
     assert "Exercice 1 —" not in course_response.text

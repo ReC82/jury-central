@@ -51,8 +51,8 @@ def ensure_schema_migrations() -> None:
     existante (staging déjà seedé avant l'ajout de la colonne) doit être ajoutée
     explicitement — `create_all` ne modifie jamais une table existante. Introduit par le
     ticket #22 (`LessonBlock.space`) ; étendu au ticket #39 (`v1_users.password_hash`/
-    `last_login_at` — la table `v1_users` peut déjà exister depuis le ticket #38, créée
-    sans ces deux colonnes).
+    `last_login_at`) et au ticket #55 (`v1_questions.uaa_id`) — chaque colonne peut déjà
+    exister sur une base seedée avant son introduction.
 
     Idempotent (vérifie la présence de chaque colonne via `PRAGMA table_info` avant de
     l'ajouter) et strictement additif : ne touche jamais aux lignes ni aux colonnes déjà
@@ -76,4 +76,10 @@ def ensure_schema_migrations() -> None:
         )
         _add_column_if_missing(
             connection, table="v1_users", column="last_login_at", ddl_type="DATETIME"
+        )
+        # Ticket #55 : v1_questions peut déjà exister depuis #38, créée sans cette colonne
+        # — nécessaire pour scoper une question à un mini-cours précis au sein d'un module
+        # qui en regroupe plusieurs (ex. AMPCR/MC01..MC38).
+        _add_column_if_missing(
+            connection, table="v1_questions", column="uaa_id", ddl_type="INTEGER"
         )

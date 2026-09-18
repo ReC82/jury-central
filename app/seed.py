@@ -8,6 +8,7 @@ from app.models import UAA, BlockSpace, BlockType, LessonBlock, Module, Subject
 from app.quiz import QuizConfig
 from app.slugify import slugify
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
+from app.v1.ampcr_plan import AMPCR_PLAN
 
 SUBJECT_NAME = "Mathématiques"
 MODULE_CODES = ["MB32", "MQ32", "MQ34"]
@@ -4446,6 +4447,52 @@ MC03_BLOCKS = [
     },
 ]
 
+# Mini-cours 04 à 38 (ticket #55, recadrage « INFORMATIQUE AMPCR COMPLET ») : contrairement
+# à MC01/MC02/MC03, AUCUN contenu pédagogique rédigé n'existe encore pour ces 35 cours
+# (confirmé par docs/content_plan_informatique_francais.md, § 3.2) — seuls code/titre/
+# catégorie ont été fournis par ChatGPT dans le ticket (voir `app.v1.ampcr_plan.AMPCR_PLAN`,
+# seule source de vérité pour ces 38 entrées, réutilisée ici plutôt que redupliquée). Ce
+# bloc COURS est donc un STUB minimal et honnête (annonce explicitement l'absence de
+# contenu rédigé) — pas un cours complet — qui pose uniquement la structure Module/UAA
+# nécessaire pour que /uaa/{slug}/practice et /uaa/{slug}/exam (moteur V1 générique,
+# app/v1/session_service.py) fonctionnent réellement pour ces 35 mini-cours avant les
+# épreuves. Un futur ticket éditorial pourra remplacer ce bloc unique par un vrai cours
+# structuré sans toucher au moteur V1 (le contenu COURS est indépendant de la banque de
+# questions V1, stockée séparément — voir docs/ampcr_v1_functional.md).
+
+
+def _ampcr_stub_course_markdown(title: str) -> str:
+    return (
+        f"# {title}\n\n"
+        "Ce mini-cours fait partie du programme complet AMPCR (Assistant/Assistante de "
+        "maintenance PC-réseaux). Son contenu de cours détaillé n'est pas encore rédigé "
+        "dans Jury Central — seuls le titre et la catégorie ont été validés par le "
+        "responsable pédagogique à ce stade (voir "
+        "`docs/content_plan_informatique_francais.md`).\n\n"
+        "S'entraîner et S'évaluer restent toutefois déjà utilisables pour ce mini-cours : "
+        "les questions proposées sont générées et validées automatiquement dans le même "
+        "programme, en attendant la rédaction du cours complet.\n"
+    )
+
+
+def _ampcr_stub_blocks(title: str) -> list[dict]:
+    return [
+        {
+            "title": "Plan du mini-cours",
+            "type": BlockType.MARKDOWN,
+            "content": _ampcr_stub_course_markdown(title),
+            "position": 1,
+            "is_published": True,
+            "space": BlockSpace.COURSE,
+        }
+    ]
+
+
+# {code: blocks} — position 4..38 dans le module AMPCR (MC01=1, MC02=2, MC03=3 déjà pris).
+AMPCR_STUB_MODULE_BLOCKS: dict[str, list[dict]] = {
+    plan.code: _ampcr_stub_blocks(plan.title) for plan in AMPCR_PLAN if not plan.has_authored_content
+}
+
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
@@ -4637,6 +4684,18 @@ def seed() -> None:
             db, ampcr, MC03_CODE, MC03_TITLE, 3, MC03_BLOCKS, created, kept,
             reclassified=reclassified,
         )
+        # Mini-cours 04 à 38 (ticket #55) : stubs minimaux (voir AMPCR_STUB_MODULE_BLOCKS,
+        # docstring ci-dessus) — même mécanisme additif générique, purement additif, ne
+        # touche jamais MC01/MC02/MC03 ni Mathématiques. Position = rang dans AMPCR_PLAN
+        # (MC04=4 .. MC38=38), après MC01/MC02/MC03 (1/2/3).
+        for plan in AMPCR_PLAN:
+            if plan.has_authored_content:
+                continue
+            position = int(plan.code.removeprefix("MC"))
+            _seed_uaa(
+                db, ampcr, plan.code, plan.title, position, AMPCR_STUB_MODULE_BLOCKS[plan.code],
+                created, kept, reclassified=reclassified,
+            )
 
         db.commit()
 
