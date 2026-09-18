@@ -40,6 +40,7 @@ from app.v1.mc38_transversal import (
     MC38_SESSION_SCOPE,
     is_meta_revision_question,
     pick_transversal_contexts,
+    question_full_text_from_questionnaire_question,
 )
 from app.v1.models import (
     AnswerCorrectionStatus,
@@ -320,7 +321,8 @@ def _start_mc38_transversal_session(
         try:
             questionnaire = generate_questionnaire(provider, request)
             non_meta_questions = [
-                q for q in questionnaire.questions if not is_meta_revision_question(q.prompt)
+                q for q in questionnaire.questions
+                if not is_meta_revision_question(question_full_text_from_questionnaire_question(q))
             ]
             new_questions = persist_generated_questions(
                 db, module_id=module_id, uaa_id=mc38_uaa_id, questions=non_meta_questions

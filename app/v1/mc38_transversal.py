@@ -81,7 +81,13 @@ def pick_transversal_contexts(count: int = DEFAULT_TRANSVERSAL_CONTEXT_COUNT) ->
 # Motifs ciblant le SENS méta (le processus de révision/examen lui-même), jamais un mot
 # isolé trop générique — voir § 8 du ticket #58 : « ne pas interdire le mot examen partout
 # si une vraie question technique le contient ». Chaque motif reprend directement un des
-# exemples interdits fournis par le ticket, ou son équivalent sémantique direct.
+# exemples interdits fournis par le ticket, ou un cas réel constaté en validation staging
+# (ticket #58, redéploiement PR #59 — voir le rapport de validation correspondant) : le
+# premier passage de la garde ne couvrait que le texte de l'énoncé (`prompt`) et laissait
+# passer des questions dont le caractère méta n'apparaît que dans les catégories/options
+# (ex. classification « Fiche mémo / Exercice transversal / Examen blanc »), ou des
+# formulations qui ne reprenaient aucun des 3 exemples verbatim du ticket (ex. « Explique
+# comment tu utiliserais un examen blanc pour améliorer ta préparation... »).
 _META_REVISION_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
     re.compile(pattern, re.IGNORECASE)
     for pattern in (
@@ -97,15 +103,74 @@ _META_REVISION_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
         r"(qu['’]est-ce\s+qu['’]|à\s+quoi\s+sert)\s+un\s+examen\s+blanc",
         r"pourquoi\s+faire\s+un\s+examen\s+blanc",
         r"fonctionnement\s+du\s+site",
+        r"pr[ée]paration\s+finale",
+        r"comment\s+(tu|vous)\s+utiliser\w*.{0,40}(examen\s+blanc|r[ée]vision)",
+        r"am[ée]liorer\s+(ta|ton|sa|votre)\s+pr[ée]paration",
+        r"pr[ée]paration\s+[àa]\s+l['’]examen\s+de\s+qualification",
+        r"comportement.{0,30}(pendant|durant).{0,20}([ée]preuve|examen)",
+        r"rend\s+un\s+exercice\s+r[ée]ellement\s+transversal",
+        r"exercices?\s+transversal\w*",
+        r"r[ée]vision\s+et\s+m[ée]moris\w*",
+        r"entra[îi]nement\s+et\s+[ée]valuation",
+        r"synth[èe]se.{0,20}fiches?\s+m[ée]mo",
+        r"[ée]preuve\s+type\s+qualification",
+        r"examen\s+type\s+qualification",
     )
 )
 
 
+def _text_from_option_like_entries(entries: object) -> list[str]:
+    if not isinstance(entries, list):
+        return []
+    labels: list[str] = []
+    for entry in entries:
+        if isinstance(entry, dict):
+            label = entry.get("label")
+            if label:
+                labels.append(str(label))
+        elif entry:
+            labels.append(str(entry))
+    return labels
+
+
+def question_full_text_from_content_json(content: dict) -> str:
+    """Reconstitue le texte complet d'une question de banque (`content_json`, #40) pour la
+    garde anti-méta : l'énoncé (`prompt`) SEUL ne suffit pas — une question de
+    classification peut avoir un prompt générique (« Classe chaque élément... ») alors que
+    ses catégories/éléments révèlent le caractère méta (ex. catégories « Fiche mémo » /
+    « Exercice transversal » / « Examen blanc », constaté en validation staging)."""
+    if not isinstance(content, dict):
+        return ""
+    parts = [str(content.get("prompt", ""))]
+    for key in ("categories", "elements", "choices"):
+        parts.extend(_text_from_option_like_entries(content.get(key)))
+    for key in ("options", "items"):
+        parts.extend(_text_from_option_like_entries(content.get(key)))
+    return " ".join(part for part in parts if part)
+
+
+def question_full_text_from_questionnaire_question(question) -> str:
+    """Équivalent de `question_full_text_from_content_json` pour une `QuestionnaireQuestion`
+    (#23, à la génération, avant persistance) — même besoin d'inspecter choices/categories/
+    elements, pas seulement `prompt`."""
+    parts = [
+        str(question.prompt),
+        *(str(c) for c in getattr(question, "choices", []) or []),
+        *(str(c) for c in getattr(question, "categories", []) or []),
+        *(str(e) for e in getattr(question, "elements", []) or []),
+        *(str(i) for i in getattr(question, "order_items", []) or []),
+        *(str(p) for p in getattr(question, "pairs_left", []) or []),
+        *(str(p) for p in getattr(question, "pairs_right", []) or []),
+    ]
+    return " ".join(part for part in parts if part)
+
+
 def is_meta_revision_question(text: str) -> bool:
-    """True si `text` (l'énoncé d'une question) porte sur le PROCESSUS de révision/examen
-    lui-même plutôt que sur du contenu technique AMPCR (voir les 3 exemples interdits du
-    ticket #58 § « contexte »). Volontairement ciblé sur des expressions distinctives du
-    sens méta — ne bannit jamais un mot générique isolé comme « examen » ou « piège »."""
+    """True si `text` (texte complet d'une question — énoncé ET catégories/options/
+    éléments, voir `question_full_text_from_*`) porte sur le PROCESSUS de révision/examen
+    lui-même plutôt que sur du contenu technique AMPCR. Volontairement ciblé sur des
+    expressions distinctives du sens méta — ne bannit jamais un mot générique isolé comme
+    « examen » ou « piège » (§ 8 du ticket #58)."""
     if not text:
         return False
     return any(pattern.search(text) for pattern in _META_REVISION_PATTERNS)
