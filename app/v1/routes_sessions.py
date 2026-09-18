@@ -27,6 +27,7 @@ from app.templating import templates
 from app.v1.ampcr_plan import AMPCR_MODULE_CODE, get_plan_by_slug
 from app.v1.auth import require_user, require_user_api
 from app.v1.bank import get_uaa_by_slug, import_mc01_legacy_to_bank
+from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
 from app.v1.models import (
     QuestionnaireSession,
     SessionDifficultyRequest,
@@ -35,6 +36,7 @@ from app.v1.models import (
     User,
 )
 from app.v1.session_service import (
+    DEFAULT_QUESTION_COUNT,
     GLOBAL_EXAM_QUESTION_COUNT,
     SessionCreationError,
     build_question_display,
@@ -92,11 +94,24 @@ def _ensure_mc01_bank_seeded(db, module: Module, uaa: UAA) -> None:
 # --- Landing pages (appelées depuis app/main.py pour les UAA AMPCR) ---------------------------
 
 
+def _resumable_session_for_uaa(db, *, user_id: int, module_id: int, mode: SessionMode, uaa: UAA):
+    """Repère une session per-MC déjà en cours pour `uaa`. MC38 (ticket #58) est un cas
+    particulier : ses questions appartiennent à MC01→MC37, jamais à MC38 lui-même, donc
+    `uaa_id=uaa.id` ne matcherait jamais — on utilise le marqueur `scope` à la place (voir
+    `get_in_progress_session`)."""
+    plan = get_plan_by_slug(uaa.slug)
+    if plan is not None and plan.code == MC38_CODE:
+        return get_in_progress_session(
+            db, user_id=user_id, module_id=module_id, mode=mode, scope=MC38_SESSION_SCOPE
+        )
+    return get_in_progress_session(db, user_id=user_id, module_id=module_id, mode=mode, uaa_id=uaa.id)
+
+
 def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLResponse:
     module = uaa.module
     _ensure_mc01_bank_seeded(db, module, uaa)
-    resumable = get_in_progress_session(
-        db, user_id=user.id, module_id=module.id, mode=SessionMode.PRACTICE, uaa_id=uaa.id
+    resumable = _resumable_session_for_uaa(
+        db, user_id=user.id, module_id=module.id, mode=SessionMode.PRACTICE, uaa=uaa
     )
     return templates.TemplateResponse(
         request=request,
@@ -116,8 +131,8 @@ def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLR
 def render_exam_landing(request: Request, db, uaa: UAA, user: User) -> HTMLResponse:
     module = uaa.module
     _ensure_mc01_bank_seeded(db, module, uaa)
-    resumable = get_in_progress_session(
-        db, user_id=user.id, module_id=module.id, mode=SessionMode.EXAM, uaa_id=uaa.id
+    resumable = _resumable_session_for_uaa(
+        db, user_id=user.id, module_id=module.id, mode=SessionMode.EXAM, uaa=uaa
     )
     return templates.TemplateResponse(
         request=request,
@@ -142,15 +157,25 @@ def _start_session_for_uaa(
     module = uaa.module
     _ensure_mc01_bank_seeded(db, module, uaa)
     plan = get_plan_by_slug(uaa.slug)
+    uaa_code = plan.code if plan else None
+    # MC38 examen (ticket #58 § 6) : « utiliser 20 questions si le moteur le permet déjà »
+    # — même volume que l'examen blanc global, cohérent avec sa nature transversale
+    # MC01→MC37 (voir app.v1.session_service._start_mc38_transversal_session).
+    question_count = (
+        GLOBAL_EXAM_QUESTION_COUNT
+        if uaa_code == "MC38" and mode == SessionMode.EXAM
+        else DEFAULT_QUESTION_COUNT
+    )
     return start_session(
         db,
         user=user,
         module_id=module.id,
         uaa_id=uaa.id,
-        uaa_code=plan.code if plan else None,
+        uaa_code=uaa_code,
         mode=mode,
         difficulty=difficulty,
         provider=_get_provider_or_unconfigured(),
+        question_count=question_count,
     )
 
 
@@ -168,8 +193,8 @@ async def start_practice_session(
         raise HTTPException(status_code=404, detail="UAA introuvable")
 
     if resume:
-        existing = get_in_progress_session(
-            db, user_id=user.id, module_id=uaa.module_id, mode=SessionMode.PRACTICE, uaa_id=uaa.id
+        existing = _resumable_session_for_uaa(
+            db, user_id=user.id, module_id=uaa.module_id, mode=SessionMode.PRACTICE, uaa=uaa
         )
         if existing is not None:
             return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
@@ -211,8 +236,8 @@ async def start_exam_session(
     # « éviter plusieurs examens IN_PROGRESS identiques ») — `resume` n'a donc pas besoin
     # d'être testé explicitement ici, contrairement à practice où plusieurs sessions
     # simultanées restent autorisées.
-    existing = get_in_progress_session(
-        db, user_id=user.id, module_id=uaa.module_id, mode=SessionMode.EXAM, uaa_id=uaa.id
+    existing = _resumable_session_for_uaa(
+        db, user_id=user.id, module_id=uaa.module_id, mode=SessionMode.EXAM, uaa=uaa
     )
     if existing is not None:
         return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)

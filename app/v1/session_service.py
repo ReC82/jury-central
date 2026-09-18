@@ -30,7 +30,17 @@ from app.v1.ai_bridge import (
     content_to_questionnaire_question,
 )
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
-from app.v1.bank import persist_generated_questions, select_bank_questions
+from app.v1.bank import (
+    persist_generated_questions,
+    select_bank_questions,
+    select_transversal_bank_questions,
+)
+from app.v1.mc38_transversal import (
+    MC38_CODE,
+    MC38_SESSION_SCOPE,
+    is_meta_revision_question,
+    pick_transversal_contexts,
+)
 from app.v1.models import (
     AnswerCorrectionStatus,
     Question,
@@ -114,20 +124,79 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
     return selected
 
 
+def _category_balanced_oversample(pool: list[Question], target_count: int) -> list[Question]:
+    """Plafonne la représentation d'une seule catégorie AMPCR (hardware/systems/networks/
+    ...) dans le pool transmis à `compose_selection`, pour MC38 (§ 6 du ticket #58 :
+    « plusieurs catégories obligatoires », pas nécessairement toutes ni des proportions
+    exactes).
+
+    IMPORTANT : `compose_selection` regroupe son entrée par TYPE de question sans jamais
+    tenir compte de l'ORDRE — réordonner `pool` sans réellement en exclure une partie
+    n'aurait donc AUCUN effet sur la diversité de catégories du résultat final. Cette
+    fonction retire donc réellement l'excédent d'une catégorie dominante (au-delà de la
+    moitié de `target_count`) plutôt que de se contenter de le réordonner, sauf si cela
+    laisserait trop peu de questions au total (repli explicite, § 6 : « pas besoin de
+    respecter exactement ces nombres si la banque disponible ne le permet pas »)."""
+    by_category: dict[str, list[Question]] = defaultdict(list)
+    for question in pool:
+        code = question.uaa.code if question.uaa else None
+        plan = AMPCR_PLAN_BY_CODE.get(code) if code else None
+        if plan is None:
+            continue
+        by_category[plan.category].append(question)
+    for bucket in by_category.values():
+        random.shuffle(bucket)
+
+    if len(by_category) <= 1:
+        return pool
+
+    max_per_category = max(1, -(-target_count // 2))  # ceil(target_count / 2)
+    capped = [question for bucket in by_category.values() for question in bucket[:max_per_category]]
+    random.shuffle(capped)
+
+    if len(capped) < target_count:
+        kept_ids = {id(question) for question in capped}
+        leftovers = [question for question in pool if id(question) not in kept_ids]
+        random.shuffle(leftovers)
+        capped.extend(leftovers[: target_count * 3 - len(capped)])
+    return capped
+
+
 def get_in_progress_session(
-    db: DBSession, *, user_id: int, module_id: int, mode: SessionMode, uaa_id: int | None = None
+    db: DBSession,
+    *,
+    user_id: int,
+    module_id: int,
+    mode: SessionMode,
+    uaa_id: int | None = None,
+    scope: str | None = None,
 ) -> QuestionnaireSession | None:
+    """`scope` (ticket #58) repère une session par marqueur explicite
+    (`parameters_json["scope"]`, ex. MC38_SESSION_SCOPE) plutôt que par `uaa_id` — requis
+    pour MC38, dont les questions appartiennent à MC01→MC37, jamais à MC38 lui-même."""
     query = db.query(QuestionnaireSession).filter_by(
         user_id=user_id, module_id=module_id, mode=mode, status=SessionStatus.IN_PROGRESS
     )
     sessions = query.order_by(QuestionnaireSession.created_at.desc()).all()
+
+    if scope is not None:
+        for candidate in sessions:
+            if (candidate.parameters_json or {}).get("scope") == scope:
+                return candidate
+        return None
+
     if uaa_id is None:
         # Parcours global (§ 16/17 du ticket #55) : `uaa_id=None` doit repérer une session
         # GLOBALE déjà en cours, jamais une session per-MC — sinon un examen MC01 en cours
         # empêcherait à tort de démarrer l'examen blanc global AMPCR en redirigeant vers ce
         # mauvais examen (bug constaté en validation staging du ticket #55). Une session
         # est considérée globale si ses questions couvrent plus d'un mini-cours distinct.
+        # Exclut explicitement les sessions MC38 (§58) : elles partagent la même
+        # caractéristique « plusieurs mini-cours » sans être une vraie session globale
+        # /modules/ampcr/... — même classe de bug que ci-dessus, à ne pas réintroduire.
         for candidate in sessions:
+            if (candidate.parameters_json or {}).get("scope") == MC38_SESSION_SCOPE:
+                continue
             uaa_ids = {
                 sq.question_version.question.uaa_id
                 for sq in candidate.session_questions
@@ -161,6 +230,124 @@ def _pedagogical_context_for(uaa_code: str | None) -> PedagogicalContext:
     )
 
 
+def _finalize_session(
+    db: DBSession,
+    *,
+    user: User,
+    module_id: int,
+    mode: SessionMode,
+    difficulty: SessionDifficultyRequest,
+    selected: list[Question],
+    parameters_json: dict | None = None,
+) -> QuestionnaireSession:
+    """Construit la `QuestionnaireSession`/`SessionQuestion` à partir d'une sélection déjà
+    prête — factorisé entre le parcours per-MC/global (`start_session`) et le parcours
+    transversal MC38 (`_start_mc38_transversal_session`, ticket #58). `parameters_json`
+    porte le marqueur `scope` (ticket #58, voir `get_in_progress_session`)."""
+    session = QuestionnaireSession(
+        user_id=user.id,
+        mode=mode,
+        module_id=module_id,
+        difficulty_requested=difficulty,
+        status=SessionStatus.IN_PROGRESS,
+        question_count=len(selected),
+        parameters_json=parameters_json,
+    )
+    db.add(session)
+    db.flush()
+
+    for position, question in enumerate(selected, start=1):
+        session_question = SessionQuestion(
+            session_id=session.id,
+            question_version_id=question.current_version_id,
+            position=position,
+            points_max=1.0,
+        )
+        db.add(session_question)
+        record_question_seen(
+            db, user_id=user.id, question_version=question.current_version, session_id=session.id
+        )
+    db.commit()
+    return session
+
+
+def _start_mc38_transversal_session(
+    db: DBSession,
+    *,
+    user: User,
+    module_id: int,
+    mc38_uaa_id: int | None,
+    mode: SessionMode,
+    difficulty: SessionDifficultyRequest,
+    provider: AIProvider,
+    question_count: int,
+) -> QuestionnaireSession:
+    """MC38 (ticket #58) : jamais le contexte MC38 lui-même (« comment réviser ») —
+    sélectionne et génère exclusivement à partir des mini-cours réels MC01→MC37, avec une
+    diversité de catégories best-effort (§ 6 du ticket), et filtre toute question générée
+    qui ressemblerait à une question MÉTA sur le processus de révision avant de la
+    persister (voir `app.v1.mc38_transversal.is_meta_revision_question`). Les questions
+    générées sont tout de même stockées sous `uaa_id=mc38_uaa_id` (MC38 a bien sa propre
+    ligne UAA) plutôt que sans attribution : la banque grandit organiquement d'une session
+    à l'autre, comme pour tous les autres mini-cours — `select_transversal_bank_questions`
+    inclut explicitement ce bucket dans son périmètre de lecture, jamais dans les contextes
+    de génération (voir `app.v1.bank`)."""
+    oversample = select_transversal_bank_questions(
+        db, user_id=user.id, module_id=module_id, limit=question_count * 3
+    )
+    oversample = _category_balanced_oversample(oversample, question_count)
+    selected = compose_selection(oversample, question_count)
+
+    if len(selected) < question_count:
+        missing = question_count - len(selected)
+        long_count = sum(
+            1 for q in selected if q.current_version.question_type in LONG_SEMANTIC_TYPES
+        )
+        allowed_types = tuple(
+            BRIDGE_TYPES - LONG_SEMANTIC_TYPES
+            if long_count >= MAX_LONG_SEMANTIC_PER_SESSION
+            else BRIDGE_TYPES
+        )
+        contexts = pick_transversal_contexts()
+        difficulty_fr = _DIFFICULTY_TO_FRENCH[difficulty]
+        request = QuestionnaireRequest(
+            contexts=contexts,
+            mode=mode.value,
+            difficulty=difficulty_fr,
+            question_count=missing,
+            allowed_types=allowed_types,
+        )
+        try:
+            questionnaire = generate_questionnaire(provider, request)
+            non_meta_questions = [
+                q for q in questionnaire.questions if not is_meta_revision_question(q.prompt)
+            ]
+            new_questions = persist_generated_questions(
+                db, module_id=module_id, uaa_id=mc38_uaa_id, questions=non_meta_questions
+            )
+            selected.extend(new_questions[:missing])
+        except AIProviderError:
+            pass  # repli ci-dessous : jamais d'échec de session pour ce seul motif.
+
+    if len(selected) < question_count:
+        fallback_pool = select_transversal_bank_questions(
+            db, user_id=user.id, module_id=module_id, limit=question_count * 5
+        )
+        if not fallback_pool and not selected:
+            raise SessionCreationError(
+                "Aucune question disponible pour la révision transversale MC38 (banque "
+                "MC01-37 vide et génération indisponible)."
+            )
+        pool = selected or fallback_pool
+        while len(selected) < question_count and pool:
+            selected.append(pool[len(selected) % len(pool)])
+
+    return _finalize_session(
+        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
+        parameters_json={"scope": MC38_SESSION_SCOPE},
+    )
+
+
 def start_session(
     db: DBSession,
     *,
@@ -175,7 +362,18 @@ def start_session(
 ) -> QuestionnaireSession:
     """Crée une nouvelle session : sélectionne dans la banque, complète par génération
     batch (UN appel) si nécessaire, et se rabat sur les questions déjà vues plutôt que
-    d'échouer si la génération échoue (voir docstring du module)."""
+    d'échouer si la génération échoue (voir docstring du module).
+
+    MC38 (ticket #58) est délégué à `_start_mc38_transversal_session` : ce mini-cours
+    n'est pas une matière propre, ses sessions tirent exclusivement dans MC01→MC37 (jamais
+    dans son propre contexte « révision/mémorisation », source du bug de questions méta
+    constaté en validation staging)."""
+    if uaa_code == MC38_CODE:
+        return _start_mc38_transversal_session(
+            db, user=user, module_id=module_id, mc38_uaa_id=uaa_id, mode=mode, difficulty=difficulty,
+            provider=provider, question_count=question_count,
+        )
+
     oversample = select_bank_questions(
         db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 3
     )
@@ -228,30 +426,9 @@ def start_session(
         while len(selected) < question_count and pool:
             selected.append(pool[len(selected) % len(pool)])
 
-    session = QuestionnaireSession(
-        user_id=user.id,
-        mode=mode,
-        module_id=module_id,
-        difficulty_requested=difficulty,
-        status=SessionStatus.IN_PROGRESS,
-        question_count=len(selected),
+    return _finalize_session(
+        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected
     )
-    db.add(session)
-    db.flush()
-
-    for position, question in enumerate(selected, start=1):
-        session_question = SessionQuestion(
-            session_id=session.id,
-            question_version_id=question.current_version_id,
-            position=position,
-            points_max=1.0,
-        )
-        db.add(session_question)
-        record_question_seen(
-            db, user_id=user.id, question_version=question.current_version, session_id=session.id
-        )
-    db.commit()
-    return session
 
 
 def get_owned_session(db: DBSession, *, session_id: int, user_id: int) -> QuestionnaireSession | None:
