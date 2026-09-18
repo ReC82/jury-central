@@ -10,6 +10,7 @@ par question (voir `app.ai.questionnaire`, réutilisé tel quel, ticket #23)."""
 
 import random
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -64,6 +65,14 @@ GLOBAL_EXAM_QUESTION_COUNT = 20
 LONG_SEMANTIC_TYPES = frozenset({"long_answer", "diagnostic", "procedure", "troubleshooting"})
 MAX_LONG_SEMANTIC_PER_SESSION = 3
 
+# Ticket #68 § 15 : « priorité qualité > économie de tokens » — si la validation métier
+# (`app.v1.domain_validation`) rejette une partie d'un lot généré (ex. une question IPv4
+# techniquement fausse), on retente un appel CIBLÉ pour combler le manque plutôt que de se
+# rabattre immédiatement sur la banque. Borné pour ne jamais boucler indéfiniment si le
+# fournisseur produit systématiquement du contenu invalide ; au-delà, le repli banque
+# existant (§ GÉNÉRATION du ticket #55) prend le relais côté appelant.
+MAX_DOMAIN_REGENERATION_ATTEMPTS = 2
+
 _DIFFICULTY_TO_FRENCH = {
     SessionDifficultyRequest.EASY: "facile",
     SessionDifficultyRequest.MEDIUM: "moyen",
@@ -109,6 +118,45 @@ class QuestionDisplay:
     question_type: str
     public_payload: dict
     answer_json: dict
+
+
+def _generate_with_domain_retry(
+    provider: AIProvider,
+    *,
+    missing: int,
+    build_request: Callable[[int], QuestionnaireRequest],
+    persist_batch: Callable[[Questionnaire], tuple[list[Question], int]],
+) -> list[Question]:
+    """Génère puis persiste jusqu'à `missing` questions. `persist_batch` renvoie
+    `(questions_persistées, nombre_rejeté_par_validation_métier)` — un second appel n'est
+    déclenché QUE si le manque restant est réellement imputable à la validation métier
+    (`app.v1.domain_validation`, ticket #68 § 15 : « priorité qualité > économie de
+    tokens »), jamais pour un manque dû au dédoublonnage (#64) ou à un contenu
+    structurellement invalide, qui ne justifient PAS un second appel et doivent laisser
+    l'invariant « un seul appel IA par session » du ticket #55 intact.
+
+    Jamais pour compenser un échec réseau/fournisseur non plus : `AIProviderError` n'est
+    jamais rattrapée ici, elle remonte telle quelle à l'appelant, qui gère son repli
+    habituel (banque déjà vue en dernier recours). Borné à
+    `MAX_DOMAIN_REGENERATION_ATTEMPTS` tentatives de complément — jamais de boucle
+    infinie si le fournisseur produit systématiquement du contenu techniquement invalide ;
+    le manque éventuel après cette limite reste à la charge de l'appelant, jamais une
+    question invalide servie pour compléter artificiellement une session."""
+    request = build_request(missing)
+    questionnaire = generate_questionnaire(provider, request)
+    persisted, domain_rejected = persist_batch(questionnaire)
+    collected: list[Question] = list(persisted)
+    remaining = missing - len(collected)
+
+    attempts = 0
+    while remaining > 0 and domain_rejected > 0 and attempts < MAX_DOMAIN_REGENERATION_ATTEMPTS:
+        request = build_request(remaining)
+        questionnaire = generate_questionnaire(provider, request)
+        persisted, domain_rejected = persist_batch(questionnaire)
+        collected.extend(persisted)
+        remaining = missing - len(collected)
+        attempts += 1
+    return collected
 
 
 def compose_selection(pool: list[Question], count: int) -> list[Question]:
@@ -394,22 +442,28 @@ def _start_mc38_transversal_session(
         contexts = pick_transversal_contexts()
         difficulty_fr = _DIFFICULTY_TO_FRENCH[difficulty]
         avoid_prompts = tuple(recent_seen_prompts(db, user_id=user.id, module_id=module_id))
-        request = QuestionnaireRequest(
-            contexts=contexts,
-            mode=mode.value,
-            difficulty=difficulty_fr,
-            question_count=missing,
-            allowed_types=allowed_types,
-            avoid_prompts=avoid_prompts,
-        )
-        try:
-            questionnaire = generate_questionnaire(provider, request)
+
+        def _persist_non_meta(questionnaire: Questionnaire) -> tuple[list[Question], int]:
             non_meta_questions = [
                 q for q in questionnaire.questions
                 if not is_meta_revision_question(question_full_text_from_questionnaire_question(q))
             ]
-            new_questions = persist_generated_questions(
-                db, module_id=module_id, uaa_id=mc38_uaa_id, questions=non_meta_questions
+            domain_rejections: list[str] = []
+            persisted = persist_generated_questions(
+                db, module_id=module_id, uaa_id=mc38_uaa_id, questions=non_meta_questions,
+                domain_rejections=domain_rejections,
+            )
+            return persisted, len(domain_rejections)
+
+        try:
+            new_questions = _generate_with_domain_retry(
+                provider,
+                missing=missing,
+                build_request=lambda count: QuestionnaireRequest(
+                    contexts=contexts, mode=mode.value, difficulty=difficulty_fr,
+                    question_count=count, allowed_types=allowed_types, avoid_prompts=avoid_prompts,
+                ),
+                persist_batch=_persist_non_meta,
             )
             selected.extend(new_questions[:missing])
         except AIProviderError:
@@ -496,18 +550,24 @@ def start_session(
         avoid_prompts = tuple(
             recent_seen_prompts(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id)
         )
-        request = QuestionnaireRequest(
-            contexts=(context,),
-            mode=mode.value,
-            difficulty=difficulty_fr,
-            question_count=missing,
-            allowed_types=allowed_types,
-            avoid_prompts=avoid_prompts,
-        )
+
+        def _persist(questionnaire: Questionnaire) -> tuple[list[Question], int]:
+            domain_rejections: list[str] = []
+            persisted = persist_generated_questions(
+                db, module_id=module_id, uaa_id=uaa_id, questions=questionnaire.questions,
+                domain_rejections=domain_rejections,
+            )
+            return persisted, len(domain_rejections)
+
         try:
-            questionnaire = generate_questionnaire(provider, request)
-            new_questions = persist_generated_questions(
-                db, module_id=module_id, uaa_id=uaa_id, questions=questionnaire.questions
+            new_questions = _generate_with_domain_retry(
+                provider,
+                missing=missing,
+                build_request=lambda count: QuestionnaireRequest(
+                    contexts=(context,), mode=mode.value, difficulty=difficulty_fr,
+                    question_count=count, allowed_types=allowed_types, avoid_prompts=avoid_prompts,
+                ),
+                persist_batch=_persist,
             )
             selected.extend(new_questions[:missing])
         except AIProviderError:

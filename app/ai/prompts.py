@@ -212,7 +212,18 @@ GENERATE_QUESTIONNAIRE_SYSTEM_PROMPT = (
     "- Varie réellement d'une question à l'autre sur une même notion : change le "
     "scénario, les valeurs numériques, le matériel/logiciel cité, le symptôme, les "
     "distracteurs ou l'ordre de présentation — jamais une simple reformulation ou un "
-    "réordonnancement des mêmes options, qui ne compte pas comme une vraie variante."
+    "réordonnancement des mêmes options, qui ne compte pas comme une vraie variante.\n"
+    "- IPv4/subnetting (impératif, ticket #68) : pour toute question portant sur des "
+    "adresses IPv4, un masque, un CIDR, un broadcast ou un incrément, vérifie "
+    "mathématiquement l'adresse réseau, l'adresse de broadcast et la plage d'hôtes "
+    "utilisables avant de répondre — ne propose JAMAIS l'adresse réseau ou l'adresse de "
+    "broadcast d'un sous-réseau comme une adresse valide pour un poste/une machine/un "
+    "hôte. Garantis qu'il existe EXACTEMENT le nombre de bonnes réponses attendu par la "
+    "consigne (une seule si elle est formulée au singulier, jamais zéro ni deux). "
+    "Revérifie ces valeurs avant de produire le JSON final. Ces vérifications sont une "
+    "aide à la qualité, pas la seule protection : un validateur serveur indépendant "
+    "(`app.v1.domain_validation`) rejette de toute façon toute question techniquement "
+    "fausse avant qu'elle n'atteigne la banque ou un utilisateur."
 )
 
 
