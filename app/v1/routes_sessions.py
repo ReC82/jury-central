@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from app.ai.factory import get_ai_provider
-from app.ai.provider import AINotConfiguredError
+from app.ai.provider import AINotConfiguredError, AIProviderError
 from app.database import get_db
 from app.models import UAA, Module
 from app.templating import templates
@@ -58,6 +58,7 @@ from app.v1.session_service import (
     get_owned_session,
     list_user_sessions,
     save_answer,
+    simulate_severity_comparison,
     start_session,
     submit_session,
 )
@@ -481,6 +482,10 @@ async def view_session(
                 "scope_label": describe_session_scope(session),
                 "subject_name": session.module.subject.name if session.module else "—",
                 "severity_label": SEVERITY_UI_LABELS.get(severity_ui),
+                "severity_levels": SEVERITY_UI_LEVELS,
+                "severity_labels": SEVERITY_UI_LABELS,
+                "comparison": None,
+                "comparison_error": None,
             },
         )
 
@@ -646,6 +651,57 @@ async def submit_session_route(
             db, session=session, provider=_get_provider_or_unconfigured(), severity_ui=severity_ui
         )
     return RedirectResponse(url=f"/sessions/{session_id}", status_code=303)
+
+
+@router.post("/sessions/{session_id}/compare-severity", response_class=HTMLResponse)
+async def compare_severity_route(
+    session_id: int,
+    request: Request,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+    severity: int = Form(SEVERITY_UI_DEFAULT),
+):
+    """« Comparer une autre sévérité » (ticket #70 § A) — simulation en lecture seule,
+    jamais une nouvelle soumission : ne modifie jamais la session originale (réponses,
+    correction, score). Réaffiche l'écran de résultats habituel avec, en plus, la
+    comparaison demandée."""
+    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session introuvable")
+    if session.status != SessionStatus.COMPLETED:
+        raise HTTPException(status_code=409, detail="Session pas encore terminée : rien à comparer.")
+
+    severity_ui = severity if severity in SEVERITY_UI_LEVELS else SEVERITY_UI_DEFAULT
+    session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
+    comparison = None
+    comparison_error = None
+    try:
+        comparison = simulate_severity_comparison(
+            db, session=session, provider=_get_provider_or_unconfigured(), severity_ui=severity_ui
+        )
+    except AIProviderError:
+        comparison_error = (
+            "La comparaison de sévérité n'a pas pu être calculée pour le moment "
+            "(service de correction indisponible). Réessaie plus tard."
+        )
+
+    results = _build_results_rows(db, session_questions)
+    original_severity_ui = (session.parameters_json or {}).get("severity")
+    return templates.TemplateResponse(
+        request=request,
+        name="v1_session_results.html",
+        context={
+            "session": session,
+            "results": results,
+            "scope_label": describe_session_scope(session),
+            "subject_name": session.module.subject.name if session.module else "—",
+            "severity_label": SEVERITY_UI_LABELS.get(original_severity_ui),
+            "severity_levels": SEVERITY_UI_LEVELS,
+            "severity_labels": SEVERITY_UI_LABELS,
+            "comparison": comparison,
+            "comparison_error": comparison_error,
+        },
+    )
 
 
 # --- API autosave JSON (ticket #55 § AUTOSAVE) --------------------------------------------------

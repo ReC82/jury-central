@@ -374,8 +374,19 @@ CORRECT_SEMANTIC_SYSTEM_PROMPT = (
     "N'indique JAMAIS de `points_max` ni de barème : le maximum de points est fixé côté "
     "serveur, indépendamment de ta réponse — attribue uniquement `points_awarded`, "
     "cohérent avec la sévérité demandée, sans jamais dépasser un maximum raisonnable "
-    "pour la question. Justifie toujours les points perdus. Réponds exclusivement selon "
-    "le format JSON demandé."
+    "pour la question. Justifie toujours les points perdus. "
+    "Pour toute réponse incorrecte ou partiellement correcte, ton champ `feedback` doit "
+    "RÉELLEMENT enseigner, pas seulement signaler une erreur — couvre, dans l'ordre, "
+    "quand c'est pertinent pour la question : (1) où se situe précisément l'erreur ; "
+    "(2) quelle est la bonne réponse ; (3) le raisonnement qui y mène ; (4) la règle/"
+    "formule/méthode générale applicable ; (5) un exemple ou moyen mnémotechnique si "
+    "cela aide à retenir ; (6) quelle notion/quel cours revoir en priorité. Si le "
+    "contexte pédagogique fourni contient des « faits de référence » explicites (valeurs "
+    "numériques, ordres précis, règles de correction), utilise-les tels quels — ne les "
+    "recalcule jamais approximativement. Si le candidat mentionne explicitement avoir "
+    "déjà réalisé une étape de vérification (ex. un outil ou un test cité dans sa "
+    "réponse), ne la lui reproche jamais comme manquante. "
+    "Réponds exclusivement selon le format JSON demandé."
 )
 
 

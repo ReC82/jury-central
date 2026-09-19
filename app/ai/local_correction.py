@@ -63,18 +63,55 @@ def _check_ordering(question: QuestionnaireQuestion, submitted: Any) -> bool:
     return indexes == question.correct_order
 
 
-def _check_classification(question: QuestionnaireQuestion, submitted: Any) -> bool:
-    indexes = _as_int_list(submitted)
-    if indexes is None or len(indexes) != len(question.elements):
-        return False
-    return indexes == question.correct_categories
+# --- Crédit partiel (ticket #70, § B) — classification/matching uniquement -------------------
+#
+# Remplace les anciens vérificateurs booléens all-or-nothing (`indexes ==
+# question.correct_categories`/`correct_pairs`) — `correct` (booléen, 100% exact) reste
+# dérivé de la même comparaison exacte, seul `points_awarded` change désormais.
+#
+# `ordering` en est délibérément EXCLU (§ AUDIT du ticket : « auditer avant d'appliquer un
+# crédit partiel naïf ») : un crédit partiel position-par-position serait TROMPEUR pour un
+# ordonnancement — ex. attendu [A, B, C, D], soumis [B, A, C, D] (une seule inversion
+# adjacente, intuitivement « presque juste ») ne score que 2/4 en comparaison position par
+# position, alors qu'un décalage global comme [D, A, B, C] (chaque élément à la bonne
+# position RELATIVE, juste décalé d'un cran) scorerait 0/4 — sous-évaluant fortement une
+# réponse presque correcte. Une métrique honnête (paires adjacentes correctement
+# ordonnées, ou plus proche sous-séquence commune) est une vraie décision pédagogique,
+# hors du périmètre minimal de ce ticket — documentée ici, non implémentée.
 
 
-def _check_matching(question: QuestionnaireQuestion, submitted: Any) -> bool:
+def _partial_credit_classification(question: QuestionnaireQuestion, submitted: Any) -> Fraction:
+    """Fraction d'éléments correctement classés (ex. 2 corrects sur 4 → 1/2) — jamais
+    all-or-nothing. Position par position, chaque élément a une seule bonne catégorie
+    (contrairement à `ordering`, une classification n'a pas d'effet de cascade entre
+    éléments : reclasser l'élément 1 ne change jamais la bonne réponse de l'élément 2)."""
     indexes = _as_int_list(submitted)
-    if indexes is None or len(indexes) != len(question.pairs_left):
-        return False
-    return indexes == question.correct_pairs
+    total = len(question.elements)
+    if indexes is None or len(indexes) != total or total == 0:
+        return Fraction(0)
+    correct = sum(
+        1 for given, expected in zip(indexes, question.correct_categories, strict=True) if given == expected
+    )
+    return Fraction(correct, total)
+
+
+def _partial_credit_matching(question: QuestionnaireQuestion, submitted: Any) -> Fraction:
+    """Même principe que `_partial_credit_classification`, pour `matching` — chaque paire
+    gauche/droite est indépendante des autres."""
+    indexes = _as_int_list(submitted)
+    total = len(question.pairs_left)
+    if indexes is None or len(indexes) != total or total == 0:
+        return Fraction(0)
+    correct = sum(
+        1 for given, expected in zip(indexes, question.correct_pairs, strict=True) if given == expected
+    )
+    return Fraction(correct, total)
+
+
+_PARTIAL_CREDIT_CHECKERS = {
+    "classification": _partial_credit_classification,
+    "matching": _partial_credit_matching,
+}
 
 
 def _check_numeric(question: QuestionnaireQuestion, submitted: Any) -> bool:
@@ -107,8 +144,6 @@ _CHECKERS = {
     "true_false": _check_single_or_true_false,
     "multiple_choice": _check_multiple_choice,
     "ordering": _check_ordering,
-    "classification": _check_classification,
-    "matching": _check_matching,
     "numeric": _check_numeric,
     "fill_blank": _check_text,
     "short_answer": _check_text,
@@ -154,6 +189,36 @@ def correct_locally(question: QuestionnaireQuestion, submitted: Any) -> Question
             "pas locale."
         )
 
+    partial_checker = _PARTIAL_CREDIT_CHECKERS.get(question.type)
+    if partial_checker is not None:
+        fraction = partial_checker(question, submitted)
+        # `fraction.denominator` n'est PAS le nombre d'éléments (ex. 2/4 se réduit à 1/2)
+        # — recalculé séparément pour un message lisible (« 2/4 »).
+        total_items = len(question.elements) if question.type == "classification" else len(question.pairs_left)
+        correct_items = round(float(fraction) * total_items) if total_items else 0
+        correct = fraction == 1
+        points_awarded = round(float(question.points_max) * float(fraction), 4)
+        return QuestionCorrection(
+            question_id=question.question_id,
+            points_awarded=points_awarded,
+            points_max=question.points_max,
+            correct=correct,
+            strengths=(
+                [f"{correct_items}/{total_items} élément(s) correctement associé(s)."]
+                if correct_items > 0 else []
+            ),
+            errors=(
+                [] if correct
+                else [f"{total_items - correct_items}/{total_items} élément(s) mal associé(s)."]
+            ),
+            missing=[],
+            feedback=(
+                "Correction automatique déterministe avec crédit partiel "
+                f"({correct_items}/{total_items} corrects) — pas d'appel IA nécessaire."
+            ),
+            expected_answer=_expected_answer_display(question),
+        )
+
     checker = _CHECKERS.get(question.type)
     if checker is None:
         # Défense en profondeur : ne devrait jamais arriver (couvert par
@@ -175,6 +240,12 @@ def correct_locally(question: QuestionnaireQuestion, submitted: Any) -> Question
     )
 
 
-# Garde-fou à l'import : _CHECKERS doit couvrir exactement les types corrigeables
-# localement (déterministes + conditionnellement locaux) — ni plus, ni moins.
-assert set(_CHECKERS) == DETERMINISTIC_QUESTION_TYPES | CONDITIONALLY_LOCAL_QUESTION_TYPES
+# Garde-fou à l'import : `_CHECKERS` (all-or-nothing) ∪ `_PARTIAL_CREDIT_CHECKERS`
+# (crédit partiel, ticket #70 § B) doit couvrir exactement les types corrigeables
+# localement (déterministes + conditionnellement locaux) — ni plus, ni moins, sans
+# chevauchement entre les deux (classification/matching sont dans l'un OU l'autre,
+# jamais les deux à la fois).
+assert not (set(_CHECKERS) & set(_PARTIAL_CREDIT_CHECKERS))
+assert (
+    set(_CHECKERS) | set(_PARTIAL_CREDIT_CHECKERS)
+) == DETERMINISTIC_QUESTION_TYPES | CONDITIONALLY_LOCAL_QUESTION_TYPES
