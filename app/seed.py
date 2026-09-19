@@ -4644,6 +4644,53 @@ def _seed_uaa(
     return removed_obsolete
 
 
+# Migration ponctuelle (finalisation Informatique § MISSION avant bascule Français) :
+# deux corrections de contenu apportées cette session à `app.v1.ampcr_courses.
+# AMPCR_COURSE_MARKDOWN` (MC04 § 83.C : développé de SMART ajouté ; MC08 § 65 : reflow
+# d'une ligne pour que « > 2 To » reste dans la phrase au lieu de déclencher un encadré
+# Markdown) ne peuvent PAS atteindre un staging déjà seedé par le simple mécanisme
+# additif générique ci-dessus : un bloc « Cours de révision express » déjà présent
+# (identifié par son titre) n'est jamais modifié, par design, pour ne jamais écraser un
+# contenu édité depuis l'admin (voir docstring de `seed()`).
+#
+# Ce correctif reste néanmoins strictement additif et jamais aveugle : il ne remplace le
+# contenu d'un bloc que si celui-ci correspond EXACTEMENT au texte connu d'AVANT le
+# correctif (`_MC04_STALE_CONTENT`/`_MC08_STALE_CONTENT`, capturés depuis l'historique Git
+# au commit `486f35c`, juste avant cette mission) — jamais une comparaison avec le
+# nouveau texte, qui écraserait aussi silencieusement un contenu légitimement modifié
+# depuis l'admin entre-temps (celui-ci ne correspondrait alors plus au texte exact
+# recherché, donc ne serait jamais touché). Migration ponctuelle et bornée à ces deux
+# blocs précis, pas un mécanisme de synchronisation générale du contenu de cours.
+
+_MC04_STALE_CONTENT = (
+    "- **SMART** : indicateurs de santé du disque (température, secteurs défectueux, heures de\n"
+    "  fonctionnement...) — une alerte, jamais une garantie ni une sauvegarde."
+)
+
+_MC08_STALE_CONTENT = (
+    "présente (opération destructive) ; (2) choisir GPT pour un usage moderne (UEFI, disque\n"
+    "> 2 To), MBR seulement pour une compatibilité ancienne spécifique ; (3) choisir le système\n"
+    "de fichiers selon l'usage (NTFS pour Windows, exFAT pour un support partagé multi-OS,\n"
+    "ext4 pour Linux)."
+)
+
+
+def _refresh_stale_ampcr_course_content(db, refreshed: dict) -> None:
+    from app.v1.ampcr_courses import AMPCR_COURSE_MARKDOWN
+
+    for code, stale_marker in (("MC04", _MC04_STALE_CONTENT), ("MC08", _MC08_STALE_CONTENT)):
+        block = (
+            db.query(LessonBlock)
+            .join(UAA, LessonBlock.uaa_id == UAA.id)
+            .filter(UAA.code == code, LessonBlock.title == "Cours de révision express")
+            .first()
+        )
+        if block is None or stale_marker not in block.content:
+            continue
+        block.content = AMPCR_COURSE_MARKDOWN[code]
+        refreshed["blocks"] += 1
+
+
 def seed() -> None:
     """Charge les données de développement/démonstration.
 
@@ -4748,6 +4795,9 @@ def seed() -> None:
             created, kept,
         )
 
+        refreshed = {"blocks": 0}
+        _refresh_stale_ampcr_course_content(db, refreshed)
+
         db.commit()
 
         all_subjects = (
@@ -4775,6 +4825,11 @@ def seed() -> None:
             print(
                 f"  Repositionné (ordre d'affichage MC01 corrigé, contenu inchangé) : "
                 f"{repositioned['blocks']} bloc(s)"
+            )
+        if refreshed["blocks"]:
+            print(
+                f"  Contenu corrigé (MC04 SMART / MC08 > 2 To, uniquement si texte "
+                f"strictement inchangé depuis le seed initial) : {refreshed['blocks']} bloc(s)"
             )
     finally:
         db.close()
