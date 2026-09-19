@@ -26,7 +26,11 @@ from app.ai.schemas import QuestionnaireQuestion
 from app.editorial_exercise import EditorialExerciseBlockConfig, EditorialExerciseItem
 from app.models import UAA, BlockType, Module
 from app.v1 import question_types  # noqa: F401 — enregistre les 26 types (#40) au chargement
-from app.v1.ai_bridge import questionnaire_question_to_content, shuffle_ordering_items
+from app.v1.ai_bridge import (
+    questionnaire_question_to_content,
+    shuffle_multiple_choice_options,
+    shuffle_ordering_items,
+)
 from app.v1.dedup import find_near_duplicate, question_signature
 from app.v1.domain_validation import validate_domain_question
 from app.v1.models import (
@@ -64,6 +68,9 @@ def _editorial_item_to_v1_content(item: EditorialExerciseItem) -> tuple[str, dic
     if v1_type == "multiple_choice":
         options = [{"option_id": str(i), "label": choice} for i, choice in enumerate(item.choices)]
         correct_id = str(item.correct_index) if item.correct_index is not None else "0"
+        # Ticket #80 : contenu éditorial legacy (MC01) place systématiquement la bonne
+        # réponse au même index qu'à l'origine — mélange physique, `option_id` intact.
+        options = shuffle_multiple_choice_options(options)
         return v1_type, {
             "prompt": item.prompt,
             "options": options,
