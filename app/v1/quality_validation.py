@@ -42,6 +42,7 @@ import re
 from typing import Any, Protocol
 
 from app.answer_checking import normalize_text
+from app.v1.dedup import _significant_words
 
 # --- Détection § 8 : formulations molles qui décident seules d'une classification ----------
 
@@ -106,6 +107,66 @@ def _check_weak_classification_phrasing(question_type: str, content: dict[str, A
         message = (
             "Formulation trop faible pour déterminer une classification "
             f"({', '.join(matched)}) — préférer une propriété technique observable."
+        )
+        return [message]
+    return []
+
+
+def _distinguishing_words_by_category(categories: list[str]) -> list[frozenset[str]]:
+    """Pour chaque libellé de catégorie, les mots significatifs qui n'apparaissent dans
+    AUCUN autre libellé de la liste — les seuls mots qui, à eux seuls, permettent
+    d'identifier CETTE catégorie précise parmi les autres proposées (ex. « SSD » seul ne
+    distingue rien entre « SSD SATA » et « SSD NVMe », mais « SATA »/« NVMe » si)."""
+    words_per_category = [_significant_words(category) for category in categories]
+    distinguishing: list[frozenset[str]] = []
+    for index, words in enumerate(words_per_category):
+        other_words: set[str] = set()
+        for other_index, other in enumerate(words_per_category):
+            if other_index != index:
+                other_words |= other
+        distinguishing.append(words - other_words)
+    return distinguishing
+
+
+def _check_classification_reveals_answer_label(question_type: str, content: dict[str, Any]) -> list[str]:
+    """§ ticket #80, problème 2 : une classification ne doit pas donner la réponse dans
+    l'énoncé de l'élément à classer. Exemple réel signalé : catégories « HDD mécanique »/
+    « SSD SATA »/« SSD NVMe », élément « Le support flash est identifié comme NVMe sur un
+    emplacement M.2 compatible » — le mot « NVMe », qui identifie À LUI SEUL la bonne
+    catégorie parmi les 3 proposées, apparaît tel quel dans l'élément : aucun raisonnement
+    n'est plus nécessaire pour répondre.
+
+    Détection bornée (comme le reste de ce module, § 9 du ticket #69) : compare les mots
+    DISTINCTIFS de la catégorie correcte de chaque élément (`_distinguishing_words_by_
+    category` — jamais un mot partagé par plusieurs catégories, ex. « SSD ») à ses propres
+    mots significatifs. Un mot distinctif partagé signale une fuite lexicale directe ;
+    ignore silencieusement les catégories sans mot distinctif propre (rien à comparer)."""
+    if question_type != "classification":
+        return []
+    categories = content.get("categories") or []
+    elements = content.get("elements") or []
+    correct_categories = content.get("correct_categories") or []
+    if not categories or len(elements) != len(correct_categories):
+        return []
+
+    distinguishing = _distinguishing_words_by_category([str(c) for c in categories])
+    leaked: list[str] = []
+    for element, category_index in zip(elements, correct_categories, strict=False):
+        if not isinstance(category_index, int) or not (0 <= category_index < len(distinguishing)):
+            continue
+        needed = distinguishing[category_index]
+        if not needed:
+            continue
+        element_words = _significant_words(str(element))
+        if needed <= element_words:
+            leaked.append(str(element))
+
+    if leaked:
+        message = (
+            "Un élément à classer contient déjà le(s) mot(s) qui identifie(nt) à lui "
+            f"seul(s) sa propre catégorie — aucun raisonnement requis pour répondre : "
+            f"{'; '.join(leaked)}. Reformuler en décrivant une propriété observable sans "
+            "citer le terme qui nomme la catégorie."
         )
         return [message]
     return []
@@ -178,6 +239,7 @@ def validate_question_quality_rules(
     errors: list[str] = []
     errors.extend(_check_ordering_not_shuffled(question_type, content_json))
     errors.extend(_check_weak_classification_phrasing(question_type, content_json))
+    errors.extend(_check_classification_reveals_answer_label(question_type, content_json))
     errors.extend(_check_diagnostic_self_sufficiency(question_type, content_json))
     errors.extend(_check_cidr_overguided(question_type, content_json))
     return errors
