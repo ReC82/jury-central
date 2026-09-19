@@ -43,12 +43,80 @@
         <p class="mb-4"></p>
         {% endif %}
 
+        {% if comparison %}
+        <div class="alert alert-info d-print-none" role="alert">
+            <p class="fw-semibold mb-1">Comparaison de sévérité — simulation, résultat original inchangé</p>
+            <p class="mb-0">
+                Score original : <strong>{{ comparison.original_score }}</strong> / {{ comparison.question_count }}
+                — Score sévérité {{ comparison.severity_ui }} ({{ comparison.severity_label }}) :
+                <strong>{{ comparison.comparative_score }}</strong> / {{ comparison.question_count }}
+            </p>
+        </div>
+        {% elif comparison_error %}
+        <div class="alert alert-warning d-print-none" role="alert">{{ comparison_error }}</div>
+        {% endif %}
+
+        {% if courses_to_review %}
+        <div class="p-3 bg-white rounded shadow-sm mb-3" id="courses-to-review">
+            <p class="fw-semibold mb-2">Cours à relire en priorité</p>
+            <ol class="mb-0 ps-3">
+                {% for entry in courses_to_review %}
+                <li class="mb-1 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <span>
+                        {% if entry.course_code %}{{ entry.course_code }} — {% endif %}{{ entry.course_title }}
+                        — {{ entry.error_count }} erreur{{ "s" if entry.error_count > 1 else "" }}
+                    </span>
+                    <a href="/uaa/{{ entry.course_slug }}" class="btn btn-outline-dark btn-sm d-print-none">
+                        Relire le cours
+                    </a>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% endif %}
+
         <div class="d-flex flex-wrap gap-2 mb-3 d-print-none">
             <button type="button" id="expand-all" class="btn btn-outline-dark btn-sm">Tout déplier</button>
             <button type="button" id="collapse-all" class="btn btn-outline-dark btn-sm">Tout replier</button>
             <button type="button" onclick="window.print()" class="btn btn-outline-dark btn-sm">Imprimer / PDF</button>
             <a href="/sessions/{{ session.id }}/export.md" class="btn btn-outline-dark btn-sm">Exporter (Markdown)</a>
         </div>
+
+        {% if session.status.value == "completed" %}
+        <div class="p-3 bg-white rounded shadow-sm mb-3 d-print-none">
+            <button
+                type="button" class="btn btn-outline-dark btn-sm mb-2" data-bs-toggle="collapse"
+                data-bs-target="#compare-severity-panel" aria-expanded="false" aria-controls="compare-severity-panel">
+                Comparer une autre sévérité
+            </button>
+            <div class="collapse" id="compare-severity-panel">
+                <p class="text-muted small">
+                    Simule une correction avec une autre sévérité, à titre de comparaison
+                    uniquement — ne modifie jamais ce résultat original. Seules les
+                    réponses rédigées notées par IA peuvent varier ; les réponses à choix/
+                    ordre/classement restent identiques.
+                </p>
+                <form method="post" action="/sessions/{{ session.id }}/compare-severity" id="compare-severity-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                        {% for level in severity_levels %}
+                        <div class="form-check form-check-inline">
+                            <input
+                                class="form-check-input" type="radio" name="severity"
+                                id="compare-severity-{{ level }}" value="{{ level }}"
+                                {% if comparison and comparison.severity_ui == level %}checked
+                                {% elif not comparison and level == 5 %}checked{% endif %}>
+                            <label class="form-check-label small" for="compare-severity-{{ level }}">
+                                {{ level }} — {{ severity_labels[level] }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-dark btn-sm" id="compare-severity-button">Comparer</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
 
         <div class="accordion" id="results-accordion">
             {% for item in results %}
@@ -119,6 +187,18 @@
                         {% if item.feedback.feedback %}
                         <p class="mb-1 mt-3 text-muted small text-uppercase">Explication</p>
                         <p>{{ item.feedback.feedback }}</p>
+                        {% endif %}
+
+                        {% if not item.feedback.correct and item.course_slug %}
+                        <div class="mt-3 p-2 border rounded d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <span class="small">
+                                <span class="text-muted text-uppercase">Cours concerné</span><br>
+                                {% if item.course_code %}{{ item.course_code }} — {% endif %}{{ item.course_title }}
+                            </span>
+                            <a href="/uaa/{{ item.course_slug }}" class="btn btn-outline-dark btn-sm d-print-none">
+                                Relire le cours
+                            </a>
+                        </div>
                         {% endif %}
                     </div>
                 </div>

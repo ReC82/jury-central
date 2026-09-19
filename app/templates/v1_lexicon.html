@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Lexique AMPCR — Jury Central{% endblock %}
+
+{% block content %}
+<style>
+    @media print {
+        #lexicon-search-bar {
+            display: none;
+        }
+        .lexicon-theme {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+    }
+    .lexicon-entry[hidden] {
+        display: none !important;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+
+        <nav aria-label="breadcrumb" class="d-print-none">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/subjects">Matières</a></li>
+                <li class="breadcrumb-item"><a href="/modules/ampcr">AMPCR</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Lexique / Acronymes FR-EN</li>
+            </ol>
+        </nav>
+
+        <h1 class="h3 mb-1">Lexique AMPCR — Acronymes, abréviations et vocabulaire FR/EN</h1>
+        <p class="text-muted mb-3">
+            Fiche de révision : chaque entrée reprend le contenu déjà vu en cours, avec le(s)
+            mini-cours (MC) concerné(s).
+        </p>
+
+        <div class="mb-4 d-print-none" id="lexicon-search-bar">
+            <input
+                type="search" class="form-control" id="lexicon-search" placeholder="Rechercher (ex. SMART, DNS, disque, wireless)…"
+                aria-label="Rechercher dans le lexique">
+            <p class="text-muted small mt-1 mb-0" id="lexicon-search-empty" hidden>Aucun résultat.</p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mb-4 d-print-none">
+            <button type="button" onclick="window.print()" class="btn btn-outline-dark btn-sm">Imprimer / PDF</button>
+        </div>
+
+        {% for theme in themes %}
+        {% if theme.entries %}
+        <div class="lexicon-theme mb-4">
+            <h2 class="h5 mb-3">{{ theme.title }}</h2>
+            <div class="row g-3">
+                {% for entry in theme.entries %}
+                <div
+                    class="col-12 col-md-6 lexicon-entry"
+                    data-search="{{ (entry.acronym ~ ' ' ~ (entry.english or '') ~ ' ' ~ (entry.french_term or '') ~ ' ' ~ entry.definition ~ ' ' ~ entry.context) | lower }}">
+                    <div class="p-3 bg-white rounded shadow-sm h-100">
+                        <p class="fw-semibold mb-1">
+                            {{ entry.acronym }}
+                            {% if entry.mc_codes %}
+                            <span class="text-muted small fw-normal">— {{ entry.mc_codes | join(', ') }}</span>
+                            {% endif %}
+                        </p>
+                        {% if entry.english %}
+                        <p class="small text-muted mb-1">{{ entry.english }}</p>
+                        {% endif %}
+                        {% if entry.french_term %}
+                        <p class="small text-muted mb-1">{{ entry.french_term }}</p>
+                        {% endif %}
+                        <p class="mb-1">{{ entry.definition }}</p>
+                        <p class="small text-muted mb-1">{{ entry.context }}</p>
+                        {% if entry.confusion %}
+                        <p class="small mb-0"><span class="text-uppercase text-muted">Piège</span> — {{ entry.confusion }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    (function () {
+        var input = document.getElementById("lexicon-search");
+        var empty = document.getElementById("lexicon-search-empty");
+        if (!input) { return; }
+
+        function entries() {
+            return Array.prototype.slice.call(document.querySelectorAll(".lexicon-entry"));
+        }
+
+        function themes() {
+            return Array.prototype.slice.call(document.querySelectorAll(".lexicon-theme"));
+        }
+
+        function filter() {
+            var query = input.value.trim().toLowerCase();
+            var visibleCount = 0;
+            entries().forEach(function (el) {
+                var match = !query || (el.getAttribute("data-search") || "").indexOf(query) !== -1;
+                el.hidden = !match;
+                if (match) { visibleCount += 1; }
+            });
+            themes().forEach(function (theme) {
+                var anyVisible = Array.prototype.slice.call(theme.querySelectorAll(".lexicon-entry"))
+                    .some(function (el) { return !el.hidden; });
+                theme.hidden = !anyVisible;
+            });
+            if (empty) { empty.hidden = visibleCount !== 0; }
+        }
+
+        input.addEventListener("input", filter);
+    })();
+</script>
+{% endblock %}

@@ -76,7 +76,7 @@ class FakeAIProvider:
         for index in range(request.question_count):
             question_type = allowed[index % len(allowed)]
             questions.append(
-                _fake_question(f"fake-q{index + 1}", question_type, raw_points[index])
+                _fake_question(f"fake-q{index + 1}", question_type, raw_points[index], index)
             )
         return Questionnaire(mode=request.mode, questions=questions)
 
@@ -118,65 +118,106 @@ class FakeAIProvider:
         return results
 
 
+def _variation_clause(index: int) -> str:
+    """Ticket #82 : suffixe garanti distinct pour deux `index` différents, utilisé pour
+    que deux questions factices du même type ne soient jamais un quasi-doublon (#64,
+    seuil de recouvrement lexical 0.72 des mots significatifs de l'énoncé).
+
+    UN SEUL jeton qui varie (ex. juste un numéro) reste insuffisant sur les prompts
+    COURTS sans champ structurel comparable (`diagnostic`/`long_answer`/`procedure`/
+    `troubleshooting`/`document_analysis`/`source_comparison` — aucune entrée dans
+    `dedup._STRUCTURAL_FIELDS`, donc seul l'énoncé compte pour la comparaison) : avec un
+    énoncé de base de 7 mots significatifs et seulement 1 mot qui diffère, le
+    recouvrement reste à 7/9 ≈ 0.78, au-dessus du seuil. DEUX jetons indépendants (jamais
+    un mot de vocabulaire partagé comme « repère »/« factice », qui gonflerait la partie
+    commune) ramènent le recouvrement sous 0.64 dans tous les cas testés — vérifié pour le
+    pire cas réaliste (types répétés jusqu'à 3 fois dans un lot de 20 avec les 7
+    `BRIDGE_TYPES`)."""
+    return f" #FQ{index + 1} #V{(index + 1) * 7 + 3}"
+
+
 def _fake_question(
-    question_id: str, question_type: str, points_max: float
+    question_id: str, question_type: str, points_max: float, index: int = 0
 ) -> QuestionnaireQuestion:
     """Construit une question factice structurellement valide pour chaque type du contrat
-    (voir `app.ai.schemas.QUESTION_TYPES`) — utilisée uniquement par `FakeAIProvider`."""
+    (voir `app.ai.schemas.QUESTION_TYPES`) — utilisée uniquement par `FakeAIProvider`.
+
+    Ticket #82 : chaque label/énoncé porte un suffixe dérivé de `index`
+    (`_variation_clause`, ex. « Option A (repère factice atelier-7) ») — un vrai
+    fournisseur IA ne produit jamais deux questions du même type strictement identiques au
+    sein d'un même lot, contrairement à l'ancienne version de ce stub (contenu 100% fixe
+    par type). Sans cette variation, deux appels de génération pour le même type (cycle
+    `index % len(allowed_types)` dans `FakeAIProvider.generate_questionnaire`, courant dès
+    que plus de questions sont demandées que de types autorisés) produisaient des
+    questions structurellement ET textuellement identiques — exactement la classe de bug
+    que la garde anti-doublon intra-session
+    (`app.v1.session_service.deduplicate_intra_session`) doit détecter et rejeter, ce
+    qu'elle faisait correctement mais qui n'était jusqu'ici jamais exercé par les tests
+    utilisant ce stub (masqué par un contenu factice trop pauvre pour révéler le bug). La
+    position de la bonne réponse (`correct_indexes`/`correct_categories`/`correct_pairs`/
+    `correct_order`) reste inchangée par cette variation — seul le LIBELLÉ varie, jamais
+    quel index est correct."""
     common = {"question_id": question_id, "type": question_type, "points_max": points_max}
+    tag = _variation_clause(index)
     if question_type in ("single_choice", "true_false"):
-        choices = ["Vrai", "Faux"] if question_type == "true_false" else ["Option A", "Option B"]
+        choices = ["Vrai", "Faux"] if question_type == "true_false" else [f"Option A{tag}", f"Option B{tag}"]
         return QuestionnaireQuestion(
-            **common, prompt="Question factice à choix.", choices=choices, correct_indexes=[0]
+            **common, prompt=f"Question factice à choix.{tag}", choices=choices, correct_indexes=[0]
         )
     if question_type == "multiple_choice":
         return QuestionnaireQuestion(
             **common,
-            prompt="Question factice à choix multiples.",
-            choices=["Option A", "Option B", "Option C"],
+            prompt=f"Question factice à choix multiples.{tag}",
+            choices=[f"Option A{tag}", f"Option B{tag}", f"Option C{tag}"],
             correct_indexes=[0, 2],
         )
     if question_type == "ordering":
         return QuestionnaireQuestion(
             **common,
-            prompt="Remets ces étapes factices dans l'ordre.",
-            order_items=["Étape A", "Étape B"],
+            prompt=f"Remets ces étapes factices dans l'ordre.{tag}",
+            order_items=[f"Étape A{tag}", f"Étape B{tag}"],
             correct_order=[1, 0],
         )
     if question_type == "classification":
         return QuestionnaireQuestion(
             **common,
-            prompt="Classe ces éléments factices.",
-            categories=["Catégorie 1", "Catégorie 2"],
-            elements=["Élément A", "Élément B"],
+            prompt=f"Classe ces éléments factices.{tag}",
+            categories=[f"Catégorie 1{tag}", f"Catégorie 2{tag}"],
+            elements=[f"Élément A{tag}", f"Élément B{tag}"],
             correct_categories=[0, 1],
         )
     if question_type == "matching":
         return QuestionnaireQuestion(
             **common,
-            prompt="Associe ces éléments factices.",
-            pairs_left=["Gauche A", "Gauche B"],
-            pairs_right=["Droite A", "Droite B"],
+            prompt=f"Associe ces éléments factices.{tag}",
+            pairs_left=[f"Gauche A{tag}", f"Gauche B{tag}"],
+            pairs_right=[f"Droite A{tag}", f"Droite B{tag}"],
             correct_pairs=[0, 1],
         )
     if question_type == "numeric":
         return QuestionnaireQuestion(
             **common,
-            prompt="Combien font 2 + 2 (factice) ?",
+            prompt=f"Combien font 2 + 2 (factice) ?{tag}",
             numeric_answer=4,
             numeric_tolerance=0,
         )
     if question_type == "fill_blank":
         return QuestionnaireQuestion(
             **common,
-            prompt="Complète : la ___ vive est volatile (factice).",
-            accepted_answers=["mémoire"],
+            prompt=f"Complète : la ___ vive est volatile (factice).{tag}",
+            # `accepted_answers` est aussi un champ STRUCTUREL comparé par #64
+            # (`dedup._STRUCTURAL_FIELDS`) — doit varier comme le prompt, sinon deux
+            # instances de ce type restent un quasi-doublon malgré un prompt différent
+            # (ticket #82 : découvert via `test_max_retries_respected_then_bank_fallback`
+            # et les tests de comptage de questions AMPCR, qui généraient plusieurs
+            # short_answer/vocabulary avec un `accepted_answers` strictement identique).
+            accepted_answers=[f"mémoire{tag}"],
         )
     if question_type in ("short_answer", "vocabulary"):
         return QuestionnaireQuestion(
             **common,
-            prompt="Question factice à réponse courte.",
-            accepted_answers=["réponse factice"],
+            prompt=f"Question factice à réponse courte.{tag}",
+            accepted_answers=[f"réponse factice{tag}"],
         )
     if question_type == "diagnostic":
         # Contient un marqueur concret (adresse IP factice) pour ne pas se faire rejeter
@@ -185,12 +226,12 @@ def _fake_question(
         # contenu factice de test au point de ne plus ressembler à une vraie question.
         return QuestionnaireQuestion(
             **common,
-            prompt="Poste factice à l'adresse 192.0.2.1. Quelle vérification effectues-tu ensuite ?",
+            prompt=f"Poste factice à l'adresse 192.0.2.1. Quelle vérification effectues-tu ensuite ?{tag}",
             rubric="Grille de correction factice : vérifier la présence des notions clés.",
         )
     # long_answer / procedure : toujours sémantiques, nécessitent un rubric.
     return QuestionnaireQuestion(
         **common,
-        prompt=f"Question factice de type {question_type}.",
+        prompt=f"Question factice de type {question_type}.{tag}",
         rubric="Grille de correction factice : vérifier la présence des notions clés.",
     )

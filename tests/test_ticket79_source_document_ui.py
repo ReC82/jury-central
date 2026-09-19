@@ -406,11 +406,18 @@ def test_text_visible_before_answering_and_still_accessible_at_results(
 
 
 # =============================================================================================
-# 8. Rattachement au cours (§ 13) : données exposées, aucun bouton construit ici
+# 8. Rattachement au cours (§ 13) : données exposées, réutilisées depuis par #74
 # =============================================================================================
 
 
-def test_course_mapping_data_exposed_in_results_without_a_button(authenticated_client, db_session, monkeypatch):
+def test_course_mapping_data_exposed_in_results_rows(authenticated_client, db_session, monkeypatch):
+    """§ 79.13 : `_build_results_rows` expose `course_title`/`course_slug` par question —
+    à l'origine « sans bouton construit ici » (le bouton « Relire le cours » était hors
+    scope de #79) ; #74 (mergé depuis) construit effectivement ce bouton à partir de ces
+    mêmes données, donc ce test ne peut plus supposer son absence dans le HTML des
+    résultats — seule l'exposition correcte de la donnée reste vérifiée ici, la présence
+    du bouton lui-même étant du ressort des tests dédiés de #74
+    (`tests/test_ticket74_course_recommendations.py`)."""
     c01 = _import_francais_bank(db_session)
     _patch_fake_provider(monkeypatch)
 
@@ -427,12 +434,10 @@ def test_course_mapping_data_exposed_in_results_without_a_button(authenticated_c
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
     rows = _build_results_rows(db_session, session_questions)
-    assert len(rows) == 10
+    # Ticket #82 : 9 ou 10 selon le tirage (garde anti-doublon intra-session finale) —
+    # comparé à question_count réel, jamais une valeur codée en dur.
+    assert len(rows) == session.question_count
+    assert 9 <= len(rows) <= 10
     for row in rows:
         assert row["course_title"] == c01.title
         assert row["course_slug"] == c01.slug
-    # Donnée seulement : aucun bouton "Relire le cours" dans le HTML des résultats
-    # (scope #74, volontairement non construit ici).
-    _answer_all_and_submit(authenticated_client, f"/sessions/{session_id}", session.question_count)
-    results = authenticated_client.get(f"/sessions/{session_id}")
-    assert "Relire le cours" not in results.text

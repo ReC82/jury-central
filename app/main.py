@@ -26,6 +26,7 @@ from app.v1.ampcr_plan import get_plan_by_slug
 from app.v1.auth import require_user
 from app.v1.francais_plan import get_francais_plan_by_slug
 from app.v1.routes import router as v1_auth_router
+from app.v1.routes_lexicon import router as v1_lexicon_router
 from app.v1.routes_sessions import render_exam_landing, render_practice_landing
 from app.v1.routes_sessions import router as v1_sessions_router
 from app.value_table import value_table_public_dict
@@ -51,6 +52,7 @@ app.include_router(admin_router)
 app.include_router(practice_router)
 app.include_router(v1_auth_router)
 app.include_router(v1_sessions_router)
+app.include_router(v1_lexicon_router)
 
 
 @app.get("/health")

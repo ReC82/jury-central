@@ -42,6 +42,9 @@ import re
 from typing import Any, Protocol
 
 from app.answer_checking import normalize_text
+from app.v1.course_coverage import check_course_coverage_gap
+from app.v1.dedup import _significant_words
+from app.v1.short_answer_limits import is_max_length_incoherent
 
 # --- Détection § 8 : formulations molles qui décident seules d'une classification ----------
 
@@ -111,6 +114,66 @@ def _check_weak_classification_phrasing(question_type: str, content: dict[str, A
     return []
 
 
+def _distinguishing_words_by_category(categories: list[str]) -> list[frozenset[str]]:
+    """Pour chaque libellé de catégorie, les mots significatifs qui n'apparaissent dans
+    AUCUN autre libellé de la liste — les seuls mots qui, à eux seuls, permettent
+    d'identifier CETTE catégorie précise parmi les autres proposées (ex. « SSD » seul ne
+    distingue rien entre « SSD SATA » et « SSD NVMe », mais « SATA »/« NVMe » si)."""
+    words_per_category = [_significant_words(category) for category in categories]
+    distinguishing: list[frozenset[str]] = []
+    for index, words in enumerate(words_per_category):
+        other_words: set[str] = set()
+        for other_index, other in enumerate(words_per_category):
+            if other_index != index:
+                other_words |= other
+        distinguishing.append(words - other_words)
+    return distinguishing
+
+
+def _check_classification_reveals_answer_label(question_type: str, content: dict[str, Any]) -> list[str]:
+    """§ ticket #80, problème 2 : une classification ne doit pas donner la réponse dans
+    l'énoncé de l'élément à classer. Exemple réel signalé : catégories « HDD mécanique »/
+    « SSD SATA »/« SSD NVMe », élément « Le support flash est identifié comme NVMe sur un
+    emplacement M.2 compatible » — le mot « NVMe », qui identifie À LUI SEUL la bonne
+    catégorie parmi les 3 proposées, apparaît tel quel dans l'élément : aucun raisonnement
+    n'est plus nécessaire pour répondre.
+
+    Détection bornée (comme le reste de ce module, § 9 du ticket #69) : compare les mots
+    DISTINCTIFS de la catégorie correcte de chaque élément (`_distinguishing_words_by_
+    category` — jamais un mot partagé par plusieurs catégories, ex. « SSD ») à ses propres
+    mots significatifs. Un mot distinctif partagé signale une fuite lexicale directe ;
+    ignore silencieusement les catégories sans mot distinctif propre (rien à comparer)."""
+    if question_type != "classification":
+        return []
+    categories = content.get("categories") or []
+    elements = content.get("elements") or []
+    correct_categories = content.get("correct_categories") or []
+    if not categories or len(elements) != len(correct_categories):
+        return []
+
+    distinguishing = _distinguishing_words_by_category([str(c) for c in categories])
+    leaked: list[str] = []
+    for element, category_index in zip(elements, correct_categories, strict=False):
+        if not isinstance(category_index, int) or not (0 <= category_index < len(distinguishing)):
+            continue
+        needed = distinguishing[category_index]
+        if not needed:
+            continue
+        element_words = _significant_words(str(element))
+        if needed <= element_words:
+            leaked.append(str(element))
+
+    if leaked:
+        message = (
+            "Un élément à classer contient déjà le(s) mot(s) qui identifie(nt) à lui "
+            f"seul(s) sa propre catégorie — aucun raisonnement requis pour répondre : "
+            f"{'; '.join(leaked)}. Reformuler en décrivant une propriété observable sans "
+            "citer le terme qui nomme la catégorie."
+        )
+        return [message]
+    return []
+
+
 def _check_diagnostic_self_sufficiency(question_type: str, content: dict[str, Any]) -> list[str]:
     """§ 6/7 : une question `diagnostic` doit contenir tout le contexte nécessaire
     (symptôme observé, résultat de test, état) — jamais un simple « et ensuite ? » sans
@@ -163,6 +226,33 @@ def _check_cidr_overguided(question_type: str, content: dict[str, Any]) -> list[
     return []
 
 
+def check_short_answer_length_coherence(
+    module: Any, uaa: Any, question_type: str, content_json: dict[str, Any]
+) -> list[str]:
+    """§ 85.B : filet de sécurité indépendant du calcul préventif
+    (`app.v1.short_answer_limits.compute_short_answer_max_length`, appliqué à la
+    construction du contenu) — rejette toute question `short_answer`/`vocabulary` dont
+    l'énoncé demande explicitement une réponse développée/justifiée/comparée mais dont
+    `max_length` est resté factuel (≤ 300), quelle que soit la façon dont ce contenu a été
+    produit (génération IA, import éditorial, modification manuelle ultérieure)."""
+    if question_type not in ("short_answer", "vocabulary") or not isinstance(content_json, dict):
+        return []
+    prompt = _prompt_of(content_json)
+    max_length = content_json.get("max_length")
+    if not prompt or not isinstance(max_length, int):
+        return []
+    if is_max_length_incoherent(prompt, max_length):
+        return [
+            (
+                "Incohérence de longueur (§ 85.B) : l'énoncé demande une réponse développée/"
+                "justifiée/comparée mais max_length reste factuel "
+                f"({max_length} ≤ 300) — augmenter la limite (800-1500) ou reformuler la "
+                "question pour qu'elle reste réellement factuelle."
+            )
+        ]
+    return []
+
+
 _SUPPORTED_TYPES = frozenset({"multiple_choice", "classification", "ordering", "diagnostic"})
 
 
@@ -178,6 +268,7 @@ def validate_question_quality_rules(
     errors: list[str] = []
     errors.extend(_check_ordering_not_shuffled(question_type, content_json))
     errors.extend(_check_weak_classification_phrasing(question_type, content_json))
+    errors.extend(_check_classification_reveals_answer_label(question_type, content_json))
     errors.extend(_check_diagnostic_self_sufficiency(question_type, content_json))
     errors.extend(_check_cidr_overguided(question_type, content_json))
     return errors
@@ -190,7 +281,15 @@ class QualityValidator(Protocol):
 
 
 # Registre extensible, même principe que `app.v1.domain_validation.DOMAIN_VALIDATORS`.
-QUALITY_VALIDATORS: list[QualityValidator] = [validate_question_quality_rules]
+# `check_course_coverage_gap` (ticket #83 § B) s'applique à TOUS les types de question
+# (une question `short_answer`/`vocabulary`/`true_false` peut tout autant demander le
+# développé d'un acronyme qu'un QCM) — jamais restreint à `_SUPPORTED_TYPES`, qui ne
+# concerne que les règles de qualité § 69.
+QUALITY_VALIDATORS: list[QualityValidator] = [
+    validate_question_quality_rules,
+    check_course_coverage_gap,
+    check_short_answer_length_coherence,
+]
 
 
 def validate_question_quality(

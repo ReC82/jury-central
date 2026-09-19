@@ -14,6 +14,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from sqlalchemy import update
 from sqlalchemy.orm import Session as DBSession
 
 from app.ai.local_correction import correct_locally, requires_ai_correction
@@ -25,6 +26,7 @@ from app.ai.schemas import (
     Questionnaire,
     QuestionnaireRequest,
 )
+from app.answer_checking import normalize_text
 from app.v1.ai_bridge import (
     BRIDGE_TYPES,
     DOCUMENT_TYPES,
@@ -200,6 +202,67 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
             progressed = True
 
     return selected
+
+
+def deduplicate_intra_session(selected: list[Question]) -> list[Question]:
+    """Garde finale anti-doublon intra-session (ticket #82) — appliquée juste avant
+    l'insertion des `SessionQuestion` (`_finalize_session`), et réutilisée par les
+    fallbacks « dernier recours » de `start_session`/`_start_mc38_transversal_session` pour
+    ne jamais proposer une question déjà retenue comme complément.
+
+    Élimine, dans l'ordre de `selected` (garde la PREMIÈRE occurrence de chaque groupe) :
+    - même `Question.id` plus d'une fois ;
+    - même `current_version_id` plus d'une fois ;
+    - même énoncé EXACT (normalisé) avec un `question_id` différent (ex. une question
+      dupliquée en banque sous deux id distincts) ;
+    - quasi-doublon manifeste (même mécanisme que #64 : `question_signature`/
+      `is_near_duplicate` — structure triée identique, ou énoncés très proches).
+
+    Ne complète JAMAIS le manque en répétant une question déjà retenue — c'est aux
+    appelants de proposer une session plus courte plutôt que de violer cette garde (§
+    ticket #82 : « le fallback ne doit jamais cycler sur la même question »)."""
+    kept: list[Question] = []
+    seen_question_ids: set[int] = set()
+    seen_version_ids: set[int] = set()
+    seen_prompts: set[str] = set()
+    seen_signatures: list = []
+
+    for question in selected:
+        if question.id in seen_question_ids or question.current_version_id in seen_version_ids:
+            continue
+        version = question.current_version
+        content = version.content_json or {}
+        prompt_key = normalize_text(str(content.get("prompt", "")))
+        if prompt_key and prompt_key in seen_prompts:
+            continue
+        signature = question_signature(version.question_type, content)
+        if any(is_near_duplicate(signature, existing) for existing in seen_signatures):
+            continue
+
+        kept.append(question)
+        seen_question_ids.add(question.id)
+        seen_version_ids.add(question.current_version_id)
+        if prompt_key:
+            seen_prompts.add(prompt_key)
+        seen_signatures.append(signature)
+
+    return kept
+
+
+def _extend_selection_without_duplicates(
+    selected: list[Question], fallback_pool: list[Question], question_count: int
+) -> list[Question]:
+    """Complète `selected` avec des questions de `fallback_pool` jusqu'à `question_count`,
+    SANS JAMAIS introduire de doublon intra-session (ticket #82) — ni en répétant une
+    question déjà retenue, ni en « cyclant » sur le pool une fois épuisé (bug corrigé :
+    l'ancien code faisait `pool[len(selected) % len(pool)]`, qui répète mécaniquement les
+    mêmes questions dès que le pool est plus petit que le manque à combler — exactement le
+    bug observé, question 1 == question 10 dans une même évaluation).
+
+    S'arrête dès que le pool ne fournit plus rien d'unique : une session plus courte que
+    demandé est acceptable (§ ticket #82, hiérarchie de repli), un doublon ne l'est
+    jamais."""
+    return deduplicate_intra_session([*selected, *fallback_pool])[:question_count]
 
 
 def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn) -> list[Question]:
@@ -379,7 +442,16 @@ def _finalize_session(
     """Construit la `QuestionnaireSession`/`SessionQuestion` à partir d'une sélection déjà
     prête — factorisé entre le parcours per-MC/global (`start_session`) et le parcours
     transversal MC38 (`_start_mc38_transversal_session`, ticket #58). `parameters_json`
-    porte le marqueur `scope` (ticket #58, voir `get_in_progress_session`)."""
+    porte le marqueur `scope` (ticket #58, voir `get_in_progress_session`).
+
+    Ticket #82 (garde finale) : `selected` repasse ici par
+    `deduplicate_intra_session` juste AVANT l'insertion des `SessionQuestion` — le
+    dernier point de passage commun à TOUS les parcours de création de session, quel que
+    soit ce qui a pu se produire en amont. `question_count` reflète le nombre RÉEL de
+    questions retenues après cette garde (jamais le nombre demandé si la garde en a
+    retiré) — une session plus courte que prévu est acceptable, un doublon ne l'est
+    jamais."""
+    selected = deduplicate_intra_session(selected)
     session = QuestionnaireSession(
         user_id=user.id,
         mode=mode,
@@ -500,9 +572,7 @@ def _start_mc38_transversal_session(
                 "Aucune question disponible pour la révision transversale MC38 (banque "
                 "MC01-37 vide et génération indisponible)."
             )
-        pool = selected or fallback_pool
-        while len(selected) < question_count and pool:
-            selected.append(pool[len(selected) % len(pool)])
+        selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
 
     return _finalize_session(
         db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
@@ -594,9 +664,10 @@ def start_session(
     if len(selected) < question_count:
         # Dernier repli explicite (§ GÉNÉRATION du ticket #55, § 1 du ticket #64 :
         # « réutiliser une ancienne question uniquement en dernier recours ») : réutilise
-        # ce qui existe déjà (`only_unseen=False`, par défaut), y compris en répétant et en
-        # dépassant exceptionnellement le plafond sémantique, plutôt que de refuser de
-        # créer la session.
+        # ce qui existe déjà (`only_unseen=False`, par défaut), en dépassant
+        # exceptionnellement le plafond sémantique si besoin — mais JAMAIS en répétant une
+        # question déjà retenue (ticket #82 : une session plus courte que demandé est
+        # acceptable, un doublon intra-session ne l'est jamais).
         fallback_pool = select_bank_questions(
             db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5
         )
@@ -605,9 +676,7 @@ def start_session(
                 "Aucune question disponible pour ce mini-cours (banque vide et génération "
                 "indisponible)."
             )
-        pool = selected or fallback_pool
-        while len(selected) < question_count and pool:
-            selected.append(pool[len(selected) % len(pool)])
+        selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
 
     return _finalize_session(
         db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected
@@ -793,6 +862,49 @@ def _document_contexts_for(db: DBSession, session_questions: list[SessionQuestio
     )
 
 
+def _build_questionnaire_inputs(
+    session_questions: list[SessionQuestion],
+) -> tuple[list, dict[str, object], dict[str, str]]:
+    """Construit `(questionnaire_questions, answers, human_readable_answers)` à partir de
+    `session_questions` — factorisé (ticket #70 § A) entre `submit_session` (correction
+    réelle, persistée) et `simulate_severity_comparison` (simulation en LECTURE SEULE,
+    jamais persistée) : les deux doivent construire EXACTEMENT le même
+    `Questionnaire`/mêmes réponses à partir des réponses déjà enregistrées, sans jamais
+    diverger entre les deux usages."""
+    questionnaire_questions = []
+    answers: dict[str, object] = {}
+    human_readable_answers: dict[str, str] = {}
+    for session_question in session_questions:
+        version = session_question.question_version
+        question_id = f"sq{session_question.id}"
+        qq = content_to_questionnaire_question(
+            question_id=question_id,
+            question_type=version.question_type,
+            content=version.content_json,
+            points_max=session_question.points_max,
+        )
+        questionnaire_questions.append(qq)
+        raw_answer = session_question.answer.answer_json if session_question.answer else {}
+        answers[question_id] = answer_json_to_submitted(version.question_type, version.content_json, raw_answer or {})
+        human_readable_answers[question_id] = describe_submitted_answer(
+            version.question_type, version.content_json, raw_answer or {}
+        )
+    return questionnaire_questions, answers, human_readable_answers
+
+
+def _contexts_for_session(db: DBSession, session_questions: list[SessionQuestion]) -> tuple[PedagogicalContext, ...]:
+    """Contexte pédagogique + contexte(s) documentaire(s) pour la correction d'une
+    session — factorisé (ticket #70 § A) entre `submit_session` et
+    `simulate_severity_comparison`, jamais deux implémentations."""
+    uaa_code = None
+    first_question = session_questions[0].question_version.question if session_questions else None
+    if first_question and first_question.uaa_id:
+        uaa = first_question.uaa
+        uaa_code = uaa.code if uaa else None
+    context = _pedagogical_context_for(uaa_code)
+    return (context, *_document_contexts_for(db, session_questions))
+
+
 def submit_session(
     db: DBSession,
     *,
@@ -814,38 +926,54 @@ def submit_session(
     Documents partagés (ticket #47) : `_document_contexts_for` ajoute un contexte par
     document réellement référencé par au moins une question de la session, en plus du
     contexte de matière/UAA — le texte source n'apparaît donc qu'une fois dans le lot,
-    quel que soit le nombre de questions qui le citent."""
+    quel que soit le nombre de questions qui le citent.
+
+    Ticket #71 : réclamation ATOMIQUE de la session AVANT l'appel IA (potentiellement
+    long, plusieurs secondes — l'origine du bug rapporté : bouton recliqué ou requête
+    réémise pendant l'attente déclenchait une SECONDE correction IA complète, avant même
+    que la première n'ait eu le temps de marquer la session `COMPLETED`). L'ancien code ne
+    fixait `status = COMPLETED` qu'à la toute fin — cette fenêtre de plusieurs secondes
+    était exactement la fenêtre de la course. Un `UPDATE ... WHERE status = IN_PROGRESS`
+    est atomique au niveau de la ligne : si `rowcount == 0`, une autre requête a déjà
+    réclamé cette session entre notre lecture et maintenant — on s'arrête immédiatement,
+    sans jamais appeler l'IA une seconde fois. Le corps de la fonction est protégé par un
+    filet de sécurité : toute exception inattendue (hors `AIProviderError`, déjà gérée
+    plus bas avec un repli local) remet `status = IN_PROGRESS` avant de se propager,
+    jamais une session bloquée `COMPLETED` sans résultat réel."""
     if session.is_locked():
         return session
 
-    session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
-    questionnaire_questions = []
-    answers: dict[str, object] = {}
-    human_readable_answers: dict[str, str] = {}
-    for session_question in session_questions:
-        version = session_question.question_version
-        question_id = f"sq{session_question.id}"
-        qq = content_to_questionnaire_question(
-            question_id=question_id,
-            question_type=version.question_type,
-            content=version.content_json,
-            points_max=session_question.points_max,
-        )
-        questionnaire_questions.append(qq)
-        raw_answer = session_question.answer.answer_json if session_question.answer else {}
-        answers[question_id] = answer_json_to_submitted(version.question_type, version.content_json, raw_answer or {})
-        human_readable_answers[question_id] = describe_submitted_answer(
-            version.question_type, version.content_json, raw_answer or {}
-        )
+    claim = db.execute(
+        update(QuestionnaireSession)
+        .where(QuestionnaireSession.id == session.id, QuestionnaireSession.status == SessionStatus.IN_PROGRESS)
+        .values(status=SessionStatus.COMPLETED)
+    )
+    db.commit()
+    if claim.rowcount == 0:
+        db.refresh(session)
+        return session
+    session.status = SessionStatus.COMPLETED
 
+    try:
+        return _correct_and_finalize_claimed_session(
+            db, session=session, provider=provider, severity_ui=severity_ui
+        )
+    except Exception:
+        session.status = SessionStatus.IN_PROGRESS
+        db.commit()
+        raise
+
+
+def _correct_and_finalize_claimed_session(
+    db: DBSession, *, session: QuestionnaireSession, provider: AIProvider, severity_ui: int
+) -> QuestionnaireSession:
+    """Corps de `submit_session` (ticket #71 : extrait pour envelopper d'un filet de
+    sécurité qui annule la réclamation atomique en cas d'exception inattendue — voir
+    docstring de `submit_session`). `session.status` est déjà `COMPLETED` en entrée."""
+    session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
+    questionnaire_questions, answers, human_readable_answers = _build_questionnaire_inputs(session_questions)
     questionnaire = Questionnaire(mode=session.mode.value, questions=questionnaire_questions)
-    uaa_code = None
-    first_question = session_questions[0].question_version.question if session_questions else None
-    if first_question and first_question.uaa_id:
-        uaa = first_question.uaa
-        uaa_code = uaa.code if uaa else None
-    context = _pedagogical_context_for(uaa_code)
-    contexts = (context, *_document_contexts_for(db, session_questions))
+    contexts = _contexts_for_session(db, session_questions)
     severity_internal = _SEVERITY_UI_TO_INTERNAL.get(severity_ui, "standard")
 
     try:
@@ -914,3 +1042,68 @@ def submit_session(
     session.parameters_json = updated_parameters
     db.commit()
     return session
+
+
+class SessionNotCompletedError(ValueError):
+    """La comparaison de sévérité (§ A du ticket #70) n'a de sens que sur une session déjà
+    terminée — jamais sur une session `IN_PROGRESS` (pas encore de correction de
+    référence à comparer)."""
+
+
+@dataclass(frozen=True)
+class SeverityComparison:
+    """Résultat d'une simulation de re-cotation (ticket #70 § A) — jamais persisté, jamais
+    utilisé pour modifier `session.score`/les `SessionAnswer` existants. Purement informatif,
+    recalculé à chaque demande."""
+
+    severity_ui: int
+    severity_label: str
+    original_score: float
+    comparative_score: float
+    question_count: int
+
+
+def simulate_severity_comparison(
+    db: DBSession, *, session: QuestionnaireSession, provider: AIProvider, severity_ui: int
+) -> SeverityComparison:
+    """« Comparer une autre sévérité » (ticket #70 § A) — simule une correction à une
+    AUTRE sévérité SANS JAMAIS modifier le résultat original : ni les réponses, ni la
+    correction déjà enregistrée (`SessionAnswer.points_awarded`/`feedback_json`), ni
+    `session.score`. Cette fonction ne fait AUCUNE écriture en base (aucun `db.add`, aucun
+    `db.commit`) — une simulation comparative séparée, recalculée à la demande, jamais une
+    seconde vérité stockée.
+
+    Seules les questions SÉMANTIQUES (notées par IA) peuvent réellement varier d'une
+    sévérité à l'autre : `correct_session_hybrid` reste le même moteur que
+    `submit_session`, qui verrouille TOUJOURS le score des questions déterministes sur
+    `correct_locally` (indépendant de la sévérité, voir `_lock_score_keep_ai_explanation`
+    dans `app.v1.hybrid_correction`) — la différence entre `original_score` et
+    `comparative_score` ne peut donc jamais provenir d'une question à réponse fermée
+    (QCM/classification/ordering/...), uniquement des réponses rédigées notées par IA.
+
+    Déclenche UN appel IA supplémentaire, explicitement demandé par l'utilisateur — hors
+    de l'invariant « un seul appel IA par session » du ticket #55, qui ne régit que la
+    création et la soumission initiales, jamais une comparaison a posteriori demandée
+    volontairement. Peut lever `AIProviderError`, jamais rattrapée ici (à l'appelant, la
+    route, de l'afficher proprement)."""
+    if session.status != SessionStatus.COMPLETED:
+        raise SessionNotCompletedError(
+            "La comparaison de sévérité n'est possible que sur une session terminée."
+        )
+
+    session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
+    questionnaire_questions, answers, human_readable_answers = _build_questionnaire_inputs(session_questions)
+    questionnaire = Questionnaire(mode=session.mode.value, questions=questionnaire_questions)
+    contexts = _contexts_for_session(db, session_questions)
+    severity_internal = _SEVERITY_UI_TO_INTERNAL.get(severity_ui, "standard")
+
+    correction = correct_session_hybrid(
+        provider, questionnaire, answers, human_readable_answers, severity_internal, contexts
+    )
+    return SeverityComparison(
+        severity_ui=severity_ui,
+        severity_label=SEVERITY_UI_LABELS.get(severity_ui, str(severity_ui)),
+        original_score=session.score,
+        comparative_score=round(correction.score, 2),
+        question_count=session.question_count,
+    )

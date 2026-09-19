@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from app.ai.factory import get_ai_provider
-from app.ai.provider import AINotConfiguredError
+from app.ai.provider import AINotConfiguredError, AIProviderError
 from app.database import get_db
 from app.models import UAA, Module
 from app.templating import templates
@@ -58,6 +58,7 @@ from app.v1.session_service import (
     get_owned_session,
     list_user_sessions,
     save_answer,
+    simulate_severity_comparison,
     start_session,
     submit_session,
 )
@@ -126,6 +127,16 @@ def _resumable_session_for_uaa(db, *, user_id: int, module_id: int, mode: Sessio
             db, user_id=user_id, module_id=module_id, mode=mode, scope=MC38_SESSION_SCOPE
         )
     return get_in_progress_session(db, user_id=user_id, module_id=module_id, mode=mode, uaa_id=uaa.id)
+
+
+def _is_unstarted(session: QuestionnaireSession | None) -> bool:
+    """Vrai si `session` existe et n'a AUCUNE réponse enregistrée (ticket #71) — signale
+    un double POST sur le bouton « Commencer » plutôt qu'une deuxième tentative
+    délibérée. Ne s'applique jamais à une session déjà répondue, même partiellement : la
+    politique « plusieurs sessions practice simultanées autorisées » (ticket #55 § 12)
+    reste intacte pour tout usage réel — seule la répétition EXACTE et IMMÉDIATE de la
+    création (aucune réponse entre les deux) est traitée comme un doublon."""
+    return session is not None and all(sq.answer is None for sq in session.session_questions)
 
 
 def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLResponse:
@@ -223,12 +234,18 @@ async def start_practice_session(
     if uaa is None:
         raise HTTPException(status_code=404, detail="UAA introuvable")
 
-    if resume:
-        existing = _resumable_session_for_uaa(
-            db, user_id=user.id, module_id=uaa.module_id, mode=SessionMode.PRACTICE, uaa=uaa
-        )
-        if existing is not None:
-            return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
+    existing = _resumable_session_for_uaa(
+        db, user_id=user.id, module_id=uaa.module_id, mode=SessionMode.PRACTICE, uaa=uaa
+    )
+    if resume and existing is not None:
+        return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
+    # Ticket #71 : protection serveur contre le double POST (bouton recliqué avant
+    # désactivation, ou requête réémise) — jamais 2 sessions pour un seul clic, même si
+    # `resume` n'est pas envoyé par ce formulaire. N'affecte jamais une nouvelle tentative
+    # réellement voulue par l'utilisateur (la session existante doit être vierge de toute
+    # réponse, voir `_is_unstarted`).
+    if _is_unstarted(existing):
+        return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
 
     try:
         session = _start_session_for_uaa(
@@ -353,12 +370,14 @@ async def start_ampcr_global_practice(
     resume: str = Form(""),
 ):
     module = _ampcr_module(db)
-    if resume:
-        existing = get_in_progress_session(
-            db, user_id=user.id, module_id=module.id, mode=SessionMode.PRACTICE, uaa_id=None
-        )
-        if existing is not None:
-            return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
+    existing = get_in_progress_session(
+        db, user_id=user.id, module_id=module.id, mode=SessionMode.PRACTICE, uaa_id=None
+    )
+    if resume and existing is not None:
+        return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
+    # Ticket #71 : protection serveur contre le double POST — voir _is_unstarted.
+    if _is_unstarted(existing):
+        return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
     session = start_session(
         db, user=user, module_id=module.id, uaa_id=None, uaa_code=None,
         mode=SessionMode.PRACTICE, difficulty=SessionDifficultyRequest(difficulty),
@@ -463,6 +482,11 @@ async def view_session(
                 "scope_label": describe_session_scope(session),
                 "subject_name": session.module.subject.name if session.module else "—",
                 "severity_label": SEVERITY_UI_LABELS.get(severity_ui),
+                "severity_levels": SEVERITY_UI_LEVELS,
+                "severity_labels": SEVERITY_UI_LABELS,
+                "comparison": None,
+                "comparison_error": None,
+                "courses_to_review": _courses_to_review(results),
             },
         )
 
@@ -551,9 +575,40 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
                 "source_documents": source_documents,
                 "course_title": uaa.title if uaa else None,
                 "course_slug": uaa.slug if uaa else None,
+                "course_code": uaa.code if uaa else None,
             }
         )
     return rows
+
+
+def _is_incorrect_or_partial(row: dict) -> bool:
+    """Ticket #74 : une question dont la correction n'est pas marquée `correct=True` —
+    couvre à la fois « faux » (déterministe ou sémantique) et « partiel » (crédit partiel
+    #70 § B, ou correction sémantique avec `correct=False` malgré des points partiels).
+    `feedback` vide (jamais corrigée) est traité comme « à revoir », jamais ignoré."""
+    return not (row.get("feedback") or {}).get("correct", False)
+
+
+def _courses_to_review(results: list[dict], *, limit: int = 5) -> list[dict]:
+    """« Cours à relire en priorité » (ticket #74) : agrège les questions incorrectes/
+    partielles par cours (UAA), triées par nombre d'erreurs décroissant, limité à `limit`
+    (3-5 demandé par le ticket — 5 par défaut, jamais plus). Questions sans UAA connue
+    (parcours global/transversal sans mini-cours identifiable) ignorées : rien de concret
+    à « relire »."""
+    counts: dict[str, dict] = {}
+    for row in results:
+        if not _is_incorrect_or_partial(row):
+            continue
+        slug = row.get("course_slug")
+        if not slug:
+            continue
+        entry = counts.setdefault(
+            slug,
+            {"course_slug": slug, "course_title": row.get("course_title"), "course_code": row.get("course_code"), "error_count": 0},
+        )
+        entry["error_count"] += 1
+    ranked = sorted(counts.values(), key=lambda entry: entry["error_count"], reverse=True)
+    return ranked[:limit]
 
 
 @router.post("/sessions/{session_id}/answer")
@@ -628,6 +683,58 @@ async def submit_session_route(
             db, session=session, provider=_get_provider_or_unconfigured(), severity_ui=severity_ui
         )
     return RedirectResponse(url=f"/sessions/{session_id}", status_code=303)
+
+
+@router.post("/sessions/{session_id}/compare-severity", response_class=HTMLResponse)
+async def compare_severity_route(
+    session_id: int,
+    request: Request,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+    severity: int = Form(SEVERITY_UI_DEFAULT),
+):
+    """« Comparer une autre sévérité » (ticket #70 § A) — simulation en lecture seule,
+    jamais une nouvelle soumission : ne modifie jamais la session originale (réponses,
+    correction, score). Réaffiche l'écran de résultats habituel avec, en plus, la
+    comparaison demandée."""
+    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session introuvable")
+    if session.status != SessionStatus.COMPLETED:
+        raise HTTPException(status_code=409, detail="Session pas encore terminée : rien à comparer.")
+
+    severity_ui = severity if severity in SEVERITY_UI_LEVELS else SEVERITY_UI_DEFAULT
+    session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
+    comparison = None
+    comparison_error = None
+    try:
+        comparison = simulate_severity_comparison(
+            db, session=session, provider=_get_provider_or_unconfigured(), severity_ui=severity_ui
+        )
+    except AIProviderError:
+        comparison_error = (
+            "La comparaison de sévérité n'a pas pu être calculée pour le moment "
+            "(service de correction indisponible). Réessaie plus tard."
+        )
+
+    results = _build_results_rows(db, session_questions)
+    original_severity_ui = (session.parameters_json or {}).get("severity")
+    return templates.TemplateResponse(
+        request=request,
+        name="v1_session_results.html",
+        context={
+            "session": session,
+            "results": results,
+            "scope_label": describe_session_scope(session),
+            "subject_name": session.module.subject.name if session.module else "—",
+            "severity_label": SEVERITY_UI_LABELS.get(original_severity_ui),
+            "severity_levels": SEVERITY_UI_LEVELS,
+            "severity_labels": SEVERITY_UI_LABELS,
+            "comparison": comparison,
+            "comparison_error": comparison_error,
+            "courses_to_review": _courses_to_review(results),
+        },
+    )
 
 
 # --- API autosave JSON (ticket #55 § AUTOSAVE) --------------------------------------------------
@@ -725,6 +832,16 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
         f"- Sévérité : {SEVERITY_UI_LABELS.get(severity_ui, '—')}",
         "",
     ]
+    courses_to_review = _courses_to_review(results)
+    if courses_to_review:
+        lines += ["# Cours à relire en priorité", ""]
+        for rank, entry in enumerate(courses_to_review, start=1):
+            code_prefix = f"{entry['course_code']} — " if entry.get("course_code") else ""
+            lines.append(
+                f"{rank}. {code_prefix}{entry['course_title']} — "
+                f"{entry['error_count']} erreur{'s' if entry['error_count'] > 1 else ''}"
+            )
+        lines.append("")
     for row in results:
         feedback = row["feedback"]
         strengths_lines = [f"- {s}" for s in feedback.get("strengths") or []] or ["—"]
@@ -767,6 +884,9 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
             feedback.get("feedback") or "—",
             "",
         ]
+        if not feedback.get("correct") and row.get("course_slug"):
+            code_prefix = f"{row['course_code']} — " if row.get("course_code") else ""
+            lines += [f"*Cours concerné : {code_prefix}{row['course_title']}*", ""]
     return "\n".join(lines)
 
 

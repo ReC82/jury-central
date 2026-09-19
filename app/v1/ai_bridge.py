@@ -20,6 +20,7 @@ import random
 from typing import Any
 
 from app.ai.schemas import QuestionnaireQuestion
+from app.v1.short_answer_limits import compute_short_answer_max_length
 
 # Types de composition du MVP (#55, § COMPOSITION) — les seuls que ce pont sait
 # convertir ET que la génération IA peut produire (`allowed_types`, voir
@@ -162,6 +163,29 @@ def shuffle_ordering_items(items: list[dict[str, Any]], correct_order: list[str]
     return shuffled
 
 
+def shuffle_multiple_choice_options(options: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Mélange l'ordre d'AFFICHAGE de `options` (ticket #80, problème 1 — bug réel
+    constaté : la bonne réponse apparaissait trop souvent en première position). Avant ce
+    correctif, `options` était persisté dans exactement l'ordre fourni par le générateur/
+    l'auteur — quel que soit `MultipleChoiceContent.shuffle` (champ exposé au client mais
+    jamais réellement appliqué), et une IA ou un·e auteur·ice place très souvent la bonne
+    réponse en premier par habitude, rendant sa position statistiquement prévisible.
+
+    Ne modifie JAMAIS `option_id` (source de vérité de `correct_option_ids` — voir
+    `MultipleChoiceContent`, `app.v1.question_types`) : chaque dict `{option_id, label}`
+    reste intact, seule la séquence PHYSIQUE de la liste change. Contrairement à
+    `shuffle_ordering_items`, aucune garantie « jamais dans l'ordre d'origine » n'est
+    nécessaire ici : contrairement à un `ordering` qui devient trivial si affiché déjà
+    trié, un QCM dont le tirage aléatoire laisse par hasard la bonne réponse en première
+    position n'est pas un problème — seule la RÉPÉTITION SYSTÉMATIQUE en première
+    position, sur l'ensemble des questions, est le bug à corriger."""
+    if len(options) < 2:
+        return options
+    shuffled = list(options)
+    random.shuffle(shuffled)
+    return shuffled
+
+
 def questionnaire_question_to_content(question: QuestionnaireQuestion) -> dict[str, Any]:
     """Convertit une `QuestionnaireQuestion` générée par l'IA en `content_json` conforme
     au registre #40 — toujours revalidé par `app.v1.question_engine.validate_content`
@@ -173,6 +197,10 @@ def questionnaire_question_to_content(question: QuestionnaireQuestion) -> dict[s
             for index, choice in enumerate(question.choices)
         ]
         correct_option_ids = [str(index) for index in question.correct_indexes]
+        # Ticket #80 : mélange physique de l'ordre d'affichage — `option_id` reste
+        # attaché à son `label`, donc `correct_option_ids` (déjà basé sur l'id, jamais la
+        # position) reste valide sans changement.
+        options = shuffle_multiple_choice_options(options)
         selection_count = len(correct_option_ids) or 1
         return {
             "prompt": question.prompt,
@@ -194,10 +222,16 @@ def questionnaire_question_to_content(question: QuestionnaireQuestion) -> dict[s
         items = shuffle_ordering_items(items, correct_order)
         return {"prompt": question.prompt, "items": items, "correct_order": correct_order}
     if question.type in ("short_answer", "vocabulary"):
+        # Ticket #85 : `max_length` n'était jamais fourni ici, donc retombait toujours
+        # sur le défaut Pydantic fixe (200) quelle que soit la question — trop court pour
+        # une réponse développée (ex. comparaison HDD/SSD SATA/SSD NVMe), inutilement
+        # large pour un simple rappel factuel. Calculé à partir de la formulation exacte
+        # de l'énoncé, jamais une valeur unique pour tous les `short_answer`.
         return {
             "prompt": question.prompt,
             "accepted_answers": list(question.accepted_answers),
             "rubric": question.rubric,
+            "max_length": compute_short_answer_max_length(question.prompt),
         }
     if question.type in _SEMANTIC_RUBRIC_TYPES:
         return {
