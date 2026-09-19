@@ -87,6 +87,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "D'après le texte, cite deux avantages du smartphone mentionnés pour "
                     "un usage professionnel."
                 ),
+                "source_document_version_id": main,
                 "rubric": (
                     "Réponse correcte si elle mentionne au moins deux éléments parmi : "
                     "facilite la communication entre collègues, permet de consulter les "
@@ -103,6 +104,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Le texte explique que le smartphone peut réduire la qualité du "
                     "sommeil. Explique avec tes propres mots pourquoi, selon le texte."
                 ),
+                "source_document_version_id": main,
                 "rubric": (
                     "Bonne réponse si elle explique que la lumière des écrans et/ou la "
                     "stimulation mentale du défilement de contenu perturbent le sommeil, "
@@ -119,6 +121,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Dans le texte, à quoi fait référence l'expression « une utilisation "
                     "raisonnée » du smartphone ?"
                 ),
+                "source_document_version_id": main,
                 "rubric": (
                     "Bonne réponse si elle indique qu'il s'agit d'utiliser le smartphone "
                     "avec des limites choisies consciemment (par exemple des règles "
@@ -134,6 +137,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Classe chaque affirmation suivante comme un FAIT rapporté par le "
                     "texte, ou une OPINION/un jugement."
                 ),
+                "source_document_version_id": main,
                 "categories": ["Fait", "Opinion"],
                 "elements": [
                     "Plusieurs écoles ont interdit le smartphone pendant les heures de cours.",
@@ -184,6 +188,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Reformule en une phrase l'idée développée dans le paragraphe "
                     "consacré à la vie personnelle."
                 ),
+                "source_document_version_id": main,
                 "rubric": (
                     "Bonne réponse si elle résume en une phrase que le smartphone "
                     "facilite le contact avec les proches et l'accès à des contenus "
@@ -197,6 +202,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
             "short_answer",
             {
                 "prompt": "Quelle est l'idée principale du texte ? Résume-la en une ou deux phrases.",
+                "source_document_version_id": main,
                 "rubric": (
                     "Bonne réponse si elle indique que le smartphone présente à la fois "
                     "des avantages réels et des risques documentés, et que le texte "
@@ -249,6 +255,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "avec une introduction, au moins deux arguments justifiés, et une "
                     "conclusion."
                 ),
+                "source_document_version_id": main,
                 "rubric": (
                     "Évalue : (1) présence d'une structure claire (introduction, "
                     "arguments, conclusion) ; (2) au moins deux arguments distincts et "
@@ -371,6 +378,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "D'après le texte, cite deux démarches ou services qui se font "
                     "désormais très largement en ligne."
                 ),
+                "source_document_version_id": digital_life,
                 "rubric": (
                     "Réponse correcte si elle cite au moins deux éléments parmi : "
                     "démarches administratives, gestion d'un compte bancaire, prise de "
@@ -386,6 +394,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Pourquoi, selon le texte, la facilité d'accès à une information en "
                     "ligne ne garantit-elle pas sa fiabilité ?"
                 ),
+                "source_document_version_id": digital_life,
                 "rubric": (
                     "Bonne réponse si elle indique que toutes les informations "
                     "disponibles en ligne ne se valent pas, et qu'il faut savoir "
@@ -398,6 +407,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
             "vocabulary",
             {
                 "prompt": "Que désigne l'expression « fracture numérique » utilisée dans le texte ?",
+                "source_document_version_id": digital_life,
                 "rubric": (
                     "Bonne réponse si elle indique qu'il s'agit de l'écart entre les "
                     "personnes qui maîtrisent les outils numériques et celles qui en sont "
@@ -413,6 +423,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "désavantagées par la numérisation des services, mais le suggère "
                     "fortement. Quel passage te permet de l'affirmer ?"
                 ),
+                "source_document_version_id": digital_life,
                 "rubric": (
                     "Bonne réponse si elle cite ou paraphrase le passage sur la « "
                     "fracture numérique » : les personnes âgées ou peu à l'aise avec le "
@@ -429,6 +440,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Classe chaque affirmation suivante comme un FAIT rapporté par le "
                     "texte, ou une OPINION/un jugement de l'auteur."
                 ),
+                "source_document_version_id": digital_life,
                 "categories": ["Fait", "Opinion"],
                 "elements": [
                     "Le télétravail s'est largement développé ces dernières années.",
@@ -448,6 +460,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
             "short_answer",
             {
                 "prompt": "Quelle est l'idée principale du texte ? Résume-la en une phrase.",
+                "source_document_version_id": digital_life,
                 "rubric": (
                     "Bonne réponse si elle indique que le numérique transforme "
                     "profondément plusieurs aspects du quotidien (information, services, "
@@ -495,6 +508,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Selon le texte, quel effet le temps passé sur les écrans peut-il "
                     "avoir sur les interactions sociales ?"
                 ),
+                "source_document_version_id": digital_life,
                 "rubric": (
                     "Bonne réponse si elle indique que le temps passé sur les écrans "
                     "peut se substituer à des interactions en face à face, et que "
@@ -511,6 +525,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Reformule en une phrase l'idée développée dans le paragraphe "
                     "consacré au travail et à la formation."
                 ),
+                "source_document_version_id": digital_life,
                 "rubric": (
                     "Bonne réponse si elle résume que le numérique (télétravail, "
                     "formations en ligne) apporte plus de flexibilité, mais demande une "
@@ -528,6 +543,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "conclusion ? Justifie ta réponse en t'appuyant sur au moins un "
                     "exemple du texte."
                 ),
+                "source_document_version_id": digital_life,
                 "rubric": (
                     f"{_OPINION_NEUTRALITY_CLAUSE} Attendu en plus : la justification "
                     "s'appuie sur au moins un exemple concret tiré du texte (fracture "
@@ -547,6 +563,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "D'après le texte, quel est le principal avantage de l'apprentissage "
                     "en ligne pour une personne qui travaille à temps plein ?"
                 ),
+                "source_document_version_id": training,
                 "rubric": (
                     "Bonne réponse si elle indique que ces formations peuvent être "
                     "suivies à n'importe quel moment (souvent le soir ou le week-end), "
@@ -562,6 +579,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Quel problème documenté par les chercheurs en pédagogie le texte "
                     "associe-t-il aux formations en ligne non accompagnées ?"
                 ),
+                "source_document_version_id": training,
                 "rubric": (
                     "Bonne réponse si elle indique que le taux d'abandon y est nettement "
                     "plus élevé que dans une formation classique en présentiel, faute de "
@@ -577,6 +595,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Selon le texte, pourquoi certaines formations courtes et intensives "
                     "de reconversion sont-elles critiquées par certains employeurs ?"
                 ),
+                "source_document_version_id": training,
                 "rubric": (
                     "Bonne réponse si elle indique qu'une formation aussi courte est "
                     "jugée incapable de remplacer entièrement un parcours plus complet, "
@@ -593,6 +612,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "D'après le texte, pourquoi le phénomène de reconversion "
                     "professionnelle s'est-il accéléré ces dernières années ?"
                 ),
+                "source_document_version_id": training,
                 "rubric": (
                     "Bonne réponse si elle indique que certains métiers disparaissent "
                     "progressivement pendant que d'autres, liés au numérique, "
@@ -610,6 +630,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "professionnelle, certifications) SANS reprendre les détails "
                     "secondaires ni recopier des phrases du texte."
                 ),
+                "source_document_version_id": training,
                 "rubric": (
                     "Évalue : (1) sélection correcte des idées essentielles (les 3 axes "
                     "du texte) plutôt que des détails secondaires (exemples précis de "
@@ -632,6 +653,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Propose un titre différent de celui du texte, qui reflète "
                     "fidèlement l'ensemble de son contenu (pas un seul aspect isolé)."
                 ),
+                "source_document_version_id": training,
                 "rubric": (
                     "Bonne réponse si le titre proposé couvre la diversification des "
                     "formes de formation professionnelle liées au numérique (pas "
@@ -645,6 +667,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
             "vocabulary",
             {
                 "prompt": "Que désigne le terme « e-learning » tel qu'il est utilisé dans le texte ?",
+                "source_document_version_id": training,
                 "rubric": (
                     "Bonne réponse si elle indique qu'il s'agit de l'apprentissage/la "
                     "formation en ligne via des plateformes numériques spécialisées."
@@ -676,6 +699,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
             "vocabulary",
             {
                 "prompt": "Que désigne l'expression « formation continue » dans le texte ?",
+                "source_document_version_id": training,
                 "rubric": (
                     "Bonne réponse si elle indique qu'il s'agit de la possibilité, pour "
                     "un employé, de continuer à se former pendant sa carrière (ex. accès "
@@ -693,6 +717,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Quel argument les partisans de l'enseignement de la programmation à "
                     "l'école avancent-ils, selon le texte ?"
                 ),
+                "source_document_version_id": coding_debate,
                 "rubric": (
                     "Bonne réponse si elle indique que le numérique est présent dans "
                     "presque tous les métiers, et qu'une compréhension même basique de "
@@ -709,6 +734,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "Quel argument concernant le temps scolaire les opposants à cette "
                     "idée avancent-ils ?"
                 ),
+                "source_document_version_id": coding_debate,
                 "rubric": (
                     "Bonne réponse si elle indique que le temps scolaire est déjà "
                     "largement occupé, et qu'ajouter une matière obligatoire "
@@ -726,6 +752,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "« apprendre à programmer » à l'école. Quelles sont les deux "
                     "interprétations possibles évoquées ?"
                 ),
+                "source_document_version_id": coding_debate,
                 "rubric": (
                     "Bonne réponse si elle mentionne (1) apprendre un langage de "
                     "programmation précis (avec le risque qu'il devienne obsolète), et "
@@ -739,6 +766,7 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
             "vocabulary",
             {
                 "prompt": "Que désigne l'expression « pensée computationnelle » dans le texte ?",
+                "source_document_version_id": coding_debate,
                 "rubric": (
                     "Bonne réponse si elle indique qu'il s'agit d'une manière générale "
                     "de décomposer un problème en étapes logiques, distincte de "
@@ -754,6 +782,13 @@ def _francais_c01_questions(doc_ids: dict[str, int]) -> list[tuple[str, dict]]:
                     "utile même pour des métiers non liés à l'informatique ? Justifie en "
                     "2 à 3 phrases."
                 ),
+                # Contrairement aux questions d'opinion similaires (ex. « Es-tu d'accord
+                # avec l'affirmation que le smartphone est... ») qui citent la position
+                # jugée EN ENTIER dans le prompt, ce terme technique n'est pas défini ici
+                # — sa définition vit dans une AUTRE question (vocabulaire), non garantie
+                # d'être tirée dans la même session (#79 § 4) : le document reste
+                # nécessaire pour comprendre le terme avant d'exprimer un avis dessus.
+                "source_document_version_id": coding_debate,
                 "rubric": f"{_OPINION_NEUTRALITY_CLAUSE}",
                 "max_length": 500,
             },

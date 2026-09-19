@@ -200,6 +200,14 @@ class ShortAnswerContent(BaseModel):
     accepted_answers: list[str] = Field(default_factory=list)
     rubric: str = ""
     max_length: int = Field(default=200, gt=0)
+    # Ticket #79 : document de contexte OPTIONNEL — même raisonnement que long_answer
+    # (#77) : une question de compréhension peut porter sur un texte de référence sans
+    # que ce soit une exigence structurelle du type lui-même (contrairement à
+    # document_analysis, REQUIRED). Audit de la banque Français (#79 § 4) : de nombreuses
+    # questions short_answer disaient « D'après le texte »/« Selon le texte » sans aucun
+    # rattachement structuré — le texte n'était jamais montré à l'élève. S'il est
+    # présent, il DOIT être montré (`to_public` ci-dessous) — jamais une source cachée.
+    source_document_version_id: int | None = Field(default=None, gt=0)
 
     @model_validator(mode="after")
     def _check(self) -> "ShortAnswerContent":
@@ -222,10 +230,18 @@ QUESTION_TYPE_REGISTRY.register(
         correction_mode=CorrectionMode.HYBRID,
         capabilities=frozenset({Capability.TEXT_INPUT, Capability.LOCAL_GRADING, Capability.SEMANTIC_GRADING}),
         asset_contract=NO_ASSET,
-        source_document_requirement=SourceDocumentRequirement.NONE,
+        source_document_requirement=SourceDocumentRequirement.OPTIONAL,
         content_model=ShortAnswerContent,
         answer_model=ShortAnswerAnswer,
-        to_public=lambda c: {"prompt": c.prompt, "max_length": c.max_length},
+        to_public=lambda c: {
+            "prompt": c.prompt,
+            "max_length": c.max_length,
+            **(
+                {"source_document_version_id": c.source_document_version_id}
+                if c.source_document_version_id
+                else {}
+            ),
+        },
         check_answer=lambda c, a: text_answer_matches(c.accepted_answers, a.text),
     )
 )
@@ -410,6 +426,12 @@ class ClassificationContent(BaseModel):
     elements: list[str] = Field(min_length=2)
     correct_categories: list[int]
     explanation: str = ""
+    # Ticket #79 : document de contexte OPTIONNEL (même raisonnement que short_answer
+    # ci-dessus). Correction toujours LOCAL (jamais envoyée à l'IA), mais l'élève a
+    # quand même besoin de voir le texte pour classer des affirmations comme
+    # Fait/Opinion « rapportées par le texte » — un problème de visibilité côté élève
+    # indépendant du mode de correction.
+    source_document_version_id: int | None = Field(default=None, gt=0)
 
     @model_validator(mode="after")
     def _check(self) -> "ClassificationContent":
@@ -431,13 +453,18 @@ QUESTION_TYPE_REGISTRY.register(
         correction_mode=CorrectionMode.LOCAL,
         capabilities=frozenset({Capability.DRAG_DROP, Capability.LOCAL_GRADING}),
         asset_contract=NO_ASSET,
-        source_document_requirement=SourceDocumentRequirement.NONE,
+        source_document_requirement=SourceDocumentRequirement.OPTIONAL,
         content_model=ClassificationContent,
         answer_model=ClassificationAnswer,
         to_public=lambda c: {
             "prompt": c.prompt,
             "categories": c.categories,
             "elements": c.elements,
+            **(
+                {"source_document_version_id": c.source_document_version_id}
+                if c.source_document_version_id
+                else {}
+            ),
         },
         check_answer=lambda c, a: a.assignments == c.correct_categories,
         description="Catégories et éléments en nombre variable (pas limité à 2/3 catégories).",
@@ -619,6 +646,10 @@ class VocabularyContent(BaseModel):
     direction: Literal["term_to_definition", "definition_to_term"] = "term_to_definition"
     accepted_answers: list[str] = Field(default_factory=list)
     rubric: str = ""
+    # Ticket #79 : document de contexte OPTIONNEL (même raisonnement que short_answer
+    # ci-dessus) — plusieurs questions Français demandent le sens d'une expression
+    # « dans le texte », ce qui exige de pouvoir relire ce texte.
+    source_document_version_id: int | None = Field(default=None, gt=0)
 
     @model_validator(mode="after")
     def _check(self) -> "VocabularyContent":
@@ -641,10 +672,18 @@ QUESTION_TYPE_REGISTRY.register(
         correction_mode=CorrectionMode.HYBRID,
         capabilities=frozenset({Capability.TEXT_INPUT, Capability.LOCAL_GRADING, Capability.SEMANTIC_GRADING}),
         asset_contract=NO_ASSET,
-        source_document_requirement=SourceDocumentRequirement.NONE,
+        source_document_requirement=SourceDocumentRequirement.OPTIONAL,
         content_model=VocabularyContent,
         answer_model=VocabularyAnswer,
-        to_public=lambda c: {"prompt": c.prompt, "direction": c.direction},
+        to_public=lambda c: {
+            "prompt": c.prompt,
+            "direction": c.direction,
+            **(
+                {"source_document_version_id": c.source_document_version_id}
+                if c.source_document_version_id
+                else {}
+            ),
+        },
         check_answer=lambda c, a: text_answer_matches(c.accepted_answers, a.text),
         description="Pas spécifique à l'Informatique — terme↔définition, toute matière.",
     )
