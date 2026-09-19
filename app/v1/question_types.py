@@ -247,6 +247,16 @@ class LongAnswerContent(BaseModel):
     # docs/claude-reports/2026-09-19_ticket-73_long-answer-capacity.md).
     max_length: int = Field(default=20000, gt=0)
     max_score: float = Field(default=1.0, gt=0)
+    # Ticket #77 : document de contexte OPTIONNEL. Contrairement à `document_analysis`
+    # (analyse OBLIGATOIRE d'un document précis, `SourceDocumentRequirement.REQUIRED`),
+    # `long_answer` reste d'abord une question d'expression personnelle — un texte de
+    # référence peut l'accompagner sans être une exigence de barème (bug #77 : la
+    # question Français id=170 référençait déjà un document dans son contenu, mais ce
+    # champ n'existait pas ici, donc Pydantic le supprimait silencieusement et l'élève ne
+    # le voyait jamais, alors que le correcteur IA le recevait quand même). S'il est
+    # présent, il DOIT être montré à l'élève (`to_public` ci-dessous) — jamais une source
+    # cachée.
+    source_document_version_id: int | None = Field(default=None, gt=0)
 
 
 class LongAnswerAnswer(BaseModel):
@@ -260,11 +270,23 @@ QUESTION_TYPE_REGISTRY.register(
         correction_mode=CorrectionMode.SEMANTIC_AI,
         capabilities=frozenset({Capability.TEXT_INPUT, Capability.SEMANTIC_GRADING}),
         asset_contract=NO_ASSET,
-        source_document_requirement=SourceDocumentRequirement.NONE,
+        source_document_requirement=SourceDocumentRequirement.OPTIONAL,
         content_model=LongAnswerContent,
         answer_model=LongAnswerAnswer,
-        to_public=lambda c: {"prompt": c.prompt, "max_length": c.max_length},
+        to_public=lambda c: {
+            "prompt": c.prompt,
+            "max_length": c.max_length,
+            **(
+                {"source_document_version_id": c.source_document_version_id}
+                if c.source_document_version_id
+                else {}
+            ),
+        },
         check_answer=None,
+        description=(
+            "Document de contexte optionnel (ticket #77) : jamais une source cachée — "
+            "s'il est présent dans le contenu, il est toujours exposé ici."
+        ),
     )
 )
 

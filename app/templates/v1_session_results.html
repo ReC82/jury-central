@@ -63,6 +63,12 @@
                     <div class="accordion-body">
                         <p class="fw-semibold">{{ item.prompt }}</p>
 
+                        {% if item.source_documents %}
+                        <p class="text-muted small mb-3">
+                            📄 Document(s) de référence : {{ item.source_documents | join(", ") }}
+                        </p>
+                        {% endif %}
+
                         <p class="mb-1"><span class="text-muted small text-uppercase">Ta réponse</span></p>
                         <p class="border rounded p-2 bg-light">{{ item.user_answer }}</p>
 
