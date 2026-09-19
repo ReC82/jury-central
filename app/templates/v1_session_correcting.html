@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Correction en cours — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-6">
+        <div class="p-4 bg-white rounded shadow-sm text-center" id="correcting-panel" data-session-id="{{ session.id }}">
+
+            <div id="correcting-state-active">
+                <div class="spinner-border text-dark mb-3" role="status" aria-hidden="true"></div>
+                <h1 class="h4 mb-2">Correction en cours…</h1>
+                <p class="mb-1">Tes réponses ont bien été enregistrées.</p>
+                <p class="text-muted mb-4">La correction peut prendre quelques dizaines de secondes.</p>
+
+                <ul class="list-unstyled text-start mx-auto mb-0" style="max-width: 320px;">
+                    <li class="mb-1"><span class="text-success">✓</span> Réponses enregistrées</li>
+                    <li class="mb-1" id="correcting-step-running"><span>•</span> Correction en cours</li>
+                    <li class="text-muted" id="correcting-step-done"><span>○</span> Résultats prêts</li>
+                </ul>
+            </div>
+
+            <div id="correcting-state-failed" class="d-none">
+                <h1 class="h4 mb-2">La correction n'a pas pu être terminée</h1>
+                <p class="mb-3">Tes réponses sont sauvegardées.</p>
+                <form method="post" action="/sessions/{{ session.id }}/retry-correction">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-dark">Réessayer la correction</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var panel = document.getElementById("correcting-panel");
+        if (!panel) return;
+        var sessionId = panel.getAttribute("data-session-id");
+        var activeState = document.getElementById("correcting-state-active");
+        var failedState = document.getElementById("correcting-state-failed");
+        var pollDelayMs = 2500;
+        var stopped = false;
+
+        function showFailed() {
+            if (activeState) { activeState.classList.add("d-none"); }
+            if (failedState) { failedState.classList.remove("d-none"); }
+        }
+
+        function poll() {
+            if (stopped) return;
+            fetch("/sessions/" + sessionId + "/correction-status", { credentials: "same-origin" })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (data.status === "completed") {
+                        stopped = true;
+                        window.location = "/sessions/" + sessionId;
+                        return;
+                    }
+                    if (data.status === "failed") {
+                        stopped = true;
+                        showFailed();
+                        return;
+                    }
+                    window.setTimeout(poll, pollDelayMs);
+                })
+                .catch(function () {
+                    // Panne réseau transitoire : réessaie plus tard, ne bloque jamais
+                    // silencieusement sur une erreur fetch ponctuelle.
+                    window.setTimeout(poll, pollDelayMs);
+                });
+        }
+
+        window.setTimeout(poll, pollDelayMs);
+    })();
+</script>
+{% endblock %}

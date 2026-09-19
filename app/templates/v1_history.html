@@ -24,9 +24,13 @@
                         <span class="badge {{ 'bg-dark' if session.mode.value == 'exam' else 'bg-secondary' }}">
                             {{ 'Évaluation' if session.mode.value == 'exam' else 'Entraînement' }}
                         </span>
-                        <span class="badge {{ 'bg-success' if session.status.value == 'completed' else 'bg-warning text-dark' }}">
-                            {{ 'Terminé' if session.status.value == 'completed' else 'En cours' }}
-                        </span>
+                        {% if session.status.value == 'completed' %}
+                        <span class="badge bg-success">Terminé</span>
+                        {% elif session.status.value == 'correcting' %}
+                        <span class="badge bg-info text-dark">Correction en cours</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">En cours</span>
+                        {% endif %}
                     </p>
                     <p class="small text-muted mb-0">
                         {{ session.question_count }} question(s)
@@ -39,6 +43,8 @@
                 <div class="d-flex align-items-center">
                     {% if session.status.value == 'completed' %}
                     <a href="/sessions/{{ session.id }}" class="btn btn-outline-dark btn-sm">Voir les résultats</a>
+                    {% elif session.status.value == 'correcting' %}
+                    <a href="/sessions/{{ session.id }}" class="btn btn-outline-dark btn-sm">Correction en cours</a>
                     {% else %}
                     <a href="/sessions/{{ session.id }}" class="btn btn-dark btn-sm">Reprendre</a>
                     {% endif %}

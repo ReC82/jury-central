@@ -170,6 +170,13 @@ def test_10k_long_answer_survives_autosave_reload_submit_results_export(
         f"/sessions/{session_id}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False,
     )
     assert response.status_code == 303
+    # Ticket #88 : le POST ne corrige plus de façon synchrone — fait tourner le worker
+    # explicitement (appel direct, pas de processus séparé) avant de lire un résultat.
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=fake)
     assert len(fake.semantic_calls) == 1
 
     # Résultats -> le texte complet de LA RÉPONSE DE L'UTILISATEUR doit être affiché en entier.
@@ -191,7 +198,7 @@ def test_10k_diagnostic_answer_survives_full_round_trip(authenticated_client, db
         db_session, question_type="diagnostic",
         content={"prompt": "Diagnostique la panne décrite.", "rubric": "grille"},
     )
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
 
     response = authenticated_client.get(f"/sessions/{session_id}?q=1")
     token = _csrf(response.text)
@@ -211,6 +218,13 @@ def test_10k_diagnostic_answer_survives_full_round_trip(authenticated_client, db
         f"/sessions/{session_id}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False,
     )
     assert response.status_code == 303
+    # Ticket #88 : le POST ne corrige plus de façon synchrone — fait tourner le worker
+    # explicitement (appel direct, pas de processus séparé) avant de lire un résultat.
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=fake)
 
     response = authenticated_client.get(f"/sessions/{session_id}")
     assert LONG_TEXT_10K in response.text

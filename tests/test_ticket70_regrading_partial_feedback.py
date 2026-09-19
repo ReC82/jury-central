@@ -64,6 +64,19 @@ def _patch_fake_provider(monkeypatch):
     return fake
 
 
+def _run_pending_correction_job(db_session, provider):
+    """Ticket #88 : `POST /sessions/{id}/submit` crée désormais un `CorrectionJob`
+    PENDING au lieu de corriger de façon synchrone — les tests HTTP doivent faire tourner
+    le worker explicitement (appel direct, pas de processus séparé) avant de lire un
+    résultat."""
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=provider)
+    return job
+
+
 def _seed_mc01(db_session):
     seed()
     ampcr = db_session.query(Module).filter_by(code="AMPCR").first()
@@ -190,7 +203,7 @@ def test_compare_severity_deterministic_score_never_varies(db_session):
 
 def test_compare_severity_http_round_trip_shows_both_scores(authenticated_client, db_session, monkeypatch):
     _seed_mc01(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(response.text)
     response = authenticated_client.post(
@@ -210,6 +223,7 @@ def test_compare_severity_http_round_trip_shows_both_scores(authenticated_client
     response = authenticated_client.get(f"/sessions/{session_id}/submit-confirm")
     token = _csrf(response.text)
     authenticated_client.post(f"/sessions/{session_id}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False)
+    _run_pending_correction_job(db_session, fake)
 
     response = authenticated_client.get(f"/sessions/{session_id}")
     original_score_text = re.search(r"Score : ([\d.]+)", response.text).group(1)
@@ -250,6 +264,7 @@ def test_compare_severity_handles_ai_provider_error_gracefully(authenticated_cli
     response = authenticated_client.get(f"/sessions/{session_id}/submit-confirm")
     token = _csrf(response.text)
     authenticated_client.post(f"/sessions/{session_id}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False)
+    _run_pending_correction_job(db_session, fake)
 
     fake.correct_semantic_batch = lambda *a, **k: (_ for _ in ()).throw(AIProviderError("panne simulée"))
 

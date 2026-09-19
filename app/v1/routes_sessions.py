@@ -44,6 +44,7 @@ from app.v1.session_service import (
     SEVERITY_UI_DEFAULT,
     SEVERITY_UI_LABELS,
     SEVERITY_UI_LEVELS,
+    CorrectionJobNotFailedError,
     SessionCreationError,
     # Ticket #77 : seule source de vérité pour « quel(s) document(s) une question
     # référence », dérivée du payload public — jamais du `content_json` brut. Importé ici
@@ -54,13 +55,15 @@ from app.v1.session_service import (
     _referenced_document_ids,
     build_question_display,
     describe_session_scope,
+    enqueue_correction,
+    get_correction_job,
     get_in_progress_session,
     get_owned_session,
     list_user_sessions,
+    retry_failed_correction_job,
     save_answer,
     simulate_severity_comparison,
     start_session,
-    submit_session,
 )
 
 router = APIRouter(tags=["v1-sessions"])
@@ -470,6 +473,19 @@ async def view_session(
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
 
+    if session.status == SessionStatus.CORRECTING:
+        # Ticket #88 : correction en cours (job PENDING/RUNNING) ou en échec (FAILED) —
+        # ne JAMAIS afficher la page de résultats tant que le job n'est pas COMPLETED
+        # (auquel cas `session.status` est déjà repassé à COMPLETED par
+        # `run_correction_job`/`_correct_and_finalize_claimed_session`, donc cette branche
+        # n'est alors plus atteinte).
+        job = get_correction_job(db, session_id=session.id)
+        return templates.TemplateResponse(
+            request=request,
+            name="v1_session_correcting.html",
+            context={"session": session, "job": job},
+        )
+
     if session.status != SessionStatus.IN_PROGRESS:
         results = _build_results_rows(db, session_questions)
         severity_ui = (session.parameters_json or {}).get("severity")
@@ -674,14 +690,60 @@ async def submit_session_route(
     user: User = Depends(require_user),  # noqa: B008
     severity: int = Form(SEVERITY_UI_DEFAULT),
 ):
+    """Ticket #88 : NE fait JAMAIS l'appel IA dans cette requête — la correction batch
+    peut prendre plusieurs dizaines de secondes, largement au-delà de ce qu'un timeout
+    nginx/upstream tolère (504 Gateway Time-out réellement observé en staging). Verrouille
+    la session et crée/retrouve un `CorrectionJob` (`enqueue_correction`, idempotent),
+    puis redirige immédiatement — la correction elle-même est exécutée par un worker
+    séparé (`app.v1.correction_worker`), jamais dans ce cycle requête/réponse."""
     session = get_owned_session(db, session_id=session_id, user_id=user.id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session introuvable")
     if session.status == SessionStatus.IN_PROGRESS:
         severity_ui = severity if severity in SEVERITY_UI_LEVELS else SEVERITY_UI_DEFAULT
-        submit_session(
-            db, session=session, provider=_get_provider_or_unconfigured(), severity_ui=severity_ui
-        )
+        enqueue_correction(db, session=session, severity_ui=severity_ui)
+    return RedirectResponse(url=f"/sessions/{session_id}", status_code=303)
+
+
+@router.get("/sessions/{session_id}/correction-status")
+async def correction_status_route(
+    session_id: int,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+):
+    """Ticket #88 § 6 : endpoint de polling léger pour la page d'attente
+    (`v1_session_correcting.html`) — retourne uniquement l'état, jamais de contenu de
+    correction (celui-ci n'est lu qu'une fois sur la page de résultats, après
+    `COMPLETED`)."""
+    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session introuvable")
+    if session.status == SessionStatus.COMPLETED:
+        return {"status": "completed"}
+    job = get_correction_job(db, session_id=session.id)
+    if job is None:
+        return {"status": "unknown"}
+    return {"status": job.status.value, "error_message": job.error_message}
+
+
+@router.post("/sessions/{session_id}/retry-correction")
+async def retry_correction_route(
+    session_id: int,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+):
+    """Ticket #88 § 10 : réessaie une correction `FAILED` — ne modifie jamais les réponses
+    déjà enregistrées, réutilise le MÊME job (jamais un second, jamais un second appel
+    IA en doublon d'une correction déjà réussie)."""
+    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session introuvable")
+    job = get_correction_job(db, session_id=session.id)
+    if job is not None:
+        try:
+            retry_failed_correction_job(db, job=job)
+        except CorrectionJobNotFailedError:
+            pass
     return RedirectResponse(url=f"/sessions/{session_id}", status_code=303)
 
 

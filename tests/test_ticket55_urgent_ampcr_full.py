@@ -41,7 +41,7 @@ def _start_session(client, uaa_slug: str, mode: str = "practice", difficulty: st
     return response.headers["location"]
 
 
-def _answer_all_and_submit(client, session_url: str, total: int) -> None:
+def _answer_all_and_submit(client, session_url: str, total: int, db_session, provider) -> None:
     for position in range(1, total + 1):
         response = client.get(f"{session_url}?q={position}")
         assert response.status_code == 200
@@ -57,6 +57,14 @@ def _answer_all_and_submit(client, session_url: str, total: int) -> None:
     token = _csrf(response.text)
     response = client.post(f"{session_url}/submit", data={"csrf_token": token}, follow_redirects=False)
     assert response.status_code == 303
+    # Ticket #88 : le POST ne corrige plus de façon synchrone — fait tourner le worker
+    # explicitement (appel direct, pas de processus séparé) avant que l'appelant ne lise
+    # un résultat.
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=provider)
 
 
 # --- 1. Les 38 contextes présents, codes MC01→MC38 sans trou, titres présents -----------------
@@ -315,7 +323,7 @@ def test_submit_runs_local_and_one_batch_semantic_call(authenticated_client, db_
     session_url = _start_session(authenticated_client, "ampcr-mc01", mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
 
-    _answer_all_and_submit(authenticated_client, session_url, 10)
+    _answer_all_and_submit(authenticated_client, session_url, 10, db_session, fake)
 
     db_session.expire_all()
     session = db_session.get(QuestionnaireSession, session_id)
@@ -331,10 +339,10 @@ def test_submit_runs_local_and_one_batch_semantic_call(authenticated_client, db_
 
 def test_completed_session_is_immutable(authenticated_client, db_session, monkeypatch):
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, "ampcr-mc01", mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
-    _answer_all_and_submit(authenticated_client, session_url, 10)
+    _answer_all_and_submit(authenticated_client, session_url, 10, db_session, fake)
 
     db_session.expire_all()
     session = db_session.get(QuestionnaireSession, session_id)
@@ -350,9 +358,9 @@ def test_completed_session_is_immutable(authenticated_client, db_session, monkey
 
 def test_results_page_shows_user_answer_and_feedback(authenticated_client, db_session, monkeypatch):
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, "ampcr-mc01", mode="practice")
-    _answer_all_and_submit(authenticated_client, session_url, 10)
+    _answer_all_and_submit(authenticated_client, session_url, 10, db_session, fake)
 
     response = authenticated_client.get(session_url)
     assert response.status_code == 200

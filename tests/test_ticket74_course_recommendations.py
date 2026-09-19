@@ -74,7 +74,7 @@ def _answer_payload_for(html: str, *, force_wrong: bool = False) -> dict:
     return {"text": "azerty"}  # réponse rédigée clairement hors sujet -> incorrecte
 
 
-def _answer_all_wrong_and_submit(client, session_url: str, total: int) -> None:
+def _answer_all_wrong_and_submit(client, session_url: str, total: int, db_session, provider) -> None:
     for position in range(1, total + 1):
         response = client.get(f"{session_url}?q={position}")
         token = _csrf(response.text)
@@ -85,6 +85,14 @@ def _answer_all_wrong_and_submit(client, session_url: str, total: int) -> None:
     response = client.get(f"{session_url}/submit-confirm")
     token = _csrf(response.text)
     client.post(f"{session_url}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False)
+    # Ticket #88 : le POST ne corrige plus de façon synchrone — fait tourner le worker
+    # explicitement (appel direct, pas de processus séparé) avant que l'appelant ne lise
+    # un résultat.
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=provider)
 
 
 # =============================================================================================
@@ -140,7 +148,7 @@ def test_courses_to_review_ignores_correct_answers():
 
 def test_results_page_shows_course_link_for_incorrect_questions(authenticated_client, db_session, monkeypatch):
     _seed_mc01(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(response.text)
     response = authenticated_client.post(
@@ -150,7 +158,7 @@ def test_results_page_shows_course_link_for_incorrect_questions(authenticated_cl
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
 
-    _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     response = authenticated_client.get(session_url)
     assert response.status_code == 200
@@ -163,7 +171,7 @@ def test_results_page_shows_course_link_for_incorrect_questions(authenticated_cl
 
 def test_results_page_shows_courses_to_review_summary(authenticated_client, db_session, monkeypatch):
     _seed_mc01(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(response.text)
     response = authenticated_client.post(
@@ -173,7 +181,7 @@ def test_results_page_shows_courses_to_review_summary(authenticated_client, db_s
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
 
-    _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     response = authenticated_client.get(session_url)
     assert "Cours à relire en priorité" in response.text
@@ -242,7 +250,7 @@ def test_export_markdown_includes_courses_to_review_and_per_question_reference(
     authenticated_client, db_session, monkeypatch
 ):
     _seed_mc01(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(response.text)
     response = authenticated_client.post(
@@ -252,7 +260,7 @@ def test_export_markdown_includes_courses_to_review_and_per_question_reference(
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
 
-    _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     response = authenticated_client.get(f"{session_url}/export.md")
     assert response.status_code == 200
@@ -269,7 +277,7 @@ def test_print_shows_course_reference_text_but_hides_interactive_button(
     authenticated_client, db_session, monkeypatch
 ):
     _seed_mc01(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(response.text)
     response = authenticated_client.post(
@@ -278,7 +286,7 @@ def test_print_shows_course_reference_text_but_hides_interactive_button(
     session_url = f"/sessions/{int(response.headers['location'].rsplit('/', 1)[-1])}"
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     response = authenticated_client.get(session_url)
     # "Cours concerné" (référence textuelle) reste visible à l'impression ; seul le

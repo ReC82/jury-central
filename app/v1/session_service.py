@@ -9,10 +9,11 @@ seul autre au maximum à la soumission (correction sémantique groupée) — jam
 par question (voir `app.ai.questionnaire`, réutilisé tel quel, ticket #23)."""
 
 import random
+import time
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import update
 from sqlalchemy.orm import Session as DBSession
@@ -53,6 +54,8 @@ from app.v1.mc38_transversal import (
 )
 from app.v1.models import (
     AnswerCorrectionStatus,
+    CorrectionJob,
+    CorrectionJobStatus,
     Question,
     QuestionnaireSession,
     SessionAnswer,
@@ -1042,6 +1045,187 @@ def _correct_and_finalize_claimed_session(
     session.parameters_json = updated_parameters
     db.commit()
     return session
+
+
+# =============================================================================================
+# Correction asynchrone (ticket #88) : casse la dépendance entre la durée de l'appel IA
+# groupé et la requête HTTP `POST /sessions/{id}/submit`, seule cause du 504 Gateway
+# Time-out réellement observé en staging. `submit_session`/`_correct_and_finalize_
+# claimed_session` ci-dessus restent INCHANGÉS (toujours directement utilisables/testés,
+# ex. tickets #70/#71/#74) — réutilisés tels quels par `run_correction_job` ci-dessous
+# comme le corps réel du travail de correction, exécuté par un worker séparé, jamais
+# dans le cycle requête/réponse HTTP.
+# =============================================================================================
+
+_ENQUEUE_RACE_RETRY_ATTEMPTS = 10
+_ENQUEUE_RACE_RETRY_DELAY_SECONDS = 0.05
+
+
+def get_correction_job(db: DBSession, *, session_id: int) -> CorrectionJob | None:
+    return db.query(CorrectionJob).filter_by(session_id=session_id).first()
+
+
+def enqueue_correction(db: DBSession, *, session: QuestionnaireSession, severity_ui: int) -> CorrectionJob:
+    """Point d'entrée non bloquant de `POST /sessions/{id}/submit` (ticket #88) : verrouille
+    la session (`IN_PROGRESS` → `CORRECTING`, réclamation atomique — même mécanisme que
+    l'ancienne réclamation `IN_PROGRESS` → `COMPLETED` de `submit_session`, voir sa
+    docstring) et crée (ou retrouve) un `CorrectionJob` `PENDING`. NE FAIT JAMAIS d'appel
+    IA — retourne dès que le job existe, en quelques millisecondes, quelle que soit la
+    durée que prendra la correction elle-même.
+
+    Idempotent par construction (ticket #88 § 4) : `CorrectionJob.session_id` est UNIQUE
+    en base — un double clic, un refresh, un retour arrière/avant, un retry HTTP ou deux
+    onglets simultanés retombent tous sur CE MÊME job (recherché en premier, avant toute
+    tentative de réclamation), jamais une seconde ligne ni un second appel IA."""
+    existing = get_correction_job(db, session_id=session.id)
+    if existing is not None:
+        return existing
+
+    claim = db.execute(
+        update(QuestionnaireSession)
+        .where(QuestionnaireSession.id == session.id, QuestionnaireSession.status == SessionStatus.IN_PROGRESS)
+        .values(status=SessionStatus.CORRECTING)
+    )
+    db.commit()
+
+    if claim.rowcount == 0:
+        # Une autre requête a déjà réclamé cette session (course gagnée ailleurs) — son
+        # job existe déjà ou est sur le point d'être committé ; on le retrouve, avec un
+        # court repli borné pour l'extrême cas où notre lecture précède de quelques
+        # millisecondes le commit du gagnant (fenêtre de course, jamais observée en
+        # pratique avec SQLite — écritures sérialisées — mais couverte explicitement).
+        for _ in range(_ENQUEUE_RACE_RETRY_ATTEMPTS):
+            existing = get_correction_job(db, session_id=session.id)
+            if existing is not None:
+                return existing
+            time.sleep(_ENQUEUE_RACE_RETRY_DELAY_SECONDS)
+        db.refresh(session)
+        raise RuntimeError(
+            f"Session {session.id} réclamée (status={session.status.value}) mais aucun "
+            "CorrectionJob retrouvé après un court délai — incohérence inattendue."
+        )
+
+    job = CorrectionJob(session_id=session.id, status=CorrectionJobStatus.PENDING, severity_ui=severity_ui)
+    db.add(job)
+    db.commit()
+    return job
+
+
+def claim_next_pending_correction_job(db: DBSession, *, max_attempts: int = 3) -> CorrectionJob | None:
+    """Réclamation ATOMIQUE du prochain job `PENDING` par un worker (ticket #88 § 8) —
+    `UPDATE ... WHERE status = PENDING` : si un autre worker l'a réclamé entre notre
+    lecture et cette mise à jour, `rowcount == 0` et on renvoie `None` sans jamais
+    exécuter deux fois la même correction. Les jobs ayant déjà atteint `max_attempts`
+    sont ignorés (laissés `PENDING`... non — voir `recover_stale_correction_jobs`, qui
+    les fait passer `FAILED` : ce filtre est un filet de sécurité supplémentaire, jamais
+    la seule protection)."""
+    job = (
+        db.query(CorrectionJob)
+        .filter(CorrectionJob.status == CorrectionJobStatus.PENDING, CorrectionJob.attempt_count < max_attempts)
+        .order_by(CorrectionJob.created_at)
+        .first()
+    )
+    if job is None:
+        return None
+
+    claim = db.execute(
+        update(CorrectionJob)
+        .where(CorrectionJob.id == job.id, CorrectionJob.status == CorrectionJobStatus.PENDING)
+        .values(
+            status=CorrectionJobStatus.RUNNING,
+            started_at=datetime.now(UTC),
+            attempt_count=CorrectionJob.attempt_count + 1,
+        )
+    )
+    db.commit()
+    if claim.rowcount == 0:
+        return None
+    db.refresh(job)
+    return job
+
+
+def run_correction_job(db: DBSession, *, job: CorrectionJob, provider: AIProvider) -> CorrectionJob:
+    """Corps réel du travail de correction (ticket #88), exécuté par un worker — jamais
+    dans une requête HTTP. Réutilise `_correct_and_finalize_claimed_session` telle quelle
+    (déjà responsable de faire passer `session.status` à `COMPLETED`) : `AIProviderError`
+    y est DÉJÀ gérée avec un repli local gracieux (§ 13/§ CORRECTION du ticket #55, § 16
+    du ticket #62, comportement INCHANGÉ par ce ticket) — cette fonction ne voit donc
+    jamais cette exception, seulement une erreur réellement inattendue (bug, base
+    indisponible...), qu'elle transforme en `CorrectionJobStatus.FAILED` avec un message
+    d'erreur, jamais en session bloquée sans explication."""
+    session = db.get(QuestionnaireSession, job.session_id)
+    if session is None:
+        job.status = CorrectionJobStatus.FAILED
+        job.error_message = f"Session {job.session_id} introuvable."
+        db.commit()
+        return job
+
+    try:
+        _correct_and_finalize_claimed_session(db, session=session, provider=provider, severity_ui=job.severity_ui)
+    except Exception as exc:  # noqa: BLE001 — job de fond, jamais de propagation vers un client HTTP
+        db.rollback()
+        job.status = CorrectionJobStatus.FAILED
+        job.error_message = str(exc)[:2000]
+        db.commit()
+        return job
+
+    job.status = CorrectionJobStatus.COMPLETED
+    job.completed_at = datetime.now(UTC)
+    db.commit()
+    return job
+
+
+def recover_stale_correction_jobs(
+    db: DBSession, *, stale_after_seconds: int = 300, max_attempts: int = 3
+) -> dict[str, int]:
+    """Récupération des jobs bloqués (ticket #88 § 9) : un worker qui plante APRÈS avoir
+    réclamé un job (`RUNNING`) mais AVANT de le conclure le laisserait sinon bloqué
+    indéfiniment. Tout job `RUNNING` depuis plus de `stale_after_seconds` est soit remis
+    `PENDING` (requeue, s'il lui reste des tentatives), soit basculé `FAILED` (au-delà de
+    `max_attempts` — jamais de boucle infinie de reprises)."""
+    threshold = datetime.now(UTC) - timedelta(seconds=stale_after_seconds)
+    stale_jobs = (
+        db.query(CorrectionJob)
+        .filter(CorrectionJob.status == CorrectionJobStatus.RUNNING, CorrectionJob.started_at < threshold)
+        .all()
+    )
+    requeued = 0
+    failed = 0
+    for job in stale_jobs:
+        if job.attempt_count >= max_attempts:
+            job.status = CorrectionJobStatus.FAILED
+            job.error_message = (
+                "Job resté bloqué (RUNNING) trop longtemps — nombre maximal de tentatives "
+                f"atteint ({max_attempts})."
+            )
+            failed += 1
+        else:
+            job.status = CorrectionJobStatus.PENDING
+            job.started_at = None
+            requeued += 1
+    db.commit()
+    return {"requeued": requeued, "failed": failed}
+
+
+class CorrectionJobNotFailedError(ValueError):
+    """Un retry n'a de sens que sur un job réellement `FAILED` (ticket #88 § 10)."""
+
+
+def retry_failed_correction_job(db: DBSession, *, job: CorrectionJob) -> CorrectionJob:
+    """Réessaie une correction en échec (ticket #88 § 10) : réutilise le MÊME job (jamais
+    une seconde ligne, jamais un second `CorrectionJob` pour la session), remis `PENDING`
+    avec un compteur de tentatives repartant de zéro (action humaine explicite et
+    délibérée, distincte d'une reprise automatique après incident — voir
+    `recover_stale_correction_jobs`). Ne modifie jamais les réponses déjà enregistrées ni
+    `QuestionnaireSession.status` (reste `CORRECTING`, verrouillée)."""
+    if job.status != CorrectionJobStatus.FAILED:
+        raise CorrectionJobNotFailedError(f"Job {job.id} n'est pas FAILED (status={job.status.value}).")
+    job.status = CorrectionJobStatus.PENDING
+    job.error_message = None
+    job.started_at = None
+    job.attempt_count = 0
+    db.commit()
+    return job
 
 
 class SessionNotCompletedError(ValueError):

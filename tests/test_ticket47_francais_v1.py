@@ -75,7 +75,9 @@ def _answer_payload_for(html: str) -> dict:
     return {"text": "Réponse de test couvrant plusieurs phrases pour valider la correction."}
 
 
-def _answer_all_and_submit(client, session_url: str, total: int, severity: int | None = None) -> None:
+def _answer_all_and_submit(
+    client, session_url: str, total: int, db_session, provider, severity: int | None = None
+) -> None:
     for position in range(1, total + 1):
         response = client.get(f"{session_url}?q={position}")
         assert response.status_code == 200
@@ -92,6 +94,14 @@ def _answer_all_and_submit(client, session_url: str, total: int, severity: int |
         submit_data["severity"] = severity
     response = client.post(f"{session_url}/submit", data=submit_data, follow_redirects=False)
     assert response.status_code == 303
+    # Ticket #88 : le POST ne corrige plus de façon synchrone — fait tourner le worker
+    # explicitement (appel direct, pas de processus séparé) avant que l'appelant ne lise
+    # un résultat.
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=provider)
 
 
 # --- 1. SourceDocument partagé, banque hand-authored ----------------------------------------
@@ -321,11 +331,11 @@ def test_exam_prevents_duplicate_in_progress_sessions(authenticated_client, db_s
 
 def test_exam_session_immutable_after_submission(authenticated_client, db_session, monkeypatch):
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, mode="exam")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
     db_session.refresh(session)
     assert session.status.value == "completed"
 
@@ -351,7 +361,7 @@ def test_submission_triggers_exactly_one_semantic_batch_call(authenticated_clien
     session_url = _start_session(authenticated_client, mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
     assert len(fake.semantic_calls) == 1
 
 
@@ -421,11 +431,11 @@ def test_long_answer_is_not_truncated_end_to_end(authenticated_client, db_sessio
 
 def test_results_show_detailed_feedback_structure(authenticated_client, db_session, monkeypatch):
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     response = authenticated_client.get(session_url)
     assert response.status_code == 200
@@ -435,11 +445,11 @@ def test_results_show_detailed_feedback_structure(authenticated_client, db_sessi
 
 def test_no_public_solution_leak_anywhere_in_results(authenticated_client, db_session, monkeypatch):
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     response = authenticated_client.get(session_url)
     for field in ("correct_option_ids", "correct_categories", "accepted_answers"):
@@ -450,12 +460,13 @@ def test_no_public_solution_leak_anywhere_in_results(authenticated_client, db_se
 # --- transmises à l'IA, pas seulement présentes dans francais_bank.py -------------------------
 
 
-def _patch_fake_provider_with_rubric_spy(monkeypatch) -> list:
+def _patch_fake_provider_with_rubric_spy(monkeypatch) -> tuple[list, "FakeAIProvider"]:
     """Comme `_patch_fake_provider`, mais espionne aussi les questions réellement transmises
     à `correct_semantic_batch` (jamais un vrai appel OpenAI) — pour vérifier que le
     `rubric` de la banque atteint bien le pont IA (`app.v1.ai_bridge`,
     `app.ai.prompts.build_correct_semantic_messages`), pas seulement qu'il existe dans
-    `francais_bank.py`."""
+    `francais_bank.py`. Retourne aussi `fake` (ticket #88 : nécessaire pour faire tourner
+    le worker explicitement après un submit HTTP, désormais asynchrone)."""
     fake = FakeAIProvider()
     captured: list = []
     original = fake.correct_semantic_batch
@@ -466,7 +477,7 @@ def _patch_fake_provider_with_rubric_spy(monkeypatch) -> list:
 
     monkeypatch.setattr(fake, "correct_semantic_batch", spy)
     monkeypatch.setattr("app.v1.routes_sessions.get_ai_provider", lambda: fake)
-    return captured
+    return captured, fake
 
 
 def _build_single_existing_question_session(db_session, question: Question, mode=SessionMode.PRACTICE) -> int:
@@ -515,7 +526,7 @@ def test_opinion_neutrality_clause_reaches_the_ai_correction_prompt(
     question = _first_francais_question_with_rubric_containing(
         db_session, c01, "Ne juge JAMAIS l'opinion exprimée elle-même"
     )
-    captured = _patch_fake_provider_with_rubric_spy(monkeypatch)
+    captured, fake = _patch_fake_provider_with_rubric_spy(monkeypatch)
     session_id = _build_single_existing_question_session(db_session, question)
 
     response = authenticated_client.get(f"/sessions/{session_id}?q=1")
@@ -535,6 +546,11 @@ def test_opinion_neutrality_clause_reaches_the_ai_correction_prompt(
         f"/sessions/{session_id}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False,
     )
     assert response.status_code == 303
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=fake)
 
     assert len(captured) == 1
     sent_rubrics = [q.rubric or "" for q in captured[0]]
@@ -555,7 +571,7 @@ def test_long_answer_feedback_structure_clause_reaches_the_ai_correction_prompt(
 
     question = _first_francais_question_with_rubric_containing(db_session, c01, "STRUCTURE")
     assert question.current_version.question_type == "long_answer"
-    captured = _patch_fake_provider_with_rubric_spy(monkeypatch)
+    captured, fake = _patch_fake_provider_with_rubric_spy(monkeypatch)
     session_id = _build_single_existing_question_session(db_session, question)
 
     response = authenticated_client.get(f"/sessions/{session_id}?q=1")
@@ -575,6 +591,11 @@ def test_long_answer_feedback_structure_clause_reaches_the_ai_correction_prompt(
         f"/sessions/{session_id}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False,
     )
     assert response.status_code == 303
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=fake)
 
     assert len(captured) == 1
     sent_rubrics = [q.rubric or "" for q in captured[0]]
@@ -678,11 +699,11 @@ def test_severity_one_three_five_all_accepted_and_persisted_for_francais(
 ):
     seed()
     for severity in (1, 3, 5):
-        _patch_fake_provider(monkeypatch)
+        fake = _patch_fake_provider(monkeypatch)
         session_url = _start_session(authenticated_client, mode="practice")
         session_id = int(session_url.rsplit("/", 1)[-1])
         session = db_session.get(QuestionnaireSession, session_id)
-        _answer_all_and_submit(authenticated_client, session_url, session.question_count, severity=severity)
+        _answer_all_and_submit(authenticated_client, session_url, session.question_count, db_session, fake, severity=severity)
 
         db_session.expire_all()
         session = db_session.get(QuestionnaireSession, session_id)
@@ -695,11 +716,11 @@ def test_severity_one_three_five_all_accepted_and_persisted_for_francais(
 
 def test_export_markdown_contains_francais_session_content(authenticated_client, db_session, monkeypatch):
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     response = authenticated_client.get(f"{session_url}/export.md")
     assert response.status_code == 200
@@ -715,11 +736,11 @@ def test_export_markdown_contains_francais_session_content(authenticated_client,
 
 def test_print_button_and_css_present_for_francais_results(authenticated_client, db_session, monkeypatch):
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     response = authenticated_client.get(session_url)
     assert response.status_code == 200
@@ -731,11 +752,11 @@ def test_print_button_and_css_present_for_francais_results(authenticated_client,
 
 def test_mes_sessions_shows_francais_session(authenticated_client, db_session, monkeypatch):
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     response = authenticated_client.get("/mes-sessions")
     assert response.status_code == 200
@@ -747,11 +768,11 @@ def test_logout_then_login_preserves_francais_history(authenticated_client, db_s
     """Se déconnecter puis se reconnecter ne doit rien perdre : la session Français
     complétée reste visible dans l'historique après une nouvelle connexion (§ Phase 12)."""
     seed()
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    _answer_all_and_submit(authenticated_client, session_url, session.question_count)
+    _answer_all_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 
     account_response = authenticated_client.get("/account")
     assert account_response.status_code == 200

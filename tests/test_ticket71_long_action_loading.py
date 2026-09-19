@@ -50,6 +50,19 @@ def _patch_fake_provider(monkeypatch):
     return fake
 
 
+def _run_pending_correction_job(db_session, provider):
+    """Ticket #88 : `POST /sessions/{id}/submit` ne corrige plus de façon synchrone — il
+    crée un `CorrectionJob` PENDING. Les tests qui soumettent via HTTP puis vérifient un
+    résultat doivent explicitement faire tourner le worker (ici en appel direct, sans
+    processus séparé) avant de lire `session.status`/le score/les résultats."""
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=provider)
+    return job
+
+
 def _seed_mc01(db_session):
     seed()
     ampcr = db_session.query(Module).filter_by(code="AMPCR").first()
@@ -259,6 +272,9 @@ def test_double_post_submit_triggers_only_one_ai_correction(authenticated_client
     assert first.status_code == 303
     assert second.status_code == 303
 
+    # Ticket #88 : le double POST ne crée jamais qu'UN SEUL CorrectionJob — le fait
+    # tourner explicitement ici (pas de worker séparé dans les tests).
+    _run_pending_correction_job(db_session, fake)
     assert len(fake.semantic_calls) == 1, "un seul appel de correction IA, jamais deux, malgré le double POST"
 
     db_session.refresh(session)
