@@ -339,7 +339,9 @@ def test_francais_practice_still_composes_normally(authenticated_client, db_sess
     assert response.status_code == 303
     session_id = int(response.headers["location"].rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    assert session.question_count == 10
+    # Ticket #82 : 9 ou 10 selon le tirage (garde anti-doublon intra-session finale) —
+    # voir tests/test_ticket47_francais_v1.py::test_exam_session_has_twenty_questions.
+    assert 9 <= session.question_count <= 10
 
 
 def test_francais_exam_still_composes_normally(authenticated_client, db_session, monkeypatch):
@@ -355,7 +357,8 @@ def test_francais_exam_still_composes_normally(authenticated_client, db_session,
     assert response.status_code == 303
     session_id = int(response.headers["location"].rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
-    assert session.question_count == 20
+    # Ticket #82 : 19 ou 20 selon le tirage (garde anti-doublon intra-session finale).
+    assert 19 <= session.question_count <= 20
 
 
 def test_results_and_export_unaffected_for_questions_without_any_document(
