@@ -296,10 +296,10 @@ de fichiers choisi ont un impact direct sur la compatibilité et les limites du 
 
 ## 4. Procédure / méthode
 Avant de partitionner/formater un disque : (1) vérifier qu'aucune donnée utile n'y est
-présente (opération destructive) ; (2) choisir GPT pour un usage moderne (UEFI, disque
-> 2 To), MBR seulement pour une compatibilité ancienne spécifique ; (3) choisir le système
-de fichiers selon l'usage (NTFS pour Windows, exFAT pour un support partagé multi-OS,
-ext4 pour Linux).
+présente (opération destructive) ; (2) choisir GPT pour un usage moderne (UEFI,
+disque > 2 To), MBR seulement pour une compatibilité ancienne spécifique ; (3) choisir
+le système de fichiers selon l'usage (NTFS pour Windows, exFAT pour un support partagé
+multi-OS, ext4 pour Linux).
 
 ## 5. Exemple concret
 Un disque de 4 To formaté en MBR ne peut utiliser que 2 To : le reste de l'espace est
