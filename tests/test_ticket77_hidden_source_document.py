@@ -276,7 +276,10 @@ def test_question_170_document_visible_end_to_end_practice_and_exam(
 
     response = authenticated_client.get(f"{session_url}?q=1")
     assert response.status_code == 200
-    assert 'class="accordion-item"' in response.text
+    assert "source-document-panel" in response.text
+    assert "Document de référence" in response.text
+    assert "Voir le document" in response.text
+    assert "/documents/" in response.text
     assert escaped_title in response.text
     assert "answer-textarea" in response.text
 
@@ -302,14 +305,18 @@ def test_question_170_document_visible_end_to_end_practice_and_exam(
     results = authenticated_client.get(session_url)
     assert results.status_code == 200
     assert "Ta réponse" in results.text
-    assert f"Document(s) de référence : {escaped_title}" in results.text
+    assert "Document(s) de référence :" in results.text
+    assert f"Document de référence : {escaped_title}" in results.text
+    assert "Voir le document" in results.text
+    assert "/documents/" in results.text
     assert "window.print()" in results.text
     assert "@media print" in results.text
 
     export = authenticated_client.get(f"{session_url}/export.md")
     assert export.status_code == 200
     assert "## Question 1" in export.text
-    assert f"Document(s) de référence : {CODING_DEBATE_DOCUMENT_TITLE}" in export.text
+    assert "Document(s) de référence :" in export.text
+    assert f"- Document de référence : {CODING_DEBATE_DOCUMENT_TITLE}" in export.text
     # Référence courte, jamais le texte complet du document redupliqué dans l'export.
     assert export.text.count(CODING_DEBATE_DOCUMENT_TITLE) == 1
 
@@ -359,10 +366,12 @@ def test_results_and_export_unaffected_for_questions_without_any_document(
     c01 = _import_francais_bank(db_session)
     question = None
     for candidate in db_session.query(Question).filter_by(uaa_id=c01.id):
-        if candidate.current_version.question_type == "short_answer":
+        content = candidate.current_version.content_json
+        has_doc = content.get("source_document_version_id") or content.get("source_document_version_ids")
+        if candidate.current_version.question_type == "short_answer" and not has_doc:
             question = candidate
             break
-    assert question is not None
+    assert question is not None, "aucune question short_answer sans document trouvée (voir francais_bank.py)"
 
     _patch_fake_provider(monkeypatch)
     session_id = _build_single_existing_question_session(db_session, question)

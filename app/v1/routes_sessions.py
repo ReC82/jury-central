@@ -35,6 +35,7 @@ from app.v1.models import (
     SessionDifficultyRequest,
     SessionMode,
     SessionStatus,
+    SourceDocumentVersion,
     User,
 )
 from app.v1.session_service import (
@@ -412,6 +413,30 @@ def _parse_answer_form(question_type: str, content: dict[str, Any], form) -> dic
     return {"text": form.get("text", "")}
 
 
+@router.get("/documents/{version_id}", response_class=HTMLResponse)
+async def view_source_document(
+    version_id: int,
+    request: Request,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+) -> HTMLResponse:
+    """Route de lecture seule stable (ticket #79 § 7) — pensée pour s'ouvrir dans un
+    nouvel onglet (`target="_blank"`) depuis une question ou un résultat, sans perdre la
+    page d'origine. Titre + texte complet uniquement : aucun feedback, aucune solution,
+    aucune information sur quelle(s) question(s) le référencent — un `SourceDocumentVersion`
+    est un document de référence partagé, jamais un contenu propre à une session ou un
+    utilisateur, donc pas de vérification de propriété au-delà de « être connecté »
+    (mêmes règles d'accès que la page Cours, déjà publique pour le contenu pédagogique)."""
+    document = db.get(SourceDocumentVersion, version_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document introuvable")
+    return templates.TemplateResponse(
+        request=request,
+        name="v1_document_view.html",
+        context={"document": document},
+    )
+
+
 @router.get("/sessions/{session_id}", response_class=HTMLResponse)
 async def view_session(
     session_id: int,
@@ -474,12 +499,18 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     """Ligne de résultat par question — factorisé (ticket #62) entre l'écran HTML
     (`v1_session_results.html`) et l'export Markdown, jamais deux implémentations.
 
-    `source_documents` (ticket #77, § 6) : titre(s) du/des document(s) référencé(s) par
-    cette question, résolus via le même payload public que l'élève a vu pendant la
-    session (`_referenced_document_ids`) — jamais le texte complet redupliqué ici, une
-    référence claire suffit pour les résultats/export/impression."""
-    from app.v1.models import SourceDocumentVersion
+    `source_documents` (ticket #77 § 6, #79 § 8-9) : le(s) document(s) référencé(s) par
+    cette question — {id, label, title, content_text} — résolus via le même payload
+    public que l'élève a vu pendant la session (`_referenced_document_ids` +
+    `resolve_documents_in_order`, jamais un tri par id qui casserait l'étiquetage A/B).
+    Le texte complet est inclus (relecture possible depuis les résultats, § 8 du ticket
+    #79) mais jamais dupliqué plusieurs fois : une seule résolution par document distinct.
+
+    `course_title`/`course_slug` (ticket #79 § 13) : rattachement de la question à son
+    UAA/cours, exposé pour qu'un futur ticket (#74) puisse ajouter un bouton « Relire le
+    cours » sans nouvelle architecture — aucun bouton ajouté ici."""
     from app.v1.question_engine import public_payload
+    from app.v1.session_service import document_label, resolve_documents_in_order
 
     payloads = {
         sq.position: public_payload(
@@ -490,28 +521,39 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     all_doc_ids: set[int] = set()
     for payload in payloads.values():
         all_doc_ids.update(_referenced_document_ids(payload))
+    documents_by_id = {
+        document.id: document for document in resolve_documents_in_order(db, sorted(all_doc_ids))
+    }
 
-    titles_by_id: dict[int, str] = {}
-    if all_doc_ids:
-        documents = db.query(SourceDocumentVersion).filter(SourceDocumentVersion.id.in_(all_doc_ids)).all()
-        titles_by_id = {document.id: (document.title or "Document source") for document in documents}
-
-    return [
-        {
-            "position": sq.position,
-            "question_type": sq.question_version.question_type,
-            "prompt": sq.question_version.content_json.get("prompt", ""),
-            "user_answer": _describe_answer(sq),
-            "feedback": (sq.answer.feedback_json if sq.answer else {}) or {},
-            "points_awarded": sq.answer.points_awarded if sq.answer else 0.0,
-            "source_documents": [
-                titles_by_id[doc_id]
-                for doc_id in _referenced_document_ids(payloads[sq.position])
-                if doc_id in titles_by_id
-            ],
-        }
-        for sq in session_questions
-    ]
+    rows = []
+    for sq in session_questions:
+        question_type = sq.question_version.question_type
+        doc_ids = _referenced_document_ids(payloads[sq.position])
+        source_documents = [
+            {
+                "id": doc_id,
+                "label": document_label(question_type, index),
+                "title": documents_by_id[doc_id].title or "Document source",
+                "content_text": documents_by_id[doc_id].content_text or "",
+            }
+            for index, doc_id in enumerate(doc_ids)
+            if doc_id in documents_by_id
+        ]
+        uaa = sq.question_version.question.uaa if sq.question_version.question else None
+        rows.append(
+            {
+                "position": sq.position,
+                "question_type": question_type,
+                "prompt": sq.question_version.content_json.get("prompt", ""),
+                "user_answer": _describe_answer(sq),
+                "feedback": (sq.answer.feedback_json if sq.answer else {}) or {},
+                "points_awarded": sq.answer.points_awarded if sq.answer else 0.0,
+                "source_documents": source_documents,
+                "course_title": uaa.title if uaa else None,
+                "course_slug": uaa.slug if uaa else None,
+            }
+        )
+    return rows
 
 
 @router.post("/sessions/{session_id}/answer")
@@ -689,16 +731,13 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
         errors_lines = [f"- {e}" for e in feedback.get("errors") or []] or ["—"]
         missing_lines = [f"- {m}" for m in feedback.get("missing") or []] or ["—"]
         source_documents = row.get("source_documents") or []
+        document_ref_lines = [f"- {doc['label']} : {doc['title']}" for doc in source_documents]
         lines += [
             f"## Question {row['position']}",
             "",
             row["prompt"],
             "",
-            *(
-                [f"*Document(s) de référence : {', '.join(source_documents)}*", ""]
-                if source_documents
-                else []
-            ),
+            *(["Document(s) de référence :", "", *document_ref_lines, ""] if source_documents else []),
             "### Ma réponse",
             "",
             row["user_answer"] or "(sans réponse)",

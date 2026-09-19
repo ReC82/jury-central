@@ -173,9 +173,14 @@ def test_multiple_questions_reference_the_same_document(db_session):
         if q.current_version.content_json.get("source_document_version_id")
         or q.current_version.content_json.get("source_document_version_ids")
     ]
-    # Corpus étendu : 4 document_analysis + 4 source_comparison + 1 long_answer référençant
-    # explicitement son document déclencheur (débat programmation) = 9 questions.
-    assert len(referencing_a_document) == 9
+    # Corpus étendu (#47) : 4 document_analysis + 4 source_comparison + 1 long_answer
+    # référençant explicitement son document déclencheur (débat programmation) = 9.
+    # Audit #79 § 4 : 29 questions supplémentaires (short_answer/vocabulary/
+    # classification/long_answer) disaient « D'après le texte »/« Selon le texte »/etc.
+    # sans aucun rattachement structuré — corrigées pour toutes en avoir un (2 questions
+    # d'opinion citant leur affirmation en entier dans le prompt restent volontairement
+    # sans document, voir francais_bank.py). Total : 9 + 29 = 38.
+    assert len(referencing_a_document) == 38
 
     main_doc_version = (
         db_session.query(SourceDocumentVersion)
@@ -589,7 +594,9 @@ def test_source_document_panel_is_shown_for_document_referencing_questions(
 
     response = authenticated_client.get(f"{session_url}?q={doc_position}")
     assert response.status_code == 200
-    assert "accordion" in response.text
+    assert "source-document-panel" in response.text
+    assert "Voir le document" in response.text
+    assert "Ouvrir dans un nouvel onglet" in response.text
     assert "inutile de revenir en arrière" in response.text
 
 
@@ -625,7 +632,7 @@ def test_document_accordion_is_scoped_and_bounded(authenticated_client, db_sessi
             continue
         response = authenticated_client.get(f"{session_url}?q={position}")
         assert response.status_code == 200
-        assert response.text.count('class="accordion-item"') <= expected_max
+        assert response.text.count("source-document-panel") <= expected_max
         assert "max-height: 50vh" in response.text
         assert "overflow-y: auto" in response.text
 

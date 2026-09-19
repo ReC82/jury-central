@@ -18,20 +18,26 @@
         </div>
 
         {% if display.source_documents %}
-        <div class="accordion mb-3" id="source-documents-accordion">
+        <div class="mb-3">
             {% for doc in display.source_documents %}
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#source-doc-{{ doc.id }}"
-                            aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="source-doc-{{ doc.id }}">
-                        📄 {{ doc.title or "Document source" }}
-                    </button>
-                </h2>
-                <div id="source-doc-{{ doc.id }}"
-                     class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
-                     data-bs-parent="#source-documents-accordion">
-                    <div class="accordion-body" style="white-space: pre-line; max-height: 50vh; overflow-y: auto;">{{ doc.content_text }}</div>
+            {% set doc_label = display.source_document_labels[loop.index0] %}
+            <div class="source-document-panel border rounded p-2 mb-2">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <span class="fw-semibold">📄 {{ doc_label }} : {{ doc.title or "Document source" }}</span>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-dark btn-sm" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#source-doc-{{ doc.id }}"
+                                aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="source-doc-{{ doc.id }}">
+                            Voir le document
+                        </button>
+                        <a class="btn btn-outline-secondary btn-sm" href="/documents/{{ doc.id }}"
+                           target="_blank" rel="noopener">
+                            Ouvrir dans un nouvel onglet
+                        </a>
+                    </div>
+                </div>
+                <div id="source-doc-{{ doc.id }}" class="collapse {% if loop.first %}show{% endif %} mt-2">
+                    <div class="border rounded p-2 bg-light" style="white-space: pre-line; max-height: 50vh; overflow-y: auto;">{{ doc.content_text }}</div>
                 </div>
             </div>
             {% endfor %}

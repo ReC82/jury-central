@@ -122,6 +122,7 @@ class QuestionDisplay:
     public_payload: dict
     answer_json: dict
     source_documents: list[SourceDocumentVersion]
+    source_document_labels: list[str]
 
 
 def _generate_with_domain_retry(
@@ -680,6 +681,31 @@ def _referenced_document_ids(payload: dict) -> list[int]:
     return doc_ids
 
 
+def document_label(question_type: str, index: int) -> str:
+    """Étiquette d'un document référencé par position (ticket #79, § 9) : « Document A »/
+    « Document B » pour `source_comparison` (jamais mélangés — voir
+    `resolve_documents_in_order` pour l'ordre), « Document de référence » sinon (au plus 1
+    document pour les autres types actuellement, voir `SourceDocumentRequirement`). Seule
+    définition de cet étiquetage — utilisée à la fois pour l'écran de question
+    (`build_question_display`) et pour les résultats/export (`routes_sessions.py`)."""
+    if question_type == "source_comparison":
+        return f"Document {chr(ord('A') + index)}"
+    return "Document de référence"
+
+
+def resolve_documents_in_order(db: DBSession, doc_ids: list[int]) -> list[SourceDocumentVersion]:
+    """Résout des identifiants de `SourceDocumentVersion` en respectant l'ORDRE fourni
+    (ticket #79, § 9 « Document A / Document B ») — jamais un tri par id. Une question
+    `source_comparison` référence ses documents dans l'ordre où son `prompt`/`rubric` les
+    nomme (ex. « texte principal » puis « second texte ») ; trier par id casserait cet
+    étiquetage si un document cité en premier a été créé après l'autre."""
+    if not doc_ids:
+        return []
+    fetched = db.query(SourceDocumentVersion).filter(SourceDocumentVersion.id.in_(doc_ids)).all()
+    by_id = {document.id: document for document in fetched}
+    return [by_id[doc_id] for doc_id in doc_ids if doc_id in by_id]
+
+
 def build_question_display(db: DBSession, session_question: SessionQuestion) -> QuestionDisplay:
     from app.v1.question_engine import public_payload
 
@@ -693,14 +719,8 @@ def build_question_display(db: DBSession, session_question: SessionQuestion) -> 
     # panneau/accordéon de lecture du template, une seule requête, jamais par question
     # dans une boucle ailleurs.
     doc_ids = _referenced_document_ids(payload)
-    source_documents: list[SourceDocumentVersion] = []
-    if doc_ids:
-        source_documents = (
-            db.query(SourceDocumentVersion)
-            .filter(SourceDocumentVersion.id.in_(doc_ids))
-            .order_by(SourceDocumentVersion.id)
-            .all()
-        )
+    source_documents = resolve_documents_in_order(db, doc_ids)
+    source_document_labels = [document_label(version.question_type, index) for index in range(len(source_documents))]
 
     return QuestionDisplay(
         session_question=session_question,
@@ -709,6 +729,7 @@ def build_question_display(db: DBSession, session_question: SessionQuestion) -> 
         public_payload=payload,
         answer_json=(answer.answer_json if answer else {}) or {},
         source_documents=source_documents,
+        source_document_labels=source_document_labels,
     )
 
 
