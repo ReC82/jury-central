@@ -168,6 +168,36 @@ _OBJECTIVES_BY_CODE: dict[str, str] = {
     "MC38": "Synthèse, fiches mémo, pièges, exercices transversaux et examen type qualification.",
 }
 
+# Faits de référence CONCRETS transmis verbatim par le chef de projet (ticket #70, §
+# CAS RÉELS À COUVRIR — jamais une notion inventée par Claude : reproduits ici à l'identique
+# pour que le correcteur IA dispose des VALEURS EXACTES nécessaires à un feedback
+# pédagogique réellement utile sur ces deux mini-cours, plutôt que de les reconstruire
+# lui-même à chaque correction avec un risque d'erreur numérique.
+_CORRECTION_REFERENCE_FACTS_BY_CODE: dict[str, str] = {
+    "MC17": (
+        "Faits de référence pour la correction (masques/CIDR, à utiliser tels quels dans "
+        "le feedback, jamais recalculés de façon approximative) : /24 = 255.255.255.0 ; "
+        "/25 = 25 bits réseau, dernier octet 10000000 en binaire = 128, masque "
+        "255.255.255.128, incrément 128 ; /28 = 4 bits réseau dans le dernier octet, "
+        "11110000 en binaire = 128+64+32+16 = 240, masque 255.255.255.240, incrément 16, "
+        "14 hôtes utilisables. Un masque décimal dont les bits à 1 ne sont pas CONTIGUS "
+        "en binaire (ex. 255.255.232.0) est invalide — expliquer précisément pourquoi "
+        "(bits non contigus) et proposer la correction concrète la plus proche, jamais "
+        "juste « c'est faux »."
+    ),
+    "MC15": (
+        "Faits de référence pour la correction (câblage RJ45/T568B, à utiliser tels quels) "
+        ": ordre complet T568B, broche par broche : 1 blanc-orange, 2 orange, 3 "
+        "blanc-vert, 4 bleu, 5 blanc-bleu, 6 vert, 7 blanc-brun, 8 brun. Différence avec "
+        "T568A : inversion des paires verte et orange (broches 1-2 et 3-6). Si le "
+        "candidat mentionne avoir déjà utilisé un testeur RJ45 et constaté un défaut sur "
+        "des broches précises (ex. 4, 5, 7, 8), NE JAMAIS lui reprocher une « absence de "
+        "contrôle de continuité » : un testeur RJ45 sert précisément à vérifier la "
+        "continuité et le mappage des broches — ne jamais pénaliser une étape de "
+        "diagnostic déjà couverte par un outil explicitement cité dans la réponse."
+    ),
+}
+
 
 def _detailed_context(plan: AMPCRModulePlan) -> PedagogicalContext:
     """Contexte pour un MC sans cahier des charges complet (MC04-38, voir docstring du
@@ -190,6 +220,10 @@ def _detailed_context(plan: AMPCRModulePlan) -> PedagogicalContext:
             f"{objective} N'invente aucune notion technique au-delà de cet objectif et du "
             "titre — ce contexte n'a pas encore été enrichi par un cahier des charges "
             "pédagogique complet comme MC01 à MC03."
+            + (
+                f"\n\n{_CORRECTION_REFERENCE_FACTS_BY_CODE[plan.code]}"
+                if plan.code in _CORRECTION_REFERENCE_FACTS_BY_CODE else ""
+            )
         ),
     )
 

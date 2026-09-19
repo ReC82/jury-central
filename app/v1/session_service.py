@@ -793,6 +793,49 @@ def _document_contexts_for(db: DBSession, session_questions: list[SessionQuestio
     )
 
 
+def _build_questionnaire_inputs(
+    session_questions: list[SessionQuestion],
+) -> tuple[list, dict[str, object], dict[str, str]]:
+    """Construit `(questionnaire_questions, answers, human_readable_answers)` à partir de
+    `session_questions` — factorisé (ticket #70 § A) entre `submit_session` (correction
+    réelle, persistée) et `simulate_severity_comparison` (simulation en LECTURE SEULE,
+    jamais persistée) : les deux doivent construire EXACTEMENT le même
+    `Questionnaire`/mêmes réponses à partir des réponses déjà enregistrées, sans jamais
+    diverger entre les deux usages."""
+    questionnaire_questions = []
+    answers: dict[str, object] = {}
+    human_readable_answers: dict[str, str] = {}
+    for session_question in session_questions:
+        version = session_question.question_version
+        question_id = f"sq{session_question.id}"
+        qq = content_to_questionnaire_question(
+            question_id=question_id,
+            question_type=version.question_type,
+            content=version.content_json,
+            points_max=session_question.points_max,
+        )
+        questionnaire_questions.append(qq)
+        raw_answer = session_question.answer.answer_json if session_question.answer else {}
+        answers[question_id] = answer_json_to_submitted(version.question_type, version.content_json, raw_answer or {})
+        human_readable_answers[question_id] = describe_submitted_answer(
+            version.question_type, version.content_json, raw_answer or {}
+        )
+    return questionnaire_questions, answers, human_readable_answers
+
+
+def _contexts_for_session(db: DBSession, session_questions: list[SessionQuestion]) -> tuple[PedagogicalContext, ...]:
+    """Contexte pédagogique + contexte(s) documentaire(s) pour la correction d'une
+    session — factorisé (ticket #70 § A) entre `submit_session` et
+    `simulate_severity_comparison`, jamais deux implémentations."""
+    uaa_code = None
+    first_question = session_questions[0].question_version.question if session_questions else None
+    if first_question and first_question.uaa_id:
+        uaa = first_question.uaa
+        uaa_code = uaa.code if uaa else None
+    context = _pedagogical_context_for(uaa_code)
+    return (context, *_document_contexts_for(db, session_questions))
+
+
 def submit_session(
     db: DBSession,
     *,
@@ -819,33 +862,9 @@ def submit_session(
         return session
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
-    questionnaire_questions = []
-    answers: dict[str, object] = {}
-    human_readable_answers: dict[str, str] = {}
-    for session_question in session_questions:
-        version = session_question.question_version
-        question_id = f"sq{session_question.id}"
-        qq = content_to_questionnaire_question(
-            question_id=question_id,
-            question_type=version.question_type,
-            content=version.content_json,
-            points_max=session_question.points_max,
-        )
-        questionnaire_questions.append(qq)
-        raw_answer = session_question.answer.answer_json if session_question.answer else {}
-        answers[question_id] = answer_json_to_submitted(version.question_type, version.content_json, raw_answer or {})
-        human_readable_answers[question_id] = describe_submitted_answer(
-            version.question_type, version.content_json, raw_answer or {}
-        )
-
+    questionnaire_questions, answers, human_readable_answers = _build_questionnaire_inputs(session_questions)
     questionnaire = Questionnaire(mode=session.mode.value, questions=questionnaire_questions)
-    uaa_code = None
-    first_question = session_questions[0].question_version.question if session_questions else None
-    if first_question and first_question.uaa_id:
-        uaa = first_question.uaa
-        uaa_code = uaa.code if uaa else None
-    context = _pedagogical_context_for(uaa_code)
-    contexts = (context, *_document_contexts_for(db, session_questions))
+    contexts = _contexts_for_session(db, session_questions)
     severity_internal = _SEVERITY_UI_TO_INTERNAL.get(severity_ui, "standard")
 
     try:
@@ -914,3 +933,68 @@ def submit_session(
     session.parameters_json = updated_parameters
     db.commit()
     return session
+
+
+class SessionNotCompletedError(ValueError):
+    """La comparaison de sévérité (§ A du ticket #70) n'a de sens que sur une session déjà
+    terminée — jamais sur une session `IN_PROGRESS` (pas encore de correction de
+    référence à comparer)."""
+
+
+@dataclass(frozen=True)
+class SeverityComparison:
+    """Résultat d'une simulation de re-cotation (ticket #70 § A) — jamais persisté, jamais
+    utilisé pour modifier `session.score`/les `SessionAnswer` existants. Purement informatif,
+    recalculé à chaque demande."""
+
+    severity_ui: int
+    severity_label: str
+    original_score: float
+    comparative_score: float
+    question_count: int
+
+
+def simulate_severity_comparison(
+    db: DBSession, *, session: QuestionnaireSession, provider: AIProvider, severity_ui: int
+) -> SeverityComparison:
+    """« Comparer une autre sévérité » (ticket #70 § A) — simule une correction à une
+    AUTRE sévérité SANS JAMAIS modifier le résultat original : ni les réponses, ni la
+    correction déjà enregistrée (`SessionAnswer.points_awarded`/`feedback_json`), ni
+    `session.score`. Cette fonction ne fait AUCUNE écriture en base (aucun `db.add`, aucun
+    `db.commit`) — une simulation comparative séparée, recalculée à la demande, jamais une
+    seconde vérité stockée.
+
+    Seules les questions SÉMANTIQUES (notées par IA) peuvent réellement varier d'une
+    sévérité à l'autre : `correct_session_hybrid` reste le même moteur que
+    `submit_session`, qui verrouille TOUJOURS le score des questions déterministes sur
+    `correct_locally` (indépendant de la sévérité, voir `_lock_score_keep_ai_explanation`
+    dans `app.v1.hybrid_correction`) — la différence entre `original_score` et
+    `comparative_score` ne peut donc jamais provenir d'une question à réponse fermée
+    (QCM/classification/ordering/...), uniquement des réponses rédigées notées par IA.
+
+    Déclenche UN appel IA supplémentaire, explicitement demandé par l'utilisateur — hors
+    de l'invariant « un seul appel IA par session » du ticket #55, qui ne régit que la
+    création et la soumission initiales, jamais une comparaison a posteriori demandée
+    volontairement. Peut lever `AIProviderError`, jamais rattrapée ici (à l'appelant, la
+    route, de l'afficher proprement)."""
+    if session.status != SessionStatus.COMPLETED:
+        raise SessionNotCompletedError(
+            "La comparaison de sévérité n'est possible que sur une session terminée."
+        )
+
+    session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
+    questionnaire_questions, answers, human_readable_answers = _build_questionnaire_inputs(session_questions)
+    questionnaire = Questionnaire(mode=session.mode.value, questions=questionnaire_questions)
+    contexts = _contexts_for_session(db, session_questions)
+    severity_internal = _SEVERITY_UI_TO_INTERNAL.get(severity_ui, "standard")
+
+    correction = correct_session_hybrid(
+        provider, questionnaire, answers, human_readable_answers, severity_internal, contexts
+    )
+    return SeverityComparison(
+        severity_ui=severity_ui,
+        severity_label=SEVERITY_UI_LABELS.get(severity_ui, str(severity_ui)),
+        original_score=session.score,
+        comparative_score=round(correction.score, 2),
+        question_count=session.question_count,
+    )
