@@ -655,17 +655,21 @@ def list_user_sessions(db: DBSession, *, user_id: int) -> list[QuestionnaireSess
     )
 
 
-def build_question_display(db: DBSession, session_question: SessionQuestion) -> QuestionDisplay:
-    from app.v1.question_engine import public_payload
+def _referenced_document_ids(payload: dict) -> list[int]:
+    """Seule source de vérité pour « quel(s) document(s) cette question référence »,
+    dérivée du PAYLOAD PUBLIC (`public_payload`) — jamais du `content_json` brut.
 
-    version = session_question.question_version
-    payload = public_payload(version.question_type, version.schema_version, version.content_json)
-    answer = session_question.answer
+    Ticket #77 (bug) : la question `long_answer` id=170 référençait un document dans son
+    `content_json`, mais le type `long_answer` ne déclarait pas ce champ — Pydantic le
+    supprimait silencieusement du payload public, donc `build_question_display` (élève)
+    ne le voyait jamais, alors que `_document_contexts_for` (correction IA), qui lisait
+    alors le `content_json` brut directement, le voyait quand même : l'élève était corrigé
+    sur un document qu'il n'avait jamais pu lire.
 
-    # Français (ticket #47) : une question document_analysis/source_comparison référence
-    # un ou plusieurs SourceDocumentVersion par identifiant (jamais le texte dupliqué dans
-    # content_json, voir #40) — résolus ici pour le panneau/accordéon de lecture du
-    # template, une seule requête, jamais par question dans une boucle ailleurs.
+    Fix structurel : les DEUX appelants passent désormais par cette même fonction, qui ne
+    lit QUE le payload public (donc filtré par le modèle Pydantic du type). Un document
+    absent du modèle d'un type ne peut plus jamais atteindre le correcteur IA sans être
+    aussi montré à l'élève — plus une question de discipline au cas par cas."""
     doc_ids: list[int] = []
     single_id = payload.get("source_document_version_id")
     if single_id:
@@ -673,6 +677,22 @@ def build_question_display(db: DBSession, session_question: SessionQuestion) -> 
     multiple_ids = payload.get("source_document_version_ids")
     if multiple_ids:
         doc_ids = list(multiple_ids)
+    return doc_ids
+
+
+def build_question_display(db: DBSession, session_question: SessionQuestion) -> QuestionDisplay:
+    from app.v1.question_engine import public_payload
+
+    version = session_question.question_version
+    payload = public_payload(version.question_type, version.schema_version, version.content_json)
+    answer = session_question.answer
+
+    # Français (ticket #47) : une question document_analysis/source_comparison/
+    # long_answer (#77) référence un ou plusieurs SourceDocumentVersion par identifiant
+    # (jamais le texte dupliqué dans content_json, voir #40) — résolus ici pour le
+    # panneau/accordéon de lecture du template, une seule requête, jamais par question
+    # dans une boucle ailleurs.
+    doc_ids = _referenced_document_ids(payload)
     source_documents: list[SourceDocumentVersion] = []
     if doc_ids:
         source_documents = (
@@ -712,15 +732,19 @@ def _document_contexts_for(db: DBSession, session_questions: list[SessionQuestio
     seul par DOCUMENT distinct, quel que soit le nombre de questions qui le référencent.
     Le texte complet n'apparaît donc qu'une fois dans le prompt de correction
     (`app/ai/prompts.py::_questionnaire_context_block`, inchangé, itère sur les contextes
-    une seule fois avant la boucle sur les questions)."""
+    une seule fois avant la boucle sur les questions).
+
+    Ticket #77 : les identifiants de document viennent du PAYLOAD PUBLIC
+    (`_referenced_document_ids`), exactement comme pour l'élève (`build_question_display`)
+    — jamais du `content_json` brut. Garantit que l'IA ne peut jamais recevoir un document
+    que l'élève n'a pas pu voir (voir docstring de `_referenced_document_ids`)."""
+    from app.v1.question_engine import public_payload
+
     doc_ids: set[int] = set()
     for session_question in session_questions:
-        content = session_question.question_version.content_json or {}
-        single_id = content.get("source_document_version_id")
-        if single_id:
-            doc_ids.add(single_id)
-        for multi_id in content.get("source_document_version_ids") or []:
-            doc_ids.add(multi_id)
+        version = session_question.question_version
+        payload = public_payload(version.question_type, version.schema_version, version.content_json)
+        doc_ids.update(_referenced_document_ids(payload))
     if not doc_ids:
         return ()
 

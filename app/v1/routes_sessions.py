@@ -44,6 +44,13 @@ from app.v1.session_service import (
     SEVERITY_UI_LABELS,
     SEVERITY_UI_LEVELS,
     SessionCreationError,
+    # Ticket #77 : seule source de vérité pour « quel(s) document(s) une question
+    # référence », dérivée du payload public — jamais du `content_json` brut. Importé ici
+    # malgré le préfixe privé pour que les résultats/export (§ 6 du ticket) utilisent
+    # EXACTEMENT la même résolution que l'élève pendant la session
+    # (`build_question_display`) et que le correcteur IA (`_document_contexts_for`),
+    # plutôt que d'en réimplémenter une troisième copie qui pourrait diverger.
+    _referenced_document_ids,
     build_question_display,
     describe_session_scope,
     get_in_progress_session,
@@ -420,7 +427,7 @@ async def view_session(
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
 
     if session.status != SessionStatus.IN_PROGRESS:
-        results = _build_results_rows(session_questions)
+        results = _build_results_rows(db, session_questions)
         severity_ui = (session.parameters_json or {}).get("severity")
         return templates.TemplateResponse(
             request=request,
@@ -463,9 +470,32 @@ def _describe_answer(session_question) -> str:
     return describe_submitted_answer(version.question_type, version.content_json, answer_json)
 
 
-def _build_results_rows(session_questions: list) -> list[dict]:
+def _build_results_rows(db, session_questions: list) -> list[dict]:
     """Ligne de résultat par question — factorisé (ticket #62) entre l'écran HTML
-    (`v1_session_results.html`) et l'export Markdown, jamais deux implémentations."""
+    (`v1_session_results.html`) et l'export Markdown, jamais deux implémentations.
+
+    `source_documents` (ticket #77, § 6) : titre(s) du/des document(s) référencé(s) par
+    cette question, résolus via le même payload public que l'élève a vu pendant la
+    session (`_referenced_document_ids`) — jamais le texte complet redupliqué ici, une
+    référence claire suffit pour les résultats/export/impression."""
+    from app.v1.models import SourceDocumentVersion
+    from app.v1.question_engine import public_payload
+
+    payloads = {
+        sq.position: public_payload(
+            sq.question_version.question_type, sq.question_version.schema_version, sq.question_version.content_json
+        )
+        for sq in session_questions
+    }
+    all_doc_ids: set[int] = set()
+    for payload in payloads.values():
+        all_doc_ids.update(_referenced_document_ids(payload))
+
+    titles_by_id: dict[int, str] = {}
+    if all_doc_ids:
+        documents = db.query(SourceDocumentVersion).filter(SourceDocumentVersion.id.in_(all_doc_ids)).all()
+        titles_by_id = {document.id: (document.title or "Document source") for document in documents}
+
     return [
         {
             "position": sq.position,
@@ -474,6 +504,11 @@ def _build_results_rows(session_questions: list) -> list[dict]:
             "user_answer": _describe_answer(sq),
             "feedback": (sq.answer.feedback_json if sq.answer else {}) or {},
             "points_awarded": sq.answer.points_awarded if sq.answer else 0.0,
+            "source_documents": [
+                titles_by_id[doc_id]
+                for doc_id in _referenced_document_ids(payloads[sq.position])
+                if doc_id in titles_by_id
+            ],
         }
         for sq in session_questions
     ]
@@ -653,11 +688,17 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
         strengths_lines = [f"- {s}" for s in feedback.get("strengths") or []] or ["—"]
         errors_lines = [f"- {e}" for e in feedback.get("errors") or []] or ["—"]
         missing_lines = [f"- {m}" for m in feedback.get("missing") or []] or ["—"]
+        source_documents = row.get("source_documents") or []
         lines += [
             f"## Question {row['position']}",
             "",
             row["prompt"],
             "",
+            *(
+                [f"*Document(s) de référence : {', '.join(source_documents)}*", ""]
+                if source_documents
+                else []
+            ),
             "### Ma réponse",
             "",
             row["user_answer"] or "(sans réponse)",
@@ -701,7 +742,7 @@ async def export_session_markdown(
         raise HTTPException(status_code=409, detail="Session pas encore terminée : rien à exporter.")
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
-    results = _build_results_rows(session_questions)
+    results = _build_results_rows(db, session_questions)
     content = _build_session_export_markdown(session, results)
 
     mode_slug = "exam" if session.mode.value == "exam" else "practice"
