@@ -48,7 +48,7 @@
         {% if not resumable or allow_new_while_in_progress %}
         <div class="p-4 bg-white rounded shadow-sm">
             <h2 class="h5 mb-3">{% if resumable %}Nouvelle session{% else %}Nouvel entraînement{% endif %}</h2>
-            <form method="post" action="{{ start_url }}">
+            <form method="post" action="{{ start_url }}" id="start-session-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <fieldset class="mb-3">
                     <legend class="form-label h6">Difficulté</legend>
@@ -69,13 +69,56 @@
                         <label class="form-check-label text-muted">Adaptatif (bientôt disponible)</label>
                     </div>
                 </fieldset>
-                <button type="submit" class="btn btn-dark w-100">
-                    {% if mode == "exam" %}Commencer l'évaluation{% else %}Commencer l'entraînement{% endif %}
+                <button type="submit" class="btn btn-dark w-100" id="start-session-button">
+                    <span id="start-session-button-label">
+                        {% if mode == "exam" %}Commencer l'évaluation{% else %}Commencer l'entraînement{% endif %}
+                    </span>
                 </button>
+                <p class="text-muted small text-center mt-2 mb-0 d-none" id="start-session-wait-message">
+                    Génération des questions en cours. Merci de patienter quelques secondes.
+                </p>
             </form>
         </div>
         {% endif %}
 
     </div>
 </div>
+
+<script>
+    (function () {
+        // Ticket #71 : la création de session peut prendre plusieurs secondes
+        // (génération IA du complément manquant) — désactive le bouton IMMÉDIATEMENT au
+        // clic pour empêcher un second POST (protection cliente ; la protection réelle
+        // reste côté serveur, voir app/v1/routes_sessions.py::_is_unstarted). Réactivé
+        // automatiquement si la page est restaurée depuis le cache navigateur (bouton
+        // Précédent) après une erreur, jamais laissé bloqué.
+        var form = document.getElementById("start-session-form");
+        var button = document.getElementById("start-session-button");
+        var label = document.getElementById("start-session-button-label");
+        var waitMessage = document.getElementById("start-session-wait-message");
+        if (!form || !button || !label) return;
+        var preparingText = form.action.indexOf("/exam/") !== -1
+            ? "Préparation de l'évaluation…"
+            : "Préparation de l'entraînement…";
+        var submitting = false;
+        form.addEventListener("submit", function (event) {
+            if (submitting) {
+                event.preventDefault();
+                return;
+            }
+            submitting = true;
+            button.disabled = true;
+            label.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + preparingText;
+            if (waitMessage) { waitMessage.classList.remove("d-none"); }
+        });
+        window.addEventListener("pageshow", function (event) {
+            if (event.persisted) {
+                submitting = false;
+                button.disabled = false;
+                label.textContent = {{ ("Commencer l'évaluation" if mode == "exam" else "Commencer l'entraînement") | tojson }};
+                if (waitMessage) { waitMessage.classList.add("d-none"); }
+            }
+        });
+    })();
+</script>
 {% endblock %}

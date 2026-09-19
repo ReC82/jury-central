@@ -128,6 +128,16 @@ def _resumable_session_for_uaa(db, *, user_id: int, module_id: int, mode: Sessio
     return get_in_progress_session(db, user_id=user_id, module_id=module_id, mode=mode, uaa_id=uaa.id)
 
 
+def _is_unstarted(session: QuestionnaireSession | None) -> bool:
+    """Vrai si `session` existe et n'a AUCUNE réponse enregistrée (ticket #71) — signale
+    un double POST sur le bouton « Commencer » plutôt qu'une deuxième tentative
+    délibérée. Ne s'applique jamais à une session déjà répondue, même partiellement : la
+    politique « plusieurs sessions practice simultanées autorisées » (ticket #55 § 12)
+    reste intacte pour tout usage réel — seule la répétition EXACTE et IMMÉDIATE de la
+    création (aucune réponse entre les deux) est traitée comme un doublon."""
+    return session is not None and all(sq.answer is None for sq in session.session_questions)
+
+
 def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLResponse:
     module = uaa.module
     _ensure_bank_seeded(db, module, uaa)
@@ -223,12 +233,18 @@ async def start_practice_session(
     if uaa is None:
         raise HTTPException(status_code=404, detail="UAA introuvable")
 
-    if resume:
-        existing = _resumable_session_for_uaa(
-            db, user_id=user.id, module_id=uaa.module_id, mode=SessionMode.PRACTICE, uaa=uaa
-        )
-        if existing is not None:
-            return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
+    existing = _resumable_session_for_uaa(
+        db, user_id=user.id, module_id=uaa.module_id, mode=SessionMode.PRACTICE, uaa=uaa
+    )
+    if resume and existing is not None:
+        return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
+    # Ticket #71 : protection serveur contre le double POST (bouton recliqué avant
+    # désactivation, ou requête réémise) — jamais 2 sessions pour un seul clic, même si
+    # `resume` n'est pas envoyé par ce formulaire. N'affecte jamais une nouvelle tentative
+    # réellement voulue par l'utilisateur (la session existante doit être vierge de toute
+    # réponse, voir `_is_unstarted`).
+    if _is_unstarted(existing):
+        return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
 
     try:
         session = _start_session_for_uaa(
@@ -353,12 +369,14 @@ async def start_ampcr_global_practice(
     resume: str = Form(""),
 ):
     module = _ampcr_module(db)
-    if resume:
-        existing = get_in_progress_session(
-            db, user_id=user.id, module_id=module.id, mode=SessionMode.PRACTICE, uaa_id=None
-        )
-        if existing is not None:
-            return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
+    existing = get_in_progress_session(
+        db, user_id=user.id, module_id=module.id, mode=SessionMode.PRACTICE, uaa_id=None
+    )
+    if resume and existing is not None:
+        return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
+    # Ticket #71 : protection serveur contre le double POST — voir _is_unstarted.
+    if _is_unstarted(existing):
+        return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
     session = start_session(
         db, user=user, module_id=module.id, uaa_id=None, uaa_code=None,
         mode=SessionMode.PRACTICE, difficulty=SessionDifficultyRequest(difficulty),

@@ -14,6 +14,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from sqlalchemy import update
 from sqlalchemy.orm import Session as DBSession
 
 from app.ai.local_correction import correct_locally, requires_ai_correction
@@ -814,10 +815,50 @@ def submit_session(
     Documents partagés (ticket #47) : `_document_contexts_for` ajoute un contexte par
     document réellement référencé par au moins une question de la session, en plus du
     contexte de matière/UAA — le texte source n'apparaît donc qu'une fois dans le lot,
-    quel que soit le nombre de questions qui le citent."""
+    quel que soit le nombre de questions qui le citent.
+
+    Ticket #71 : réclamation ATOMIQUE de la session AVANT l'appel IA (potentiellement
+    long, plusieurs secondes — l'origine du bug rapporté : bouton recliqué ou requête
+    réémise pendant l'attente déclenchait une SECONDE correction IA complète, avant même
+    que la première n'ait eu le temps de marquer la session `COMPLETED`). L'ancien code ne
+    fixait `status = COMPLETED` qu'à la toute fin — cette fenêtre de plusieurs secondes
+    était exactement la fenêtre de la course. Un `UPDATE ... WHERE status = IN_PROGRESS`
+    est atomique au niveau de la ligne : si `rowcount == 0`, une autre requête a déjà
+    réclamé cette session entre notre lecture et maintenant — on s'arrête immédiatement,
+    sans jamais appeler l'IA une seconde fois. Le corps de la fonction est protégé par un
+    filet de sécurité : toute exception inattendue (hors `AIProviderError`, déjà gérée
+    plus bas avec un repli local) remet `status = IN_PROGRESS` avant de se propager,
+    jamais une session bloquée `COMPLETED` sans résultat réel."""
     if session.is_locked():
         return session
 
+    claim = db.execute(
+        update(QuestionnaireSession)
+        .where(QuestionnaireSession.id == session.id, QuestionnaireSession.status == SessionStatus.IN_PROGRESS)
+        .values(status=SessionStatus.COMPLETED)
+    )
+    db.commit()
+    if claim.rowcount == 0:
+        db.refresh(session)
+        return session
+    session.status = SessionStatus.COMPLETED
+
+    try:
+        return _correct_and_finalize_claimed_session(
+            db, session=session, provider=provider, severity_ui=severity_ui
+        )
+    except Exception:
+        session.status = SessionStatus.IN_PROGRESS
+        db.commit()
+        raise
+
+
+def _correct_and_finalize_claimed_session(
+    db: DBSession, *, session: QuestionnaireSession, provider: AIProvider, severity_ui: int
+) -> QuestionnaireSession:
+    """Corps de `submit_session` (ticket #71 : extrait pour envelopper d'un filet de
+    sécurité qui annule la réclamation atomique en cas d'exception inattendue — voir
+    docstring de `submit_session`). `session.status` est déjà `COMPLETED` en entrée."""
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
     questionnaire_questions = []
     answers: dict[str, object] = {}
