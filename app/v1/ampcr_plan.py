@@ -203,8 +203,17 @@ def _detailed_context(plan: AMPCRModulePlan) -> PedagogicalContext:
     """Contexte pour un MC sans cahier des charges complet (MC04-38, voir docstring du
     module) : titre + objectif EXACT du plan AMPCR validé (`_OBJECTIVES_BY_CODE`) + types
     de question déjà recommandés pour sa catégorie — jamais de notion technique inventée
-    au-delà de cet objectif transmis par ChatGPT."""
+    au-delà de cet objectif transmis par ChatGPT.
+
+    Ticket #83 § B : `vocabulary` porte désormais la liste des acronymes/termes
+    RÉELLEMENT expliqués dans le texte du cours (`app.v1.course_coverage`, extraction
+    structurelle, jamais une notion inventée) — le générateur dispose ainsi d'une liste
+    positive de ce qu'il peut développer, en plus du garde-fou serveur
+    (`check_course_coverage_gap`) qui rejette toute question hors de cette liste."""
+    from app.v1.course_coverage import defined_notions_for_code
+
     objective = _OBJECTIVES_BY_CODE[plan.code]
+    known_notions = sorted(defined_notions_for_code(plan.code))
     return PedagogicalContext(
         course_key=plan.course_key,
         course_title=plan.title,
@@ -214,12 +223,18 @@ def _detailed_context(plan: AMPCRModulePlan) -> PedagogicalContext:
             f"Objectif du plan AMPCR pour {plan.code} : {objective}",
             f"Types de question adaptés à ce mini-cours : {', '.join(plan.recommended_types)}",
         ],
-        vocabulary=[],
+        vocabulary=known_notions,
         constraints=(
             f"Reste strictement dans l'objectif pédagogique défini pour « {plan.title} » : "
             f"{objective} N'invente aucune notion technique au-delà de cet objectif et du "
             "titre — ce contexte n'a pas encore été enrichi par un cahier des charges "
-            "pédagogique complet comme MC01 à MC03."
+            "pédagogique complet comme MC01 à MC03. "
+            "Ticket #83 : ne demande JAMAIS la signification/le développé d'un acronyme "
+            "ou d'une abréviation qui n'apparaît pas dans la liste ci-dessus "
+            "(« Vocabulaire attendu ») — une question ne peut porter que sur une notion "
+            "réellement enseignée dans ce cours ou dans le lexique AMPCR ; un contrôle "
+            "serveur indépendant rejette de toute façon toute question qui violerait "
+            "cette règle avant qu'elle n'atteigne la banque ou un utilisateur."
             + (
                 f"\n\n{_CORRECTION_REFERENCE_FACTS_BY_CODE[plan.code]}"
                 if plan.code in _CORRECTION_REFERENCE_FACTS_BY_CODE else ""

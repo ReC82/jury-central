@@ -13,6 +13,14 @@
 
 <h1 class="h3 mb-4">{{ module.code }}</h1>
 
+{% if module.code == "AMPCR" %}
+<div class="mb-4 d-print-none">
+    <a href="/modules/ampcr/lexicon" class="btn btn-outline-dark btn-sm">
+        📖 Lexique / Acronymes FR-EN
+    </a>
+</div>
+{% endif %}
+
 <div class="list-group">
     {% for uaa in module.uaas if uaa.is_published %}
     <a

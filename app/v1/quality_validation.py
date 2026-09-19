@@ -42,7 +42,9 @@ import re
 from typing import Any, Protocol
 
 from app.answer_checking import normalize_text
+from app.v1.course_coverage import check_course_coverage_gap
 from app.v1.dedup import _significant_words
+from app.v1.short_answer_limits import is_max_length_incoherent
 
 # --- Détection § 8 : formulations molles qui décident seules d'une classification ----------
 
@@ -224,6 +226,33 @@ def _check_cidr_overguided(question_type: str, content: dict[str, Any]) -> list[
     return []
 
 
+def check_short_answer_length_coherence(
+    module: Any, uaa: Any, question_type: str, content_json: dict[str, Any]
+) -> list[str]:
+    """§ 85.B : filet de sécurité indépendant du calcul préventif
+    (`app.v1.short_answer_limits.compute_short_answer_max_length`, appliqué à la
+    construction du contenu) — rejette toute question `short_answer`/`vocabulary` dont
+    l'énoncé demande explicitement une réponse développée/justifiée/comparée mais dont
+    `max_length` est resté factuel (≤ 300), quelle que soit la façon dont ce contenu a été
+    produit (génération IA, import éditorial, modification manuelle ultérieure)."""
+    if question_type not in ("short_answer", "vocabulary") or not isinstance(content_json, dict):
+        return []
+    prompt = _prompt_of(content_json)
+    max_length = content_json.get("max_length")
+    if not prompt or not isinstance(max_length, int):
+        return []
+    if is_max_length_incoherent(prompt, max_length):
+        return [
+            (
+                "Incohérence de longueur (§ 85.B) : l'énoncé demande une réponse développée/"
+                "justifiée/comparée mais max_length reste factuel "
+                f"({max_length} ≤ 300) — augmenter la limite (800-1500) ou reformuler la "
+                "question pour qu'elle reste réellement factuelle."
+            )
+        ]
+    return []
+
+
 _SUPPORTED_TYPES = frozenset({"multiple_choice", "classification", "ordering", "diagnostic"})
 
 
@@ -252,7 +281,15 @@ class QualityValidator(Protocol):
 
 
 # Registre extensible, même principe que `app.v1.domain_validation.DOMAIN_VALIDATORS`.
-QUALITY_VALIDATORS: list[QualityValidator] = [validate_question_quality_rules]
+# `check_course_coverage_gap` (ticket #83 § B) s'applique à TOUS les types de question
+# (une question `short_answer`/`vocabulary`/`true_false` peut tout autant demander le
+# développé d'un acronyme qu'un QCM) — jamais restreint à `_SUPPORTED_TYPES`, qui ne
+# concerne que les règles de qualité § 69.
+QUALITY_VALIDATORS: list[QualityValidator] = [
+    validate_question_quality_rules,
+    check_course_coverage_gap,
+    check_short_answer_length_coherence,
+]
 
 
 def validate_question_quality(

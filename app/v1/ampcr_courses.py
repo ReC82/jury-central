@@ -34,8 +34,12 @@ performance / fiabilité / budget.
   NVMe selon le slot et le SSD.
 - **NVMe** : protocole conçu pour le stockage sur bus PCIe, très haut débit et faible
   latence, généralement en M.2 aujourd'hui.
-- **SMART** : indicateurs de santé du disque (température, secteurs défectueux, heures de
-  fonctionnement...) — une alerte, jamais une garantie ni une sauvegarde.
+- **SMART** (*Self-Monitoring, Analysis and Reporting Technology*) : technologie de
+  surveillance de l'état du stockage intégrée aux HDD/SSD — elle rapporte des
+  indicateurs de santé (température, secteurs/erreurs détectés, heures de
+  fonctionnement...) utiles pour un diagnostic, mais ne prédit pas toutes les pannes
+  (un défaut brutal reste possible sans alerte SMART préalable) et ne remplace jamais
+  une sauvegarde.
 - **TBW** (Terabytes Written) : endurance garantie par le fabricant pour un SSD.
 
 ## 3. Notions principales
@@ -79,11 +83,13 @@ nettement : les deux pistes sont à vérifier.
 | Latence | Latency |
 | Endurance | Endurance / TBW |
 | Sauvegarde | Backup |
+| Surveillance de l'état du disque | SMART (Self-Monitoring, Analysis and Reporting Technology) |
 
 ## 8. À retenir pour l'examen
 - HDD = mécanique ; SSD = flash NAND, sans pièce mobile.
 - M.2 = connecteur ; SATA/NVMe = protocoles possibles sur ce connecteur.
-- SMART = surveillance, jamais une garantie ni une sauvegarde.
+- SMART (Self-Monitoring, Analysis and Reporting Technology) = surveillance de l'état du
+  disque, utile pour diagnostic, jamais une garantie ni une sauvegarde.
 - Toujours vérifier détection BIOS puis détection OS avant toute action destructive.
 """,
     "MC05": """# Alimentation, refroidissement, ESD et sécurité électrique

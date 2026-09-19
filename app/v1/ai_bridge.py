@@ -20,6 +20,7 @@ import random
 from typing import Any
 
 from app.ai.schemas import QuestionnaireQuestion
+from app.v1.short_answer_limits import compute_short_answer_max_length
 
 # Types de composition du MVP (#55, § COMPOSITION) — les seuls que ce pont sait
 # convertir ET que la génération IA peut produire (`allowed_types`, voir
@@ -221,10 +222,16 @@ def questionnaire_question_to_content(question: QuestionnaireQuestion) -> dict[s
         items = shuffle_ordering_items(items, correct_order)
         return {"prompt": question.prompt, "items": items, "correct_order": correct_order}
     if question.type in ("short_answer", "vocabulary"):
+        # Ticket #85 : `max_length` n'était jamais fourni ici, donc retombait toujours
+        # sur le défaut Pydantic fixe (200) quelle que soit la question — trop court pour
+        # une réponse développée (ex. comparaison HDD/SSD SATA/SSD NVMe), inutilement
+        # large pour un simple rappel factuel. Calculé à partir de la formulation exacte
+        # de l'énoncé, jamais une valeur unique pour tous les `short_answer`.
         return {
             "prompt": question.prompt,
             "accepted_answers": list(question.accepted_answers),
             "rubric": question.rubric,
+            "max_length": compute_short_answer_max_length(question.prompt),
         }
     if question.type in _SEMANTIC_RUBRIC_TYPES:
         return {

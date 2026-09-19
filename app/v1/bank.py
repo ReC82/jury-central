@@ -37,11 +37,14 @@ from app.v1.models import (
     ContentStatus,
     GenerationSource,
     Question,
+    QuestionVersion,
     UserQuestionHistory,
+    add_question_version,
     create_question,
 )
 from app.v1.quality_validation import validate_question_quality
 from app.v1.question_engine import ContentValidationError, QuestionEngineError, validate_content
+from app.v1.short_answer_limits import compute_short_answer_max_length, is_max_length_incoherent
 
 logger = logging.getLogger(__name__)
 
@@ -93,10 +96,13 @@ def _editorial_item_to_v1_content(item: EditorialExerciseItem) -> tuple[str, dic
         items = shuffle_ordering_items(items, correct_order)
         return v1_type, {"prompt": item.prompt, "items": items, "correct_order": correct_order, "explanation": item.explanation}
     if v1_type in ("short_answer", "vocabulary"):
+        # Ticket #85 : même correctif que `app.v1.ai_bridge.questionnaire_question_to_content`
+        # — `max_length` n'était jamais fourni, donc retombait sur le défaut fixe (200).
         return v1_type, {
             "prompt": item.prompt,
             "accepted_answers": list(item.accepted_answers),
             "rubric": item.explanation if not item.accepted_answers else "",
+            "max_length": compute_short_answer_max_length(item.prompt),
         }
     # long_answer / diagnostic : l'explanation éditoriale sert déjà de grille de correction.
     return v1_type, {"prompt": item.prompt, "rubric": item.explanation}
@@ -140,6 +146,68 @@ def import_mc01_legacy_to_bank(db: Session, module: Module, uaa: UAA) -> int:
             imported += 1
     db.flush()
     return imported
+
+
+def migrate_short_answer_max_length(db: Session) -> dict[str, int]:
+    """Migration additive (ticket #85 § C) : relève `max_length` des questions
+    `short_answer`/`vocabulary` déjà persistées dont l'énoncé demande explicitement une
+    réponse développée/justifiée/comparée, mais dont la limite est restée factuelle
+    (héritée du défaut fixe 200, avant le correctif § 85.A/B qui calcule désormais
+    `max_length` correctement à la création). Jamais une modification globale aveugle :
+    chaque question est évaluée individuellement via le MÊME détecteur d'incohérence que
+    la garde serveur (`app.v1.short_answer_limits.is_max_length_incoherent`) — une
+    question réellement factuelle garde sa limite d'origine à l'identique (« conserver
+    200 si réellement factuelle », comme demandé par le ticket), jamais relevée par
+    prudence ou par défaut.
+
+    Non destructive : `add_question_version` crée une nouvelle version (jamais de
+    mutation d'une version existante) et ne touche que le champ `max_length` du
+    `content_json`, tout le reste (prompt, accepted_answers, rubric...) recopié à
+    l'identique. Idempotent : une seconde exécution ne trouve plus rien à relever."""
+    candidates = (
+        db.query(Question)
+        .join(QuestionVersion, Question.current_version_id == QuestionVersion.id)
+        .filter(
+            QuestionVersion.question_type.in_(("short_answer", "vocabulary")),
+            Question.status == ContentStatus.ACTIVE,
+        )
+        .all()
+    )
+
+    reviewed = 0
+    increased = 0
+    for question in candidates:
+        version = question.current_version
+        if version is None:
+            continue
+        content = dict(version.content_json or {})
+        prompt = str(content.get("prompt", ""))
+        if not prompt:
+            continue
+        reviewed += 1
+        current_max_length = content.get("max_length")
+        if not isinstance(current_max_length, int):
+            current_max_length = 200
+        if not is_max_length_incoherent(prompt, current_max_length):
+            continue
+        suggested = compute_short_answer_max_length(prompt)
+        if suggested <= current_max_length:
+            continue
+        content["max_length"] = suggested
+        add_question_version(
+            db,
+            question,
+            question_type=version.question_type,
+            content_json=content,
+            generator_model=version.generator_model,
+            prompt_version=version.prompt_version,
+            source_program_version=version.source_program_version,
+            source_document_version_id=version.source_document_version_id,
+        )
+        increased += 1
+
+    db.flush()
+    return {"reviewed": reviewed, "increased": increased, "unchanged": reviewed - increased}
 
 
 def get_module_by_uaa_slug(db: Session, uaa_slug: str) -> Module | None:
