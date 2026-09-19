@@ -22,12 +22,33 @@ from typing import Any
 from app.ai.schemas import QuestionnaireQuestion
 
 # Types de composition du MVP (#55, § COMPOSITION) — les seuls que ce pont sait
-# convertir. Les types visuels/#48 ne sont ni générés ni corrigés par ce chemin.
+# convertir ET que la génération IA peut produire (`allowed_types`, voir
+# `app/v1/session_service.py`). Les types visuels/#48 ne sont ni générés ni corrigés par
+# ce chemin.
 BRIDGE_TYPES = frozenset(
     {"multiple_choice", "classification", "ordering", "short_answer", "vocabulary", "diagnostic", "long_answer"}
 )
 
+# document_analysis / source_comparison (ticket #47, Français) : CORRECTION uniquement,
+# jamais génération — le contrat #23 (`QuestionnaireQuestion.type`) n'a pas de notion de
+# document, et une génération sans document réel existant n'aurait aucun sens (à quel
+# document rattacher la question ?). Ces types sont donc exclus de `BRIDGE_TYPES` (jamais
+# demandés à `generate_questionnaire`) mais gérés explicitement par
+# `content_to_questionnaire_question`/`answer_json_to_submitted`/
+# `describe_submitted_answer` pour que la CORRECTION (toujours nécessaire, banque
+# hand-authored ou non) et l'affichage des résultats fonctionnent. Le texte du document
+# n'est JAMAIS dupliqué ici : il est injecté une seule fois dans le contexte pédagogique
+# de correction (voir `app/v1/session_service.py::submit_session`), pas répété par
+# question — la question elle-même ne porte que `source_document_version_id(s)`
+# (référence, jamais le texte).
+DOCUMENT_TYPES = frozenset({"document_analysis", "source_comparison"})
+
+# Types que ce pont sait décrire pour l'écran de résultats et parser depuis un formulaire
+# de réponse — plus large que `BRIDGE_TYPES` (qui ne couvre que ce qui peut être généré).
+CORRECTABLE_TYPES = BRIDGE_TYPES | DOCUMENT_TYPES
+
 _SEMANTIC_RUBRIC_TYPES = frozenset({"diagnostic", "long_answer"})
+_FREE_TEXT_ANSWER_TYPES = frozenset({"short_answer", "vocabulary", "diagnostic", "long_answer"}) | DOCUMENT_TYPES
 
 
 class BridgeError(ValueError):
@@ -91,6 +112,23 @@ def content_to_questionnaire_question(
         return QuestionnaireQuestion(
             question_id=question_id,
             type=question_type,
+            prompt=content["prompt"],
+            points_max=points_max,
+            rubric=rubric or "Grille de correction non renseignée.",
+        )
+    if question_type in DOCUMENT_TYPES:
+        # Le contrat #23 n'a pas de type document_analysis/source_comparison propre :
+        # mappé sur "long_answer" (réponse longue notée sur rubric) — le seul champ perdu
+        # est `source_document_version_id(s)`, qui ne sert qu'à la référence/l'affichage,
+        # jamais à la correction elle-même (le TEXTE du document est fourni une seule
+        # fois via le contexte pédagogique, voir `submit_session`, jamais ici).
+        rubric = content.get("rubric", "").strip()
+        extra_points = content.get("expected_points") or []
+        if extra_points:
+            rubric = f"{rubric}\nPoints attendus : {'; '.join(extra_points)}".strip()
+        return QuestionnaireQuestion(
+            question_id=question_id,
+            type="long_answer",
             prompt=content["prompt"],
             points_max=points_max,
             rubric=rubric or "Grille de correction non renseignée.",
@@ -182,7 +220,7 @@ def answer_json_to_submitted(question_type: str, content: dict[str, Any], answer
         item_ids = [i["id"] for i in content["items"]]
         order = answer_json.get("order", []) or []
         return [item_ids.index(iid) for iid in order if iid in item_ids]
-    if question_type in ("short_answer", "vocabulary", "diagnostic", "long_answer"):
+    if question_type in _FREE_TEXT_ANSWER_TYPES:
         return answer_json.get("text", "") or ""
     raise BridgeError(f"Type non pris en charge par le pont IA : {question_type!r}.")
 
@@ -216,7 +254,7 @@ def describe_submitted_answer(question_type: str, content: dict[str, Any], answe
             order = answer_json.get("order", []) or []
             chosen = [labels[iid] for iid in order if iid in labels]
             return " → ".join(chosen) if chosen else "(sans réponse)"
-        if question_type in ("short_answer", "vocabulary", "diagnostic", "long_answer"):
+        if question_type in _FREE_TEXT_ANSWER_TYPES:
             text = (answer_json.get("text") or "").strip()
             return text if text else "(sans réponse)"
     except (KeyError, IndexError, TypeError):
