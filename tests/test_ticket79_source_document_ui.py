@@ -427,7 +427,10 @@ def test_course_mapping_data_exposed_in_results_without_a_button(authenticated_c
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
     rows = _build_results_rows(db_session, session_questions)
-    assert len(rows) == 10
+    # Ticket #82 : 9 ou 10 selon le tirage (garde anti-doublon intra-session finale) —
+    # comparé à question_count réel, jamais une valeur codée en dur.
+    assert len(rows) == session.question_count
+    assert 9 <= len(rows) <= 10
     for row in rows:
         assert row["course_title"] == c01.title
         assert row["course_slug"] == c01.slug

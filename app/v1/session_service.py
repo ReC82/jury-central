@@ -25,6 +25,7 @@ from app.ai.schemas import (
     Questionnaire,
     QuestionnaireRequest,
 )
+from app.answer_checking import normalize_text
 from app.v1.ai_bridge import (
     BRIDGE_TYPES,
     DOCUMENT_TYPES,
@@ -200,6 +201,67 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
             progressed = True
 
     return selected
+
+
+def deduplicate_intra_session(selected: list[Question]) -> list[Question]:
+    """Garde finale anti-doublon intra-session (ticket #82) — appliquée juste avant
+    l'insertion des `SessionQuestion` (`_finalize_session`), et réutilisée par les
+    fallbacks « dernier recours » de `start_session`/`_start_mc38_transversal_session` pour
+    ne jamais proposer une question déjà retenue comme complément.
+
+    Élimine, dans l'ordre de `selected` (garde la PREMIÈRE occurrence de chaque groupe) :
+    - même `Question.id` plus d'une fois ;
+    - même `current_version_id` plus d'une fois ;
+    - même énoncé EXACT (normalisé) avec un `question_id` différent (ex. une question
+      dupliquée en banque sous deux id distincts) ;
+    - quasi-doublon manifeste (même mécanisme que #64 : `question_signature`/
+      `is_near_duplicate` — structure triée identique, ou énoncés très proches).
+
+    Ne complète JAMAIS le manque en répétant une question déjà retenue — c'est aux
+    appelants de proposer une session plus courte plutôt que de violer cette garde (§
+    ticket #82 : « le fallback ne doit jamais cycler sur la même question »)."""
+    kept: list[Question] = []
+    seen_question_ids: set[int] = set()
+    seen_version_ids: set[int] = set()
+    seen_prompts: set[str] = set()
+    seen_signatures: list = []
+
+    for question in selected:
+        if question.id in seen_question_ids or question.current_version_id in seen_version_ids:
+            continue
+        version = question.current_version
+        content = version.content_json or {}
+        prompt_key = normalize_text(str(content.get("prompt", "")))
+        if prompt_key and prompt_key in seen_prompts:
+            continue
+        signature = question_signature(version.question_type, content)
+        if any(is_near_duplicate(signature, existing) for existing in seen_signatures):
+            continue
+
+        kept.append(question)
+        seen_question_ids.add(question.id)
+        seen_version_ids.add(question.current_version_id)
+        if prompt_key:
+            seen_prompts.add(prompt_key)
+        seen_signatures.append(signature)
+
+    return kept
+
+
+def _extend_selection_without_duplicates(
+    selected: list[Question], fallback_pool: list[Question], question_count: int
+) -> list[Question]:
+    """Complète `selected` avec des questions de `fallback_pool` jusqu'à `question_count`,
+    SANS JAMAIS introduire de doublon intra-session (ticket #82) — ni en répétant une
+    question déjà retenue, ni en « cyclant » sur le pool une fois épuisé (bug corrigé :
+    l'ancien code faisait `pool[len(selected) % len(pool)]`, qui répète mécaniquement les
+    mêmes questions dès que le pool est plus petit que le manque à combler — exactement le
+    bug observé, question 1 == question 10 dans une même évaluation).
+
+    S'arrête dès que le pool ne fournit plus rien d'unique : une session plus courte que
+    demandé est acceptable (§ ticket #82, hiérarchie de repli), un doublon ne l'est
+    jamais."""
+    return deduplicate_intra_session([*selected, *fallback_pool])[:question_count]
 
 
 def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn) -> list[Question]:
@@ -379,7 +441,16 @@ def _finalize_session(
     """Construit la `QuestionnaireSession`/`SessionQuestion` à partir d'une sélection déjà
     prête — factorisé entre le parcours per-MC/global (`start_session`) et le parcours
     transversal MC38 (`_start_mc38_transversal_session`, ticket #58). `parameters_json`
-    porte le marqueur `scope` (ticket #58, voir `get_in_progress_session`)."""
+    porte le marqueur `scope` (ticket #58, voir `get_in_progress_session`).
+
+    Ticket #82 (garde finale) : `selected` repasse ici par
+    `deduplicate_intra_session` juste AVANT l'insertion des `SessionQuestion` — le
+    dernier point de passage commun à TOUS les parcours de création de session, quel que
+    soit ce qui a pu se produire en amont. `question_count` reflète le nombre RÉEL de
+    questions retenues après cette garde (jamais le nombre demandé si la garde en a
+    retiré) — une session plus courte que prévu est acceptable, un doublon ne l'est
+    jamais."""
+    selected = deduplicate_intra_session(selected)
     session = QuestionnaireSession(
         user_id=user.id,
         mode=mode,
@@ -500,9 +571,7 @@ def _start_mc38_transversal_session(
                 "Aucune question disponible pour la révision transversale MC38 (banque "
                 "MC01-37 vide et génération indisponible)."
             )
-        pool = selected or fallback_pool
-        while len(selected) < question_count and pool:
-            selected.append(pool[len(selected) % len(pool)])
+        selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
 
     return _finalize_session(
         db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
@@ -594,9 +663,10 @@ def start_session(
     if len(selected) < question_count:
         # Dernier repli explicite (§ GÉNÉRATION du ticket #55, § 1 du ticket #64 :
         # « réutiliser une ancienne question uniquement en dernier recours ») : réutilise
-        # ce qui existe déjà (`only_unseen=False`, par défaut), y compris en répétant et en
-        # dépassant exceptionnellement le plafond sémantique, plutôt que de refuser de
-        # créer la session.
+        # ce qui existe déjà (`only_unseen=False`, par défaut), en dépassant
+        # exceptionnellement le plafond sémantique si besoin — mais JAMAIS en répétant une
+        # question déjà retenue (ticket #82 : une session plus courte que demandé est
+        # acceptable, un doublon intra-session ne l'est jamais).
         fallback_pool = select_bank_questions(
             db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5
         )
@@ -605,9 +675,7 @@ def start_session(
                 "Aucune question disponible pour ce mini-cours (banque vide et génération "
                 "indisponible)."
             )
-        pool = selected or fallback_pool
-        while len(selected) < question_count and pool:
-            selected.append(pool[len(selected) % len(pool)])
+        selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
 
     return _finalize_session(
         db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected

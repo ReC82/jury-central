@@ -465,7 +465,12 @@ def test_max_retries_respected_then_bank_fallback(db_session):
     """§ 15/19 : limite de tentatives respectée (jamais de boucle infinie) — au-delà,
     repli sur la banque plutôt que de servir une question technique fausse. `question_
     count=2` avec une seule question de secours en banque : la sélection initiale seule
-    ne suffit pas (`missing=1`), la génération est donc bien tentée."""
+    ne suffit pas (`missing=1`), la génération est donc bien tentée.
+
+    Ticket #82 : avec une seule question de secours disponible et toute génération
+    invalide, la session obtenue compte désormais 1 question (jamais 2 en répétant la
+    question de secours) — une session plus courte que demandé est acceptable, un doublon
+    intra-session ne l'est jamais (voir `session_service.deduplicate_intra_session`)."""
     seed()
     ampcr = db_session.query(Module).filter_by(code="AMPCR").first()
     mc17 = db_session.query(UAA).filter_by(slug="ampcr-mc17").first()
@@ -491,11 +496,14 @@ def test_max_retries_respected_then_bank_fallback(db_session):
     )
     # 1 appel initial + au plus MAX_DOMAIN_REGENERATION_ATTEMPTS tentatives de complément.
     assert len(provider.questionnaire_calls) == 1 + MAX_DOMAIN_REGENERATION_ATTEMPTS
-    assert session.question_count == 2
+    # Ticket #82 : 1 question, pas 2 — jamais de doublon intra-session, même en dernier
+    # recours (une seule question de secours réellement disponible en banque).
+    assert session.question_count == 1
     # Aucune question IPv4 invalide servie, quel que soit le créneau : repli sur la
-    # banque (y compris en répétant la question de secours plutôt qu'une question fausse).
+    # banque, jamais une question technique fausse.
     prompts = [sq.question_version.content_json.get("prompt", "") for sq in session.session_questions]
     assert all("192.168.1.10/28" not in p for p in prompts)
+    assert len(prompts) == len(set(prompts))  # aucune répétition intra-session (#82)
 
 
 def test_no_retry_when_shortfall_is_not_domain_related(db_session, monkeypatch):
