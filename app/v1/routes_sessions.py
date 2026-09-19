@@ -486,6 +486,7 @@ async def view_session(
                 "severity_labels": SEVERITY_UI_LABELS,
                 "comparison": None,
                 "comparison_error": None,
+                "courses_to_review": _courses_to_review(results),
             },
         )
 
@@ -574,9 +575,40 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
                 "source_documents": source_documents,
                 "course_title": uaa.title if uaa else None,
                 "course_slug": uaa.slug if uaa else None,
+                "course_code": uaa.code if uaa else None,
             }
         )
     return rows
+
+
+def _is_incorrect_or_partial(row: dict) -> bool:
+    """Ticket #74 : une question dont la correction n'est pas marquée `correct=True` —
+    couvre à la fois « faux » (déterministe ou sémantique) et « partiel » (crédit partiel
+    #70 § B, ou correction sémantique avec `correct=False` malgré des points partiels).
+    `feedback` vide (jamais corrigée) est traité comme « à revoir », jamais ignoré."""
+    return not (row.get("feedback") or {}).get("correct", False)
+
+
+def _courses_to_review(results: list[dict], *, limit: int = 5) -> list[dict]:
+    """« Cours à relire en priorité » (ticket #74) : agrège les questions incorrectes/
+    partielles par cours (UAA), triées par nombre d'erreurs décroissant, limité à `limit`
+    (3-5 demandé par le ticket — 5 par défaut, jamais plus). Questions sans UAA connue
+    (parcours global/transversal sans mini-cours identifiable) ignorées : rien de concret
+    à « relire »."""
+    counts: dict[str, dict] = {}
+    for row in results:
+        if not _is_incorrect_or_partial(row):
+            continue
+        slug = row.get("course_slug")
+        if not slug:
+            continue
+        entry = counts.setdefault(
+            slug,
+            {"course_slug": slug, "course_title": row.get("course_title"), "course_code": row.get("course_code"), "error_count": 0},
+        )
+        entry["error_count"] += 1
+    ranked = sorted(counts.values(), key=lambda entry: entry["error_count"], reverse=True)
+    return ranked[:limit]
 
 
 @router.post("/sessions/{session_id}/answer")
@@ -700,6 +732,7 @@ async def compare_severity_route(
             "severity_labels": SEVERITY_UI_LABELS,
             "comparison": comparison,
             "comparison_error": comparison_error,
+            "courses_to_review": _courses_to_review(results),
         },
     )
 
@@ -799,6 +832,16 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
         f"- Sévérité : {SEVERITY_UI_LABELS.get(severity_ui, '—')}",
         "",
     ]
+    courses_to_review = _courses_to_review(results)
+    if courses_to_review:
+        lines += ["# Cours à relire en priorité", ""]
+        for rank, entry in enumerate(courses_to_review, start=1):
+            code_prefix = f"{entry['course_code']} — " if entry.get("course_code") else ""
+            lines.append(
+                f"{rank}. {code_prefix}{entry['course_title']} — "
+                f"{entry['error_count']} erreur{'s' if entry['error_count'] > 1 else ''}"
+            )
+        lines.append("")
     for row in results:
         feedback = row["feedback"]
         strengths_lines = [f"- {s}" for s in feedback.get("strengths") or []] or ["—"]
@@ -841,6 +884,9 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
             feedback.get("feedback") or "—",
             "",
         ]
+        if not feedback.get("correct") and row.get("course_slug"):
+            code_prefix = f"{row['course_code']} — " if row.get("course_code") else ""
+            lines += [f"*Cours concerné : {code_prefix}{row['course_title']}*", ""]
     return "\n".join(lines)
 
 
