@@ -512,10 +512,17 @@ class SessionStatus(str, enum.Enum):
     IN_PROGRESS = "in_progress"
     # Ticket #88 : session verrouillée (réponses immuables, `is_locked()` déjà True pour
     # tout statut != IN_PROGRESS — aucun changement requis là) mais correction pas encore
-    # terminée — un `CorrectionJob` existe et est PENDING/RUNNING/FAILED. Distincte de
-    # COMPLETED : ne jamais afficher la page de résultats tant que le job n'est pas
-    # COMPLETED (voir `app.v1.routes_sessions.view_session`).
+    # terminée — un `CorrectionJob` existe et est PENDING/RUNNING. Distincte de COMPLETED :
+    # ne jamais afficher la page de résultats tant que le job n'est pas COMPLETED (voir
+    # `app.v1.routes_sessions.view_session`).
     CORRECTING = "correcting"
+    # Ticket #90 : une tentative de correction a eu lieu, mais au moins une question
+    # nécessitant une notation IA n'a PAS reçu de correction réelle (IA indisponible ou
+    # réponse incomplète) — JAMAIS un faux 0 fabriqué pour autant. Les questions
+    # déterministes déjà corrigées restent acquises ; le score final n'est JAMAIS calculé
+    # tant que cet état n'est pas résolu par une correction ciblée réussie (« Reprendre la
+    # correction ») qui fait repasser la session à COMPLETED.
+    CORRECTION_INCOMPLETE = "correction_incomplete"
     COMPLETED = "completed"
     ABANDONED = "abandoned"
 
@@ -585,6 +592,12 @@ class CorrectionJobStatus(str, enum.Enum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
+    # Ticket #90 : la tentative de correction s'est déroulée sans erreur technique, mais
+    # au moins une question nécessitant l'IA n'a pas reçu de correction réelle (service
+    # indisponible ou réponse incomplète) — à distinguer de FAILED (erreur technique
+    # globale du worker/job). Les corrections déjà obtenues (déterministes ou IA réussies)
+    # sont conservées ; un retry ciblé ne redemande jamais ce qui est déjà acquis.
+    INCOMPLETE = "incomplete"
     FAILED = "failed"
 
 

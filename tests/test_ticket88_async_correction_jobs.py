@@ -36,12 +36,12 @@ from app.v1.models import (
     create_question,
 )
 from app.v1.session_service import (
-    CorrectionJobNotFailedError,
+    CorrectionJobNotRetryableError,
     claim_next_pending_correction_job,
     enqueue_correction,
     get_correction_job,
     recover_stale_correction_jobs,
-    retry_failed_correction_job,
+    retry_correction_job,
     run_correction_job,
     submit_session,
 )
@@ -370,7 +370,7 @@ def test_unexpected_exception_marks_job_failed_not_ai_provider_error(db_session,
     def _boom(*a, **k):
         raise RuntimeError("panne inattendue simulée")
 
-    monkeypatch.setattr("app.v1.session_service.correct_session_hybrid", _boom)
+    monkeypatch.setattr("app.v1.session_service.correct_session_hybrid_resumable", _boom)
     result = run_correction_job(db_session, job=job, provider=fake)
 
     assert result.status == CorrectionJobStatus.FAILED
@@ -379,9 +379,17 @@ def test_unexpected_exception_marks_job_failed_not_ai_provider_error(db_session,
     assert session.status == SessionStatus.CORRECTING, "réponses restent verrouillées, jamais IN_PROGRESS"
 
 
-def test_ai_provider_error_still_completes_via_existing_repli(db_session, monkeypatch):
-    """`AIProviderError` reste géré par le repli existant (#55/#62) — `run_correction_job`
-    ne le voit jamais comme un job FAILED, comportement INCHANGÉ par #88."""
+def test_ai_provider_error_on_semantic_question_is_incomplete_not_completed(db_session, monkeypatch):
+    """Corrigé par le ticket #90 (§ AUCUN FAUX 0 SI CORRECTION IA INDISPONIBLE) : ce test
+    affirmait à l'origine (#88) qu'`AIProviderError` était toujours absorbée par un repli
+    local qui finalisait `COMPLETED` — exactement le bug réel rapporté en staging (un 0
+    fabriqué pour une question qui avait réellement besoin de l'IA). La question par
+    défaut de `_build_minimal_session` (`short_answer` sans `accepted_answers`) a
+    réellement besoin de l'IA (`requires_ai_correction() == True`) : le job devient
+    désormais `INCOMPLETE`, jamais `COMPLETED` avec un score inventé — voir
+    `tests/test_ticket90_correction_failure_integrity.py` pour la couverture complète
+    (le repli local existant reste inchangé pour les questions déterministes déjà
+    correctement notées, dont le score ne dépend jamais de l'IA)."""
     ampcr, mc01 = _seed_mc01(db_session)
     _, session = _build_minimal_session(db_session, ampcr, mc01)
     enqueue_correction(db_session, session=session, severity_ui=3)
@@ -392,9 +400,10 @@ def test_ai_provider_error_still_completes_via_existing_repli(db_session, monkey
             raise AIProviderError("service indisponible")
 
     result = run_correction_job(db_session, job=job, provider=_FailingProvider())
-    assert result.status == CorrectionJobStatus.COMPLETED
+    assert result.status == CorrectionJobStatus.INCOMPLETE
     db_session.refresh(session)
-    assert session.status == SessionStatus.COMPLETED
+    assert session.status == SessionStatus.CORRECTION_INCOMPLETE
+    assert session.score is None
 
 
 def test_failed_job_shows_failure_page_with_retry_button(client, db_session, monkeypatch):
@@ -430,7 +439,7 @@ def test_retry_failed_job_resets_to_pending_without_touching_answers(db_session,
 
     original_answer = session.session_questions[0].answer
 
-    retried = retry_failed_correction_job(db_session, job=job)
+    retried = retry_correction_job(db_session, job=job, session=session)
     assert retried.status == CorrectionJobStatus.PENDING
     assert retried.error_message is None
     assert retried.attempt_count == 0
@@ -448,8 +457,8 @@ def test_retry_raises_when_job_not_failed(db_session, monkeypatch):
 
     import pytest
 
-    with pytest.raises(CorrectionJobNotFailedError):
-        retry_failed_correction_job(db_session, job=job)
+    with pytest.raises(CorrectionJobNotRetryableError):
+        retry_correction_job(db_session, job=job, session=session)
 
 
 def test_retry_route_does_not_duplicate_a_successful_correction(client, db_session, monkeypatch):

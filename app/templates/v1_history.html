@@ -28,6 +28,8 @@
                         <span class="badge bg-success">Terminé</span>
                         {% elif session.status.value == 'correcting' %}
                         <span class="badge bg-info text-dark">Correction en cours</span>
+                        {% elif session.status.value == 'correction_incomplete' %}
+                        <span class="badge bg-warning text-dark">Correction incomplète</span>
                         {% else %}
                         <span class="badge bg-warning text-dark">En cours</span>
                         {% endif %}
@@ -45,6 +47,8 @@
                     <a href="/sessions/{{ session.id }}" class="btn btn-outline-dark btn-sm">Voir les résultats</a>
                     {% elif session.status.value == 'correcting' %}
                     <a href="/sessions/{{ session.id }}" class="btn btn-outline-dark btn-sm">Correction en cours</a>
+                    {% elif session.status.value == 'correction_incomplete' %}
+                    <a href="/sessions/{{ session.id }}" class="btn btn-outline-dark btn-sm">Correction incomplète</a>
                     {% else %}
                     <a href="/sessions/{{ session.id }}" class="btn btn-dark btn-sm">Reprendre</a>
                     {% endif %}
