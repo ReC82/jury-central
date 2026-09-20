@@ -45,6 +45,26 @@ def _patch_fake_provider(monkeypatch):
     return fake
 
 
+def _run_pending_build_job_and_get_session_id(db_session, provider, location: str) -> int:
+    """Ticket #92 : `POST /uaa/{slug}/{mode}/start` crée désormais un `SessionBuildJob`
+    PENDING et redirige vers sa page d'attente au lieu de créer la session
+    immédiatement — les tests HTTP doivent faire tourner le worker explicitement (appel
+    direct, pas de processus séparé) avant de lire un résultat."""
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return job.created_session_id
+
+
 def _seed_mc01(db_session):
     seed()
     ampcr = db_session.query(Module).filter_by(code="AMPCR").first()
@@ -154,8 +174,8 @@ def test_results_page_shows_course_link_for_incorrect_questions(authenticated_cl
     response = authenticated_client.post(
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"}, follow_redirects=False,
     )
-    session_url = f"/sessions/{int(response.headers['location'].rsplit('/', 1)[-1])}"
-    session_id = int(session_url.rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
+    session_url = f"/sessions/{session_id}"
     session = db_session.get(QuestionnaireSession, session_id)
 
     _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
@@ -177,8 +197,8 @@ def test_results_page_shows_courses_to_review_summary(authenticated_client, db_s
     response = authenticated_client.post(
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"}, follow_redirects=False,
     )
-    session_url = f"/sessions/{int(response.headers['location'].rsplit('/', 1)[-1])}"
-    session_id = int(session_url.rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
+    session_url = f"/sessions/{session_id}"
     session = db_session.get(QuestionnaireSession, session_id)
 
     _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
@@ -256,8 +276,8 @@ def test_export_markdown_includes_courses_to_review_and_per_question_reference(
     response = authenticated_client.post(
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"}, follow_redirects=False,
     )
-    session_url = f"/sessions/{int(response.headers['location'].rsplit('/', 1)[-1])}"
-    session_id = int(session_url.rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
+    session_url = f"/sessions/{session_id}"
     session = db_session.get(QuestionnaireSession, session_id)
 
     _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
@@ -283,8 +303,8 @@ def test_print_shows_course_reference_text_but_hides_interactive_button(
     response = authenticated_client.post(
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"}, follow_redirects=False,
     )
-    session_url = f"/sessions/{int(response.headers['location'].rsplit('/', 1)[-1])}"
-    session_id = int(session_url.rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
+    session_url = f"/sessions/{session_id}"
     session = db_session.get(QuestionnaireSession, session_id)
     _answer_all_wrong_and_submit(authenticated_client, session_url, session.question_count, db_session, fake)
 

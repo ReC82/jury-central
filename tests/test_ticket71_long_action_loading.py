@@ -63,6 +63,26 @@ def _run_pending_correction_job(db_session, provider):
     return job
 
 
+def _run_pending_build_job_and_get_session_id(db_session, provider, location: str) -> int:
+    """Ticket #92 : `POST /uaa/{slug}/{mode}/start` (et les routes AMPCR globales)
+    créent désormais un `SessionBuildJob` PENDING et redirigent vers sa page d'attente
+    au lieu de créer la session immédiatement — même principe que
+    `_run_pending_correction_job` ci-dessus."""
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return job.created_session_id
+
+
 def _seed_mc01(db_session):
     seed()
     ampcr = db_session.query(Module).filter_by(code="AMPCR").first()
@@ -121,7 +141,7 @@ def test_submit_confirm_page_has_loading_state_markup(authenticated_client, db_s
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"},
         follow_redirects=False,
     )
-    session_id = int(response.headers["location"].rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
     session = db_session.get(QuestionnaireSession, session_id)
     for position in range(1, session.question_count + 1):
         response = authenticated_client.get(f"/sessions/{session_id}?q={position}")
@@ -149,7 +169,7 @@ def test_double_post_practice_start_creates_only_one_session(authenticated_clien
     avant #71 (exam l'était déjà, § 12 du ticket #55) — reproduit un double-clic exact :
     même jeton CSRF, deux POST consécutifs."""
     _seed_mc01(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(response.text)
     data = {"csrf_token": token, "difficulty": "medium"}
@@ -159,9 +179,13 @@ def test_double_post_practice_start_creates_only_one_session(authenticated_clien
     assert first.status_code == 303
     assert second.status_code == 303
 
-    first_id = int(first.headers["location"].rsplit("/", 1)[-1])
-    second_id = int(second.headers["location"].rsplit("/", 1)[-1])
-    assert first_id == second_id, "les deux POST doivent aboutir à la MÊME session, jamais 2"
+    # Ticket #92 : les deux POST doivent aboutir au MÊME SessionBuildJob (jamais 2) —
+    # vérifié ici au niveau de l'URL de la page d'attente, avant toute résolution.
+    assert first.headers["location"] == second.headers["location"], (
+        "les deux POST doivent aboutir au MÊME job de préparation, jamais 2"
+    )
+
+    first_id = _run_pending_build_job_and_get_session_id(db_session, fake, first.headers["location"])
 
     created_session = db_session.get(QuestionnaireSession, first_id)
     sessions = db_session.query(QuestionnaireSession).filter_by(user_id=created_session.user_id).all()
@@ -208,14 +232,14 @@ def test_genuine_second_practice_attempt_after_answering_creates_a_new_session(
     autorisées » (§ 12 du ticket #55) reste intacte — seul le doublon accidentel
     IMMÉDIAT (aucune réponse entre les deux) est bloqué par #71."""
     _seed_mc01(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     response = authenticated_client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(response.text)
     first = authenticated_client.post(
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"},
         follow_redirects=False,
     )
-    first_id = int(first.headers["location"].rsplit("/", 1)[-1])
+    first_id = _run_pending_build_job_and_get_session_id(db_session, fake, first.headers["location"])
 
     # Répond à la première question de la première session — elle n'est plus "vierge".
     response = authenticated_client.get(f"/sessions/{first_id}?q=1")
@@ -231,7 +255,7 @@ def test_genuine_second_practice_attempt_after_answering_creates_a_new_session(
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"},
         follow_redirects=False,
     )
-    second_id = int(second.headers["location"].rsplit("/", 1)[-1])
+    second_id = _run_pending_build_job_and_get_session_id(db_session, fake, second.headers["location"])
     assert second_id != first_id
 
 
@@ -252,7 +276,7 @@ def test_double_post_submit_triggers_only_one_ai_correction(authenticated_client
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"},
         follow_redirects=False,
     )
-    session_id = int(response.headers["location"].rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
     session = db_session.get(QuestionnaireSession, session_id)
 
     for position in range(1, session.question_count + 1):

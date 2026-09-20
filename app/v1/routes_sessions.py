@@ -32,6 +32,8 @@ from app.v1.francais_plan import get_francais_plan_by_slug
 from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
 from app.v1.models import (
     QuestionnaireSession,
+    SessionBuildJob,
+    SessionBuildJobStatus,
     SessionDifficultyRequest,
     SessionMode,
     SessionStatus,
@@ -45,7 +47,7 @@ from app.v1.session_service import (
     SEVERITY_UI_LABELS,
     SEVERITY_UI_LEVELS,
     CorrectionJobNotRetryableError,
-    SessionCreationError,
+    SessionBuildJobNotFailedError,
     # Ticket #77 : seule source de vérité pour « quel(s) document(s) une question
     # référence », dérivée du payload public — jamais du `content_json` brut. Importé ici
     # malgré le préfixe privé pour que les résultats/export (§ 6 du ticket) utilisent
@@ -56,14 +58,16 @@ from app.v1.session_service import (
     build_question_display,
     describe_session_scope,
     enqueue_correction,
+    enqueue_session_build,
     get_correction_job,
     get_in_progress_session,
     get_owned_session,
+    get_session_build_job,
     list_user_sessions,
     retry_correction_job,
+    retry_session_build_job,
     save_answer,
     simulate_severity_comparison,
-    start_session,
 )
 
 router = APIRouter(tags=["v1-sessions"])
@@ -188,9 +192,14 @@ def render_exam_landing(request: Request, db, uaa: UAA, user: User) -> HTMLRespo
     )
 
 
-def _start_session_for_uaa(
+def _enqueue_build_for_uaa(
     db, *, uaa: UAA, user: User, mode: SessionMode, difficulty: SessionDifficultyRequest
-) -> QuestionnaireSession:
+) -> SessionBuildJob:
+    """Ticket #92 : équivalent non bloquant de l'ancienne `_start_session_for_uaa` — mêmes
+    paramètres calculés (uaa_code/question_count, générique MC01-38 + Français, § 92.11),
+    mais enqueue un `SessionBuildJob` au lieu d'appeler `start_session` directement. La
+    composition réelle (banque, génération IA, MC38 transversal) est déléguée au worker
+    (`run_session_build_job`, réutilise `start_session` telle quelle)."""
     module = uaa.module
     _ensure_bank_seeded(db, module, uaa)
     plan = get_plan_by_slug(uaa.slug)
@@ -211,7 +220,7 @@ def _start_session_for_uaa(
         if mode == SessionMode.EXAM and (uaa_code == "MC38" or francais_plan is not None)
         else DEFAULT_QUESTION_COUNT
     )
-    return start_session(
+    return enqueue_session_build(
         db,
         user=user,
         module_id=module.id,
@@ -219,7 +228,6 @@ def _start_session_for_uaa(
         uaa_code=uaa_code,
         mode=mode,
         difficulty=difficulty,
-        provider=_get_provider_or_unconfigured(),
         question_count=question_count,
     )
 
@@ -250,24 +258,16 @@ async def start_practice_session(
     if _is_unstarted(existing):
         return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
 
-    try:
-        session = _start_session_for_uaa(
-            db, uaa=uaa, user=user, mode=SessionMode.PRACTICE,
-            difficulty=SessionDifficultyRequest(difficulty),
-        )
-    except (SessionCreationError, ValueError) as exc:
-        return templates.TemplateResponse(
-            request=request,
-            name="v1_session_start.html",
-            context={
-                "uaa": uaa, "mode": "practice", "mode_label": "S'entraîner",
-                "start_url": f"/uaa/{uaa.slug}/practice/start", "resumable": None,
-                "difficulties": list(_DIFFICULTY_LABELS.items()),
-                "allow_new_while_in_progress": True, "error": str(exc),
-            },
-            status_code=503,
-        )
-    return RedirectResponse(url=f"/sessions/{session.id}", status_code=303)
+    # Ticket #92 : ne construit plus jamais la session dans cette requête — enqueue un
+    # SessionBuildJob (idempotent, jamais deux jobs pour la même demande) et redirige
+    # IMMÉDIATEMENT vers la page d'attente. `SessionCreationError`/`ValueError` ne
+    # peuvent plus survenir ICI (elles surviennent, le cas échéant, dans le worker — voir
+    # `SessionBuildJobStatus.FAILED`, affiché sur la page d'attente).
+    job = _enqueue_build_for_uaa(
+        db, uaa=uaa, user=user, mode=SessionMode.PRACTICE,
+        difficulty=SessionDifficultyRequest(difficulty),
+    )
+    return RedirectResponse(url=f"/session-build-jobs/{job.id}", status_code=303)
 
 
 @router.post("/uaa/{uaa_slug}/exam/start")
@@ -293,24 +293,11 @@ async def start_exam_session(
     if existing is not None:
         return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
 
-    try:
-        session = _start_session_for_uaa(
-            db, uaa=uaa, user=user, mode=SessionMode.EXAM,
-            difficulty=SessionDifficultyRequest(difficulty),
-        )
-    except (SessionCreationError, ValueError) as exc:
-        return templates.TemplateResponse(
-            request=request,
-            name="v1_session_start.html",
-            context={
-                "uaa": uaa, "mode": "exam", "mode_label": "S'évaluer",
-                "start_url": f"/uaa/{uaa.slug}/exam/start", "resumable": None,
-                "difficulties": list(_DIFFICULTY_LABELS.items()),
-                "allow_new_while_in_progress": False, "error": str(exc),
-            },
-            status_code=503,
-        )
-    return RedirectResponse(url=f"/sessions/{session.id}", status_code=303)
+    job = _enqueue_build_for_uaa(
+        db, uaa=uaa, user=user, mode=SessionMode.EXAM,
+        difficulty=SessionDifficultyRequest(difficulty),
+    )
+    return RedirectResponse(url=f"/session-build-jobs/{job.id}", status_code=303)
 
 
 # --- Parcours global AMPCR (§ 16/17 du ticket #55) ---------------------------------------------
@@ -381,12 +368,12 @@ async def start_ampcr_global_practice(
     # Ticket #71 : protection serveur contre le double POST — voir _is_unstarted.
     if _is_unstarted(existing):
         return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
-    session = start_session(
+    job = enqueue_session_build(
         db, user=user, module_id=module.id, uaa_id=None, uaa_code=None,
         mode=SessionMode.PRACTICE, difficulty=SessionDifficultyRequest(difficulty),
-        provider=_get_provider_or_unconfigured(),
+        question_count=DEFAULT_QUESTION_COUNT,
     )
-    return RedirectResponse(url=f"/sessions/{session.id}", status_code=303)
+    return RedirectResponse(url=f"/session-build-jobs/{job.id}", status_code=303)
 
 
 @router.post("/modules/ampcr/exam/start")
@@ -403,12 +390,84 @@ async def start_ampcr_global_exam(
     )
     if existing is not None:
         return RedirectResponse(url=f"/sessions/{existing.id}", status_code=303)
-    session = start_session(
+    job = enqueue_session_build(
         db, user=user, module_id=module.id, uaa_id=None, uaa_code=None,
         mode=SessionMode.EXAM, difficulty=SessionDifficultyRequest(difficulty),
-        provider=_get_provider_or_unconfigured(), question_count=GLOBAL_EXAM_QUESTION_COUNT,
+        question_count=GLOBAL_EXAM_QUESTION_COUNT,
     )
-    return RedirectResponse(url=f"/sessions/{session.id}", status_code=303)
+    return RedirectResponse(url=f"/session-build-jobs/{job.id}", status_code=303)
+
+
+# --- Page d'attente / polling / retry de la CRÉATION de session (ticket #92) -------------------
+
+
+def _owned_build_job(db, *, job_id: int, user_id: int) -> SessionBuildJob | None:
+    job = get_session_build_job(db, job_id=job_id)
+    if job is None or job.user_id != user_id:
+        return None
+    return job
+
+
+@router.get("/session-build-jobs/{job_id}", response_class=HTMLResponse)
+async def view_session_build_job(
+    job_id: int,
+    request: Request,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+) -> HTMLResponse:
+    """Page d'attente (ticket #92 § 5) : jamais de résultat/session tant que le job n'est
+    pas `READY` — redirige alors immédiatement vers `/sessions/{created_session_id}`,
+    exactement comme la page de correction (#88) redirige vers les résultats."""
+    job = _owned_build_job(db, job_id=job_id, user_id=user.id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Préparation de session introuvable")
+    if job.status == SessionBuildJobStatus.READY and job.created_session_id is not None:
+        return RedirectResponse(url=f"/sessions/{job.created_session_id}", status_code=303)
+    return templates.TemplateResponse(
+        request=request,
+        name="v1_session_build_waiting.html",
+        context={
+            "job": job,
+            "mode_label": "l'évaluation" if job.mode.value == "exam" else "l'entraînement",
+        },
+    )
+
+
+@router.get("/session-build-jobs/{job_id}/status")
+async def session_build_job_status_route(
+    job_id: int,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+):
+    """Ticket #92 § 6 : endpoint de polling léger pour la page d'attente — retourne
+    uniquement l'état (+ l'URL de la session une fois prête), jamais de contenu de
+    question (celui-ci n'est lu qu'après redirection vers `/sessions/{id}`)."""
+    job = _owned_build_job(db, job_id=job_id, user_id=user.id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Préparation de session introuvable")
+    payload = {"status": job.status.value, "error_message": job.error_message}
+    if job.status == SessionBuildJobStatus.READY:
+        payload["session_url"] = f"/sessions/{job.created_session_id}"
+    return payload
+
+
+@router.post("/session-build-jobs/{job_id}/retry")
+async def retry_session_build_job_route(
+    job_id: int,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+):
+    """Ticket #92 § 9 : réessaie une préparation de session `FAILED` — réutilise le MÊME
+    job (jamais une seconde ligne, jamais deux sessions fantômes), ne crée une session
+    qu'en cas de succès réel du worker."""
+    job = _owned_build_job(db, job_id=job_id, user_id=user.id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Préparation de session introuvable")
+    try:
+        retry_session_build_job(db, job=job)
+    except SessionBuildJobNotFailedError:
+        pass
+    return RedirectResponse(url=f"/session-build-jobs/{job_id}", status_code=303)
 
 
 # --- Vue de session (question par question puis résultats) -------------------------------------
@@ -865,8 +924,24 @@ async def my_sessions(
         }
         for session in sessions
     ]
+    # Ticket #92 § 13 : une préparation de session encore active (PENDING/RUNNING/FAILED,
+    # `active_marker == "1"`) n'a pas encore de `QuestionnaireSession` — affichée
+    # séparément, jamais mélangée aux vraies sessions ci-dessus.
+    build_jobs = (
+        db.query(SessionBuildJob)
+        .filter_by(user_id=user.id, active_marker="1")
+        .order_by(SessionBuildJob.created_at.desc())
+        .all()
+    )
+    build_job_rows = [
+        {
+            "job": job,
+            "subject_name": job.module.subject.name if job.module else "—",
+        }
+        for job in build_jobs
+    ]
     return templates.TemplateResponse(
-        request=request, name="v1_history.html", context={"rows": rows}
+        request=request, name="v1_history.html", context={"rows": rows, "build_job_rows": build_job_rows}
     )
 
 

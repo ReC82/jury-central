@@ -60,7 +60,37 @@ def _patch_fake_provider(monkeypatch):
     return fake
 
 
-def _start_session(client, uaa_slug: str, mode: str = "practice", difficulty: str = "medium") -> str:
+def _resolve_build_job_url(db_session, location: str) -> str:
+    """Ticket #92 : /start crée désormais un SessionBuildJob et redirige vers sa page
+    d'attente au lieu de la session immédiatement. On fait tourner le job en direct
+    (appel de service, jamais un vrai worker séparé) pour retrouver la sémantique
+    synchrone attendue par les tests existants, en réutilisant le provider déjà
+    monkeypatché sur la route (`app.v1.routes_sessions.get_ai_provider`)."""
+    from app.ai.provider import AINotConfiguredError
+    from app.v1 import routes_sessions
+    from app.v1.correction_worker import _UnconfiguredProvider
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    if not location.startswith("/session-build-jobs/"):
+        return location
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    try:
+        provider = routes_sessions.get_ai_provider()
+    except AINotConfiguredError:
+        provider = _UnconfiguredProvider()
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return f"/sessions/{job.created_session_id}"
+
+
+def _start_session(client, db_session, uaa_slug: str, mode: str = "practice", difficulty: str = "medium") -> str:
     response = client.get(f"/uaa/{uaa_slug}/{mode}")
     token = _csrf(response.text)
     response = client.post(
@@ -69,7 +99,7 @@ def _start_session(client, uaa_slug: str, mode: str = "practice", difficulty: st
         follow_redirects=False,
     )
     assert response.status_code == 303, response.text
-    return response.headers["location"]
+    return _resolve_build_job_url(db_session, response.headers["location"])
 
 
 def _user(db_session, email="ticket82@example.invalid") -> User:
@@ -309,7 +339,7 @@ def test_practice_ten_questions_no_duplicates(authenticated_client, db_session, 
     db_session.commit()
     _patch_fake_provider(monkeypatch)
 
-    session_url = _start_session(authenticated_client, "ampcr-mc01", mode="practice")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01", mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     assert session.question_count == 10
@@ -324,7 +354,7 @@ def test_exam_ten_questions_no_duplicates(authenticated_client, db_session, monk
     db_session.commit()
     _patch_fake_provider(monkeypatch)
 
-    session_url = _start_session(authenticated_client, "ampcr-mc01", mode="exam")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01", mode="exam")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     assert session.question_count == 10
@@ -344,7 +374,8 @@ def test_exam_twenty_questions_no_duplicates(authenticated_client, db_session, m
         follow_redirects=False,
     )
     assert response.status_code == 303, response.text
-    session_id = int(response.headers["location"].rsplit("/", 1)[-1])
+    session_url = _resolve_build_job_url(db_session, response.headers["location"])
+    session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     assert session.question_count == 20
     _assert_no_intra_session_duplicates(session)
@@ -353,7 +384,7 @@ def test_exam_twenty_questions_no_duplicates(authenticated_client, db_session, m
 def test_mc38_transversal_twenty_questions_no_duplicates(authenticated_client, db_session, monkeypatch):
     seed()
     _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc38", mode="exam")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc38", mode="exam")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     assert session.question_count == 20
@@ -363,7 +394,7 @@ def test_mc38_transversal_twenty_questions_no_duplicates(authenticated_client, d
 def test_mc38_transversal_practice_no_duplicates(authenticated_client, db_session, monkeypatch):
     seed()
     _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc38", mode="practice")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc38", mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     assert session.question_count == 10

@@ -81,7 +81,37 @@ def _answer_payload_for(html: str) -> dict:
     return {"text": "Réponse de test couvrant plusieurs phrases pour valider la correction."}
 
 
-def _start_session(client, uaa_slug: str, mode: str = "practice") -> str:
+def _resolve_build_job_url(db_session, location: str) -> str:
+    """Ticket #92 : /start crée désormais un SessionBuildJob et redirige vers sa page
+    d'attente au lieu de la session immédiatement. On fait tourner le job en direct
+    (appel de service, jamais un vrai worker séparé) pour retrouver la sémantique
+    synchrone attendue par les tests existants, en réutilisant le provider déjà
+    monkeypatché sur la route (`app.v1.routes_sessions.get_ai_provider`)."""
+    from app.ai.provider import AINotConfiguredError
+    from app.v1 import routes_sessions
+    from app.v1.correction_worker import _UnconfiguredProvider
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    if not location.startswith("/session-build-jobs/"):
+        return location
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    try:
+        provider = routes_sessions.get_ai_provider()
+    except AINotConfiguredError:
+        provider = _UnconfiguredProvider()
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return f"/sessions/{job.created_session_id}"
+
+
+def _start_session(client, db_session, uaa_slug: str, mode: str = "practice") -> str:
     response = client.get(f"/uaa/{uaa_slug}/{mode}")
     token = _csrf(response.text)
     response = client.post(
@@ -90,7 +120,7 @@ def _start_session(client, uaa_slug: str, mode: str = "practice") -> str:
         follow_redirects=False,
     )
     assert response.status_code == 303, response.text
-    return response.headers["location"]
+    return _resolve_build_job_url(db_session, response.headers["location"])
 
 
 def _answer_all(client, session_url: str, total: int) -> None:
@@ -291,7 +321,7 @@ def test_severity_selector_default_is_three(authenticated_client, db_session, mo
     seed()
     _seed_mc01_bank(db_session)
     _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc01")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
     response = authenticated_client.get(f"{session_url}/submit-confirm")
     assert 'id="severity-3"' in response.text
@@ -303,7 +333,7 @@ def test_severity_persisted_on_completed_session(authenticated_client, db_sessio
     seed()
     _seed_mc01_bank(db_session)
     fake = _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc01")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     session_id = int(session_url.rsplit("/", 1)[-1])
     _answer_all(authenticated_client, session_url, 10)
     _submit(authenticated_client, session_url, db_session, fake, severity=5)
@@ -317,7 +347,7 @@ def test_no_solution_leak_before_submission(authenticated_client, db_session, mo
     seed()
     _seed_mc01_bank(db_session)
     _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc01")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     for position in range(1, 11):
         response = authenticated_client.get(f"{session_url}?q={position}")
         for field in ("correct_option_ids", "correct_categories", "correct_order", "rubric", "expected_points"):
@@ -329,11 +359,11 @@ def test_history_shows_completed_and_in_progress_sessions(authenticated_client, 
     _seed_mc01_bank(db_session)
     fake = _patch_fake_provider(monkeypatch)
 
-    completed_url = _start_session(authenticated_client, "ampcr-mc01")
+    completed_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     _answer_all(authenticated_client, completed_url, 10)
     _submit(authenticated_client, completed_url, db_session, fake, severity=2)
 
-    _start_session(authenticated_client, "ampcr-mc01")
+    _start_session(authenticated_client, db_session, "ampcr-mc01")
 
     response = authenticated_client.get("/mes-sessions")
     assert response.status_code == 200
@@ -353,7 +383,7 @@ def test_reconnection_completed_session_reachable_from_history(client, db_sessio
     monkeypatch.setattr("app.v1.routes_sessions.get_ai_provider", lambda: fake)
 
     _register(client, "reco@example.invalid")
-    session_url = _start_session(client, "ampcr-mc01")
+    session_url = _start_session(client, db_session, "ampcr-mc01")
     session_id = session_url.rsplit("/", 1)[-1]
     _answer_all(client, session_url, 10)
     _submit(client, session_url, db_session, fake, severity=3)
@@ -384,7 +414,7 @@ def test_reconnection_in_progress_session_resumable(client, db_session, monkeypa
     monkeypatch.setattr("app.v1.routes_sessions.get_ai_provider", lambda: fake)
 
     _register(client, "reco2@example.invalid")
-    session_url = _start_session(client, "ampcr-mc01")
+    session_url = _start_session(client, db_session, "ampcr-mc01")
     token = _csrf(client.get(f"{session_url}?q=1").text)
     client.post(
         f"{session_url}/answer",
@@ -410,7 +440,7 @@ def test_multiple_result_panels_can_be_expanded_simultaneously(authenticated_cli
     seed()
     _seed_mc01_bank(db_session)
     fake = _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc01")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
     _submit(authenticated_client, session_url, db_session, fake)
 
@@ -423,7 +453,7 @@ def test_expand_all_and_collapse_all_buttons_present(authenticated_client, db_se
     seed()
     _seed_mc01_bank(db_session)
     fake = _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc01")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
     _submit(authenticated_client, session_url, db_session, fake)
 
@@ -438,7 +468,7 @@ def test_print_button_and_css_force_all_panels_visible(authenticated_client, db_
     seed()
     _seed_mc01_bank(db_session)
     fake = _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc01")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
     _submit(authenticated_client, session_url, db_session, fake)
 
@@ -456,7 +486,7 @@ def test_export_contains_all_questions_answers_and_feedback(authenticated_client
     seed()
     _seed_mc01_bank(db_session)
     fake = _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc01")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
     _submit(authenticated_client, session_url, db_session, fake)
 
@@ -480,7 +510,7 @@ def test_export_forbidden_for_other_user(client, db_session, monkeypatch):
     monkeypatch.setattr("app.v1.routes_sessions.get_ai_provider", lambda: fake)
 
     _register(client, "owner@example.invalid")
-    session_url = _start_session(client, "ampcr-mc01")
+    session_url = _start_session(client, db_session, "ampcr-mc01")
     _answer_all(client, session_url, 10)
     _submit(client, session_url, db_session, fake)
 
@@ -496,7 +526,7 @@ def test_export_forbidden_before_completion(authenticated_client, db_session, mo
     seed()
     _seed_mc01_bank(db_session)
     _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc01")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     response = authenticated_client.get(f"{session_url}/export.md")
     assert response.status_code == 409
 
@@ -508,7 +538,7 @@ def test_history_strictly_isolated_between_users(client, db_session, monkeypatch
     monkeypatch.setattr("app.v1.routes_sessions.get_ai_provider", lambda: fake)
 
     _register(client, "userA@example.invalid")
-    session_a_url = _start_session(client, "ampcr-mc01")
+    session_a_url = _start_session(client, db_session, "ampcr-mc01")
 
     token = _csrf(client.get("/account").text)
     client.post("/logout", data={"csrf_token": token}, follow_redirects=False)
@@ -530,7 +560,7 @@ def test_no_openai_key_configured_never_crashes_submission(authenticated_client,
     _seed_mc01_bank(db_session)
     from app.v1.routes_sessions import _get_provider_or_unconfigured
 
-    session_url = _start_session(authenticated_client, "ampcr-mc01")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
     _submit(authenticated_client, session_url, db_session, _get_provider_or_unconfigured())
     response = authenticated_client.get(session_url)
@@ -552,7 +582,7 @@ def test_practice_and_results_still_work_for_key_mc(authenticated_client, db_ses
     response = authenticated_client.get(f"/uaa/{uaa_slug}/practice")
     assert response.status_code == 200
 
-    session_url = _start_session(authenticated_client, uaa_slug)
+    session_url = _start_session(authenticated_client, db_session, uaa_slug)
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     _answer_all(authenticated_client, session_url, session.question_count)

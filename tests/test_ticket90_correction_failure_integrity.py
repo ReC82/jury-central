@@ -76,6 +76,38 @@ def _patch_fake_provider(monkeypatch, fake=None):
     return fake
 
 
+def _resolve_build_job_url(db_session, location: str) -> str:
+    """Ticket #92 : `POST /uaa/{slug}/practice/start` crée désormais un
+    `SessionBuildJob` PENDING et redirige vers sa page d'attente au lieu de créer la
+    session immédiatement — fait tourner le job en direct (appel de service, jamais un
+    vrai worker séparé) avant de rendre la main, en réutilisant le fournisseur déjà
+    monkeypatché sur la route (`app.v1.routes_sessions.get_ai_provider`). Sûr même avec
+    `_FailingProvider` : seule `correct_semantic_batch` y échoue, jamais
+    `generate_questionnaire`."""
+    from app.ai.provider import AINotConfiguredError
+    from app.v1 import routes_sessions
+    from app.v1.correction_worker import _UnconfiguredProvider
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    if not location.startswith("/session-build-jobs/"):
+        return location
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    try:
+        provider = routes_sessions.get_ai_provider()
+    except AINotConfiguredError:
+        provider = _UnconfiguredProvider()
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return f"/sessions/{job.created_session_id}"
+
+
 def _seed_mc01(db_session):
     seed()
     ampcr = db_session.query(Module).filter_by(code="AMPCR").first()
@@ -443,7 +475,7 @@ def test_results_page_shows_incomplete_banner_and_retry_button(client, db_sessio
     r = client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(r.text)
     r = client.post("/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"}, follow_redirects=False)
-    session_url = r.headers["location"]
+    session_url = _resolve_build_job_url(db_session, r.headers["location"])
     session_id = int(session_url.rstrip("/").split("/")[-1])
 
     session = db_session.get(QuestionnaireSession, session_id)
@@ -493,7 +525,7 @@ def test_history_distinguishes_correcting_incomplete_and_completed(client, db_se
     r = client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(r.text)
     r = client.post("/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"}, follow_redirects=False)
-    session_url = r.headers["location"]
+    session_url = _resolve_build_job_url(db_session, r.headers["location"])
 
     position = 1
     while True:
@@ -540,7 +572,7 @@ def test_submit_still_nonblocking_and_double_submit_still_single_job(client, db_
     r = client.get("/uaa/ampcr-mc01/practice")
     token = _csrf(r.text)
     r = client.post("/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"}, follow_redirects=False)
-    session_url = r.headers["location"]
+    session_url = _resolve_build_job_url(db_session, r.headers["location"])
     session_id = int(session_url.rstrip("/").split("/")[-1])
 
     position = 1
