@@ -27,10 +27,33 @@ FRANCAIS_MODULE_CODE = "FRANCAIS"
 FRANCAIS_MODULE_TITLE = "Français — CESS Professionnel"
 
 
+_DEFAULT_NOTIONS = [
+    "compréhension à la lecture (explicite et implicite)",
+    "justification à l'aide d'éléments du texte",
+    "reformulation",
+    "identification de l'idée principale et synthèse courte",
+    "distinction entre fait et opinion",
+    "vocabulaire en contexte",
+    "opinion argumentée",
+    "analyse documentaire (citer et interpréter un passage)",
+    "comparaison entre deux documents",
+]
+_DEFAULT_COMPETENCIES = [
+    "Lire et comprendre un texte informatif de niveau CESS",
+    "Justifier une réponse à l'aide d'éléments précis du texte",
+    "Rédiger une réponse argumentée structurée",
+]
+
+
 @dataclass(frozen=True)
 class FrancaisUAAPlan:
     code: str
     title: str
+    # Ticket #94 : chaque FRxx cible des notions précises (§ objectifs donnés par
+    # l'utilisateur/ChatGPT) — `None` = reprend les notions génériques historiques de C01
+    # (ticket #47), pour ne rien changer à son comportement existant.
+    allowed_notions: tuple[str, ...] | None = None
+    competencies: tuple[str, ...] | None = None
 
     @property
     def slug(self) -> str:
@@ -41,12 +64,89 @@ class FrancaisUAAPlan:
         return f"francais-{self.code.lower()}"
 
 
-# Une seule UAA pilote pour ce ticket (voir docstring du module : contenu de validation
-# technique provisoire, pas un découpage CESS officiel).
+# Ticket #94 (PHASE A) : parcours des 20 mini-cours Français CESS Professionnel — les
+# titres FR01→FR05 ci-dessous reprennent EXACTEMENT les intitulés fournis par
+# l'utilisateur/ChatGPT (ticket #94 § 2, non réinventés). C01 (ticket #47) reste
+# INCHANGÉE — contenu de validation technique provisoire distinct, jamais renommé ni
+# supprimé, pour ne casser aucun test/usage existant. FR06→FR20 seront ajoutés par les
+# phases B/C/D suivantes (voir docs/claude-reports/2026-09-20_ticket-94_french-20-course-path.md).
 FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
     FrancaisUAAPlan(
         code="C01",
         title="Lecture et compréhension — texte d'exemple (validation technique, provisoire)",
+    ),
+    FrancaisUAAPlan(
+        code="FR01", title="FR01 — Comprendre une consigne d'examen",
+        allowed_notions=(
+            ("verbe opérateur d'une consigne (relever, citer, reformuler, expliquer, "
+            "justifier, expliciter, comparer, analyser, résumer, synthétiser, "
+            "argumenter, apprécier)"),
+            ("décomposition d'une consigne en checklist (objet, contraintes, nombre "
+            "d'éléments, documents à utiliser, destinataire, genre, longueur)"),
+            "détection du hors-sujet et de la réponse partielle",
+        ),
+        competencies=(
+            "Décoder précisément ce qu'une consigne demande avant d'y répondre",
+            "Répondre à CHAQUE exigence d'une consigne à plusieurs parties, sans en oublier",
+            "Comparer deux documents sur un point précis demandé par la consigne",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR02", title="FR02 — Lire et comprendre un document",
+        allowed_notions=(
+            ("situation de communication (auteur/énonciateur, destinataire, intention, "
+            "contexte, support, genre)"),
+            "stratégies de lecture (survol, repérage, lecture sélective/intégrale)",
+            "idée principale et idées secondaires",
+            "sens explicite et vocabulaire en contexte",
+        ),
+        competencies=(
+            "Identifier la situation de communication d'un document",
+            "Dégager l'idée principale et les idées secondaires d'un texte",
+            "Expliquer le sens d'un mot ou d'une expression à partir du contexte",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR03", title="FR03 — Implicite, inférences et justification",
+        allowed_notions=(
+            "distinction explicite / implicite",
+            "méthode INDICE → RAISONNEMENT → CONCLUSION",
+            "méthode PREUVE → EXPLICATION → CONCLUSION",
+            "inférence appuyée sur le texte, jamais une invention",
+        ),
+        competencies=(
+            "Distinguer ce qui est écrit explicitement de ce qui doit être déduit",
+            "Justifier une inférence à l'aide d'un indice précis du texte",
+            "Refuser toute conclusion qui n'est pas appuyée par un indice réel du texte",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR04", title="FR04 — Écrire correctement et organiser ses idées",
+        allowed_notions=(
+            "situation de communication d'un texte à produire (destinataire, intention, genre, registre)",
+            "planification et ordre logique des idées",
+            "paragraphes, progression et connecteurs logiques",
+            "introduction et conclusion",
+        ),
+        competencies=(
+            "Organiser des idées en vrac en un texte structuré",
+            "Réordonner des paragraphes désorganisés selon une logique claire",
+            "Rédiger un texte adapté à une situation de communication donnée",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR05", title="FR05 — Corriger et améliorer un texte",
+        allowed_notions=(
+            "révision méthodique (repérer, corriger, remplacer, supprimer, ajouter, déplacer)",
+            "cohérence, répétitions et connecteurs",
+            "accords, homophones et ponctuation",
+            "registre et lexique adaptés à la situation",
+        ),
+        competencies=(
+            "Repérer des erreurs réelles dans un texte (accords, homophones, ponctuation)",
+            "Corriger un texte sans en changer le sens ni ajouter d'information absente",
+            "Adapter le registre d'un texte à une situation professionnelle",
+        ),
     ),
 )
 
@@ -63,27 +163,13 @@ def _build_context(plan: FrancaisUAAPlan) -> PedagogicalContext:
         course_key=plan.course_key,
         course_title=plan.title,
         level="CESS Professionnel — niveau de lecture/compréhension standard",
-        allowed_notions=[
-            "compréhension à la lecture (explicite et implicite)",
-            "justification à l'aide d'éléments du texte",
-            "reformulation",
-            "identification de l'idée principale et synthèse courte",
-            "distinction entre fait et opinion",
-            "vocabulaire en contexte",
-            "opinion argumentée",
-            "analyse documentaire (citer et interpréter un passage)",
-            "comparaison entre deux documents",
-        ],
-        competencies=[
-            "Lire et comprendre un texte informatif de niveau CESS",
-            "Justifier une réponse à l'aide d'éléments précis du texte",
-            "Rédiger une réponse argumentée structurée",
-        ],
+        allowed_notions=list(plan.allowed_notions) if plan.allowed_notions is not None else list(_DEFAULT_NOTIONS),
+        competencies=list(plan.competencies) if plan.competencies is not None else list(_DEFAULT_COMPETENCIES),
         vocabulary=[],
         constraints=(
-            "IMPORTANT — contenu de validation technique provisoire (ticket #47), PAS un "
-            "examen CESS officiel : le texte support est original, rédigé spécifiquement "
-            "pour tester le parcours. Reste strictement dans le contenu du ou des "
+            "IMPORTANT — contenu de validation technique provisoire (tickets #47/#94), "
+            "PAS un examen CESS officiel : les textes support sont originaux, rédigés "
+            "spécifiquement pour ce parcours. Reste strictement dans le contenu du ou des "
             "documents fournis dans le contexte de correction — n'invente jamais de fait "
             "absent du texte, ne récompense jamais une réponse hors sujet même si elle "
             "est bien écrite. Niveau adapté à un·e élève de CESS Professionnel."

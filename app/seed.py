@@ -9,6 +9,13 @@ from app.quiz import QuizConfig
 from app.slugify import slugify
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.v1.ampcr_plan import AMPCR_PLAN
+from app.v1.francais_fr01_05_courses import (
+    fr01_course_markdown,
+    fr02_course_markdown,
+    fr03_course_markdown,
+    fr04_course_markdown,
+    fr05_course_markdown,
+)
 from app.v1.francais_plan import FRANCAIS_MODULE_CODE, FRANCAIS_SUBJECT_NAME
 
 SUBJECT_NAME = "Mathématiques"
@@ -4531,6 +4538,67 @@ FRANCAIS_C01_BLOCKS = [
     }
 ]
 
+# Ticket #94 (PHASE A) : FR01→FR05, parcours des 20 mini-cours Français CESS
+# Professionnel. Chaque cours suit la structure en 10 points imposée par le ticket (voir
+# `app.v1.francais_fr01_05_courses`, docstring) — un seul bloc MARKDOWN par cours, comme
+# C01 ci-dessus (même pattern, pas une nouvelle architecture de blocs).
+FRANCAIS_FR01_TITLE = "FR01 — Comprendre une consigne d'examen"
+FRANCAIS_FR02_TITLE = "FR02 — Lire et comprendre un document"
+FRANCAIS_FR03_TITLE = "FR03 — Implicite, inférences et justification"
+FRANCAIS_FR04_TITLE = "FR04 — Écrire correctement et organiser ses idées"
+FRANCAIS_FR05_TITLE = "FR05 — Corriger et améliorer un texte"
+
+FRANCAIS_FR01_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr01_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR02_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr02_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR03_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr03_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR04_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr04_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR05_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr05_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
@@ -4747,6 +4815,13 @@ def seed() -> None:
             db, cessp, FRANCAIS_C01_CODE, FRANCAIS_C01_TITLE, 1, FRANCAIS_C01_BLOCKS,
             created, kept,
         )
+        # Ticket #94 (PHASE A) : FR01→FR05, purement additif comme C01 ci-dessus — ne
+        # touche jamais C01 ni aucun autre contenu existant.
+        _seed_uaa(db, cessp, "FR01", FRANCAIS_FR01_TITLE, 2, FRANCAIS_FR01_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR02", FRANCAIS_FR02_TITLE, 3, FRANCAIS_FR02_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR03", FRANCAIS_FR03_TITLE, 4, FRANCAIS_FR03_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR04", FRANCAIS_FR04_TITLE, 5, FRANCAIS_FR04_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR05", FRANCAIS_FR05_TITLE, 6, FRANCAIS_FR05_BLOCKS, created, kept)
 
         db.commit()
 
