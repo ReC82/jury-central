@@ -7,6 +7,11 @@ from app.seed import (
     FRANCAIS_FR03_BLOCKS,
     FRANCAIS_FR04_BLOCKS,
     FRANCAIS_FR05_BLOCKS,
+    FRANCAIS_FR06_BLOCKS,
+    FRANCAIS_FR07_BLOCKS,
+    FRANCAIS_FR08_BLOCKS,
+    FRANCAIS_FR09_BLOCKS,
+    FRANCAIS_FR10_BLOCKS,
     MC01_BLOCKS,
     MC02_BLOCKS,
     MC03_BLOCKS,
@@ -251,21 +256,23 @@ def test_seed_is_idempotent(db_session):
 
     # Ticket #55 : 35 UAA stub supplémentaires (MC04..MC38, programme AMPCR complet) —
     # voir AMPCR_STUB_MODULE_BLOCKS/app.v1.ampcr_plan.AMPCR_PLAN. Ticket #47 : 1 matière
-    # (Français), 1 module (FRANCAIS), 1 UAA pilote (C01) supplémentaires. Ticket #94
-    # (PHASE A) : 5 UAA supplémentaires (FR01→FR05), purement additif.
-    francais_fr01_05_blocks = (
+    # (Français), 1 module (FRANCAIS), 1 UAA pilote (C01) supplémentaires. Ticket #94 :
+    # 10 UAA supplémentaires (FR01→FR05 PHASE A, FR06→FR10 PHASE B), purement additif.
+    francais_fr01_10_blocks = (
         FRANCAIS_FR01_BLOCKS + FRANCAIS_FR02_BLOCKS + FRANCAIS_FR03_BLOCKS
         + FRANCAIS_FR04_BLOCKS + FRANCAIS_FR05_BLOCKS
+        + FRANCAIS_FR06_BLOCKS + FRANCAIS_FR07_BLOCKS + FRANCAIS_FR08_BLOCKS
+        + FRANCAIS_FR09_BLOCKS + FRANCAIS_FR10_BLOCKS
     )
     assert db_session.query(Subject).count() == 3
     assert db_session.query(Module).count() == 5
-    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 5
+    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 10
     assert db_session.query(LessonBlock).count() == (
         len(UAA1_BLOCKS) + len(UAA2_BLOCKS) + len(MC01_BLOCKS) + len(MC02_BLOCKS)
         + len(MC03_BLOCKS)
         + sum(len(blocks) for blocks in AMPCR_STUB_MODULE_BLOCKS.values())
         + len(FRANCAIS_C01_BLOCKS)
-        + len(francais_fr01_05_blocks)
+        + len(francais_fr01_10_blocks)
     )
 
 

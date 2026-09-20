@@ -16,6 +16,13 @@ from app.v1.francais_fr01_05_courses import (
     fr04_course_markdown,
     fr05_course_markdown,
 )
+from app.v1.francais_fr06_10_courses import (
+    fr06_course_markdown,
+    fr07_course_markdown,
+    fr08_course_markdown,
+    fr09_course_markdown,
+    fr10_course_markdown,
+)
 from app.v1.francais_plan import FRANCAIS_MODULE_CODE, FRANCAIS_SUBJECT_NAME
 
 SUBJECT_NAME = "Mathématiques"
@@ -4605,6 +4612,64 @@ FRANCAIS_FR05_BLOCKS = [
     }
 ]
 
+# Ticket #94 (PHASE B) : FR06→FR10, même pattern que FR01→FR05 ci-dessus.
+FRANCAIS_FR06_TITLE = "Rechercher et sélectionner l'information"
+FRANCAIS_FR07_TITLE = "Évaluer une source et sa fiabilité"
+FRANCAIS_FR08_TITLE = "Réduire et résumer un texte"
+FRANCAIS_FR09_TITLE = "Synthétiser plusieurs documents"
+FRANCAIS_FR10_TITLE = "Comprendre thèse, arguments et preuves"
+
+FRANCAIS_FR06_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr06_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR07_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr07_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR08_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr08_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR09_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr09_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR10_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr10_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
@@ -4838,6 +4903,13 @@ def seed() -> None:
         _seed_uaa(db, cessp, "FR03", FRANCAIS_FR03_TITLE, 4, FRANCAIS_FR03_BLOCKS, created, kept)
         _seed_uaa(db, cessp, "FR04", FRANCAIS_FR04_TITLE, 5, FRANCAIS_FR04_BLOCKS, created, kept)
         _seed_uaa(db, cessp, "FR05", FRANCAIS_FR05_TITLE, 6, FRANCAIS_FR05_BLOCKS, created, kept)
+        # Ticket #94 (PHASE B) : FR06→FR10, purement additif — ne touche jamais
+        # C01/FR01→FR05 ni aucun autre contenu existant.
+        _seed_uaa(db, cessp, "FR06", FRANCAIS_FR06_TITLE, 7, FRANCAIS_FR06_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR07", FRANCAIS_FR07_TITLE, 8, FRANCAIS_FR07_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR08", FRANCAIS_FR08_TITLE, 9, FRANCAIS_FR08_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR09", FRANCAIS_FR09_TITLE, 10, FRANCAIS_FR09_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR10", FRANCAIS_FR10_TITLE, 11, FRANCAIS_FR10_BLOCKS, created, kept)
 
         db.commit()
 

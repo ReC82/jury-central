@@ -148,6 +148,77 @@ FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
             "Adapter le registre d'un texte à une situation professionnelle",
         ),
     ),
+    # Ticket #94 PHASE B : FR06→FR10.
+    FrancaisUAAPlan(
+        code="FR06", title="Rechercher et sélectionner l'information",
+        allowed_notions=(
+            "sommaire, index, dictionnaire, encyclopédie, article, site, ressource multimédia/hypermédia",
+            "survol, repérage, lecture sélective",
+            "pertinence d'une source par rapport à une question de recherche",
+            "fiche-source et trace de recherche",
+        ),
+        competencies=(
+            "Transformer un sujet en questions de recherche et mots-clés",
+            "Choisir une source adaptée et juger sa pertinence par survol",
+            "Repérer une information précise et la noter dans une fiche-source",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR07", title="Évaluer une source et sa fiabilité",
+        allowed_notions=(
+            "auteur/organisme, expertise, éditeur/site, date, méthode/références, objectif déclaré vs réel",
+            "fait, opinion, témoignage, publicité, argument",
+            "biais et recoupement",
+            "différence entre pertinence et fiabilité",
+        ),
+        competencies=(
+            "Évaluer la fiabilité d'une source à partir de critères précis",
+            "Distinguer fait, opinion, témoignage et publicité dans un même texte",
+            "Recouper une information avec une autre source indépendante",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR08", title="Réduire et résumer un texte",
+        allowed_notions=(
+            "réduction, résumé, paraphrase, commentaire",
+            "idée principale, idées secondaires, hiérarchisation",
+            "condensation, reformulation, fidélité, neutralité",
+            "longueur imposée",
+        ),
+        competencies=(
+            "Hiérarchiser l'idée principale et les idées secondaires d'un texte",
+            "Résumer un texte par reformulation, jamais par copie",
+            "Respecter une longueur imposée en restant fidèle et neutre",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR09", title="Synthétiser plusieurs documents",
+        allowed_notions=(
+            "différence entre résumé et synthèse",
+            "points communs, compléments, divergences, nuances entre documents",
+            "plan thématique personnel (jamais un plan par document)",
+            "patchwork à éviter",
+        ),
+        competencies=(
+            "Confronter plusieurs documents pour en dégager des relations (commun/complément/divergence/nuance)",
+            "Organiser une synthèse selon un plan thématique personnel",
+            "Éviter le plan par document (D1/D2/D3) et le patchwork",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR10", title="Comprendre thèse, arguments et preuves",
+        allowed_notions=(
+            "thème, thèse explicite/implicite, argument, exemple, preuve/donnée, contre-argument, conclusion",
+            "solidité d'un argument (donnée précise vs impression)",
+            "généralisation hâtive, arguments répétitifs, attaque personnelle simple",
+            "argument vs exemple",
+        ),
+        competencies=(
+            "Identifier la thèse (explicite ou implicite) d'un texte argumentatif",
+            "Distinguer argument, exemple et preuve",
+            "Évaluer la solidité d'un argument et repérer ses faiblesses",
+        ),
+    ),
 )
 
 FRANCAIS_PLAN_BY_CODE: dict[str, FrancaisUAAPlan] = {plan.code: plan for plan in FRANCAIS_PLAN}

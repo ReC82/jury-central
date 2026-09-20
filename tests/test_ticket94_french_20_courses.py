@@ -225,7 +225,8 @@ def test_fr01_05_pages_never_show_uaa_or_ticket_jargon(client, db_session):
 
 def test_c01_hidden_from_public_module_listing(client, db_session):
     """Review ChatGPT (§ 2/§ 3) : la page publique du module Français doit lister
-    exactement FR01→FR05 (à ce stade) et PLUS C01."""
+    FR01→FR05 et jamais C01 — vérifié comme un sous-ensemble plutôt qu'une égalité
+    stricte, pour rester vrai au fil des phases suivantes (FR06→FR20, #94 PHASE B+)."""
     seed()
     response = client.get("/modules/francais")
     assert response.status_code == 200
@@ -234,9 +235,10 @@ def test_c01_hidden_from_public_module_listing(client, db_session):
     for code in FR01_05_CODES:
         assert code in text
     public_course_links = re.findall(r'href="/uaa/(francais-[a-z0-9]+)"', text)
-    assert set(public_course_links) == set(FR01_05_SLUGS), (
-        f"attendu exactement 5 cours publics FR01→FR05, trouvé : {public_course_links}"
+    assert set(FR01_05_SLUGS) <= set(public_course_links), (
+        f"attendu au moins FR01→FR05 parmi les cours publics, trouvé : {public_course_links}"
     )
+    assert "francais-c01" not in public_course_links
 
 
 def test_c01_still_fully_reachable_via_its_legacy_url(client, db_session):
