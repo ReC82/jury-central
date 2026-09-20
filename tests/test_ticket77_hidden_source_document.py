@@ -78,6 +78,26 @@ def _patch_fake_provider(monkeypatch):
     return fake
 
 
+def _run_pending_build_job_and_get_session_id(db_session, provider, location: str) -> int:
+    """Ticket #92 : `POST /uaa/{slug}/{mode}/start` crée désormais un `SessionBuildJob`
+    PENDING et redirige vers sa page d'attente au lieu de créer la session
+    immédiatement — les tests HTTP doivent faire tourner le worker explicitement (appel
+    direct, pas de processus séparé) avant de lire un résultat."""
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return job.created_session_id
+
+
 def _build_single_existing_question_session(db_session, question: Question, mode=SessionMode.PRACTICE) -> int:
     """Session à une seule question référençant une question RÉELLE déjà en base
     (jamais une question synthétique) — déterministe."""
@@ -228,7 +248,7 @@ def test_ai_correction_context_never_exceeds_what_student_sees(authenticated_cli
     à l'IA (`_document_contexts_for`) doit être EXACTEMENT celui que l'élève a pu voir
     (`build_question_display`, question par question) — jamais un sur-ensemble caché."""
     c01 = _import_francais_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
 
     response = authenticated_client.get("/uaa/francais-c01/exam")
     token = _csrf(response.text)
@@ -236,7 +256,7 @@ def test_ai_correction_context_never_exceeds_what_student_sees(authenticated_cli
         "/uaa/francais-c01/exam/start", data={"csrf_token": token, "difficulty": "medium"},
         follow_redirects=False,
     )
-    session_id = int(response.headers["location"].rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
     session = db_session.get(QuestionnaireSession, session_id)
     session_questions = list(session.session_questions)
 
@@ -335,7 +355,7 @@ def test_question_170_document_visible_end_to_end_practice_and_exam(
 
 def test_francais_practice_still_composes_normally(authenticated_client, db_session, monkeypatch):
     _import_francais_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     response = authenticated_client.get("/uaa/francais-c01/practice")
     assert response.status_code == 200
     token = _csrf(response.text)
@@ -344,7 +364,7 @@ def test_francais_practice_still_composes_normally(authenticated_client, db_sess
         follow_redirects=False,
     )
     assert response.status_code == 303
-    session_id = int(response.headers["location"].rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
     session = db_session.get(QuestionnaireSession, session_id)
     # Ticket #82 : 9 ou 10 selon le tirage (garde anti-doublon intra-session finale) —
     # voir tests/test_ticket47_francais_v1.py::test_exam_session_has_twenty_questions.
@@ -353,7 +373,7 @@ def test_francais_practice_still_composes_normally(authenticated_client, db_sess
 
 def test_francais_exam_still_composes_normally(authenticated_client, db_session, monkeypatch):
     _import_francais_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     response = authenticated_client.get("/uaa/francais-c01/exam")
     assert response.status_code == 200
     token = _csrf(response.text)
@@ -362,7 +382,7 @@ def test_francais_exam_still_composes_normally(authenticated_client, db_session,
         follow_redirects=False,
     )
     assert response.status_code == 303
-    session_id = int(response.headers["location"].rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
     session = db_session.get(QuestionnaireSession, session_id)
     # Ticket #82 : 19 ou 20 selon le tirage (garde anti-doublon intra-session finale).
     assert 19 <= session.question_count <= 20

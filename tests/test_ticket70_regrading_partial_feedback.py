@@ -77,6 +77,25 @@ def _run_pending_correction_job(db_session, provider):
     return job
 
 
+def _run_pending_build_job_and_get_session_id(db_session, provider, location: str) -> int:
+    """Ticket #92 : `POST /uaa/{slug}/{mode}/start` crée désormais un `SessionBuildJob`
+    PENDING et redirige vers sa page d'attente au lieu de créer la session immédiatement
+    — même principe que `_run_pending_correction_job` ci-dessus."""
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return job.created_session_id
+
+
 def _seed_mc01(db_session):
     seed()
     ampcr = db_session.query(Module).filter_by(code="AMPCR").first()
@@ -209,7 +228,7 @@ def test_compare_severity_http_round_trip_shows_both_scores(authenticated_client
     response = authenticated_client.post(
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"}, follow_redirects=False,
     )
-    session_id = int(response.headers["location"].rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
     session = db_session.get(QuestionnaireSession, session_id)
 
     for position in range(1, session.question_count + 1):
@@ -252,7 +271,7 @@ def test_compare_severity_handles_ai_provider_error_gracefully(authenticated_cli
     response = authenticated_client.post(
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"}, follow_redirects=False,
     )
-    session_id = int(response.headers["location"].rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
     session = db_session.get(QuestionnaireSession, session_id)
     for position in range(1, session.question_count + 1):
         response = authenticated_client.get(f"/sessions/{session_id}?q={position}")

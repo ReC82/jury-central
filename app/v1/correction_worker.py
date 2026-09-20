@@ -1,31 +1,42 @@
-"""Worker de correction asynchrone (ticket #88) — traite les `CorrectionJob` créés par
-`POST /sessions/{id}/submit` (désormais non bloquant, voir `app.v1.session_service.
-enqueue_correction`) HORS du cycle requête/réponse HTTP, seule façon de supprimer
-structurellement le 504 Gateway Time-out réellement observé en staging (l'appel IA groupé
-peut prendre plusieurs dizaines de secondes, largement au-delà de ce qu'un timeout nginx/
-upstream tolère — augmenter ce timeout ne change rien au problème de MODÈLE : une requête
-HTTP synchrone n'est pas le bon outil pour un traitement long).
+"""Worker de fond asynchrone — traite deux files DB-backed indépendantes, dans le MÊME
+processus :
 
-Volontairement le PLUS SIMPLE possible (§ 8 du ticket) : pas de file de messages
-(Redis/Celery), une file DB-backed (table `v1_correction_jobs`, déjà utilisée pour la
-réclamation atomique côté web) que ce processus interroge par polling. PAS une thread
-Python attachée à une requête ou au processus web (qui serait tuée si le worker web
-recycle) : un processus SÉPARÉ et LONGUEMENT VIVANT, lancé indépendamment du serveur web.
+1. `CorrectionJob` (ticket #88) : créés par `POST /sessions/{id}/submit`, désormais non
+   bloquant (voir `app.v1.session_service.enqueue_correction`).
+2. `SessionBuildJob` (ticket #92) : créés par `POST /uaa/{slug}/practice|exam/start` et
+   `POST /modules/ampcr/practice|exam/start`, désormais non bloquants (voir
+   `app.v1.session_service.enqueue_session_build`) — même 504 Gateway Time-out réellement
+   observé en staging, cette fois sur `/uaa/ampcr-mc38/exam/start` (sélection banque,
+   génération IA, composition MC38, validation, persistance : potentiellement plusieurs
+   secondes, largement au-delà de ce qu'un timeout nginx/upstream tolère).
 
-Lancement (aucun changement systemd — décision de déploiement laissée à ChatGPT, § 8/§ 15
-du ticket) :
+Un seul worker plutôt que deux processus séparés (ticket #92 § 7, option A retenue :
+« étendre le même worker pour traiter plusieurs types de jobs ») : les deux traitements
+sont indépendants (deux tables, deux fonctions dédiées, jamais de logique partagée
+risquée), la charge de chacun reste faible, et un seul processus/une seule unité systemd
+à opérer est plus simple qu'une coordination entre deux workers — **aucun changement
+systemd n'est donc nécessaire pour ce ticket**, l'unité déjà déployée (#88) couvre
+désormais aussi la création de session dès que ce code est redéployé.
+
+Volontairement le PLUS SIMPLE possible (§ 8 du ticket #88, toujours valable) : pas de
+file de messages (Redis/Celery), une file DB-backed par type de job (tables déjà
+utilisées pour la réclamation atomique côté web) que ce processus interroge par polling.
+PAS une thread Python attachée à une requête ou au processus web (qui serait tuée si le
+worker web recycle) : un processus SÉPARÉ et LONGUEMENT VIVANT, lancé indépendamment du
+serveur web.
+
+Lancement (inchangé) :
 
     .venv/bin/python -m app.v1.correction_worker
 
-Le worker :
-1. récupère les jobs `RUNNING` bloqués depuis trop longtemps (crash d'un worker précédent,
-   § 9 du ticket) et les remet `PENDING` (ou `FAILED` au-delà du nombre maximal de
-   tentatives) ;
-2. réclame ATOMIQUEMENT le prochain job `PENDING` (`claim_next_pending_correction_job`) ;
-3. exécute la correction réelle (`run_correction_job`, qui réutilise `_correct_and_
-   finalize_claimed_session`, INCHANGÉE depuis les tickets #55/#62/#70/#71) ;
-4. recommence, avec une courte pause seulement s'il n'y avait rien à faire.
-"""
+Boucle : à chaque itération, le worker (1) récupère les jobs `RUNNING` bloqués depuis
+trop longtemps pour CHAQUE file (crash d'un worker précédent, remis `PENDING` ou `FAILED`
+au-delà du nombre maximal de tentatives), (2) réclame ATOMIQUEMENT au plus un
+`CorrectionJob` `PENDING` puis au plus un `SessionBuildJob` `PENDING`, (3) exécute chacun
+en réutilisant `run_correction_job`/`run_session_build_job` (elles-mêmes basées sur
+`_correct_and_finalize_claimed_session`/`start_session`, INCHANGÉES depuis les tickets
+#55/#58/#62/#70/#71), (4) recommence, avec une courte pause seulement si aucune des deux
+files n'avait de travail."""
 
 import logging
 import signal
@@ -35,9 +46,12 @@ from app.ai.factory import get_ai_provider
 from app.ai.provider import AINotConfiguredError, AIProviderError
 from app.database import SessionLocal
 from app.v1.session_service import (
+    claim_next_pending_build_job,
     claim_next_pending_correction_job,
+    recover_stale_build_jobs,
     recover_stale_correction_jobs,
     run_correction_job,
+    run_session_build_job,
 )
 
 logger = logging.getLogger("app.v1.correction_worker")
@@ -98,6 +112,29 @@ def process_one_job(*, max_attempts: int = DEFAULT_MAX_ATTEMPTS) -> bool:
         db.close()
 
 
+def process_one_build_job(*, max_attempts: int = DEFAULT_MAX_ATTEMPTS) -> bool:
+    """Ticket #92 : réclame et exécute AU PLUS un `SessionBuildJob` `PENDING`. Même
+    contrat que `process_one_job` (retourne `True` si un job a été traité)."""
+    db = SessionLocal()
+    try:
+        job = claim_next_pending_build_job(db, max_attempts=max_attempts)
+        if job is None:
+            return False
+        logger.info(
+            "SESSION_BUILD_JOB_CLAIMED job_id=%s user_id=%s module_id=%s uaa_code=%s mode=%s attempt=%s",
+            job.id, job.user_id, job.module_id, job.uaa_code, job.mode.value, job.attempt_count,
+        )
+        provider = _get_provider_or_unconfigured()
+        result = run_session_build_job(db, job=job, provider=provider)
+        logger.info(
+            "SESSION_BUILD_JOB_%s job_id=%s created_session_id=%s",
+            result.status.value.upper(), job.id, result.created_session_id,
+        )
+        return True
+    finally:
+        db.close()
+
+
 def recover_stale_jobs_once(
     *, stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS, max_attempts: int = DEFAULT_MAX_ATTEMPTS
 ) -> dict[str, int]:
@@ -106,6 +143,19 @@ def recover_stale_jobs_once(
         report = recover_stale_correction_jobs(db, stale_after_seconds=stale_after_seconds, max_attempts=max_attempts)
         if report["requeued"] or report["failed"]:
             logger.info("CORRECTION_JOB_STALE_RECOVERY requeued=%s failed=%s", report["requeued"], report["failed"])
+        return report
+    finally:
+        db.close()
+
+
+def recover_stale_build_jobs_once(
+    *, stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS, max_attempts: int = DEFAULT_MAX_ATTEMPTS
+) -> dict[str, int]:
+    db = SessionLocal()
+    try:
+        report = recover_stale_build_jobs(db, stale_after_seconds=stale_after_seconds, max_attempts=max_attempts)
+        if report["requeued"] or report["failed"]:
+            logger.info("SESSION_BUILD_JOB_STALE_RECOVERY requeued=%s failed=%s", report["requeued"], report["failed"])
         return report
     finally:
         db.close()
@@ -139,13 +189,18 @@ def run_worker_loop(
         now = time.monotonic()
         if now - last_stale_check >= stale_check_interval_seconds:
             recover_stale_jobs_once(stale_after_seconds=stale_after_seconds, max_attempts=max_attempts)
+            recover_stale_build_jobs_once(stale_after_seconds=stale_after_seconds, max_attempts=max_attempts)
             last_stale_check = now
 
-        processed = process_one_job(max_attempts=max_attempts)
+        # Ticket #92 : traite au plus un job de CHAQUE file par itération — ni file
+        # jamais affamée par l'autre, ni logique de priorité complexe nécessaire (charge
+        # faible des deux côtés).
+        processed_correction = process_one_job(max_attempts=max_attempts)
+        processed_build = process_one_build_job(max_attempts=max_attempts)
         iterations += 1
         if max_iterations is not None and iterations >= max_iterations:
             break
-        if not processed:
+        if not processed_correction and not processed_build:
             time.sleep(poll_interval_seconds)
 
     logger.info("CORRECTION_WORKER_STOPPED")

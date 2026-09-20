@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Préparation en cours — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-6">
+        <div class="p-4 bg-white rounded shadow-sm text-center" id="build-waiting-panel" data-job-id="{{ job.id }}">
+
+            <div id="build-state-active">
+                <div class="spinner-border text-dark mb-3" role="status" aria-hidden="true"></div>
+                <h1 class="h4 mb-2">
+                    {% if job.mode.value == "exam" %}Préparation de l'évaluation…{% else %}Préparation de l'entraînement…{% endif %}
+                </h1>
+                <p class="mb-1">Génération des questions en cours.</p>
+                <p class="text-muted mb-4">Merci de patienter quelques secondes.</p>
+
+                <ul class="list-unstyled text-start mx-auto mb-0" style="max-width: 320px;">
+                    <li class="mb-1"><span class="text-success">✓</span> Demande enregistrée</li>
+                    <li class="mb-1" id="build-step-running"><span>•</span> Préparation des questions</li>
+                    <li class="text-muted" id="build-step-done">
+                        <span>○</span> {% if job.mode.value == "exam" %}Évaluation prête{% else %}Entraînement prêt{% endif %}
+                    </li>
+                </ul>
+            </div>
+
+            <div id="build-state-failed" class="d-none">
+                <h1 class="h4 mb-2">
+                    {% if job.mode.value == "exam" %}La préparation de l'évaluation a échoué{% else %}La préparation de l'entraînement a échoué{% endif %}
+                </h1>
+                <form method="post" action="/session-build-jobs/{{ job.id }}/retry">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-dark">Réessayer</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var panel = document.getElementById("build-waiting-panel");
+        if (!panel) return;
+        var jobId = panel.getAttribute("data-job-id");
+        var activeState = document.getElementById("build-state-active");
+        var failedState = document.getElementById("build-state-failed");
+        var pollDelayMs = 2500;
+        var stopped = false;
+
+        function showFailed() {
+            if (activeState) { activeState.classList.add("d-none"); }
+            if (failedState) { failedState.classList.remove("d-none"); }
+        }
+
+        function poll() {
+            if (stopped) return;
+            fetch("/session-build-jobs/" + jobId + "/status", { credentials: "same-origin" })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (data.status === "ready") {
+                        stopped = true;
+                        window.location = data.session_url || ("/session-build-jobs/" + jobId);
+                        return;
+                    }
+                    if (data.status === "failed") {
+                        stopped = true;
+                        showFailed();
+                        return;
+                    }
+                    window.setTimeout(poll, pollDelayMs);
+                })
+                .catch(function () {
+                    // Panne réseau transitoire : réessaie plus tard, ne bloque jamais
+                    // silencieusement sur une erreur fetch ponctuelle.
+                    window.setTimeout(poll, pollDelayMs);
+                });
+        }
+
+        window.setTimeout(poll, pollDelayMs);
+    })();
+</script>
+{% endblock %}

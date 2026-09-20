@@ -72,6 +72,26 @@ def _patch_fake_provider(monkeypatch):
     return fake
 
 
+def _run_pending_build_job_and_get_session_id(db_session, provider, location: str) -> int:
+    """Ticket #92 : `POST /uaa/{slug}/{mode}/start` crée désormais un `SessionBuildJob`
+    PENDING et redirige vers sa page d'attente au lieu de créer la session
+    immédiatement — les tests HTTP doivent faire tourner le worker explicitement (appel
+    direct, pas de processus séparé) avant de lire un résultat."""
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return job.created_session_id
+
+
 def _answer_payload_for(html: str) -> dict:
     if 'name="option_id"' in html:
         match = re.search(r'name="option_id"\s+id="[^"]*"\s+value="(\d+)"', html)
@@ -433,7 +453,7 @@ def test_course_mapping_data_exposed_in_results_rows(authenticated_client, db_se
     du bouton lui-même étant du ressort des tests dédiés de #74
     (`tests/test_ticket74_course_recommendations.py`)."""
     c01 = _import_francais_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
 
     response = authenticated_client.get("/uaa/francais-c01/practice")
     token = _csrf(response.text)
@@ -441,7 +461,7 @@ def test_course_mapping_data_exposed_in_results_rows(authenticated_client, db_se
         "/uaa/francais-c01/practice/start", data={"csrf_token": token, "difficulty": "medium"},
         follow_redirects=False,
     )
-    session_id = int(response.headers["location"].rsplit("/", 1)[-1])
+    session_id = _run_pending_build_job_and_get_session_id(db_session, fake, response.headers["location"])
     session = db_session.get(QuestionnaireSession, session_id)
 
     from app.v1.routes_sessions import _build_results_rows

@@ -7,9 +7,40 @@
     <div class="col-12 col-md-10 col-lg-8">
         <h1 class="h4 mb-3">Mes entraînements / évaluations</h1>
 
-        {% if not rows %}
+        {% if not rows and not build_job_rows %}
         <p class="text-muted">Aucune session pour l'instant — commence un entraînement depuis une matière.</p>
         {% endif %}
+
+        {% for build_row in build_job_rows %}
+        {% set job = build_row.job %}
+        <div class="p-3 bg-white rounded shadow-sm mb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <p class="text-muted small mb-1">
+                        {{ job.created_at.strftime('%d/%m/%Y à %H:%M') if job.created_at else '' }}
+                    </p>
+                    <p class="fw-semibold mb-1">{{ build_row.subject_name }}</p>
+                    <p class="small mb-1">
+                        <span class="badge {{ 'bg-dark' if job.mode.value == 'exam' else 'bg-secondary' }}">
+                            {{ 'Évaluation' if job.mode.value == 'exam' else 'Entraînement' }}
+                        </span>
+                        {% if job.status.value == 'failed' %}
+                        <span class="badge bg-danger">Préparation échouée</span>
+                        {% else %}
+                        <span class="badge bg-info text-dark">
+                            {{ 'Évaluation en préparation' if job.mode.value == 'exam' else 'Entraînement en préparation' }}
+                        </span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="d-flex align-items-center">
+                    <a href="/session-build-jobs/{{ job.id }}" class="btn btn-outline-dark btn-sm">
+                        {% if job.status.value == 'failed' %}Réessayer{% else %}Voir la préparation{% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
 
         {% for row in rows %}
         {% set session = row.session %}

@@ -107,14 +107,44 @@ def _register_and_login(client, email="ticket88-http@example.test"):
     )
 
 
-def _start_practice_and_answer_all(client, *, uaa_slug="ampcr-mc01"):
+def _resolve_build_job_url(db_session, location: str) -> str:
+    """Ticket #92 : `POST /uaa/{slug}/practice/start` crée désormais un
+    `SessionBuildJob` PENDING et redirige vers sa page d'attente au lieu de créer la
+    session immédiatement — fait tourner le job en direct (appel de service, jamais un
+    vrai worker séparé) avant de rendre la main, en réutilisant le fournisseur déjà
+    monkeypatché sur la route (`app.v1.routes_sessions.get_ai_provider`)."""
+    from app.ai.provider import AINotConfiguredError
+    from app.v1 import routes_sessions
+    from app.v1.correction_worker import _UnconfiguredProvider
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    if not location.startswith("/session-build-jobs/"):
+        return location
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    try:
+        provider = routes_sessions.get_ai_provider()
+    except AINotConfiguredError:
+        provider = _UnconfiguredProvider()
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return f"/sessions/{job.created_session_id}"
+
+
+def _start_practice_and_answer_all(client, db_session, *, uaa_slug="ampcr-mc01"):
     r = client.get(f"/uaa/{uaa_slug}/practice")
     token = _csrf(r.text)
     r = client.post(
         f"/uaa/{uaa_slug}/practice/start", data={"csrf_token": token, "difficulty": "medium"},
         follow_redirects=False,
     )
-    session_url = r.headers["location"]
+    session_url = _resolve_build_job_url(db_session, r.headers["location"])
     session_id = int(session_url.rstrip("/").split("/")[-1])
 
     position = 1
@@ -180,7 +210,7 @@ def test_submit_http_response_is_fast_even_with_slow_provider(client, db_session
     _patch_fake_provider(monkeypatch, slow)
 
     _register_and_login(client)
-    _session_id, session_url = _start_practice_and_answer_all(client)
+    _session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -273,7 +303,7 @@ def test_double_post_submit_creates_single_job_and_single_ai_call(client, db_ses
     _seed_mc01(db_session)
     fake = _patch_fake_provider(monkeypatch)
     _register_and_login(client)
-    session_id, session_url = _start_practice_and_answer_all(client)
+    session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -300,7 +330,7 @@ def test_correcting_page_survives_refresh(client, db_session, monkeypatch):
     _seed_mc01(db_session)
     _patch_fake_provider(monkeypatch)
     _register_and_login(client)
-    session_id, session_url = _start_practice_and_answer_all(client)
+    session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -319,7 +349,7 @@ def test_my_sessions_shows_correcting_state(client, db_session, monkeypatch):
     _seed_mc01(db_session)
     _patch_fake_provider(monkeypatch)
     _register_and_login(client)
-    _session_id, session_url = _start_practice_and_answer_all(client)
+    _session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -334,7 +364,7 @@ def test_logout_login_resumes_correcting_state(client, db_session, monkeypatch):
     _seed_mc01(db_session)
     _patch_fake_provider(monkeypatch)
     _register_and_login(client)
-    _session_id, session_url = _start_practice_and_answer_all(client)
+    _session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -410,7 +440,7 @@ def test_failed_job_shows_failure_page_with_retry_button(client, db_session, mon
     _seed_mc01(db_session)
     _patch_fake_provider(monkeypatch)
     _register_and_login(client)
-    session_id, session_url = _start_practice_and_answer_all(client)
+    session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -465,7 +495,7 @@ def test_retry_route_does_not_duplicate_a_successful_correction(client, db_sessi
     _seed_mc01(db_session)
     fake = _patch_fake_provider(monkeypatch)
     _register_and_login(client)
-    session_id, session_url = _start_practice_and_answer_all(client)
+    session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -550,7 +580,7 @@ def test_answers_immutable_once_correcting(client, db_session, monkeypatch):
     _seed_mc01(db_session)
     _patch_fake_provider(monkeypatch)
     _register_and_login(client)
-    _session_id, session_url = _start_practice_and_answer_all(client)
+    _session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -576,7 +606,7 @@ def test_autosave_still_works_while_in_progress(client, db_session, monkeypatch)
         "/uaa/ampcr-mc01/practice/start", data={"csrf_token": token, "difficulty": "medium"},
         follow_redirects=False,
     )
-    session_url = r.headers["location"]
+    session_url = _resolve_build_job_url(db_session, r.headers["location"])
     r = client.get(f"{session_url}?q=1")
     assert r.status_code == 200
     token = _csrf(r.text)
@@ -601,7 +631,7 @@ def test_export_works_after_async_correction(client, db_session, monkeypatch):
     _seed_mc01(db_session)
     fake = _patch_fake_provider(monkeypatch)
     _register_and_login(client)
-    session_id, session_url = _start_practice_and_answer_all(client)
+    session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -639,7 +669,7 @@ def test_correction_status_endpoint_reports_states(client, db_session, monkeypat
     _seed_mc01(db_session)
     fake = _patch_fake_provider(monkeypatch)
     _register_and_login(client)
-    session_id, session_url = _start_practice_and_answer_all(client)
+    session_id, session_url = _start_practice_and_answer_all(client, db_session)
 
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
@@ -661,7 +691,7 @@ def test_correction_status_endpoint_requires_ownership(client, db_session, monke
     _seed_mc01(db_session)
     _patch_fake_provider(monkeypatch)
     _register_and_login(client, email="owner88@example.test")
-    _session_id, session_url = _start_practice_and_answer_all(client)
+    _session_id, session_url = _start_practice_and_answer_all(client, db_session)
     r = client.get(f"{session_url}/submit-confirm")
     token = _csrf(r.text)
     client.post(f"{session_url}/submit", data={"csrf_token": token, "severity": 3}, follow_redirects=False)

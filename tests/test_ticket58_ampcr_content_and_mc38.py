@@ -38,7 +38,37 @@ def _patch_fake_provider(monkeypatch):
     return fake
 
 
-def _start_session(client, uaa_slug: str, mode: str = "practice", difficulty: str = "medium") -> str:
+def _resolve_build_job_url(db_session, location: str) -> str:
+    """Ticket #92 : /start crée désormais un SessionBuildJob et redirige vers sa page
+    d'attente au lieu de la session immédiatement. On fait tourner le job en direct
+    (appel de service, jamais un vrai worker séparé) pour retrouver la sémantique
+    synchrone attendue par les tests existants, en réutilisant le provider déjà
+    monkeypatché sur la route (`app.v1.routes_sessions.get_ai_provider`)."""
+    from app.ai.provider import AINotConfiguredError
+    from app.v1 import routes_sessions
+    from app.v1.correction_worker import _UnconfiguredProvider
+    from app.v1.session_service import (
+        claim_next_pending_build_job,
+        get_session_build_job,
+        run_session_build_job,
+    )
+
+    if not location.startswith("/session-build-jobs/"):
+        return location
+    job_id = int(location.rstrip("/").rsplit("/", 1)[-1])
+    try:
+        provider = routes_sessions.get_ai_provider()
+    except AINotConfiguredError:
+        provider = _UnconfiguredProvider()
+    job = claim_next_pending_build_job(db_session)
+    if job is None:
+        job = get_session_build_job(db_session, job_id=job_id)
+    run_session_build_job(db_session, job=job, provider=provider)
+    job = get_session_build_job(db_session, job_id=job_id)
+    return f"/sessions/{job.created_session_id}"
+
+
+def _start_session(client, db_session, uaa_slug: str, mode: str = "practice", difficulty: str = "medium") -> str:
     response = client.get(f"/uaa/{uaa_slug}/{mode}")
     token = _csrf(response.text)
     response = client.post(
@@ -47,7 +77,7 @@ def _start_session(client, uaa_slug: str, mode: str = "practice", difficulty: st
         follow_redirects=False,
     )
     assert response.status_code == 303, response.text
-    return response.headers["location"]
+    return _resolve_build_job_url(db_session, response.headers["location"])
 
 
 # --- 1. Contenu réel MC04-37 (§ 2 du ticket) -----------------------------------------------
@@ -238,7 +268,7 @@ def test_generated_meta_questions_are_filtered_out_before_being_shown(
 
     with patch("app.v1.session_service.generate_questionnaire", return_value=fake_result):
         _patch_fake_provider(monkeypatch)
-        session_url = _start_session(authenticated_client, "ampcr-mc38", mode="practice")
+        session_url = _start_session(authenticated_client, db_session, "ampcr-mc38", mode="practice")
 
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
@@ -269,7 +299,7 @@ def test_mc38_practice_draws_from_mc01_to_mc37_bank_never_its_own(
     db_session.commit()
     _patch_fake_provider(monkeypatch)
 
-    session_url = _start_session(authenticated_client, "ampcr-mc38", mode="practice")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc38", mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     assert session.question_count == 10
@@ -294,7 +324,7 @@ def test_mc38_exam_has_twenty_questions_and_draws_from_mc01_to_mc37(
 ):
     seed()
     _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc38", mode="exam")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc38", mode="exam")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     assert session.mode.value == "exam"
@@ -310,7 +340,7 @@ def test_mc38_generation_uses_transversal_contexts_never_its_own(
 ):
     fake = _patch_fake_provider(monkeypatch)
     seed()  # banque MC01-37 vide -> génération nécessaire
-    _start_session(authenticated_client, "ampcr-mc38", mode="practice")
+    _start_session(authenticated_client, db_session, "ampcr-mc38", mode="practice")
     assert len(fake.questionnaire_calls) == 1
     used_contexts = fake.questionnaire_calls[0].contexts
     assert len(used_contexts) >= 2
@@ -350,7 +380,7 @@ def test_mc38_practice_covers_several_categories_when_bank_allows(
     db_session.commit()
     _patch_fake_provider(monkeypatch)
 
-    session_url = _start_session(authenticated_client, "ampcr-mc38", mode="practice")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc38", mode="practice")
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     categories = {
@@ -399,7 +429,7 @@ def test_select_transversal_bank_questions_never_returns_meta_or_mc38_tagged(db_
 def test_no_solution_leak_in_mc38_session(authenticated_client, db_session, monkeypatch):
     seed()
     _patch_fake_provider(monkeypatch)
-    session_url = _start_session(authenticated_client, "ampcr-mc38", mode="practice")
+    session_url = _start_session(authenticated_client, db_session, "ampcr-mc38", mode="practice")
     response = authenticated_client.get(f"{session_url}?q=1")
     assert response.status_code == 200
     forbidden = (
@@ -418,9 +448,9 @@ def test_mc01_practice_and_exam_routes_still_functional(authenticated_client, db
     db_session.commit()
     _patch_fake_provider(monkeypatch)
 
-    practice_url = _start_session(authenticated_client, "ampcr-mc01", mode="practice")
+    practice_url = _start_session(authenticated_client, db_session, "ampcr-mc01", mode="practice")
     assert authenticated_client.get(practice_url).status_code == 200
-    exam_url = _start_session(authenticated_client, "ampcr-mc01", mode="exam")
+    exam_url = _start_session(authenticated_client, db_session, "ampcr-mc01", mode="exam")
     assert authenticated_client.get(exam_url).status_code == 200
 
 

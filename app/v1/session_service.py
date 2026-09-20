@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DBSession
 
 from app.ai.local_correction import correct_locally, requires_ai_correction
@@ -59,6 +60,8 @@ from app.v1.models import (
     Question,
     QuestionnaireSession,
     SessionAnswer,
+    SessionBuildJob,
+    SessionBuildJobStatus,
     SessionDifficultyRequest,
     SessionMode,
     SessionQuestion,
@@ -1406,3 +1409,195 @@ def simulate_severity_comparison(
         comparative_score=round(correction.score, 2),
         question_count=session.question_count,
     )
+
+
+# =============================================================================================
+# Création de session asynchrone (ticket #92) : casse la dépendance entre la durée de la
+# sélection banque/génération IA/composition MC38 et la requête HTTP `POST /uaa/{slug}/
+# practice|exam/start` (et `POST /modules/ampcr/practice|exam/start`) — seule cause du 504
+# Gateway Time-out réellement observé en staging sur `/uaa/ampcr-mc38/exam/start`. Même
+# principe que la correction asynchrone (#88/#90) : `start_session`/`_start_mc38_
+# transversal_session` restent INCHANGÉES (aucune logique de composition dupliquée) —
+# réutilisées telles quelles par `run_session_build_job`, exécuté par un worker séparé,
+# jamais dans le cycle requête/réponse HTTP.
+# =============================================================================================
+
+
+def get_session_build_job(db: DBSession, *, job_id: int) -> SessionBuildJob | None:
+    return db.get(SessionBuildJob, job_id)
+
+
+def _active_session_build_job(
+    db: DBSession, *, user_id: int, module_id: int, uaa_id: int | None, mode: SessionMode
+) -> SessionBuildJob | None:
+    return (
+        db.query(SessionBuildJob)
+        .filter_by(
+            user_id=user_id, module_id=module_id, uaa_id_key=(uaa_id or 0), mode=mode,
+            active_marker="1",
+        )
+        .first()
+    )
+
+
+def enqueue_session_build(
+    db: DBSession,
+    *,
+    user: User,
+    module_id: int,
+    uaa_id: int | None,
+    uaa_code: str | None,
+    mode: SessionMode,
+    difficulty: SessionDifficultyRequest,
+    question_count: int,
+) -> SessionBuildJob:
+    """Point d'entrée non bloquant de `POST /uaa/{slug}/practice|exam/start` (ticket #92) :
+    crée (ou retrouve) un `SessionBuildJob` `PENDING`, SANS jamais sélectionner de banque
+    ni appeler l'IA ni composer de session — retourne en quelques millisecondes, quelle
+    que soit la durée que prendra la création réelle.
+
+    Idempotent par construction (§ 92.8) : cherche d'abord un job déjà ACTIF pour la même
+    clé logique (`user_id`, `module_id`, `uaa_id`, `mode` — voir docstring de
+    `SessionBuildJob`) avant toute tentative de création ; la contrainte UNIQUE en base
+    couvre la course résiduelle (deux requêtes simultanées passant toutes deux le premier
+    contrôle) via `IntegrityError`, jamais un second job."""
+    existing = _active_session_build_job(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, mode=mode)
+    if existing is not None:
+        return existing
+
+    job = SessionBuildJob(
+        user_id=user.id, module_id=module_id, uaa_id=uaa_id, uaa_id_key=(uaa_id or 0),
+        uaa_code=uaa_code, mode=mode, difficulty=difficulty, question_count=question_count,
+        status=SessionBuildJobStatus.PENDING, active_marker="1",
+    )
+    db.add(job)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        existing = _active_session_build_job(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, mode=mode)
+        if existing is not None:
+            return existing
+        raise
+    return job
+
+
+def claim_next_pending_build_job(db: DBSession, *, max_attempts: int = 3) -> SessionBuildJob | None:
+    """Réclamation ATOMIQUE du prochain job `PENDING` par un worker (ticket #92, même
+    mécanisme que `claim_next_pending_correction_job` de #88) — `rowcount == 0` si un
+    autre worker l'a réclamé entre-temps, jamais deux créations pour le même job."""
+    job = (
+        db.query(SessionBuildJob)
+        .filter(SessionBuildJob.status == SessionBuildJobStatus.PENDING, SessionBuildJob.attempt_count < max_attempts)
+        .order_by(SessionBuildJob.created_at)
+        .first()
+    )
+    if job is None:
+        return None
+
+    claim = db.execute(
+        update(SessionBuildJob)
+        .where(SessionBuildJob.id == job.id, SessionBuildJob.status == SessionBuildJobStatus.PENDING)
+        .values(
+            status=SessionBuildJobStatus.RUNNING,
+            started_at=datetime.now(UTC),
+            attempt_count=SessionBuildJob.attempt_count + 1,
+        )
+    )
+    db.commit()
+    if claim.rowcount == 0:
+        return None
+    db.refresh(job)
+    return job
+
+
+def run_session_build_job(db: DBSession, *, job: SessionBuildJob, provider: AIProvider) -> SessionBuildJob:
+    """Corps réel de la création de session (ticket #92), exécuté par un worker — jamais
+    dans une requête HTTP. Réutilise `start_session` telle quelle (elle-même routée en
+    interne vers `_start_mc38_transversal_session` selon `uaa_code`, § 92.10/92.11 :
+    aucune logique de composition dupliquée, générique par construction — couvre MC01-38
+    ET Français sans distinction). `SessionCreationError`/toute exception inattendue
+    deviennent `SessionBuildJobStatus.FAILED` avec un message, jamais un job bloqué sans
+    explication ni une session fantôme partiellement créée (la transaction n'est commitée
+    par `start_session`/`_finalize_session` qu'en cas de succès complet ; un rollback ici
+    annule tout état intermédiaire)."""
+    user = db.get(User, job.user_id)
+    if user is None:
+        job.status = SessionBuildJobStatus.FAILED
+        job.error_message = f"Utilisateur {job.user_id} introuvable."
+        db.commit()
+        return job
+
+    try:
+        session = start_session(
+            db, user=user, module_id=job.module_id, uaa_id=job.uaa_id, uaa_code=job.uaa_code,
+            mode=job.mode, difficulty=job.difficulty, provider=provider, question_count=job.question_count,
+        )
+    except Exception as exc:  # noqa: BLE001 — job de fond, jamais de propagation vers un client HTTP
+        db.rollback()
+        job.status = SessionBuildJobStatus.FAILED
+        job.error_message = str(exc)[:2000]
+        db.commit()
+        return job
+
+    job.status = SessionBuildJobStatus.READY
+    job.created_session_id = session.id
+    job.completed_at = datetime.now(UTC)
+    # Libère la clé logique (§ 92.8) : la session existe désormais réellement, les
+    # contrôles habituels de reprise (`_resumable_session_for_uaa`/`_is_unstarted`)
+    # prennent le relais pour toute future visite de la page de démarrage — jamais ce job
+    # terminé qui bloquerait une VRAIE nouvelle demande ultérieure.
+    job.active_marker = None
+    db.commit()
+    return job
+
+
+def recover_stale_build_jobs(
+    db: DBSession, *, stale_after_seconds: int = 300, max_attempts: int = 3
+) -> dict[str, int]:
+    """Récupération des jobs de création bloqués (ticket #92 § 9, même mécanisme que
+    `recover_stale_correction_jobs` de #88) — un worker qui plante APRÈS avoir réclamé un
+    job (`RUNNING`) mais AVANT de le conclure le laisserait sinon bloqué indéfiniment."""
+    threshold = datetime.now(UTC) - timedelta(seconds=stale_after_seconds)
+    stale_jobs = (
+        db.query(SessionBuildJob)
+        .filter(SessionBuildJob.status == SessionBuildJobStatus.RUNNING, SessionBuildJob.started_at < threshold)
+        .all()
+    )
+    requeued = 0
+    failed = 0
+    for job in stale_jobs:
+        if job.attempt_count >= max_attempts:
+            job.status = SessionBuildJobStatus.FAILED
+            job.error_message = (
+                "Job resté bloqué (RUNNING) trop longtemps — nombre maximal de tentatives "
+                f"atteint ({max_attempts})."
+            )
+            failed += 1
+        else:
+            job.status = SessionBuildJobStatus.PENDING
+            job.started_at = None
+            requeued += 1
+    db.commit()
+    return {"requeued": requeued, "failed": failed}
+
+
+class SessionBuildJobNotFailedError(ValueError):
+    """Un retry n'a de sens que sur un job réellement `FAILED` (ticket #92 § 9)."""
+
+
+def retry_session_build_job(db: DBSession, *, job: SessionBuildJob) -> SessionBuildJob:
+    """Réessaie une création de session en échec (ticket #92 § 9) : réutilise le MÊME job
+    (jamais une seconde ligne, jamais deux sessions fantômes pour la même demande), remis
+    `PENDING` avec un compteur de tentatives repartant de zéro (action humaine explicite
+    et délibérée, distincte d'une reprise automatique après incident — voir
+    `recover_stale_build_jobs`). Ne crée jamais de session tant que le worker n'a pas
+    réellement réussi."""
+    if job.status != SessionBuildJobStatus.FAILED:
+        raise SessionBuildJobNotFailedError(f"Job {job.id} n'est pas FAILED (status={job.status.value}).")
+    job.status = SessionBuildJobStatus.PENDING
+    job.error_message = None
+    job.started_at = None
+    job.attempt_count = 0
+    db.commit()
+    return job

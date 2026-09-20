@@ -642,6 +642,81 @@ class CorrectionJob(Base):
     session: Mapped["QuestionnaireSession"] = relationship()
 
 
+class SessionBuildJobStatus(str, enum.Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    READY = "ready"
+    FAILED = "failed"
+
+
+class SessionBuildJob(Base):
+    """Job de CRÉATION de session persistant (ticket #92) — même principe que
+    `CorrectionJob` (#88), appliqué cette fois à `POST /uaa/{slug}/practice|exam/start` et
+    `POST /modules/ampcr/practice|exam/start` : sélection banque, génération IA
+    éventuelle, composition MC38, validation et persistance peuvent prendre plusieurs
+    secondes — largement au-delà de ce qu'un timeout nginx/upstream tolère (504
+    Gateway Time-out réellement observé en staging sur `/uaa/ampcr-mc38/exam/start`). Le
+    ticket #71 (spinner/anti-double-clic) ne résout que l'UX, jamais le timeout HTTP lui-
+    même — seul un problème de MODÈLE (requête/réponse synchrone pour un traitement
+    potentiellement long) explique le 504, jamais résolu par une augmentation de timeout.
+
+    Générique par construction (§ 92.11) : stocke exactement les paramètres déjà reçus
+    par `app.v1.session_service.start_session` (`uaa_id`/`uaa_code` couvrent aussi bien
+    MC01-38 que Français C01 — `start_session` route déjà en interne vers
+    `_start_mc38_transversal_session` selon `uaa_code`, ce job ne réimplémente aucune
+    logique de composition, il ne fait que déplacer l'appel HORS de la requête HTTP).
+
+    Idempotence (§ 92.8) : `uaa_id_key` est une copie NON-FK de `uaa_id`, jamais NULL (0 =
+    session globale, `uaa_id` réel lui-même NULL dans ce cas) — nécessaire car SQLite ne
+    considère jamais deux NULL égaux dans un index UNIQUE, ce qui laisserait passer des
+    doublons pour toute demande globale (`uaa_id=None`). `active_marker` vaut `"1"` tant
+    que le job est PENDING/RUNNING/FAILED (occupe la « place » logique — un job FAILED
+    reste LE job de cette demande jusqu'à un retry explicite, jamais un second job créé en
+    silence) et repasse à `NULL` une fois `READY` (la session existe désormais réellement,
+    les contrôles habituels de reprise de session — `_resumable_session_for_uaa`/
+    `_is_unstarted` — prennent alors le relais, inchangés). Combiné à la contrainte UNIQUE
+    ci-dessous : un double clic, un refresh, un retry HTTP ou deux onglets simultanés
+    retombent toujours sur le MÊME job, jamais un second."""
+
+    __tablename__ = "v1_session_build_jobs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("v1_users.id"), index=True)
+    mode: Mapped[SessionMode] = mapped_column(Enum(SessionMode))
+    module_id: Mapped[int] = mapped_column(ForeignKey("modules.id"))
+    uaa_id: Mapped[int | None] = mapped_column(ForeignKey("uaas.id"), nullable=True)
+    uaa_id_key: Mapped[int] = mapped_column(Integer, default=0)
+    uaa_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    difficulty: Mapped[SessionDifficultyRequest] = mapped_column(Enum(SessionDifficultyRequest))
+    # Ticket #86 (préparation, pas d'implémentation) : champ déjà générique, jamais
+    # recalculé/déduit ailleurs — #86 pourra brancher un choix utilisateur (10/20/30/40/50)
+    # sans nouvelle colonne ni nouvelle architecture.
+    question_count: Mapped[int] = mapped_column(Integer)
+    status: Mapped[SessionBuildJobStatus] = mapped_column(
+        Enum(SessionBuildJobStatus), default=SessionBuildJobStatus.PENDING, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_session_id: Mapped[int | None] = mapped_column(
+        ForeignKey("v1_questionnaire_sessions.id"), nullable=True
+    )
+    active_marker: Mapped[str | None] = mapped_column(String(1), nullable=True)
+
+    user: Mapped["User"] = relationship()
+    module = relationship("Module")
+    created_session: Mapped["QuestionnaireSession | None"] = relationship()
+
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "module_id", "uaa_id_key", "mode", "active_marker",
+            name="uq_session_build_job_active",
+        ),
+    )
+
+
 class SessionQuestion(Base):
     """Ce qui a été exactement servi à l'utilisateur pour une position donnée d'une
     session (§ H) — le point crucial du modèle V1 : référence une QuestionVersion PRÉCISE
