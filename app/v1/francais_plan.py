@@ -76,7 +76,7 @@ FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
         title="Lecture et compréhension — texte d'exemple (validation technique, provisoire)",
     ),
     FrancaisUAAPlan(
-        code="FR01", title="FR01 — Comprendre une consigne d'examen",
+        code="FR01", title="Comprendre une consigne d'examen",
         allowed_notions=(
             ("verbe opérateur d'une consigne (relever, citer, reformuler, expliquer, "
             "justifier, expliciter, comparer, analyser, résumer, synthétiser, "
@@ -92,7 +92,7 @@ FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
         ),
     ),
     FrancaisUAAPlan(
-        code="FR02", title="FR02 — Lire et comprendre un document",
+        code="FR02", title="Lire et comprendre un document",
         allowed_notions=(
             ("situation de communication (auteur/énonciateur, destinataire, intention, "
             "contexte, support, genre)"),
@@ -107,7 +107,7 @@ FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
         ),
     ),
     FrancaisUAAPlan(
-        code="FR03", title="FR03 — Implicite, inférences et justification",
+        code="FR03", title="Implicite, inférences et justification",
         allowed_notions=(
             "distinction explicite / implicite",
             "méthode INDICE → RAISONNEMENT → CONCLUSION",
@@ -121,7 +121,7 @@ FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
         ),
     ),
     FrancaisUAAPlan(
-        code="FR04", title="FR04 — Écrire correctement et organiser ses idées",
+        code="FR04", title="Écrire correctement et organiser ses idées",
         allowed_notions=(
             "situation de communication d'un texte à produire (destinataire, intention, genre, registre)",
             "planification et ordre logique des idées",
@@ -135,7 +135,7 @@ FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
         ),
     ),
     FrancaisUAAPlan(
-        code="FR05", title="FR05 — Corriger et améliorer un texte",
+        code="FR05", title="Corriger et améliorer un texte",
         allowed_notions=(
             "révision méthodique (repérer, corriger, remplacer, supprimer, ajouter, déplacer)",
             "cohérence, répétitions et connecteurs",

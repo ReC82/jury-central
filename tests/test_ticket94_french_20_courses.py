@@ -124,10 +124,15 @@ def test_fr01_to_fr05_registered_in_francais_plan():
 
 
 def test_fr01_05_titles_are_human_readable_not_uaa():
+    """Ticket #94 (review ChatGPT PHASE A) : le titre stocké reste BARE (sans « FRxx — »),
+    même convention que AMPCR (`app.v1.ampcr_plan`) — les templates composent déjà
+    « {{ uaa.code }} — {{ uaa.title }} » (listing) ou « {{ uaa.title }} ({{ uaa.code }}) »
+    (page cours), préfixer le titre lui-même dupliquerait le code à l'affichage. Le code
+    ne doit donc PAS apparaître dans le titre stocké, mais reste affiché séparément."""
     for code in FR01_05_CODES:
         title = FRANCAIS_PLAN_BY_CODE[code].title
         assert "UAA" not in title
-        assert code in title  # « FR01 — ... » : le code reste lisible, jamais un jargon technique
+        assert code not in title, f"{code} : le titre stocké ne doit pas dupliquer le code (affiché séparément)"
 
 
 # =============================================================================================
@@ -177,6 +182,82 @@ def test_fr01_05_hidden_answers_use_details_collapsed_by_default(client, db_sess
     assert "<details>" in response.text
     assert "<summary>" in response.text
     assert "Voir la correction expliquée" in response.text
+
+
+# =============================================================================================
+# 2b. Review ChatGPT PHASE A — pas de statut "provisoire", C01 hors navigation publique
+# =============================================================================================
+
+_PROVISIONAL_LABELS = (
+    "validation technique provisoire",
+    "provisional_technical_sample",
+    "pas un examen cess officiel",
+    "sample",
+    "prototype",
+)
+
+
+def test_fr01_05_pages_never_show_provisional_status_to_the_user(client, db_session):
+    """Review ChatGPT (§ 1) : FR01→FR05 sont désormais de vrais cours — plus aucune
+    mention « validation technique provisoire »/« PROVISIONAL_TECHNICAL_SAMPLE »/« PAS un
+    examen CESS officiel » sur une page visible par l'élève (cours, practice, exam)."""
+    seed()
+    for slug in FR01_05_SLUGS:
+        for space in ("", "/practice", "/exam"):
+            response = client.get(f"/uaa/{slug}{space}")
+            assert response.status_code == 200, (slug, space)
+            lowered = response.text.lower()
+            for label in _PROVISIONAL_LABELS:
+                assert label not in lowered, f"{slug}{space} : étiquette provisoire détectée « {label} »"
+
+
+def test_fr01_05_pages_never_show_uaa_or_ticket_jargon(client, db_session):
+    """Review ChatGPT (§ 4) : jamais « UAA », « ticket #xx » dans le contenu pédagogique
+    visible par l'élève — ce jargon reste réservé au code/commentaires/rapports."""
+    seed()
+    for slug in FR01_05_SLUGS:
+        response = client.get(f"/uaa/{slug}")
+        assert response.status_code == 200
+        text = response.text
+        assert "UAA" not in text
+        assert not re.search(r"ticket\s*#\d+", text, re.IGNORECASE), slug
+
+
+def test_c01_hidden_from_public_module_listing(client, db_session):
+    """Review ChatGPT (§ 2/§ 3) : la page publique du module Français doit lister
+    exactement FR01→FR05 (à ce stade) et PLUS C01."""
+    seed()
+    response = client.get("/modules/francais")
+    assert response.status_code == 200
+    text = response.text
+    assert "francais-c01" not in text
+    for code in FR01_05_CODES:
+        assert code in text
+    public_course_links = re.findall(r'href="/uaa/(francais-[a-z0-9]+)"', text)
+    assert set(public_course_links) == set(FR01_05_SLUGS), (
+        f"attendu exactement 5 cours publics FR01→FR05, trouvé : {public_course_links}"
+    )
+
+
+def test_c01_still_fully_reachable_via_its_legacy_url(client, db_session):
+    """Review ChatGPT (§ 2) : C01 masquée de la navigation, mais son URL historique doit
+    rester pleinement fonctionnelle (page cours, practice, exam) — aucune régression pour
+    l'historique/les sessions déjà existantes."""
+    seed()
+    for path in ("/uaa/francais-c01", "/uaa/francais-c01/practice", "/uaa/francais-c01/exam"):
+        response = client.get(path)
+        assert response.status_code == 200, path
+
+
+def test_c01_hidden_from_listing_flag_is_idempotent_across_reseeds(db_session):
+    seed()
+    seed()
+    from app.models import UAA
+
+    c01 = db_session.query(UAA).filter_by(slug="francais-c01").first()
+    assert c01 is not None
+    assert c01.hidden_from_listing is True
+    assert c01.is_published is True, "C01 doit rester pleinement accessible, jamais dépubliée"
 
 
 # =============================================================================================

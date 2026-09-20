@@ -4542,11 +4542,17 @@ FRANCAIS_C01_BLOCKS = [
 # Professionnel. Chaque cours suit la structure en 10 points imposée par le ticket (voir
 # `app.v1.francais_fr01_05_courses`, docstring) — un seul bloc MARKDOWN par cours, comme
 # C01 ci-dessus (même pattern, pas une nouvelle architecture de blocs).
-FRANCAIS_FR01_TITLE = "FR01 — Comprendre une consigne d'examen"
-FRANCAIS_FR02_TITLE = "FR02 — Lire et comprendre un document"
-FRANCAIS_FR03_TITLE = "FR03 — Implicite, inférences et justification"
-FRANCAIS_FR04_TITLE = "FR04 — Écrire correctement et organiser ses idées"
-FRANCAIS_FR05_TITLE = "FR05 — Corriger et améliorer un texte"
+
+# Ticket #94 (review ChatGPT PHASE A) : titre BARE (sans "FRxx — "), même convention que
+# AMPCR (`app.v1.ampcr_plan`, ex. "Architecture générale d'un PC" pour MC01) — les
+# templates composent déjà "{{ uaa.code }} — {{ uaa.title }}" (listing) ou
+# "{{ uaa.title }} ({{ uaa.code }})" (page cours/practice/exam) ; préfixer le titre
+# lui-même dupliquait le code à l'affichage ("FR01 — FR01 — ...").
+FRANCAIS_FR01_TITLE = "Comprendre une consigne d'examen"
+FRANCAIS_FR02_TITLE = "Lire et comprendre un document"
+FRANCAIS_FR03_TITLE = "Implicite, inférences et justification"
+FRANCAIS_FR04_TITLE = "Écrire correctement et organiser ses idées"
+FRANCAIS_FR05_TITLE = "Corriger et améliorer un texte"
 
 FRANCAIS_FR01_BLOCKS = [
     {
@@ -4815,6 +4821,16 @@ def seed() -> None:
             db, cessp, FRANCAIS_C01_CODE, FRANCAIS_C01_TITLE, 1, FRANCAIS_C01_BLOCKS,
             created, kept,
         )
+        # Ticket #94 (review ChatGPT PHASE A) : C01 (pilote technique #47) reste
+        # PLEINEMENT accessible (page cours, practice/exam, historique/sessions déjà
+        # existants — is_published reste True) mais ne doit plus apparaître dans le
+        # listing public Français, désormais FR01→FR20. `hidden_from_listing` est
+        # réappliqué à CHAQUE seed (idempotent), pas seulement à la création, pour
+        # corriger un staging déjà seedé avant ce ticket (colonne ajoutée par
+        # `app.database.ensure_schema_migrations`, valeur par défaut False).
+        c01_uaa = next(u for u in cessp.uaas if u.code == FRANCAIS_C01_CODE)
+        if not c01_uaa.hidden_from_listing:
+            c01_uaa.hidden_from_listing = True
         # Ticket #94 (PHASE A) : FR01→FR05, purement additif comme C01 ci-dessus — ne
         # touche jamais C01 ni aucun autre contenu existant.
         _seed_uaa(db, cessp, "FR01", FRANCAIS_FR01_TITLE, 2, FRANCAIS_FR01_BLOCKS, created, kept)

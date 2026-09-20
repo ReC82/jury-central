@@ -124,7 +124,7 @@ Aucun appel OpenAI réel (`FakeAIProvider` partout).
 FR01, FR02, FR03, FR04, FR05 : **READY**. FR06→FR20 : non implémentées (phases B/C/D,
 prochains tickets après review ChatGPT).
 
-## Fichiers
+## Fichiers (implémentation initiale)
 
 - `app/v1/francais_plan.py` (FR01→FR05 ajoutées, `FrancaisUAAPlan.allowed_notions`/
   `competencies` par cours)
@@ -137,3 +137,77 @@ prochains tickets après review ChatGPT).
 - `tests/test_ticket94_french_20_courses.py` (nouveau, 16 tests)
 - `tests/test_admin_content_hierarchy.py` (compteurs UAA/blocs mis à jour)
 - `docs/claude-reports/2026-09-20_ticket-94_french-20-course-path.md` (ce rapport)
+
+---
+
+## Review ChatGPT PHASE A — corrections apportées avant PR/merge
+
+### 1. Statut « validation technique provisoire » retiré des pages utilisateur
+
+La ligne `**Statut : contenu de validation technique provisoire (ticket #94) — PAS un
+examen CESS officiel.**` a été retirée des 5 pages de cours (`app/v1/francais_fr01_05_courses.py`).
+Nuance conservée côté interne uniquement : le module docstring
+(`francais_fr01_05_bank.py`/`francais_fr01_05_courses.py`, jamais rendu à l'utilisateur)
+et les `constraints` de `PedagogicalContext` (`francais_plan.py::_build_context`, envoyées
+uniquement au correcteur IA dans le prompt — jamais affichées dans l'interface, vérifié :
+`app/ai/prompts.py` ne les utilise que pour construire le message envoyé à OpenAI)
+continuent d'indiquer que les textes sont originaux et non officiels, comme demandé.
+
+### 2. C01 masquée de la navigation publique, pleinement compatible
+
+Nouvel attribut minimal `UAA.hidden_from_listing` (`app/models.py`), distinct de
+`is_published` — volontairement PAS le même flag, car `is_published=False` bloque l'accès
+direct à la page (`app/main.py`), ce qui aurait cassé les sessions/historique C01
+existants. Colonne ajoutée via le mécanisme déjà établi `app.database.ensure_schema_migrations`
+(`ALTER TABLE uaas ADD COLUMN hidden_from_listing BOOLEAN NOT NULL DEFAULT 0`,
+idempotent, jamais de `reset-db`). `app/seed.py` positionne `hidden_from_listing=True`
+sur C01 à CHAQUE `seed()` (pas seulement à la création), pour corriger aussi un staging
+déjà seedé avant ce correctif. `module_detail.html` filtre désormais
+`if uaa.is_published and not uaa.hidden_from_listing` — C01 disparaît de la liste
+publique, mais reste servie normalement par toutes ses routes (cours/practice/exam),
+vérifié explicitement (`test_c01_still_fully_reachable_via_its_legacy_url`).
+
+### 3/4. Page Français publique et terminologie utilisateur
+
+`/modules/francais` liste désormais exactement FR01→FR05 (vérifié :
+`test_c01_hidden_from_public_module_listing`, comparaison stricte de l'ensemble des liens
+`/uaa/francais-*` présents sur la page). Aucune page FR01→FR05 (cours/practice/exam)
+n'affiche plus « UAA », « ticket #xx », « validation technique provisoire »,
+« PROVISIONAL_TECHNICAL_SAMPLE », « sample » ou « prototype » — vérifié explicitement
+(`test_fr01_05_pages_never_show_provisional_status_to_the_user`,
+`test_fr01_05_pages_never_show_uaa_or_ticket_jargon`).
+
+**Correctif additionnel découvert pendant cette passe** : les titres stockés
+(`FRANCAIS_PLAN`/`FRANCAIS_FRxx_TITLE`) contenaient le préfixe `"FR01 — "` — or
+`module_detail.html` compose déjà `{{ uaa.code }} — {{ uaa.title }}` et
+`uaa_detail.html`/`uaa_practice.html`/`uaa_exam.html` composent déjà
+`{{ uaa.title }} ({{ uaa.code }})`, produisant un code dupliqué à l'affichage
+(« FR01 — FR01 — Comprendre une consigne d'examen »). Titres corrigés en BARE (sans
+préfixe), même convention que `app.v1.ampcr_plan` (ex. « Architecture générale d'un PC »
+pour MC01) — `describe_session_scope` (historique, `app/v1/session_service.py`, ticket
+#62) composait déjà `f"{uaa.code} — {uaa.title}"` en attendant cette convention.
+
+### 5. Tests ajoutés (5 nouveaux, 21 au total dans le fichier)
+
+`test_fr01_05_pages_never_show_provisional_status_to_the_user`,
+`test_fr01_05_pages_never_show_uaa_or_ticket_jargon`,
+`test_c01_hidden_from_public_module_listing`,
+`test_c01_still_fully_reachable_via_its_legacy_url`,
+`test_c01_hidden_from_listing_flag_is_idempotent_across_reseeds`.
+`test_fr01_05_titles_are_human_readable_not_uaa` adapté à la nouvelle convention de titre
+bare (le code ne doit plus apparaître DANS le titre stocké, affiché séparément par les
+templates).
+
+Validation complète après corrections : `pytest -q` (suite complète) → **1311 passed, 0
+failed**. `ruff check .` → 36 erreurs, baseline inchangée, **0 nouvelle dette**.
+`git diff --check` propre.
+
+## Fichiers (review PHASE A)
+
+- `app/models.py` (`UAA.hidden_from_listing`, nouveau)
+- `app/database.py` (`ensure_schema_migrations` : ajout de colonne `uaas.hidden_from_listing`)
+- `app/templates/module_detail.html` (filtre `hidden_from_listing` dans le listing public)
+- `app/v1/francais_plan.py` (titres FR01→FR05 rendus BARE)
+- `app/v1/francais_fr01_05_courses.py` (retrait de la ligne de statut provisoire)
+- `app/seed.py` (titres BARE, `c01_uaa.hidden_from_listing = True` réappliqué à chaque seed)
+- `tests/test_ticket94_french_20_courses.py` (5 tests ajoutés, 1 adapté)

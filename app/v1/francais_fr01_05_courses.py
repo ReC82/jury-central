@@ -42,9 +42,6 @@ from app.v1.francais_fr01_05_content import (
 def fr01_course_markdown() -> str:
     return f"""# FR01 — Comprendre une consigne d'examen
 
-**Statut : contenu de validation technique provisoire (ticket #94) — PAS un examen CESS \
-officiel.**
-
 ## 1. Ce que tu dois savoir faire à l'examen
 
 Avant même de répondre à une question, tu dois être capable de décoder EXACTEMENT ce \
@@ -229,9 +226,6 @@ exigence.
 def fr02_course_markdown() -> str:
     return """# FR02 — Lire et comprendre un document
 
-**Statut : contenu de validation technique provisoire (ticket #94) — PAS un examen CESS \
-officiel.**
-
 ## 1. Ce que tu dois savoir faire à l'examen
 
 Face à un document inconnu, tu dois pouvoir identifier rapidement qui l'a écrit, pour qui, \
@@ -368,9 +362,6 @@ concrets, puis relie l'intention à un passage précis du texte.
 
 def fr03_course_markdown() -> str:
     return f"""# FR03 — Implicite, inférences et justification
-
-**Statut : contenu de validation technique provisoire (ticket #94) — PAS un examen CESS \
-officiel.**
 
 ## 1. Ce que tu dois savoir faire à l'examen
 
@@ -518,9 +509,6 @@ réel.
 def fr04_course_markdown() -> str:
     return f"""# FR04 — Écrire correctement et organiser ses idées
 
-**Statut : contenu de validation technique provisoire (ticket #94) — PAS un examen CESS \
-officiel.**
-
 ## 1. Ce que tu dois savoir faire à l'examen
 
 Tu dois pouvoir transformer des idées en vrac, ou un texte mal organisé, en un écrit \
@@ -659,9 +647,6 @@ ordre de cause à conséquence clair.
 
 def fr05_course_markdown() -> str:
     return f"""# FR05 — Corriger et améliorer un texte
-
-**Statut : contenu de validation technique provisoire (ticket #94) — PAS un examen CESS \
-officiel.**
 
 ## 1. Ce que tu dois savoir faire à l'examen
 
