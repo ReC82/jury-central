@@ -22,6 +22,21 @@ from typing import Any
 
 import httpx
 
+from app.ai.french_mock_exam_prompts import (
+    CORRECT_MOCK_EXAM_JSON_SCHEMA,
+    GENERATE_MOCK_EXAM_JSON_SCHEMA,
+    build_correct_mock_exam_messages,
+    build_generate_mock_exam_messages,
+)
+from app.ai.french_mock_exam_schemas import (
+    MockExamCategoryScore,
+    MockExamCorrection,
+    MockExamDocument,
+    MockExamGeneration,
+    MockExamGenerationRequest,
+    MockExamKeyIdea,
+    MockExamRubricCategory,
+)
 from app.ai.prompts import (
     CORRECT_JSON_SCHEMA,
     CORRECT_SEMANTIC_JSON_SCHEMA,
@@ -278,3 +293,97 @@ class OpenAIProvider:
             except (KeyError, TypeError, ValueError):
                 continue
         return results
+
+    def generate_french_mock_exam(self, request: MockExamGenerationRequest) -> MockExamGeneration:
+        """Un seul appel : thème, 3 documents originaux, tâche créée après les documents,
+        grille /100 et corrigé privé — voir `app.ai.french_mock_exam_prompts`, ordre
+        strict imposé au modèle dans le prompt système."""
+        messages = build_generate_mock_exam_messages(
+            exam_type=request.exam_type, theme=request.theme,
+            min_words=request.min_words, max_words=request.max_words,
+            avoid_task_signatures=request.avoid_task_signatures,
+        )
+        data = self._call(messages, GENERATE_MOCK_EXAM_JSON_SCHEMA)
+        try:
+            documents = [
+                MockExamDocument(title=str(d["title"]), doc_kind=str(d["doc_kind"]), text=str(d["text"]))
+                for d in data["documents"]
+            ]
+            if len(documents) != 3:
+                raise AIResponseError("L'examen blanc généré ne comporte pas exactement 3 documents.")
+            rubric_categories = [
+                MockExamRubricCategory(
+                    name=str(c["name"]), max_points=float(c["max_points"]),
+                    criteria=[str(x) for x in c.get("criteria") or []],
+                )
+                for c in data["rubric_categories"]
+            ]
+            key_ideas = [
+                MockExamKeyIdea(
+                    idea=str(k["idea"]),
+                    source_document_indexes=[int(x) for x in k.get("source_document_indexes") or []],
+                    axis=str(k.get("axis", "")),
+                )
+                for k in data["key_ideas"]
+            ]
+            return MockExamGeneration(
+                documents=documents,
+                task_prompt=str(data["task_prompt"]),
+                rubric_categories=rubric_categories,
+                key_ideas=key_ideas,
+                contradictions=[str(x) for x in data.get("contradictions") or []],
+                complements=[str(x) for x in data.get("complements") or []],
+                target_opinion=str(data.get("target_opinion", "")),
+                required_genre=str(data.get("required_genre", "")),
+                recipient=str(data.get("recipient", "")),
+            )
+        except KeyError as exc:
+            raise AIResponseError("Examen blanc généré incomplet.") from exc
+
+    def correct_french_mock_exam(
+        self,
+        *,
+        exam_type: str,
+        task_prompt: str,
+        documents: list[tuple[str, str, str]],
+        rubric_categories: list[tuple[str, float, list[str]]],
+        key_ideas: list[tuple[str, list[int], str]],
+        contradictions: list[str],
+        complements: list[str],
+        answer_text: str,
+        min_words: int,
+        max_words: int,
+        similarity_ratio: float,
+    ) -> MockExamCorrection:
+        messages = build_correct_mock_exam_messages(
+            exam_type=exam_type, task_prompt=task_prompt, documents=documents,
+            rubric_categories=rubric_categories, key_ideas=key_ideas,
+            contradictions=contradictions, complements=complements, answer_text=answer_text,
+            min_words=min_words, max_words=max_words, similarity_ratio=similarity_ratio,
+        )
+        data = self._call(messages, CORRECT_MOCK_EXAM_JSON_SCHEMA)
+        try:
+            category_scores = [
+                MockExamCategoryScore(
+                    name=str(c["name"]), points=float(c["points"]), max_points=float(c["max_points"]),
+                    comment=str(c.get("comment", "")),
+                )
+                for c in data["category_scores"]
+            ]
+            score = sum(c.points for c in category_scores)
+            max_score = sum(c.max_points for c in category_scores) or 100.0
+            return MockExamCorrection(
+                score=score,
+                max_score=max_score,
+                category_scores=category_scores,
+                strengths=[str(x) for x in data.get("strengths") or []],
+                improvements=[str(x) for x in data.get("improvements") or []],
+                structure_feedback=str(data.get("structure_feedback", "")),
+                document_comprehension_feedback=str(data.get("document_comprehension_feedback", "")),
+                source_usage_feedback=str(data.get("source_usage_feedback", "")),
+                task_specific_feedback=str(data.get("task_specific_feedback", "")),
+                language_feedback=str(data.get("language_feedback", "")),
+                length_feedback=str(data.get("length_feedback", "")),
+            )
+        except KeyError as exc:
+            raise AIResponseError("Correction d'examen blanc incomplète.") from exc

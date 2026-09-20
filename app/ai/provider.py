@@ -17,6 +17,11 @@ besoin (long_answer/diagnostic/procedure, et short_answer/vocabulary sans
 
 from typing import Any, Protocol
 
+from app.ai.french_mock_exam_schemas import (
+    MockExamCorrection,
+    MockExamGeneration,
+    MockExamGenerationRequest,
+)
 from app.ai.schemas import (
     AICorrectionResult,
     GeneratedAIExercise,
@@ -67,3 +72,21 @@ class AIProvider(Protocol):
         severity: str,
         contexts: list[PedagogicalContext],
     ) -> dict[str, QuestionCorrection]: ...
+
+    def generate_french_mock_exam(self, request: MockExamGenerationRequest) -> MockExamGeneration: ...
+
+    def correct_french_mock_exam(
+        self,
+        *,
+        exam_type: str,
+        task_prompt: str,
+        documents: list[tuple[str, str, str]],
+        rubric_categories: list[tuple[str, float, list[str]]],
+        key_ideas: list[tuple[str, list[int], str]],
+        contradictions: list[str],
+        complements: list[str],
+        answer_text: str,
+        min_words: int,
+        max_words: int,
+        similarity_ratio: float,
+    ) -> MockExamCorrection: ...

@@ -7,9 +7,49 @@
     <div class="col-12 col-md-10 col-lg-8">
         <h1 class="h4 mb-3">Mes entraînements / évaluations</h1>
 
-        {% if not rows and not build_job_rows %}
+        {% if not rows and not build_job_rows and not mock_exam_rows %}
         <p class="text-muted">Aucune session pour l'instant — commence un entraînement depuis une matière.</p>
         {% endif %}
+
+        {% for mock_row in mock_exam_rows %}
+        {% set exam = mock_row.exam %}
+        <div class="p-3 bg-white rounded shadow-sm mb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <p class="text-muted small mb-1">
+                        {{ exam.created_at.strftime('%d/%m/%Y à %H:%M') if exam.created_at else '' }}
+                    </p>
+                    <p class="fw-semibold mb-1">Examen blanc CESS — {{ mock_row.type_label }} — {{ exam.theme }}</p>
+                    <p class="small mb-1">
+                        {% if exam.status.value == 'completed' %}
+                        <span class="badge bg-success">Terminé</span>
+                        {% elif exam.status.value == 'correction_incomplete' %}
+                        <span class="badge bg-warning text-dark">Correction incomplète</span>
+                        {% elif exam.status.value in ('submitted', 'correcting') %}
+                        <span class="badge bg-info text-dark">Correction en cours</span>
+                        {% elif exam.status.value == 'build_failed' %}
+                        <span class="badge bg-danger">Préparation échouée</span>
+                        {% elif exam.status.value == 'ready' %}
+                        <span class="badge bg-warning text-dark">En cours</span>
+                        {% else %}
+                        <span class="badge bg-info text-dark">En préparation</span>
+                        {% endif %}
+                    </p>
+                    {% if exam.status.value == 'completed' %}
+                    <p class="small text-muted mb-0">score : {{ "%.0f"|format(exam.score) }} / {{ "%.0f"|format(exam.max_score) }}</p>
+                    {% endif %}
+                </div>
+                <div class="d-flex align-items-center">
+                    <a href="/francais/examen-blanc/{{ exam.id }}" class="btn btn-outline-dark btn-sm">
+                        {% if exam.status.value == 'completed' %}Voir les résultats
+                        {% elif exam.status.value == 'ready' %}Reprendre
+                        {% elif exam.status.value == 'build_failed' %}Réessayer
+                        {% else %}Voir{% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
 
         {% for build_row in build_job_rows %}
         {% set job = build_row.job %}

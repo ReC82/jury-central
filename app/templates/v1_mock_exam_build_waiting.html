@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Préparation de l'examen blanc — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-6">
+        <div class="p-4 bg-white rounded shadow-sm text-center" id="mock-exam-build-panel" data-exam-id="{{ exam.id }}">
+
+            <div id="mock-exam-build-active" {% if exam.status.value == "build_failed" %}class="d-none"{% endif %}>
+                <div class="spinner-border text-dark mb-3" role="status" aria-hidden="true"></div>
+                <h1 class="h4 mb-2">Préparation de l'examen blanc…</h1>
+                <p class="mb-1">Génération du dossier documentaire en cours.</p>
+                <p class="text-muted mb-4">Merci de patienter quelques secondes.</p>
+
+                <ul class="list-unstyled text-start mx-auto mb-0" style="max-width: 320px;">
+                    <li class="mb-1"><span class="text-success">✓</span> Demande enregistrée</li>
+                    <li class="mb-1" id="mock-exam-step-running"><span>•</span> Préparation du dossier</li>
+                    <li class="text-muted" id="mock-exam-step-done"><span>○</span> Examen blanc prêt</li>
+                </ul>
+            </div>
+
+            <div id="mock-exam-build-failed" class="{% if exam.status.value != 'build_failed' %}d-none{% endif %}">
+                <h1 class="h4 mb-2">La préparation de l'examen blanc a échoué</h1>
+                <form method="post" action="/francais/examen-blanc/{{ exam.id }}/retry-build">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-dark">Réessayer</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var panel = document.getElementById("mock-exam-build-panel");
+        if (!panel) return;
+        var examId = panel.getAttribute("data-exam-id");
+        var activeState = document.getElementById("mock-exam-build-active");
+        var failedState = document.getElementById("mock-exam-build-failed");
+        var pollDelayMs = 2500;
+        var stopped = {{ "true" if exam.status.value == "build_failed" else "false" }};
+
+        function showFailed() {
+            if (activeState) { activeState.classList.add("d-none"); }
+            if (failedState) { failedState.classList.remove("d-none"); }
+        }
+
+        function poll() {
+            if (stopped) return;
+            fetch("/francais/examen-blanc/" + examId + "/status", { credentials: "same-origin" })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (data.status === "ready") {
+                        stopped = true;
+                        window.location = data.exam_url || ("/francais/examen-blanc/" + examId);
+                        return;
+                    }
+                    if (data.status === "failed") {
+                        stopped = true;
+                        showFailed();
+                        return;
+                    }
+                    window.setTimeout(poll, pollDelayMs);
+                })
+                .catch(function () {
+                    window.setTimeout(poll, pollDelayMs);
+                });
+        }
+
+        if (!stopped) {
+            window.setTimeout(poll, pollDelayMs);
+        }
+    })();
+</script>
+{% endblock %}

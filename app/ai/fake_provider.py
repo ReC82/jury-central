@@ -11,6 +11,15 @@ questionnaire purement déterministe (QCM, vrai/faux, ordering, ...) ne déclenc
 
 from typing import Any
 
+from app.ai.french_mock_exam_schemas import (
+    MockExamCategoryScore,
+    MockExamCorrection,
+    MockExamDocument,
+    MockExamGeneration,
+    MockExamGenerationRequest,
+    MockExamKeyIdea,
+    MockExamRubricCategory,
+)
 from app.ai.schemas import (
     AICorrectionResult,
     GeneratedAIExercise,
@@ -28,6 +37,8 @@ class FakeAIProvider:
     def __init__(self) -> None:
         self.generate_calls: list[tuple[PedagogicalContext, str]] = []
         self.correct_calls: list[tuple[PedagogicalContext, str, str, str, str]] = []
+        self.mock_exam_generation_calls: list[MockExamGenerationRequest] = []
+        self.mock_exam_correction_calls: list[dict[str, Any]] = []
         self.questionnaire_calls: list[QuestionnaireRequest] = []
         self.semantic_calls: list[tuple[tuple[str, ...], str]] = []
 
@@ -116,6 +127,122 @@ class FakeAIProvider:
                 expected_answer="Réponse attendue factice, à titre d'exemple.",
             )
         return results
+
+    def generate_french_mock_exam(self, request: MockExamGenerationRequest) -> MockExamGeneration:
+        self.mock_exam_generation_calls.append(request)
+        tag = f" [{len(self.mock_exam_generation_calls)}]"
+        theme = request.theme
+        long_filler = "Élément factice développé pour ce test. " * 70  # ~500+ mots
+
+        documents = [
+            MockExamDocument(
+                title=f"Document 1 — Faits et données sur {theme}{tag}",
+                doc_kind="faits_donnees",
+                text=f"[Document factice 1, thème {theme}] {long_filler}",
+            ),
+            MockExamDocument(
+                title=f"Document 2 — Regard d'expert sur {theme}{tag}",
+                doc_kind="expert_analyse",
+                text=f"[Document factice 2, thème {theme}] {long_filler}",
+            ),
+            MockExamDocument(
+                title=f"Document 3 — Témoignage sur {theme}{tag}",
+                doc_kind="temoignage_chronique",
+                text=f"[Document factice 3, thème {theme}] {long_filler}",
+            ),
+        ]
+
+        if request.exam_type == "synthesis":
+            task_prompt = f"Quels sont les enjeux de {theme} mis en évidence par les documents, et quelles limites sont soulevées ?{tag}"
+            rubric_categories = [
+                MockExamRubricCategory(name="Pertinence", max_points=40.0, criteria=["Sélection", "Exploitation des documents"]),
+                MockExamRubricCategory(name="Reformulation", max_points=25.0, criteria=["Fidélité", "Concision"]),
+                MockExamRubricCategory(name="Intelligibilité", max_points=20.0, criteria=["Progression", "Connecteurs"]),
+                MockExamRubricCategory(name="Recevabilité", max_points=15.0, criteria=["Orthographe", "Syntaxe"]),
+            ]
+            target_opinion, required_genre, recipient = "", "", ""
+        elif request.exam_type == "argumentation_opinion":
+            task_prompt = f"Réagissez à l'opinion exprimée dans le document 2 à propos de {theme}.{tag}"
+            rubric_categories = [
+                MockExamRubricCategory(name="Pertinence", max_points=45.0, criteria=["Thèse claire", "Arguments développés"]),
+                MockExamRubricCategory(name="Intelligibilité", max_points=30.0, criteria=["Structure argumentative", "Connecteurs"]),
+                MockExamRubricCategory(name="Recevabilité", max_points=25.0, criteria=["Orthographe", "Registre"]),
+            ]
+            target_opinion = f"Opinion factice sur {theme} exprimée dans le document 2."
+            required_genre = "Courrier de lecteur"
+            recipient = ""
+        else:
+            task_prompt = f"Rédigez une lettre de réclamation concernant un problème lié à {theme}, décrit dans les documents.{tag}"
+            rubric_categories = [
+                MockExamRubricCategory(name="Pertinence", max_points=45.0, criteria=["Situation contextualisée", "Demande claire"]),
+                MockExamRubricCategory(name="Intelligibilité", max_points=30.0, criteria=["Structure", "Connecteurs"]),
+                MockExamRubricCategory(name="Recevabilité", max_points=25.0, criteria=["Registre", "Formules de politesse"]),
+            ]
+            target_opinion = ""
+            required_genre = "Lettre"
+            recipient = "Le service concerné (destinataire factice de test)"
+
+        key_ideas = [
+            MockExamKeyIdea(idea=f"Idée essentielle factice liée à {theme} (a)", source_document_indexes=[1, 2], axis="axe factice 1"),
+            MockExamKeyIdea(idea=f"Idée essentielle factice liée à {theme} (b)", source_document_indexes=[2, 3], axis="axe factice 2"),
+        ]
+        return MockExamGeneration(
+            documents=documents,
+            task_prompt=task_prompt,
+            rubric_categories=rubric_categories,
+            key_ideas=key_ideas,
+            contradictions=[f"Contradiction factice sur {theme}"],
+            complements=[f"Complément factice sur {theme}"],
+            target_opinion=target_opinion,
+            required_genre=required_genre,
+            recipient=recipient,
+        )
+
+    def correct_french_mock_exam(
+        self,
+        *,
+        exam_type: str,
+        task_prompt: str,
+        documents: list[tuple[str, str, str]],
+        rubric_categories: list[tuple[str, float, list[str]]],
+        key_ideas: list[tuple[str, list[int], str]],
+        contradictions: list[str],
+        complements: list[str],
+        answer_text: str,
+        min_words: int,
+        max_words: int,
+        similarity_ratio: float,
+    ) -> MockExamCorrection:
+        self.mock_exam_correction_calls.append(
+            {
+                "exam_type": exam_type, "task_prompt": task_prompt, "answer_text": answer_text,
+                "min_words": min_words, "max_words": max_words, "similarity_ratio": similarity_ratio,
+            }
+        )
+        has_answer = bool(answer_text.strip())
+        factor = 0.7 if has_answer else 0.0
+        category_scores = [
+            MockExamCategoryScore(
+                name=name, points=round(max_points * factor, 1), max_points=max_points,
+                comment=f"Correction factice pour {name} (environnement de test).",
+            )
+            for name, max_points, _criteria in rubric_categories
+        ]
+        score = sum(c.points for c in category_scores)
+        max_score = sum(c.max_points for c in category_scores) or 100.0
+        return MockExamCorrection(
+            score=score,
+            max_score=max_score,
+            category_scores=category_scores,
+            strengths=["Point fort factice."] if has_answer else [],
+            improvements=[] if has_answer else ["Aucune réponse fournie."],
+            structure_feedback="Retour factice sur la structure.",
+            document_comprehension_feedback="Retour factice sur la compréhension des documents.",
+            source_usage_feedback="Retour factice sur l'utilisation des sources.",
+            task_specific_feedback=f"Retour factice spécifique au type {exam_type}.",
+            language_feedback="Retour factice sur la langue.",
+            length_feedback=f"Retour factice sur la longueur ({min_words}-{max_words} mots attendus).",
+        )
 
 
 def _variation_clause(index: int) -> str:

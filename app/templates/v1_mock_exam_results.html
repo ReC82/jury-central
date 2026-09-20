@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Résultats — Examen blanc CESS — Jury Central{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-0">Examen blanc CESS — {{ exam_type_label }}</h1>
+        <p class="text-muted small mb-0">Thème : {{ exam.theme }}</p>
+    </div>
+    <div class="d-print-none">
+        <a href="/francais/examen-blanc/{{ exam.id }}/export.md" class="btn btn-outline-dark btn-sm">Exporter (.md)</a>
+        <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print()">Imprimer</button>
+    </div>
+</div>
+
+{% if exam.status.value == "correction_incomplete" %}
+<div class="alert alert-warning" role="alert">
+    <strong>CORRECTION INCOMPLÈTE</strong> — la correction n'a pas pu aboutir. Ta
+    production est sauvegardée, aucun score n'est définitif.
+    <form method="post" action="/francais/examen-blanc/{{ exam.id }}/retry-correction" class="mt-2 d-print-none">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-dark btn-sm">Reprendre la correction</button>
+    </form>
+</div>
+{% else %}
+<div class="p-4 bg-white rounded shadow-sm mb-4 text-center">
+    <p class="text-muted mb-1">NOTE</p>
+    <p class="display-5 mb-0">{{ "%.0f"|format(exam.score) }} / {{ "%.0f"|format(exam.max_score) }}</p>
+    <p class="text-muted small mt-2 mb-0">TYPE D'ÉPREUVE : {{ exam_type_label }}</p>
+</div>
+
+{% set feedback = exam.feedback_json or {} %}
+<div class="p-3 bg-white rounded shadow-sm mb-4">
+    <h2 class="h6 mb-3">Détail de la grille</h2>
+    {% for category in feedback.category_scores or [] %}
+    <div class="d-flex justify-content-between align-items-start py-2 {% if not loop.last %}border-bottom{% endif %}">
+        <div>
+            <strong>{{ category.name }}</strong>
+            <p class="small text-muted mb-0">{{ category.comment }}</p>
+        </div>
+        <span class="badge text-bg-secondary">{{ category.points }} / {{ category.max_points }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6">
+        <div class="p-3 bg-white rounded shadow-sm h-100">
+            <h2 class="h6">Points forts</h2>
+            <ul class="mb-0">
+                {% for item in feedback.strengths or [] %}<li>{{ item }}</li>{% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="p-3 bg-white rounded shadow-sm h-100">
+            <h2 class="h6">À améliorer</h2>
+            <ul class="mb-0">
+                {% for item in feedback.improvements or [] %}<li>{{ item }}</li>{% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="p-3 bg-white rounded shadow-sm mb-4">
+    <h2 class="h6">Structure</h2>
+    <p>{{ feedback.structure_feedback }}</p>
+    <h2 class="h6">Compréhension des documents</h2>
+    <p>{{ feedback.document_comprehension_feedback }}</p>
+    <h2 class="h6">Utilisation des sources</h2>
+    <p>{{ feedback.source_usage_feedback }}</p>
+    <h2 class="h6">{{ "Synthèse" if exam.exam_type.value == "synthesis" else "Argumentation" }}</h2>
+    <p>{{ feedback.task_specific_feedback }}</p>
+    <h2 class="h6">Langue</h2>
+    <p>{{ feedback.language_feedback }}</p>
+    <h2 class="h6">Longueur</h2>
+    <p class="mb-0">{{ feedback.length_feedback }} ({{ word_count }} mots rédigés, objectif {{ exam.min_words }}–{{ exam.max_words }})</p>
+</div>
+
+{% if related_courses %}
+<div class="p-3 bg-white rounded shadow-sm mb-4">
+    <h2 class="h6">Cours à relire en priorité</h2>
+    <ul class="list-unstyled mb-0">
+        {% for course in related_courses %}
+        <li class="py-1">
+            {{ course.code }} — {{ course.title }}
+            <a href="/uaa/{{ course.slug }}" class="btn btn-outline-dark btn-sm d-print-none ms-2">Relire le cours</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="p-3 bg-white rounded shadow-sm mb-4">
+    <h2 class="h6 mb-3">Portefeuille de documents</h2>
+    {% for doc in exam.documents %}
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 {% if not loop.last %}border-bottom{% endif %}">
+        <span>Document {{ loop.index }} — {{ doc.title }}</span>
+        <span class="d-print-none">
+            <a href="/documents/{{ doc.id }}" class="btn btn-outline-dark btn-sm">Lire</a>
+            <a href="/documents/{{ doc.id }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm">Ouvrir dans un nouvel onglet</a>
+        </span>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="p-3 bg-white rounded shadow-sm mb-4">
+    <h2 class="h6">Ta production</h2>
+    <p style="white-space: pre-wrap;">{{ exam.answer_text }}</p>
+</div>
+
+<style>
+    @media print {
+        .d-print-none { display: none !important; }
+    }
+</style>
+{% endblock %}

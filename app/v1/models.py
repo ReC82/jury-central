@@ -38,6 +38,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     DateTime,
     Enum,
     Float,
@@ -715,6 +716,105 @@ class SessionBuildJob(Base):
             name="uq_session_build_job_active",
         ),
     )
+
+
+class FrenchMockExamType(str, enum.Enum):
+    SYNTHESIS = "synthesis"
+    ARGUMENTATION_OPINION = "argumentation_opinion"
+    ARGUMENTATION_REQUEST = "argumentation_request"
+
+
+class FrenchMockExamStatus(str, enum.Enum):
+    PENDING = "pending"  # créé, en attente du worker (génération)
+    BUILDING = "building"
+    READY = "ready"  # dossier généré, l'élève peut rédiger
+    BUILD_FAILED = "build_failed"
+    SUBMITTED = "submitted"  # soumis, en attente du worker (correction)
+    CORRECTING = "correcting"
+    COMPLETED = "completed"
+    CORRECTION_INCOMPLETE = "correction_incomplete"
+
+
+class FrenchMockExam(Base):
+    """Examen blanc CESS Français (chantier « mode Examen blanc », priorité sur
+    FR06→FR20/#86) — UNE production longue holistique notée /100, jamais un ensemble de
+    questions indépendantes comme le reste du moteur V1 (`Question`/`QuestionVersion`) :
+    modèle dédié plutôt que de forcer ce contrat dans le registre #40 (§ 46 du chantier,
+    « créer uniquement le nécessaire »).
+
+    Même PATTERN async que #88/#90/#92 (build + correction non bloquants, jamais un appel
+    IA dans le cycle requête/réponse HTTP), mais SANS dupliquer `CorrectionJob`/
+    `SessionBuildJob` : leur schéma est taillé pour `QuestionnaireSession` (session_id
+    unique, uaa_id/question_count...), qui n'a pas de sens ici. Le statut de CETTE ligne
+    EST son propre job — le worker réclame atomiquement les lignes `PENDING`/`SUBMITTED`
+    (même primitive UPDATE-claim que les jobs existants, voir
+    `app.v1.french_mock_exam_service`), sans table de job séparée.
+
+    Documents : exactement 3 `SourceDocumentVersion` (§ 5/§ 10 du chantier — réutilise
+    strictement le système existant, jamais un second système documentaire), référencés
+    par 3 colonnes FK plutôt qu'une table d'association : le nombre est fixe et non
+    extensible par construction (jamais un 4e document possible), ce qui EST la règle
+    métier (§ 28 : `DOCUMENT_COUNT == 3`).
+
+    `rubric_json`/`expected_information_json` : corrigé PRIVÉ (§ 16/§ 24), sérialisé tel
+    que renvoyé par `app.ai.french_mock_exam_schemas.MockExamGeneration` — jamais exposé
+    au navigateur avant correction (voir les routes, qui ne le lisent jamais dans le
+    contexte d'un template de rédaction)."""
+
+    __tablename__ = "v1_french_mock_exams"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("v1_users.id"), index=True)
+
+    theme: Mapped[str] = mapped_column(String(200))
+    theme_key: Mapped[str] = mapped_column(String(100), index=True)
+    exam_type: Mapped[FrenchMockExamType] = mapped_column(Enum(FrenchMockExamType), index=True)
+    surprise_mode: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    task_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
+    min_words: Mapped[int] = mapped_column(Integer, default=350)
+    max_words: Mapped[int] = mapped_column(Integer, default=450)
+    required_genre: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    recipient: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+    document_1_id: Mapped[int | None] = mapped_column(ForeignKey("v1_source_document_versions.id"), nullable=True)
+    document_2_id: Mapped[int | None] = mapped_column(ForeignKey("v1_source_document_versions.id"), nullable=True)
+    document_3_id: Mapped[int | None] = mapped_column(ForeignKey("v1_source_document_versions.id"), nullable=True)
+
+    rubric_json: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
+    expected_information_json: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
+    # Signature anti-répétition (§ 3/§ 30) : theme_key + exam_type + un extrait de
+    # task_prompt — comparée aux dernières sessions de l'utilisateur, jamais une base
+    # vectorielle, juste une chaîne courte.
+    signature: Mapped[str | None] = mapped_column(String(300), nullable=True, index=True)
+
+    status: Mapped[FrenchMockExamStatus] = mapped_column(
+        Enum(FrenchMockExamStatus), default=FrenchMockExamStatus.PENDING, index=True
+    )
+    # Autosave (§ 33) : production + tableau préparatoire facultatif, jamais évalué.
+    answer_text: Mapped[str] = mapped_column(Text, default="")
+    preparation_table_json: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
+
+    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    max_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    feedback_json: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
+
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    user: Mapped["User"] = relationship()
+    document_1 = relationship("SourceDocumentVersion", foreign_keys=[document_1_id])
+    document_2 = relationship("SourceDocumentVersion", foreign_keys=[document_2_id])
+    document_3 = relationship("SourceDocumentVersion", foreign_keys=[document_3_id])
+
+    @property
+    def documents(self) -> list:
+        return [d for d in (self.document_1, self.document_2, self.document_3) if d is not None]
 
 
 class SessionQuestion(Base):

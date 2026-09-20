@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Correction en cours — Examen blanc CESS — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-6">
+        <div class="p-4 bg-white rounded shadow-sm text-center" id="mock-exam-correcting-panel" data-exam-id="{{ exam.id }}">
+
+            <div id="mock-exam-correcting-active">
+                <div class="spinner-border text-dark mb-3" role="status" aria-hidden="true"></div>
+                <h1 class="h4 mb-2">Correction en cours…</h1>
+                <p class="mb-1">Ta production a bien été enregistrée.</p>
+                <p class="text-muted mb-4">La correction peut prendre quelques dizaines de secondes.</p>
+
+                <ul class="list-unstyled text-start mx-auto mb-0" style="max-width: 320px;">
+                    <li class="mb-1"><span class="text-success">✓</span> Production enregistrée</li>
+                    <li class="mb-1" id="mock-exam-correcting-step-running"><span>•</span> Correction en cours</li>
+                    <li class="text-muted" id="mock-exam-correcting-step-done"><span>○</span> Résultats prêts</li>
+                </ul>
+            </div>
+
+            <div id="mock-exam-correcting-incomplete" class="d-none">
+                <h1 class="h4 mb-2">La correction n'a pas pu être terminée</h1>
+                <p class="mb-3">Ta production est sauvegardée, aucune note n'a été fixée.</p>
+                <form method="post" action="/francais/examen-blanc/{{ exam.id }}/retry-correction">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-dark">Reprendre la correction</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var panel = document.getElementById("mock-exam-correcting-panel");
+        if (!panel) return;
+        var examId = panel.getAttribute("data-exam-id");
+        var activeState = document.getElementById("mock-exam-correcting-active");
+        var incompleteState = document.getElementById("mock-exam-correcting-incomplete");
+        var pollDelayMs = 2500;
+        var stopped = false;
+
+        function showIncomplete() {
+            if (activeState) { activeState.classList.add("d-none"); }
+            if (incompleteState) { incompleteState.classList.remove("d-none"); }
+        }
+
+        function poll() {
+            if (stopped) return;
+            fetch("/francais/examen-blanc/" + examId + "/correction-status", { credentials: "same-origin" })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (data.status === "completed") {
+                        stopped = true;
+                        window.location = "/francais/examen-blanc/" + examId;
+                        return;
+                    }
+                    if (data.status === "incomplete") {
+                        stopped = true;
+                        showIncomplete();
+                        return;
+                    }
+                    window.setTimeout(poll, pollDelayMs);
+                })
+                .catch(function () {
+                    window.setTimeout(poll, pollDelayMs);
+                });
+        }
+
+        window.setTimeout(poll, pollDelayMs);
+    })();
+</script>
+{% endblock %}

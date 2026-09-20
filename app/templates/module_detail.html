@@ -21,6 +21,14 @@
 </div>
 {% endif %}
 
+{% if module.code == "FRANCAIS" %}
+<div class="mb-4 d-print-none">
+    <a href="/francais/examen-blanc" class="btn btn-dark btn-sm">
+        📝 Examen blanc CESS
+    </a>
+</div>
+{% endif %}
+
 <div class="list-group">
     {% for uaa in module.uaas if uaa.is_published and not uaa.hidden_from_listing %}
     <a

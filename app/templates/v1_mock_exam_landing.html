@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Examen blanc CESS — Jury Central{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/subjects">Matières</a></li>
+        <li class="breadcrumb-item"><a href="/modules/francais">Français</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Examen blanc CESS</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-2">Examen blanc CESS</h1>
+<p class="text-muted mb-4">
+    L'épreuve écrite du CESS Français dure 3 heures et compte pour 50 % de la note
+    globale. Elle demande UNE seule tâche parmi deux familles : synthèse de documents, ou
+    argumentation — tu ne choisis pas la tâche le jour de l'examen, il faut donc être
+    préparé aux deux.
+</p>
+
+<div class="row g-3">
+    <div class="col-12 col-md-4">
+        <div class="p-4 bg-white rounded shadow-sm h-100 d-flex flex-column">
+            <h2 class="h5">Examen blanc CESS — Surprise</h2>
+            <p class="text-muted small flex-grow-1">
+                Reproduit la réalité de l'examen : tu ne sais pas à l'avance si tu
+                recevras une synthèse ou une argumentation.
+            </p>
+            <form method="post" action="/francais/examen-blanc/start">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="mode" value="surprise">
+                <button type="submit" class="btn btn-dark w-100">Commencer</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="p-4 bg-white rounded shadow-sm h-100 d-flex flex-column">
+            <h2 class="h5">Entraînement ciblé — Synthèse</h2>
+            <p class="text-muted small flex-grow-1">
+                Informer un lecteur qui n'a pas lu les documents, à partir d'un dossier de
+                3 textes.
+            </p>
+            <form method="post" action="/francais/examen-blanc/start">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="mode" value="synthesis">
+                <button type="submit" class="btn btn-outline-dark w-100">Commencer</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="p-4 bg-white rounded shadow-sm h-100 d-flex flex-column">
+            <h2 class="h5">Entraînement ciblé — Argumentation</h2>
+            <p class="text-muted small flex-grow-1">
+                Convaincre : réagir à une opinion, ou rédiger une réclamation/demande, à
+                partir du même type de dossier documentaire.
+            </p>
+            <form method="post" action="/francais/examen-blanc/start">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="mode" value="argumentation">
+                <button type="submit" class="btn btn-outline-dark w-100">Commencer</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<p class="text-muted small mt-4">
+    Documents et grilles de correction sont des supports d'entraînement originaux Jury
+    Central — jamais des sujets officiels.
+</p>
+{% endblock %}

@@ -45,6 +45,14 @@ import time
 from app.ai.factory import get_ai_provider
 from app.ai.provider import AINotConfiguredError, AIProviderError
 from app.database import SessionLocal
+from app.v1.french_mock_exam_service import (
+    claim_next_pending_mock_exam_build,
+    claim_next_pending_mock_exam_correction,
+    recover_stale_mock_exam_builds,
+    recover_stale_mock_exam_corrections,
+    run_mock_exam_build,
+    run_mock_exam_correction,
+)
 from app.v1.session_service import (
     claim_next_pending_build_job,
     claim_next_pending_correction_job,
@@ -161,6 +169,73 @@ def recover_stale_build_jobs_once(
         db.close()
 
 
+def process_one_mock_exam_build(*, max_attempts: int = DEFAULT_MAX_ATTEMPTS) -> bool:
+    """Chantier « Examen blanc CESS Français » : réclame et exécute AU PLUS un
+    `FrenchMockExam` `PENDING` (génération du dossier). Même contrat que
+    `process_one_build_job` — `FrenchMockExam.status` est son propre job, pas de table
+    séparée (voir `app.v1.french_mock_exam_service`, docstring)."""
+    db = SessionLocal()
+    try:
+        exam = claim_next_pending_mock_exam_build(db, max_attempts=max_attempts)
+        if exam is None:
+            return False
+        logger.info(
+            "MOCK_EXAM_BUILD_CLAIMED exam_id=%s user_id=%s exam_type=%s theme_key=%s attempt=%s",
+            exam.id, exam.user_id, exam.exam_type.value, exam.theme_key, exam.attempt_count,
+        )
+        provider = _get_provider_or_unconfigured()
+        result = run_mock_exam_build(db, exam=exam, provider=provider)
+        logger.info("MOCK_EXAM_BUILD_%s exam_id=%s", result.status.value.upper(), exam.id)
+        return True
+    finally:
+        db.close()
+
+
+def process_one_mock_exam_correction(*, max_attempts: int = DEFAULT_MAX_ATTEMPTS) -> bool:
+    db = SessionLocal()
+    try:
+        exam = claim_next_pending_mock_exam_correction(db, max_attempts=max_attempts)
+        if exam is None:
+            return False
+        logger.info("MOCK_EXAM_CORRECTION_CLAIMED exam_id=%s attempt=%s", exam.id, exam.attempt_count)
+        provider = _get_provider_or_unconfigured()
+        result = run_mock_exam_correction(db, exam=exam, provider=provider)
+        logger.info("MOCK_EXAM_CORRECTION_%s exam_id=%s score=%s", result.status.value.upper(), exam.id, result.score)
+        return True
+    finally:
+        db.close()
+
+
+def recover_stale_mock_exam_builds_once(
+    *, stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS, max_attempts: int = DEFAULT_MAX_ATTEMPTS
+) -> dict[str, int]:
+    db = SessionLocal()
+    try:
+        report = recover_stale_mock_exam_builds(db, stale_after_seconds=stale_after_seconds, max_attempts=max_attempts)
+        if report["requeued"] or report["failed"]:
+            logger.info("MOCK_EXAM_BUILD_STALE_RECOVERY requeued=%s failed=%s", report["requeued"], report["failed"])
+        return report
+    finally:
+        db.close()
+
+
+def recover_stale_mock_exam_corrections_once(
+    *, stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS, max_attempts: int = DEFAULT_MAX_ATTEMPTS
+) -> dict[str, int]:
+    db = SessionLocal()
+    try:
+        report = recover_stale_mock_exam_corrections(
+            db, stale_after_seconds=stale_after_seconds, max_attempts=max_attempts
+        )
+        if report["requeued"] or report["failed"]:
+            logger.info(
+                "MOCK_EXAM_CORRECTION_STALE_RECOVERY requeued=%s failed=%s", report["requeued"], report["failed"]
+            )
+        return report
+    finally:
+        db.close()
+
+
 def run_worker_loop(
     *,
     poll_interval_seconds: float = DEFAULT_POLL_INTERVAL_SECONDS,
@@ -190,17 +265,23 @@ def run_worker_loop(
         if now - last_stale_check >= stale_check_interval_seconds:
             recover_stale_jobs_once(stale_after_seconds=stale_after_seconds, max_attempts=max_attempts)
             recover_stale_build_jobs_once(stale_after_seconds=stale_after_seconds, max_attempts=max_attempts)
+            recover_stale_mock_exam_builds_once(stale_after_seconds=stale_after_seconds, max_attempts=max_attempts)
+            recover_stale_mock_exam_corrections_once(
+                stale_after_seconds=stale_after_seconds, max_attempts=max_attempts
+            )
             last_stale_check = now
 
-        # Ticket #92 : traite au plus un job de CHAQUE file par itération — ni file
-        # jamais affamée par l'autre, ni logique de priorité complexe nécessaire (charge
-        # faible des deux côtés).
+        # Ticket #92 puis chantier « Examen blanc CESS Français » : traite au plus un
+        # job de CHAQUE file par itération — ni file jamais affamée par une autre, ni
+        # logique de priorité complexe nécessaire (charge faible de chaque côté).
         processed_correction = process_one_job(max_attempts=max_attempts)
         processed_build = process_one_build_job(max_attempts=max_attempts)
+        processed_mock_exam_build = process_one_mock_exam_build(max_attempts=max_attempts)
+        processed_mock_exam_correction = process_one_mock_exam_correction(max_attempts=max_attempts)
         iterations += 1
         if max_iterations is not None and iterations >= max_iterations:
             break
-        if not processed_correction and not processed_build:
+        if not (processed_correction or processed_build or processed_mock_exam_build or processed_mock_exam_correction):
             time.sleep(poll_interval_seconds)
 
     logger.info("CORRECTION_WORKER_STOPPED")

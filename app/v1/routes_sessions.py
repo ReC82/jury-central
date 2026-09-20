@@ -38,6 +38,7 @@ from app.v1.francais_fr01_05_bank import (
 from app.v1.francais_plan import get_francais_plan_by_slug
 from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
 from app.v1.models import (
+    FrenchMockExam,
     QuestionnaireSession,
     SessionBuildJob,
     SessionBuildJobStatus,
@@ -964,8 +965,30 @@ async def my_sessions(
         }
         for job in build_jobs
     ]
+    # Chantier « Examen blanc CESS Français » (§ 34) : historique distinct, jamais
+    # mélangé aux sessions V1 génériques (modèle dédié, voir
+    # `app.v1.french_mock_exam_service`, docstring).
+    mock_exams = (
+        db.query(FrenchMockExam)
+        .filter_by(user_id=user.id)
+        .order_by(FrenchMockExam.created_at.desc())
+        .all()
+    )
+    mock_exam_type_labels = {
+        "synthesis": "Synthèse",
+        "argumentation_opinion": "Argumentation — opinion",
+        "argumentation_request": "Argumentation — réclamation",
+    }
+    mock_exam_rows = [
+        {"exam": exam, "type_label": mock_exam_type_labels.get(exam.exam_type.value, exam.exam_type.value)}
+        for exam in mock_exams
+    ]
     return templates.TemplateResponse(
-        request=request, name="v1_history.html", context={"rows": rows, "build_job_rows": build_job_rows}
+        request=request,
+        name="v1_history.html",
+        context={
+            "rows": rows, "build_job_rows": build_job_rows, "mock_exam_rows": mock_exam_rows,
+        },
     )
 
 

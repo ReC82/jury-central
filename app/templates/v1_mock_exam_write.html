@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Examen blanc CESS — {{ exam_type_label }} — Jury Central{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-0">Examen blanc CESS — {{ exam_type_label }}</h1>
+        <p class="text-muted small mb-0">Thème : {{ exam.theme }}</p>
+    </div>
+    <span class="badge bg-secondary">Objectif d'entraînement : {{ exam.min_words }}–{{ exam.max_words }} mots</span>
+</div>
+
+<div class="p-3 bg-white rounded shadow-sm mb-4">
+    <h2 class="h6 mb-3">Portefeuille de documents</h2>
+    {% for doc in exam.documents %}
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 {% if not loop.last %}border-bottom{% endif %}">
+        <span>Document {{ loop.index }} — {{ doc.title }}</span>
+        <span class="d-print-none">
+            <a href="/documents/{{ doc.id }}" class="btn btn-outline-dark btn-sm">Lire</a>
+            <a href="/documents/{{ doc.id }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm">Ouvrir dans un nouvel onglet</a>
+        </span>
+    </div>
+    {% endfor %}
+    <p class="text-muted small mt-2 mb-0">Documents originaux d'entraînement Jury Central.</p>
+</div>
+
+<div class="p-3 bg-white rounded shadow-sm mb-4">
+    <h2 class="h6 mb-2">Consigne</h2>
+    <p class="mb-1">{{ exam.task_prompt }}</p>
+    {% if exam.required_genre %}
+    <p class="small text-muted mb-1">Genre attendu : {{ exam.required_genre }}</p>
+    {% endif %}
+    {% if exam.recipient %}
+    <p class="small text-muted mb-0">Destinataire : {{ exam.recipient }}</p>
+    {% endif %}
+</div>
+
+<div class="p-3 bg-white rounded shadow-sm mb-4 d-print-none">
+    <h2 class="h6 mb-2">Tableau préparatoire <span class="text-muted small">(facultatif, non évalué)</span></h2>
+    <textarea id="mock-exam-preparation" class="form-control" rows="4"
+        placeholder="Brouillon libre : idées, axes, mots-clés par document...">{{ exam.preparation_table_json.notes if exam.preparation_table_json else "" }}</textarea>
+</div>
+
+<div class="p-3 bg-white rounded shadow-sm mb-4">
+    <h2 class="h6 mb-2">Production</h2>
+    <form method="post" action="/francais/examen-blanc/{{ exam.id }}/submit" id="mock-exam-submit-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <textarea id="mock-exam-answer" name="answer_text" class="form-control" rows="18" maxlength="20000">{{ exam.answer_text }}</textarea>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <span class="text-muted small" id="mock-exam-word-count">{{ word_count }} mots</span>
+            <span class="text-muted small d-print-none" id="mock-exam-autosave-status"></span>
+        </div>
+        <button type="submit" class="btn btn-dark mt-3" id="mock-exam-submit-button">Terminer et soumettre</button>
+    </form>
+</div>
+
+<script>
+    (function () {
+        var examId = {{ exam.id }};
+        var answerField = document.getElementById("mock-exam-answer");
+        var prepField = document.getElementById("mock-exam-preparation");
+        var wordCountEl = document.getElementById("mock-exam-word-count");
+        var statusEl = document.getElementById("mock-exam-autosave-status");
+        var submitForm = document.getElementById("mock-exam-submit-form");
+        var submitButton = document.getElementById("mock-exam-submit-button");
+        if (!answerField) return;
+
+        function countWords(text) {
+            var trimmed = (text || "").trim();
+            if (!trimmed) return 0;
+            return trimmed.split(/\s+/).length;
+        }
+
+        function updateWordCount() {
+            if (wordCountEl) {
+                wordCountEl.textContent = countWords(answerField.value) + " mots";
+            }
+        }
+
+        var saveTimer = null;
+        function scheduleAutosave() {
+            if (saveTimer) { window.clearTimeout(saveTimer); }
+            saveTimer = window.setTimeout(autosave, 1500);
+        }
+
+        function autosave() {
+            fetch("/api/v1/mock-exams/" + examId + "/answer", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    answer_text: answerField.value,
+                    preparation_table_json: { notes: prepField ? prepField.value : "" }
+                })
+            })
+                .then(function (response) { return response.json(); })
+                .then(function () {
+                    if (statusEl) { statusEl.textContent = "Enregistré automatiquement."; }
+                })
+                .catch(function () {
+                    // Panne réseau transitoire : ne bloque jamais silencieusement,
+                    // réessaiera à la prochaine frappe.
+                });
+        }
+
+        answerField.addEventListener("input", function () {
+            updateWordCount();
+            scheduleAutosave();
+        });
+        if (prepField) {
+            prepField.addEventListener("input", scheduleAutosave);
+        }
+        updateWordCount();
+
+        if (submitForm && submitButton) {
+            submitForm.addEventListener("submit", function () {
+                submitButton.disabled = true;
+                submitButton.textContent = "Envoi en cours…";
+            });
+        }
+    })();
+</script>
+{% endblock %}
