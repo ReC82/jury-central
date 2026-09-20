@@ -83,3 +83,9 @@ def ensure_schema_migrations() -> None:
         _add_column_if_missing(
             connection, table="v1_questions", column="uaa_id", ddl_type="INTEGER"
         )
+        # Ticket #94 (review ChatGPT PHASE A) : distingue une UAA "legacy" (masquée des
+        # listings publics, ex. Français C01) d'une UAA dépubliée (`is_published=False`,
+        # inaccessible). Voir `app.models.UAA.hidden_from_listing`, docstring.
+        _add_column_if_missing(
+            connection, table="uaas", column="hidden_from_listing", ddl_type="BOOLEAN NOT NULL DEFAULT 0"
+        )

@@ -22,7 +22,7 @@
 {% endif %}
 
 <div class="list-group">
-    {% for uaa in module.uaas if uaa.is_published %}
+    {% for uaa in module.uaas if uaa.is_published and not uaa.hidden_from_listing %}
     <a
         href="/uaa/{{ uaa.slug }}"
         class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">

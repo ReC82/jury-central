@@ -69,6 +69,13 @@ class UAA(Base):
     slug: Mapped[str] = mapped_column(String(120), unique=True, index=True)
     position: Mapped[int] = mapped_column(Integer, default=0)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Ticket #94 (review ChatGPT PHASE A) : distinct de `is_published` — une UAA "legacy"
+    # (ex. Français C01, pilote technique #47) doit rester PLEINEMENT accessible (page
+    # cours, practice/exam, sessions/historique déjà existants) mais disparaître des
+    # listings publics (`module_detail.html`). `is_published=False` bloquerait l'accès
+    # direct (voir `app/main.py`, garde sur les routes `/uaa/{slug}` et dérivées) — jamais
+    # ce qu'on veut ici. Colonne ajoutée via `app.database.ensure_schema_migrations`.
+    hidden_from_listing: Mapped[bool] = mapped_column(Boolean, default=False)
     module_id: Mapped[int] = mapped_column(ForeignKey("modules.id"))
 
     module: Mapped["Module"] = relationship(back_populates="uaas")
