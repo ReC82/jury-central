@@ -12,7 +12,7 @@
                 Tu ne pourras plus modifier tes réponses après validation.
             </div>
             {% else %}
-            <p class="text-muted">Une fois validée, la correction complète te sera présentée immédiatement.</p>
+            <p class="text-muted">Tes réponses seront enregistrées immédiatement ; la correction peut prendre quelques dizaines de secondes.</p>
             {% endif %}
             <form method="post" action="/sessions/{{ session.id }}/submit" id="submit-correction-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -56,11 +56,14 @@
 
 <script>
     (function () {
-        // Ticket #71 : la correction IA peut prendre plusieurs secondes — désactive le
-        // bouton IMMÉDIATEMENT pour empêcher un second POST (protection cliente ; la
-        // protection réelle contre 2 corrections/2 appels IA reste côté serveur, voir
-        // app/v1/session_service.py::submit_session, réclamation atomique). Réactivé si
-        // la page est restaurée depuis le cache navigateur après une erreur.
+        // Ticket #71/#88 : désactive le bouton IMMÉDIATEMENT pour empêcher un second POST
+        // (protection cliente ; la protection réelle contre 2 jobs/2 appels IA reste côté
+        // serveur, voir app/v1/session_service.py::enqueue_correction, réclamation
+        // atomique + CorrectionJob.session_id UNIQUE). Depuis #88, ce POST répond
+        // immédiatement (jamais d'attente de l'IA ici) et redirige vers la page d'attente
+        // — ce spinner ne couvre donc plus que le bref aller-retour réseau du POST
+        // lui-même. Réactivé si la page est restaurée depuis le cache navigateur après une
+        // erreur.
         var form = document.getElementById("submit-correction-form");
         var button = document.getElementById("submit-correction-button");
         var label = document.getElementById("submit-correction-button-label");

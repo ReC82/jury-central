@@ -300,6 +300,13 @@ def test_question_170_document_visible_end_to_end_practice_and_exam(
         f"{session_url}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False,
     )
     assert response.status_code == 303
+    # Ticket #88 : le POST ne corrige plus de façon synchrone — fait tourner le worker
+    # explicitement (appel direct, pas de processus séparé) avant de lire un résultat.
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=fake)
     assert len(fake.semantic_calls) == 1  # un seul appel batch (§ ticket #55/#62), inchangé
 
     results = authenticated_client.get(session_url)

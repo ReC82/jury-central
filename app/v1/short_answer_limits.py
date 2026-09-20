@@ -18,14 +18,13 @@ Règle produit (§ 85.A) :
   `long_answer` (décision de RETYPAGE, hors de portée de ce module — § 85.C, cas par cas,
   jamais une bascule automatique aveugle).
 
-Détection volontairement bornée (pas de NLP complexe, § 85.B) : une liste de
-déclencheurs lexicaux + un motif « N éléments/raisons/étapes... » — jamais une
-compréhension sémantique de l'énoncé.
+Détection volontairement bornée (pas de NLP complexe, § 85.B) : déléguée à
+`app.answer_checking.is_semantic_short_answer_prompt`, partagée avec le ticket #90
+(garde de correction — une question sémantique ne doit jamais être notée par égalité
+textuelle stricte) pour ne jamais maintenir deux listes de déclencheurs divergentes.
 """
 
-import re
-
-from app.answer_checking import normalize_text
+from app.answer_checking import is_semantic_short_answer_prompt
 
 FACTUAL_DEFAULT_MAX_LENGTH = 300
 DEVELOPED_DEFAULT_MAX_LENGTH = 1500
@@ -34,27 +33,6 @@ DEVELOPED_DEFAULT_MAX_LENGTH = 1500
 # incohérent avec un énoncé qui demande explicitement une réponse développée, § 85.B).
 _FACTUAL_CEILING = 300
 
-_DEVELOPED_TRIGGERS_NORMALIZED = (
-    "explique", "expliquer", "expliquez", "explication",
-    "justifie", "justifier", "justifiez", "justification",
-    "compare", "comparer", "comparez", "comparaison",
-    "decris", "decrire", "decrivez", "decrivant",
-    "demarche",
-    "pourquoi",
-)
-
-_MULTI_PART_RE = re.compile(
-    r"\b(deux|trois|quatre|cinq|six|\d+)\s+"
-    r"(elements?|raisons?|etapes?|exemples?|criteres?|differences?|arguments?)\b"
-)
-
-
-def _is_developed_answer_expected(prompt: str) -> bool:
-    normalized = normalize_text(prompt)
-    if any(trigger in normalized for trigger in _DEVELOPED_TRIGGERS_NORMALIZED):
-        return True
-    return bool(_MULTI_PART_RE.search(normalized))
-
 
 def compute_short_answer_max_length(prompt: str) -> int:
     """Longueur maximale à attribuer à un `short_answer`/`vocabulary`, déterminée à
@@ -62,7 +40,7 @@ def compute_short_answer_max_length(prompt: str) -> int:
     questions (§ 85.A). Ne tronque jamais une réponse correcte à cause d'une limite
     artificielle (§ 85.B) : en cas de doute (déclencheur détecté), la limite large est
     retenue."""
-    if _is_developed_answer_expected(prompt):
+    if is_semantic_short_answer_prompt(prompt):
         return DEVELOPED_DEFAULT_MAX_LENGTH
     return FACTUAL_DEFAULT_MAX_LENGTH
 
@@ -73,4 +51,4 @@ def is_max_length_incoherent(prompt: str, max_length: int) -> bool:
     développée/justifiée/comparée, mais limite restée factuelle ≤ 300) quelle que soit la
     façon dont `max_length` a été fixé — génération IA, import éditorial, ou modification
     manuelle ultérieure."""
-    return _is_developed_answer_expected(prompt) and max_length <= _FACTUAL_CEILING
+    return is_semantic_short_answer_prompt(prompt) and max_length <= _FACTUAL_CEILING

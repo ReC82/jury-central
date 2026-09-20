@@ -105,7 +105,7 @@ def _answer_all(client, session_url: str, total: int) -> None:
         assert response.status_code == 303, response.text
 
 
-def _submit(client, session_url: str, severity: int = 3) -> None:
+def _submit(client, session_url: str, db_session, provider, severity: int = 3) -> None:
     response = client.get(f"{session_url}/submit-confirm")
     token = _csrf(response.text)
     response = client.post(
@@ -113,6 +113,14 @@ def _submit(client, session_url: str, severity: int = 3) -> None:
         follow_redirects=False,
     )
     assert response.status_code == 303
+    # Ticket #88 : le POST ne corrige plus de façon synchrone — fait tourner le worker
+    # explicitement (appel direct, pas de processus séparé) avant que l'appelant ne lise
+    # un résultat.
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=provider)
 
 
 # =============================================================================================
@@ -294,11 +302,11 @@ def test_severity_selector_default_is_three(authenticated_client, db_session, mo
 def test_severity_persisted_on_completed_session(authenticated_client, db_session, monkeypatch):
     seed()
     _seed_mc01_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, "ampcr-mc01")
     session_id = int(session_url.rsplit("/", 1)[-1])
     _answer_all(authenticated_client, session_url, 10)
-    _submit(authenticated_client, session_url, severity=5)
+    _submit(authenticated_client, session_url, db_session, fake, severity=5)
 
     session = db_session.get(QuestionnaireSession, session_id)
     assert session.parameters_json["severity"] == 5
@@ -319,11 +327,11 @@ def test_no_solution_leak_before_submission(authenticated_client, db_session, mo
 def test_history_shows_completed_and_in_progress_sessions(authenticated_client, db_session, monkeypatch):
     seed()
     _seed_mc01_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
 
     completed_url = _start_session(authenticated_client, "ampcr-mc01")
     _answer_all(authenticated_client, completed_url, 10)
-    _submit(authenticated_client, completed_url, severity=2)
+    _submit(authenticated_client, completed_url, db_session, fake, severity=2)
 
     _start_session(authenticated_client, "ampcr-mc01")
 
@@ -348,7 +356,7 @@ def test_reconnection_completed_session_reachable_from_history(client, db_sessio
     session_url = _start_session(client, "ampcr-mc01")
     session_id = session_url.rsplit("/", 1)[-1]
     _answer_all(client, session_url, 10)
-    _submit(client, session_url, severity=3)
+    _submit(client, session_url, db_session, fake, severity=3)
 
     token = _csrf(client.get("/account").text)
     response = client.post("/logout", data={"csrf_token": token}, follow_redirects=False)
@@ -401,10 +409,10 @@ def test_reconnection_in_progress_session_resumable(client, db_session, monkeypa
 def test_multiple_result_panels_can_be_expanded_simultaneously(authenticated_client, db_session, monkeypatch):
     seed()
     _seed_mc01_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
-    _submit(authenticated_client, session_url)
+    _submit(authenticated_client, session_url, db_session, fake)
 
     response = authenticated_client.get(session_url)
     assert 'data-bs-parent="#results-accordion"' not in response.text
@@ -414,10 +422,10 @@ def test_multiple_result_panels_can_be_expanded_simultaneously(authenticated_cli
 def test_expand_all_and_collapse_all_buttons_present(authenticated_client, db_session, monkeypatch):
     seed()
     _seed_mc01_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
-    _submit(authenticated_client, session_url)
+    _submit(authenticated_client, session_url, db_session, fake)
 
     response = authenticated_client.get(session_url)
     assert 'id="expand-all"' in response.text
@@ -429,10 +437,10 @@ def test_expand_all_and_collapse_all_buttons_present(authenticated_client, db_se
 def test_print_button_and_css_force_all_panels_visible(authenticated_client, db_session, monkeypatch):
     seed()
     _seed_mc01_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
-    _submit(authenticated_client, session_url)
+    _submit(authenticated_client, session_url, db_session, fake)
 
     response = authenticated_client.get(session_url)
     assert "window.print()" in response.text
@@ -447,10 +455,10 @@ def test_print_button_and_css_force_all_panels_visible(authenticated_client, db_
 def test_export_contains_all_questions_answers_and_feedback(authenticated_client, db_session, monkeypatch):
     seed()
     _seed_mc01_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
-    _submit(authenticated_client, session_url)
+    _submit(authenticated_client, session_url, db_session, fake)
 
     response = authenticated_client.get(f"{session_url}/export.md")
     assert response.status_code == 200
@@ -474,7 +482,7 @@ def test_export_forbidden_for_other_user(client, db_session, monkeypatch):
     _register(client, "owner@example.invalid")
     session_url = _start_session(client, "ampcr-mc01")
     _answer_all(client, session_url, 10)
-    _submit(client, session_url)
+    _submit(client, session_url, db_session, fake)
 
     token = _csrf(client.get("/account").text)
     client.post("/logout", data={"csrf_token": token}, follow_redirects=False)
@@ -520,9 +528,11 @@ def test_no_openai_key_configured_never_crashes_submission(authenticated_client,
     soumission ne doit jamais échouer (§ 16 du ticket)."""
     seed()
     _seed_mc01_bank(db_session)
+    from app.v1.routes_sessions import _get_provider_or_unconfigured
+
     session_url = _start_session(authenticated_client, "ampcr-mc01")
     _answer_all(authenticated_client, session_url, 10)
-    _submit(authenticated_client, session_url)
+    _submit(authenticated_client, session_url, db_session, _get_provider_or_unconfigured())
     response = authenticated_client.get(session_url)
     assert response.status_code == 200
     assert "Score" in response.text
@@ -537,7 +547,7 @@ def test_no_openai_key_configured_never_crashes_submission(authenticated_client,
 def test_practice_and_results_still_work_for_key_mc(authenticated_client, db_session, monkeypatch, uaa_slug):
     seed()
     _seed_mc01_bank(db_session)
-    _patch_fake_provider(monkeypatch)
+    fake = _patch_fake_provider(monkeypatch)
 
     response = authenticated_client.get(f"/uaa/{uaa_slug}/practice")
     assert response.status_code == 200
@@ -546,7 +556,7 @@ def test_practice_and_results_still_work_for_key_mc(authenticated_client, db_ses
     session_id = int(session_url.rsplit("/", 1)[-1])
     session = db_session.get(QuestionnaireSession, session_id)
     _answer_all(authenticated_client, session_url, session.question_count)
-    _submit(authenticated_client, session_url)
+    _submit(authenticated_client, session_url, db_session, fake)
 
     response = authenticated_client.get(session_url)
     assert response.status_code == 200

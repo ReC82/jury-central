@@ -510,6 +510,19 @@ class SessionMode(str, enum.Enum):
 
 class SessionStatus(str, enum.Enum):
     IN_PROGRESS = "in_progress"
+    # Ticket #88 : session verrouillée (réponses immuables, `is_locked()` déjà True pour
+    # tout statut != IN_PROGRESS — aucun changement requis là) mais correction pas encore
+    # terminée — un `CorrectionJob` existe et est PENDING/RUNNING. Distincte de COMPLETED :
+    # ne jamais afficher la page de résultats tant que le job n'est pas COMPLETED (voir
+    # `app.v1.routes_sessions.view_session`).
+    CORRECTING = "correcting"
+    # Ticket #90 : une tentative de correction a eu lieu, mais au moins une question
+    # nécessitant une notation IA n'a PAS reçu de correction réelle (IA indisponible ou
+    # réponse incomplète) — JAMAIS un faux 0 fabriqué pour autant. Les questions
+    # déterministes déjà corrigées restent acquises ; le score final n'est JAMAIS calculé
+    # tant que cet état n'est pas résolu par une correction ciblée réussie (« Reprendre la
+    # correction ») qui fait repasser la session à COMPLETED.
+    CORRECTION_INCOMPLETE = "correction_incomplete"
     COMPLETED = "completed"
     ABANDONED = "abandoned"
 
@@ -573,6 +586,60 @@ class QuestionnaireSession(Base):
         ressort du service d'autosave (#42) — ce helper expose juste la condition pour
         qu'il n'ait pas à la redéfinir."""
         return self.status != SessionStatus.IN_PROGRESS
+
+
+class CorrectionJobStatus(str, enum.Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    # Ticket #90 : la tentative de correction s'est déroulée sans erreur technique, mais
+    # au moins une question nécessitant l'IA n'a pas reçu de correction réelle (service
+    # indisponible ou réponse incomplète) — à distinguer de FAILED (erreur technique
+    # globale du worker/job). Les corrections déjà obtenues (déterministes ou IA réussies)
+    # sont conservées ; un retry ciblé ne redemande jamais ce qui est déjà acquis.
+    INCOMPLETE = "incomplete"
+    FAILED = "failed"
+
+
+class CorrectionJob(Base):
+    """Job de correction persistant (ticket #88) — casse la dépendance entre la durée de
+    l'appel IA groupé (potentiellement plusieurs dizaines de secondes) et la requête HTTP
+    `POST /sessions/{id}/submit`, seule cause du 504 Gateway Time-out réellement observé
+    en staging : nginx/l'upstream coupe la connexion bien avant que la correction IA n'ait
+    fini, alors que côté serveur elle continue de tourner — un problème de MODÈLE
+    (requête/réponse synchrone pour un traitement long), jamais résolu par une simple
+    augmentation de timeout.
+
+    `session_id` UNIQUE (ticket #88 § 4 « une session ne doit avoir qu'UN SEUL job
+    actif ») : contrainte DB, pas seulement applicative — un double clic, un refresh, un
+    retour arrière/avant, un retry HTTP ou deux onglets simultanés ne peuvent
+    structurellement jamais créer un second job pour la même session ; toute tentative de
+    seconde insertion échoue à la base, `app.v1.session_service.enqueue_correction`
+    retrouve et renvoie le job déjà existant plutôt que d'en créer un autre.
+
+    Cycle de vie : PENDING (créé, pas encore réclamé par un worker) → RUNNING (réclamé,
+    `started_at`/`attempt_count` mis à jour) → COMPLETED (succès, `completed_at` renseigné,
+    `QuestionnaireSession.status` passé à COMPLETED) ou FAILED (`error_message` renseigné,
+    la session reste CORRECTING — jamais IN_PROGRESS, les réponses restent verrouillées ;
+    un retry explicite repasse le MÊME job à PENDING, jamais une seconde ligne)."""
+
+    __tablename__ = "v1_correction_jobs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(
+        ForeignKey("v1_questionnaire_sessions.id"), unique=True, index=True
+    )
+    status: Mapped[CorrectionJobStatus] = mapped_column(
+        Enum(CorrectionJobStatus), default=CorrectionJobStatus.PENDING, index=True
+    )
+    severity_ui: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    session: Mapped["QuestionnaireSession"] = relationship()
 
 
 class SessionQuestion(Base):

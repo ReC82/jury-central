@@ -9,10 +9,11 @@ seul autre au maximum à la soumission (correction sémantique groupée) — jam
 par question (voir `app.ai.questionnaire`, réutilisé tel quel, ticket #23)."""
 
 import random
+import time
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import update
 from sqlalchemy.orm import Session as DBSession
@@ -43,7 +44,7 @@ from app.v1.bank import (
 )
 from app.v1.dedup import is_near_duplicate, question_signature
 from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE, get_francais_context
-from app.v1.hybrid_correction import correct_session_hybrid
+from app.v1.hybrid_correction import correct_session_hybrid, correct_session_hybrid_resumable
 from app.v1.mc38_transversal import (
     MC38_CODE,
     MC38_SESSION_SCOPE,
@@ -53,6 +54,8 @@ from app.v1.mc38_transversal import (
 )
 from app.v1.models import (
     AnswerCorrectionStatus,
+    CorrectionJob,
+    CorrectionJobStatus,
     Question,
     QuestionnaireSession,
     SessionAnswer,
@@ -1042,6 +1045,302 @@ def _correct_and_finalize_claimed_session(
     session.parameters_json = updated_parameters
     db.commit()
     return session
+
+
+# =============================================================================================
+# Correction asynchrone (ticket #88) : casse la dépendance entre la durée de l'appel IA
+# groupé et la requête HTTP `POST /sessions/{id}/submit`, seule cause du 504 Gateway
+# Time-out réellement observé en staging. `submit_session`/`_correct_and_finalize_
+# claimed_session` ci-dessus restent INCHANGÉS (toujours directement utilisables/testés,
+# ex. tickets #70/#71/#74) — réutilisés tels quels par `run_correction_job` ci-dessous
+# comme le corps réel du travail de correction, exécuté par un worker séparé, jamais
+# dans le cycle requête/réponse HTTP.
+# =============================================================================================
+
+_ENQUEUE_RACE_RETRY_ATTEMPTS = 10
+_ENQUEUE_RACE_RETRY_DELAY_SECONDS = 0.05
+
+
+def get_correction_job(db: DBSession, *, session_id: int) -> CorrectionJob | None:
+    return db.query(CorrectionJob).filter_by(session_id=session_id).first()
+
+
+def enqueue_correction(db: DBSession, *, session: QuestionnaireSession, severity_ui: int) -> CorrectionJob:
+    """Point d'entrée non bloquant de `POST /sessions/{id}/submit` (ticket #88) : verrouille
+    la session (`IN_PROGRESS` → `CORRECTING`, réclamation atomique — même mécanisme que
+    l'ancienne réclamation `IN_PROGRESS` → `COMPLETED` de `submit_session`, voir sa
+    docstring) et crée (ou retrouve) un `CorrectionJob` `PENDING`. NE FAIT JAMAIS d'appel
+    IA — retourne dès que le job existe, en quelques millisecondes, quelle que soit la
+    durée que prendra la correction elle-même.
+
+    Idempotent par construction (ticket #88 § 4) : `CorrectionJob.session_id` est UNIQUE
+    en base — un double clic, un refresh, un retour arrière/avant, un retry HTTP ou deux
+    onglets simultanés retombent tous sur CE MÊME job (recherché en premier, avant toute
+    tentative de réclamation), jamais une seconde ligne ni un second appel IA."""
+    existing = get_correction_job(db, session_id=session.id)
+    if existing is not None:
+        return existing
+
+    claim = db.execute(
+        update(QuestionnaireSession)
+        .where(QuestionnaireSession.id == session.id, QuestionnaireSession.status == SessionStatus.IN_PROGRESS)
+        .values(status=SessionStatus.CORRECTING)
+    )
+    db.commit()
+
+    if claim.rowcount == 0:
+        # Une autre requête a déjà réclamé cette session (course gagnée ailleurs) — son
+        # job existe déjà ou est sur le point d'être committé ; on le retrouve, avec un
+        # court repli borné pour l'extrême cas où notre lecture précède de quelques
+        # millisecondes le commit du gagnant (fenêtre de course, jamais observée en
+        # pratique avec SQLite — écritures sérialisées — mais couverte explicitement).
+        for _ in range(_ENQUEUE_RACE_RETRY_ATTEMPTS):
+            existing = get_correction_job(db, session_id=session.id)
+            if existing is not None:
+                return existing
+            time.sleep(_ENQUEUE_RACE_RETRY_DELAY_SECONDS)
+        db.refresh(session)
+        raise RuntimeError(
+            f"Session {session.id} réclamée (status={session.status.value}) mais aucun "
+            "CorrectionJob retrouvé après un court délai — incohérence inattendue."
+        )
+
+    job = CorrectionJob(session_id=session.id, status=CorrectionJobStatus.PENDING, severity_ui=severity_ui)
+    db.add(job)
+    db.commit()
+    return job
+
+
+def claim_next_pending_correction_job(db: DBSession, *, max_attempts: int = 3) -> CorrectionJob | None:
+    """Réclamation ATOMIQUE du prochain job `PENDING` par un worker (ticket #88 § 8) —
+    `UPDATE ... WHERE status = PENDING` : si un autre worker l'a réclamé entre notre
+    lecture et cette mise à jour, `rowcount == 0` et on renvoie `None` sans jamais
+    exécuter deux fois la même correction. Les jobs ayant déjà atteint `max_attempts`
+    sont ignorés (laissés `PENDING`... non — voir `recover_stale_correction_jobs`, qui
+    les fait passer `FAILED` : ce filtre est un filet de sécurité supplémentaire, jamais
+    la seule protection)."""
+    job = (
+        db.query(CorrectionJob)
+        .filter(CorrectionJob.status == CorrectionJobStatus.PENDING, CorrectionJob.attempt_count < max_attempts)
+        .order_by(CorrectionJob.created_at)
+        .first()
+    )
+    if job is None:
+        return None
+
+    claim = db.execute(
+        update(CorrectionJob)
+        .where(CorrectionJob.id == job.id, CorrectionJob.status == CorrectionJobStatus.PENDING)
+        .values(
+            status=CorrectionJobStatus.RUNNING,
+            started_at=datetime.now(UTC),
+            attempt_count=CorrectionJob.attempt_count + 1,
+        )
+    )
+    db.commit()
+    if claim.rowcount == 0:
+        return None
+    db.refresh(job)
+    return job
+
+
+def _existing_corrections_by_id(session_questions: list[SessionQuestion]) -> dict[str, QuestionCorrection]:
+    """Reconstruit les `QuestionCorrection` déjà obtenues lors d'une tentative précédente
+    (ticket #90 § 5, retry ciblé) à partir de `SessionAnswer.feedback_json` — seules les
+    réponses `AnswerCorrectionStatus.CORRECTED` comptent comme acquises ; jamais une
+    question `FAILED`/`PENDING` reconstruite avec un score inventé."""
+    existing: dict[str, QuestionCorrection] = {}
+    for session_question in session_questions:
+        answer_row = session_question.answer
+        if answer_row is None or answer_row.correction_status != AnswerCorrectionStatus.CORRECTED:
+            continue
+        feedback = answer_row.feedback_json or {}
+        question_id = f"sq{session_question.id}"
+        existing[question_id] = QuestionCorrection(
+            question_id=question_id,
+            points_awarded=answer_row.points_awarded or 0.0,
+            points_max=feedback.get("points_max", session_question.points_max),
+            correct=bool(feedback.get("correct", False)),
+            strengths=feedback.get("strengths", []),
+            errors=feedback.get("errors", []),
+            missing=feedback.get("missing", []),
+            feedback=feedback.get("feedback", ""),
+            expected_answer=feedback.get("expected_answer"),
+        )
+    return existing
+
+
+def _resolve_correction_job(
+    db: DBSession, *, session: QuestionnaireSession, provider: AIProvider, severity_ui: int
+) -> QuestionnaireSession:
+    """Corps résumable de la correction asynchrone (ticket #90), appelé par
+    `run_correction_job`. Remplace, pour ce chemin, l'ancien comportement qui fabriquait
+    un 0 et finalisait `COMPLETED` dès qu'`AIProviderError` survenait (§ 90.1 : « aucun
+    faux 0 si correction IA indisponible ») — `submit_session`/`_correct_and_finalize_
+    claimed_session` restent INCHANGÉES et continuent d'exister pour l'usage synchrone
+    direct (tests #55/#62/#70/#71, non concernés par ce ticket).
+
+    Ne finalise (`SessionStatus.COMPLETED`, score calculé et verrouillé) QUE si TOUTES
+    les questions nécessitant une notation IA ont une correction réelle. Sinon,
+    `SessionStatus.CORRECTION_INCOMPLETE` : les réponses/corrections déjà obtenues
+    (déterministes ou IA réussies, y compris lors d'une tentative précédente — voir
+    `_existing_corrections_by_id`) sont conservées, le score final n'est jamais calculé ni
+    affiché comme définitif."""
+    session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
+    questionnaire_questions, answers, human_readable_answers = _build_questionnaire_inputs(session_questions)
+    questionnaire = Questionnaire(mode=session.mode.value, questions=questionnaire_questions)
+    contexts = _contexts_for_session(db, session_questions)
+    severity_internal = _SEVERITY_UI_TO_INTERNAL.get(severity_ui, "standard")
+
+    already_corrected = _existing_corrections_by_id(session_questions)
+    corrections_by_id, unresolved = correct_session_hybrid_resumable(
+        provider, questionnaire, answers, human_readable_answers, severity_internal, contexts,
+        already_corrected=already_corrected,
+    )
+
+    for session_question in session_questions:
+        question_id = f"sq{session_question.id}"
+        if question_id in already_corrected:
+            continue  # déjà persistée lors d'une tentative précédente, rien à refaire.
+        answer_row = session_question.answer
+        if answer_row is None:
+            answer_row = SessionAnswer(session_question_id=session_question.id, answer_json={})
+            db.add(answer_row)
+        if question_id in unresolved:
+            # Ticket #90 § 1 : JAMAIS de score fabriqué — l'answer garde son
+            # `points_awarded`/`feedback_json` existants (None la première fois), marquée
+            # FAILED pour distinguer « en attente d'une vraie correction » de « jamais
+            # encore tentée » (PENDING, le défaut).
+            answer_row.correction_status = AnswerCorrectionStatus.FAILED
+            continue
+        result = corrections_by_id.get(question_id)
+        if result is None:
+            continue
+        answer_row.points_awarded = result.points_awarded
+        answer_row.correction_status = AnswerCorrectionStatus.CORRECTED
+        answer_row.feedback_json = {
+            "correct": result.correct,
+            "points_max": result.points_max,
+            "strengths": result.strengths,
+            "errors": result.errors,
+            "missing": result.missing,
+            "feedback": result.feedback,
+            "expected_answer": result.expected_answer,
+        }
+
+    if unresolved:
+        session.status = SessionStatus.CORRECTION_INCOMPLETE
+        db.commit()
+        return session
+
+    score = sum(correction.points_awarded for correction in corrections_by_id.values())
+    session.score = round(score, 2)
+    session.status = SessionStatus.COMPLETED
+    session.completed_at = datetime.now(UTC)
+    updated_parameters = dict(session.parameters_json or {})
+    updated_parameters["severity"] = severity_ui
+    session.parameters_json = updated_parameters
+    db.commit()
+    return session
+
+
+def run_correction_job(db: DBSession, *, job: CorrectionJob, provider: AIProvider) -> CorrectionJob:
+    """Corps réel du travail de correction (ticket #88, résumabilité #90), exécuté par un
+    worker — jamais dans une requête HTTP. `_resolve_correction_job` ne fabrique jamais de
+    faux 0 (§ 90.1) : `job.status` devient `COMPLETED` si la session est entièrement
+    corrigée, `INCOMPLETE` si des questions nécessitant l'IA restent en attente (jamais une
+    erreur), `FAILED` réservé à une erreur technique réellement inattendue (bug, base
+    indisponible...) — jamais confondu avec une correction IA simplement indisponible."""
+    session = db.get(QuestionnaireSession, job.session_id)
+    if session is None:
+        job.status = CorrectionJobStatus.FAILED
+        job.error_message = f"Session {job.session_id} introuvable."
+        db.commit()
+        return job
+
+    try:
+        _resolve_correction_job(db, session=session, provider=provider, severity_ui=job.severity_ui)
+    except Exception as exc:  # noqa: BLE001 — job de fond, jamais de propagation vers un client HTTP
+        db.rollback()
+        job.status = CorrectionJobStatus.FAILED
+        job.error_message = str(exc)[:2000]
+        db.commit()
+        return job
+
+    db.refresh(session)
+    job.status = (
+        CorrectionJobStatus.COMPLETED
+        if session.status == SessionStatus.COMPLETED
+        else CorrectionJobStatus.INCOMPLETE
+    )
+    job.completed_at = datetime.now(UTC)
+    db.commit()
+    return job
+
+
+def recover_stale_correction_jobs(
+    db: DBSession, *, stale_after_seconds: int = 300, max_attempts: int = 3
+) -> dict[str, int]:
+    """Récupération des jobs bloqués (ticket #88 § 9) : un worker qui plante APRÈS avoir
+    réclamé un job (`RUNNING`) mais AVANT de le conclure le laisserait sinon bloqué
+    indéfiniment. Tout job `RUNNING` depuis plus de `stale_after_seconds` est soit remis
+    `PENDING` (requeue, s'il lui reste des tentatives), soit basculé `FAILED` (au-delà de
+    `max_attempts` — jamais de boucle infinie de reprises)."""
+    threshold = datetime.now(UTC) - timedelta(seconds=stale_after_seconds)
+    stale_jobs = (
+        db.query(CorrectionJob)
+        .filter(CorrectionJob.status == CorrectionJobStatus.RUNNING, CorrectionJob.started_at < threshold)
+        .all()
+    )
+    requeued = 0
+    failed = 0
+    for job in stale_jobs:
+        if job.attempt_count >= max_attempts:
+            job.status = CorrectionJobStatus.FAILED
+            job.error_message = (
+                "Job resté bloqué (RUNNING) trop longtemps — nombre maximal de tentatives "
+                f"atteint ({max_attempts})."
+            )
+            failed += 1
+        else:
+            job.status = CorrectionJobStatus.PENDING
+            job.started_at = None
+            requeued += 1
+    db.commit()
+    return {"requeued": requeued, "failed": failed}
+
+
+_RETRYABLE_JOB_STATUSES = frozenset({CorrectionJobStatus.FAILED, CorrectionJobStatus.INCOMPLETE})
+
+
+class CorrectionJobNotRetryableError(ValueError):
+    """Un retry n'a de sens que sur un job `FAILED` (ticket #88 § 10) ou `INCOMPLETE`
+    (ticket #90 § 5 — « Reprendre la correction »)."""
+
+
+def retry_correction_job(db: DBSession, *, job: CorrectionJob, session: QuestionnaireSession) -> CorrectionJob:
+    """Réessaie une correction en échec OU incomplète : réutilise le MÊME job (jamais une
+    seconde ligne, jamais un second `CorrectionJob` pour la session), remis `PENDING` avec
+    un compteur de tentatives repartant de zéro (action humaine explicite et délibérée,
+    distincte d'une reprise automatique après incident — voir
+    `recover_stale_correction_jobs`). Ne modifie JAMAIS les réponses déjà enregistrées.
+
+    `session.status` repasse à `CORRECTING` (ticket #90 § 5) — réutilise telle quelle la
+    page d'attente/le polling déjà construits (#88) plutôt qu'un nouvel état d'interface
+    dédié : `run_correction_job` la fera à nouveau évoluer vers `COMPLETED` ou
+    `CORRECTION_INCOMPLETE` selon le résultat de cette nouvelle tentative. Le retry cible
+    UNIQUEMENT les questions encore non résolues (`_resolve_correction_job`/
+    `_existing_corrections_by_id` sautent tout ce qui est déjà `CORRECTED`) — jamais un
+    second appel IA pour une question déjà correctement notée."""
+    if job.status not in _RETRYABLE_JOB_STATUSES:
+        raise CorrectionJobNotRetryableError(f"Job {job.id} n'est ni FAILED ni INCOMPLETE (status={job.status.value}).")
+    job.status = CorrectionJobStatus.PENDING
+    job.error_message = None
+    job.started_at = None
+    job.attempt_count = 0
+    session.status = SessionStatus.CORRECTING
+    db.commit()
+    return job
 
 
 class SessionNotCompletedError(ValueError):

@@ -44,6 +44,7 @@ from app.v1.session_service import (
     SEVERITY_UI_DEFAULT,
     SEVERITY_UI_LABELS,
     SEVERITY_UI_LEVELS,
+    CorrectionJobNotRetryableError,
     SessionCreationError,
     # Ticket #77 : seule source de vérité pour « quel(s) document(s) une question
     # référence », dérivée du payload public — jamais du `content_json` brut. Importé ici
@@ -54,13 +55,15 @@ from app.v1.session_service import (
     _referenced_document_ids,
     build_question_display,
     describe_session_scope,
+    enqueue_correction,
+    get_correction_job,
     get_in_progress_session,
     get_owned_session,
     list_user_sessions,
+    retry_correction_job,
     save_answer,
     simulate_severity_comparison,
     start_session,
-    submit_session,
 )
 
 router = APIRouter(tags=["v1-sessions"])
@@ -470,6 +473,19 @@ async def view_session(
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
 
+    if session.status == SessionStatus.CORRECTING:
+        # Ticket #88 : correction en cours (job PENDING/RUNNING) ou en échec (FAILED) —
+        # ne JAMAIS afficher la page de résultats tant que le job n'est pas COMPLETED
+        # (auquel cas `session.status` est déjà repassé à COMPLETED par
+        # `run_correction_job`/`_correct_and_finalize_claimed_session`, donc cette branche
+        # n'est alors plus atteinte).
+        job = get_correction_job(db, session_id=session.id)
+        return templates.TemplateResponse(
+            request=request,
+            name="v1_session_correcting.html",
+            context={"session": session, "job": job},
+        )
+
     if session.status != SessionStatus.IN_PROGRESS:
         results = _build_results_rows(db, session_questions)
         severity_ui = (session.parameters_json or {}).get("severity")
@@ -564,6 +580,11 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
             if doc_id in documents_by_id
         ]
         uaa = sq.question_version.question.uaa if sq.question_version.question else None
+        # Ticket #90 : `correction_status` distingue une question RÉELLEMENT corrigée
+        # (CORRECTED) d'une question encore en attente d'une vraie correction IA (FAILED/
+        # PENDING, jamais un faux 0) — `points_awarded` reste `None` tant que ce n'est pas
+        # le cas, jamais défaulté à 0.0 (qui serait indiscernable d'un vrai zéro mérité).
+        correction_status = sq.answer.correction_status.value if sq.answer else "pending"
         rows.append(
             {
                 "position": sq.position,
@@ -571,7 +592,8 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
                 "prompt": sq.question_version.content_json.get("prompt", ""),
                 "user_answer": _describe_answer(sq),
                 "feedback": (sq.answer.feedback_json if sq.answer else {}) or {},
-                "points_awarded": sq.answer.points_awarded if sq.answer else 0.0,
+                "points_awarded": sq.answer.points_awarded if sq.answer else None,
+                "correction_status": correction_status,
                 "source_documents": source_documents,
                 "course_title": uaa.title if uaa else None,
                 "course_slug": uaa.slug if uaa else None,
@@ -585,7 +607,15 @@ def _is_incorrect_or_partial(row: dict) -> bool:
     """Ticket #74 : une question dont la correction n'est pas marquée `correct=True` —
     couvre à la fois « faux » (déterministe ou sémantique) et « partiel » (crédit partiel
     #70 § B, ou correction sémantique avec `correct=False` malgré des points partiels).
-    `feedback` vide (jamais corrigée) est traité comme « à revoir », jamais ignoré."""
+    `feedback` vide PARCE QUE jamais corrigée est traité comme « à revoir », jamais ignoré.
+
+    Ticket #90 : une question encore EN ATTENTE d'une vraie correction IA
+    (`correction_status` != `corrected`, ex. `CORRECTION_INCOMPLETE`) n'est PAS comptée
+    ici — son statut réel est inconnu, la présenter comme « à revoir » serait aussi trompeur
+    qu'un faux 0 (§ 90.1/90.13 : ne jamais présenter une correction incomplète comme
+    définitive)."""
+    if row.get("correction_status", "corrected") not in ("corrected", None):
+        return False
     return not (row.get("feedback") or {}).get("correct", False)
 
 
@@ -674,14 +704,61 @@ async def submit_session_route(
     user: User = Depends(require_user),  # noqa: B008
     severity: int = Form(SEVERITY_UI_DEFAULT),
 ):
+    """Ticket #88 : NE fait JAMAIS l'appel IA dans cette requête — la correction batch
+    peut prendre plusieurs dizaines de secondes, largement au-delà de ce qu'un timeout
+    nginx/upstream tolère (504 Gateway Time-out réellement observé en staging). Verrouille
+    la session et crée/retrouve un `CorrectionJob` (`enqueue_correction`, idempotent),
+    puis redirige immédiatement — la correction elle-même est exécutée par un worker
+    séparé (`app.v1.correction_worker`), jamais dans ce cycle requête/réponse."""
     session = get_owned_session(db, session_id=session_id, user_id=user.id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session introuvable")
     if session.status == SessionStatus.IN_PROGRESS:
         severity_ui = severity if severity in SEVERITY_UI_LEVELS else SEVERITY_UI_DEFAULT
-        submit_session(
-            db, session=session, provider=_get_provider_or_unconfigured(), severity_ui=severity_ui
-        )
+        enqueue_correction(db, session=session, severity_ui=severity_ui)
+    return RedirectResponse(url=f"/sessions/{session_id}", status_code=303)
+
+
+@router.get("/sessions/{session_id}/correction-status")
+async def correction_status_route(
+    session_id: int,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+):
+    """Ticket #88 § 6 : endpoint de polling léger pour la page d'attente
+    (`v1_session_correcting.html`) — retourne uniquement l'état, jamais de contenu de
+    correction (celui-ci n'est lu qu'une fois sur la page de résultats, après
+    `COMPLETED`)."""
+    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session introuvable")
+    if session.status == SessionStatus.COMPLETED:
+        return {"status": "completed"}
+    job = get_correction_job(db, session_id=session.id)
+    if job is None:
+        return {"status": "unknown"}
+    return {"status": job.status.value, "error_message": job.error_message}
+
+
+@router.post("/sessions/{session_id}/retry-correction")
+async def retry_correction_route(
+    session_id: int,
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+):
+    """Tickets #88 § 10 / #90 § 5 : réessaie une correction `FAILED` ou `INCOMPLETE` — ne
+    modifie jamais les réponses déjà enregistrées, réutilise le MÊME job (jamais un
+    second), cible uniquement les questions encore non résolues (jamais un second appel
+    IA en doublon d'une correction déjà réussie)."""
+    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session introuvable")
+    job = get_correction_job(db, session_id=session.id)
+    if job is not None:
+        try:
+            retry_correction_job(db, job=job, session=session)
+        except CorrectionJobNotRetryableError:
+            pass
     return RedirectResponse(url=f"/sessions/{session_id}", status_code=303)
 
 
@@ -821,6 +898,12 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
     utilisateur : construit exclusivement à partir de `session`/`results`, déjà scopés à
     l'appelant (voir `get_owned_session`)."""
     severity_ui = (session.parameters_json or {}).get("severity")
+    is_incomplete = session.status.value == "correction_incomplete"
+    score_line = (
+        "- Score : CORRECTION INCOMPLÈTE — score provisoire non définitif"
+        if is_incomplete
+        else f"- Score : {session.score} / {session.question_count}"
+    )
     lines = [
         "# Métadonnées",
         "",
@@ -828,10 +911,21 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
         f"- Module / mini-cours : {describe_session_scope(session)}",
         f"- Mode : {'Évaluation' if session.mode.value == 'exam' else 'Entraînement'}",
         f"- Date : {session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else ''}",
-        f"- Score : {session.score} / {session.question_count}",
+        score_line,
         f"- Sévérité : {SEVERITY_UI_LABELS.get(severity_ui, '—')}",
         "",
     ]
+    if is_incomplete:
+        corrected_count = sum(1 for row in results if row.get("correction_status") == "corrected")
+        lines += [
+            "# CORRECTION INCOMPLÈTE",
+            "",
+            (
+                f"{corrected_count} question(s) corrigée(s) sur {len(results)}. Certaines réponses "
+                "doivent encore être corrigées — ce document ne présente PAS un résultat définitif."
+            ),
+            "",
+        ]
     courses_to_review = _courses_to_review(results)
     if courses_to_review:
         lines += ["# Cours à relire en priorité", ""]
@@ -865,7 +959,11 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
             "",
             "### Points",
             "",
-            f"{row['points_awarded']} / {feedback.get('points_max', 1)}",
+            (
+                "En attente de correction"
+                if row.get("correction_status") != "corrected"
+                else f"{row['points_awarded']} / {feedback.get('points_max', 1)}"
+            ),
             "",
             "### Points forts",
             "",
@@ -884,7 +982,7 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
             feedback.get("feedback") or "—",
             "",
         ]
-        if not feedback.get("correct") and row.get("course_slug"):
+        if row.get("correction_status") == "corrected" and not feedback.get("correct") and row.get("course_slug"):
             code_prefix = f"{row['course_code']} — " if row.get("course_code") else ""
             lines += [f"*Cours concerné : {code_prefix}{row['course_title']}*", ""]
     return "\n".join(lines)
@@ -897,7 +995,10 @@ async def export_session_markdown(
     session = get_owned_session(db, session_id=session_id, user_id=user.id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session introuvable")
-    if session.status != SessionStatus.COMPLETED:
+    # Ticket #90 § 13 : CORRECTION_INCOMPLETE reste exportable (banner explicite dans le
+    # document, jamais présenté comme définitif) — seuls IN_PROGRESS/CORRECTING/ABANDONED
+    # n'ont rien de cohérent à exporter.
+    if session.status not in (SessionStatus.COMPLETED, SessionStatus.CORRECTION_INCOMPLETE):
         raise HTTPException(status_code=409, detail="Session pas encore terminée : rien à exporter.")
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)

@@ -20,7 +20,7 @@ from app.ai.schemas import (
     QuestionCorrection,
     QuestionnaireQuestion,
 )
-from app.answer_checking import parse_answer, text_answer_matches
+from app.answer_checking import extract_last_number, parse_answer, text_answer_matches
 
 
 def requires_ai_correction(question: QuestionnaireQuestion) -> bool:
@@ -121,6 +121,14 @@ def _check_numeric(question: QuestionnaireQuestion, submitted: Any) -> bool:
         value: Fraction | None = Fraction(str(submitted))
     elif isinstance(submitted, str):
         value = parse_answer(submitted)
+        if value is None:
+            # Ticket #90 § 8 : cas réel — « 256 - 248 = 8, donc 8 est l'incrément » n'est
+            # pas un nombre nu, mais contient bien la bonne valeur en conclusion. Repli
+            # STRUCTURÉ (dernier nombre du texte, voir docstring de
+            # `app.answer_checking.extract_last_number`), jamais un fuzzy matching
+            # général : tolère l'ordre des mots, les accents, la ponctuation et une phrase
+            # explicative supplémentaire, tant que la valeur conclue est correcte.
+            value = extract_last_number(submitted)
     else:
         value = None
     if value is None:

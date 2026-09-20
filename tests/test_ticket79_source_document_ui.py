@@ -343,6 +343,13 @@ def test_new_tab_link_present_on_results_page(authenticated_client, db_session, 
         f"{session_url}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False,
     )
     assert response.status_code == 303
+    # Ticket #88 : le POST ne corrige plus de façon synchrone — fait tourner le worker
+    # explicitement (appel direct, pas de processus séparé) avant de lire un résultat.
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=fake)
     assert len(fake.semantic_calls) == 1
 
     results = authenticated_client.get(session_url)
@@ -397,6 +404,13 @@ def test_text_visible_before_answering_and_still_accessible_at_results(
         f"{session_url}/submit", data={"csrf_token": token, "severity": "3"}, follow_redirects=False,
     )
     assert response.status_code == 303
+    # Ticket #88 : le POST ne corrige plus de façon synchrone — fait tourner le worker
+    # explicitement (appel direct, pas de processus séparé) avant de lire un résultat.
+    from app.v1.session_service import claim_next_pending_correction_job, run_correction_job
+
+    job = claim_next_pending_correction_job(db_session)
+    if job is not None:
+        run_correction_job(db_session, job=job, provider=fake)
     assert len(fake.semantic_calls) == 1
 
     # Aux résultats : le même texte complet reste accessible (panneau intégré).

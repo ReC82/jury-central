@@ -19,6 +19,8 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.answer_checking import is_semantic_short_answer_prompt
+
 DIFFICULTIES = ("facile", "moyen", "difficile")
 
 EXERCISE_TYPES = (
@@ -219,7 +221,14 @@ class QuestionnaireQuestion:
         if self.type in ALWAYS_SEMANTIC_QUESTION_TYPES:
             return True
         if self.type in CONDITIONALLY_LOCAL_QUESTION_TYPES:
-            return not self.accepted_answers
+            if not self.accepted_answers:
+                return True
+            # Ticket #90 § 2/9 : une short_answer/vocabulary qui demande une démarche/
+            # justification/comparaison/explication ne doit JAMAIS être notée par égalité
+            # textuelle stricte, même si accepted_answers est renseigné (SEMANTIC_SHORT,
+            # à distinguer de DETERMINISTIC_SHORT — voir docstring de
+            # `app.answer_checking.is_semantic_short_answer_prompt`).
+            return is_semantic_short_answer_prompt(self.prompt)
         return False
 
     def to_public_dict(self) -> dict[str, Any]:

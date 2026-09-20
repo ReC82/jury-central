@@ -33,7 +33,7 @@ l'IA (aucun coût inutile)."""
 import dataclasses
 
 from app.ai.local_correction import correct_locally, requires_ai_correction
-from app.ai.provider import AIProvider
+from app.ai.provider import AIProvider, AIProviderError
 from app.ai.questionnaire import validate_semantic_correction
 from app.ai.schemas import (
     CONDITIONALLY_LOCAL_QUESTION_TYPES,
@@ -193,3 +193,110 @@ def correct_session_hybrid(
     return QuestionnaireCorrection(
         score=round(score, 2), max_score=round(max_score, 2), questions=ordered_corrections
     )
+
+
+def correct_session_hybrid_resumable(
+    provider: AIProvider,
+    questionnaire: Questionnaire,
+    answers: dict[str, object],
+    human_readable_answers: dict[str, str],
+    severity: str,
+    contexts: tuple[PedagogicalContext, ...],
+    *,
+    already_corrected: dict[str, QuestionCorrection] | None = None,
+) -> tuple[dict[str, QuestionCorrection], frozenset[str]]:
+    """Variante RÉSUMABLE de `correct_session_hybrid` (ticket #90) — utilisée par le job de
+    correction asynchrone (`app.v1.session_service.run_correction_job`), JAMAIS par
+    `submit_session` (§ 62/#70/#71, inchangée, continue d'utiliser `correct_session_hybrid`
+    ci-dessus tel quel).
+
+    Deux différences fondamentales avec `correct_session_hybrid` :
+
+    1. **Jamais de faux 0** (§ 90.1) : si `provider.correct_semantic_batch` échoue
+       (`AIProviderError`) ou ne renvoie pas de correction pour une question qui a
+       RÉELLEMENT besoin d'une notation IA (`semantic_questions`/`rescorable_questions` —
+       celles dont le SCORE dépend de l'IA), cette question est retournée dans
+       `unresolved`, JAMAIS avec un `QuestionCorrection` à 0 point fabriqué. Les questions
+       `explain_only_questions` (déterministes, score déjà verrouillé et correct par
+       `correct_locally`, l'IA n'apporte qu'une explication pédagogique) restent gérées
+       comme avant — leur score ne dépend jamais de l'IA, donc un échec IA ne les rend
+       jamais `unresolved` : elles gardent le message de repli existant (§ 55/§ 62).
+
+    2. **Résumable** (§ 90.4/90.5, retry ciblé) : `already_corrected` fournit les
+       corrections déjà obtenues lors d'une tentative précédente (lues depuis
+       `SessionAnswer.correction_status == CORRECTED` par l'appelant) — ces questions sont
+       exclues de tout nouvel appel IA, jamais renvoyées à l'IA une seconde fois, jamais
+       recalculées.
+
+    Retourne `(corrections, unresolved)` — `corrections` couvre TOUTES les questions qui
+    ont une correction réelle (déterministes + déjà acquises + nouvellement obtenues) ;
+    `unresolved` est l'ensemble des `question_id` encore en attente d'une vraie correction
+    IA. L'appelant ne finalise (`SessionStatus.COMPLETED`) que si `unresolved` est vide."""
+    already_corrected = already_corrected or {}
+    corrections: dict[str, QuestionCorrection] = dict(already_corrected)
+    semantic_questions: list[QuestionnaireQuestion] = []
+    explain_only_questions: list[QuestionnaireQuestion] = []
+    rescorable_questions: list[QuestionnaireQuestion] = []
+
+    for question in questionnaire.questions:
+        if question.question_id in already_corrected:
+            continue
+        if requires_ai_correction(question):
+            semantic_questions.append(question)
+            continue
+        local = correct_locally(question, answers.get(question.question_id))
+        if local.correct or question.type not in RESCORABLE_LOCAL_TYPES:
+            corrections[question.question_id] = local
+        if local.correct:
+            continue
+        if question.type in RESCORABLE_LOCAL_TYPES:
+            # Score-gating (§ 90.9) : une correction locale INCORRECTE pour ces deux types
+            # n'est jamais définitive — jamais stockée dans `corrections` tant que l'IA ne
+            # l'a pas confirmée/révisée (voir docstring du module, § exception ticket #64).
+            rescorable_questions.append(
+                dataclasses.replace(question, rubric=_semantic_rescoring_rubric(question, local))
+            )
+        else:
+            explain_only_questions.append(
+                dataclasses.replace(question, rubric=_explanation_rubric(question, local))
+            )
+
+    unresolved: set[str] = set()
+    batch_questions = [*semantic_questions, *rescorable_questions, *explain_only_questions]
+    if not batch_questions:
+        return corrections, frozenset(unresolved)
+
+    batch_answers: dict[str, object] = {q.question_id: answers.get(q.question_id) for q in semantic_questions}
+    for q in rescorable_questions:
+        batch_answers[q.question_id] = human_readable_answers.get(q.question_id, "")
+    for q in explain_only_questions:
+        batch_answers[q.question_id] = human_readable_answers.get(q.question_id, "")
+
+    try:
+        raw_results = provider.correct_semantic_batch(batch_questions, batch_answers, severity, contexts)
+    except AIProviderError:
+        # Score-gating : jamais de repli qui fabrique une note — reste `unresolved`.
+        unresolved.update(q.question_id for q in [*semantic_questions, *rescorable_questions])
+        # Non score-gating : le score déterministe reste celui déjà verrouillé ci-dessus ;
+        # seule l'explication pédagogique manque — repli explicite existant (§ 55/§ 62),
+        # jamais un blocage pour une question déjà correctement notée.
+        for question in explain_only_questions:
+            corrections[question.question_id] = correct_locally(question, answers.get(question.question_id))
+        return corrections, frozenset(unresolved)
+
+    for question in [*semantic_questions, *rescorable_questions]:
+        raw = raw_results.get(question.question_id)
+        if raw is None:
+            # Réponse IA incomplète (question absente du lot renvoyé) — jamais un 0
+            # fabriqué par `validate_semantic_correction` pour une question score-gating.
+            unresolved.add(question.question_id)
+            continue
+        corrections[question.question_id] = validate_semantic_correction(question, raw)
+
+    for question in explain_only_questions:
+        local = corrections[question.question_id]
+        corrections[question.question_id] = _lock_score_keep_ai_explanation(
+            local, raw_results.get(question.question_id)
+        )
+
+    return corrections, frozenset(unresolved)
