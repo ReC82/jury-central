@@ -283,6 +283,39 @@ La tranche suivante ne démarre qu'une fois la précédente terminée.
 
 # 18. Prévisualisation avant validation
 
+**Mise à jour du 1 octobre 2026 (même jour, consigne explicite ultérieure et plus
+spécifique — prévaut sur la règle générale ci-dessous tant qu'elle n'est pas révoquée)** :
+`https://jury-central.lodylands.com` sert la plateforme d'essai personnelle de
+l'utilisateur. Pour cette plateforme précise, et uniquement sur instruction explicite au
+cas par cas, l'utilisateur peut autoriser l'installation directe du code d'une branche de
+ticket (non fusionnée) sur ce site, AVANT la suite de tests complète et avant toute
+fusion — ceci déroge explicitement au § 8/§ 16 (aucun déploiement sans demande explicite,
+jamais une branche autre que `develop`) pour ce cas précis, jamais par défaut. Ordre à
+respecter quand cette autorisation est donnée :
+
+1. Sauvegarder la base réelle (`jury_central.db`, copie `sqlite3 ... ".backup ..."`) et
+   relever le commit actuellement en place, pour permettre un retour arrière — préserver
+   comptes, sessions, autres matières et configuration IA existante (`.env` jamais modifié).
+2. Commit/push des changements sur la branche du ticket, puis installation sur le site par
+   le mécanisme déjà utilisé (checkout du commit exact dans `/srv/jury-central`, seed
+   idempotent, redémarrage des services existants) — jamais de nouvelle infrastructure
+   pour ce besoin.
+3. Contrôles rapides uniquement (site accessible, fonctionnalité visible, parcours de
+   démarrage, worker opérationnel) — pas la suite de tests complète à ce stade.
+4. Lien direct transmis dès que la fonctionnalité est utilisable ; attendre le retour de
+   l'utilisateur avant de relancer des tests longs ou de poursuivre.
+5. Développement et préparation des changements : toujours dans un `git worktree` séparé
+   (jamais directement dans `/srv/jury-central`, dont le `WorkingDirectory` est partagé
+   avec le(s) service(s) live — voir `docs/claude-reports/2026-10-01_incident-502.md` § 7).
+6. Suite de tests complète, Ruff, et mise à jour des rapports : après la validation
+   utilisateur de l'aperçu installé, avant toute intégration définitive (fusion vers
+   `develop`).
+
+Cette dérogation est strictement scopée à cette plateforme et vaut pour la demande qui l'a
+autorisée — elle ne s'étend pas automatiquement à un autre site ni à un ticket futur sans
+nouvelle instruction explicite. **Hors de ce cas précis**, la règle générale ci-dessous
+reste la référence par défaut :
+
 Consigne explicite de l'utilisateur du 1 octobre 2026, applicable à tout changement visible
 (page, parcours, formulaire) avant la suite de tests complète et la finalisation d'un
 ticket :
