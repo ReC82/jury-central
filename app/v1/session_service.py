@@ -45,6 +45,7 @@ from app.v1.bank import (
 )
 from app.v1.dedup import is_near_duplicate, question_signature
 from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE, get_francais_context
+from app.v1.fse_plan import FSE_PLAN_BY_CODE, get_fse_context
 from app.v1.hybrid_correction import correct_session_hybrid, correct_session_hybrid_resumable
 from app.v1.mc38_transversal import (
     MC38_CODE,
@@ -421,6 +422,11 @@ def _pedagogical_context_for(uaa_code: str | None) -> PedagogicalContext:
     if uaa_code and uaa_code in FRANCAIS_PLAN_BY_CODE:
         plan = FRANCAIS_PLAN_BY_CODE[uaa_code]
         context = get_francais_context(plan.course_key)
+        if context is not None:
+            return context
+    if uaa_code and uaa_code in FSE_PLAN_BY_CODE:
+        plan = FSE_PLAN_BY_CODE[uaa_code]
+        context = get_fse_context(plan.course_key)
         if context is not None:
             return context
     # Parcours global : contexte générique couvrant l'ensemble du programme AMPCR.

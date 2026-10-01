@@ -233,11 +233,25 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
   pédagogique borné (`PEDAGOGICAL_CONTEXTS["ampcr-mc03"]`) pour le même moteur IA — aucun
   second moteur.
 
+- **Formation sociale et économique — CESS Professionnel — FSE01 « Communiquer : le
+  schéma de communication »** (ticket #96, 2026-10-01) : nouvelle matière créée
+  (`/subjects/formation-sociale-et-economique`, `/modules/fse`,
+  `/uaa/fse-fse01`), premier mini-cours livré complet en réutilisant intégralement le
+  moteur V1 existant (voir `docs/ampcr_v1_functional.md`/`docs/francais_v1_functional.md`
+  pour le fonctionnement partagé) — théorie (schéma de communication appliqué à un mail,
+  une affiche et une publication sur réseau social), 14 questions de banque, practice avec
+  choix de difficulté, examen avec choix de difficulté ET de sévérité de cotation
+  (paramètres distincts, appliqués et persistés côté serveur), correction hybride,
+  résultats, historique. FSE02 à FSE17 restent au stade de plan documenté (voir
+  [docs/content_plan_fse.md](content_plan_fse.md)), jamais présentés comme disponibles.
+
 ## En attente d'import
 
-- MB32 UAA3, MQ32, MQ34 (derrière Informatique/Français, voir priorité ci-dessous)
+- MB32 UAA3, MQ32, MQ34 (derrière Informatique/Français/FSE, voir priorité ci-dessous)
 - Mini-cours 04 à 38 Informatique AMPCR
-- Français CESS Professionnel (aucun contenu à ce jour)
+- Français FR06 à FR20 CESS Professionnel
+- Formation sociale et économique FSE02 à FSE17 (voir
+  [docs/content_plan_fse.md](content_plan_fse.md))
 
 ---
 

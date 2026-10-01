@@ -36,6 +36,8 @@ from app.v1.francais_fr01_05_bank import (
     import_francais_fr05_to_bank,
 )
 from app.v1.francais_plan import get_francais_plan_by_slug
+from app.v1.fse_bank import import_fse01_to_bank
+from app.v1.fse_plan import get_fse_plan_by_slug
 from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
 from app.v1.models import (
     QuestionnaireSession,
@@ -123,13 +125,19 @@ _FRANCAIS_BANK_IMPORTERS = {
     "francais-fr05": import_francais_fr05_to_bank,
 }
 
+# Ticket #96 : même mécanisme que `_FRANCAIS_BANK_IMPORTERS` ci-dessus, pour la nouvelle
+# matière Formation sociale et économique — seul FSE01 est rédigé pour l'instant.
+_FSE_BANK_IMPORTERS = {
+    "fse-fse01": import_fse01_to_bank,
+}
+
 
 def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
     """Amorce paresseuse de la banque hand-authored au premier accès practice/exam de
-    l'UAA concernée — MC01 (ticket #55), Français C01 (ticket #47) et FR01→FR05 (ticket
-    #94, PHASE A), même principe (idempotent, jamais de doublon). `_FRANCAIS_BANK_
-    IMPORTERS` évite d'accumuler un `elif` par cours à mesure que FR06→FR20 sont ajoutés
-    (phases B/C/D)."""
+    l'UAA concernée — MC01 (ticket #55), Français C01 (ticket #47), FR01→FR05 (ticket #94,
+    PHASE A) et FSE01 (ticket #96), même principe (idempotent, jamais de doublon).
+    `_FRANCAIS_BANK_IMPORTERS`/`_FSE_BANK_IMPORTERS` évitent d'accumuler un `elif` par
+    cours à mesure que de nouveaux mini-cours sont ajoutés."""
     if uaa.slug == "ampcr-mc01":
         import_mc01_legacy_to_bank(db, module, uaa)
         db.commit()
@@ -138,6 +146,9 @@ def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
         db.commit()
     elif uaa.slug in _FRANCAIS_BANK_IMPORTERS:
         _FRANCAIS_BANK_IMPORTERS[uaa.slug](db, module, uaa)
+        db.commit()
+    elif uaa.slug in _FSE_BANK_IMPORTERS:
+        _FSE_BANK_IMPORTERS[uaa.slug](db, module, uaa)
         db.commit()
 
 
@@ -224,12 +235,17 @@ def _enqueue_build_for_uaa(
     module = uaa.module
     _ensure_bank_seeded(db, module, uaa)
     plan = get_plan_by_slug(uaa.slug)
-    francais_plan = None
     if plan is not None:
         uaa_code = plan.code
     else:
         francais_plan = get_francais_plan_by_slug(uaa.slug)
-        uaa_code = francais_plan.code if francais_plan else None
+        if francais_plan is not None:
+            uaa_code = francais_plan.code
+        else:
+            # Ticket #96 : Formation sociale et économique, même résolution que
+            # Français ci-dessus — seul FSE01 est enregistré pour l'instant.
+            fse_plan = get_fse_plan_by_slug(uaa.slug)
+            uaa_code = fse_plan.code if fse_plan else None
     # MC38 examen (ticket #58 § 6) : « utiliser 20 questions si le moteur le permet déjà »
     # — même volume que l'examen blanc global, cohérent avec sa nature transversale
     # MC01→MC37 (voir app.v1.session_service._start_mc38_transversal_session). Français
