@@ -185,7 +185,9 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
             {
                 "prompt": (
                     "Pour chacun de ces trois canaux, indique si une rétroaction directe "
-                    "et immédiate vers l'émetteur est possible ou non."
+                    "(une réponse que le récepteur peut adresser à l'émetteur par ce "
+                    "même canal, quel que soit le délai avant qu'elle n'arrive) est "
+                    "possible ou non."
                 ),
                 "categories": ["Rétroaction directe possible", "Rétroaction directe impossible"],
                 "elements": [
@@ -196,9 +198,12 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                 "correct_categories": [0, 0, 1],
                 "explanation": (
                     "Un mail et une publication sur réseau social permettent tous deux "
-                    "une réponse rapide et visible (le service recrutement répond à "
-                    "Karim ; des commentaires répondent à Techno Services). Une affiche, "
-                    "elle, ne permet aucune rétroaction directe vers son émetteur."
+                    "d'adresser une réponse directement à l'émetteur (le service "
+                    "recrutement répond à Karim — avec un jour de délai dans ce document, "
+                    "ce qui ne change rien : seul le canal permet ou empêche la "
+                    "rétroaction, jamais sa rapidité ; des commentaires répondent de même "
+                    "à Techno Services). Une affiche, elle, ne permet aucune rétroaction "
+                    "directe vers son émetteur, quel que soit le délai."
                 ),
             },
         ),
@@ -266,8 +271,9 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "justifiés par un élément précis de l'affiche (2 points) ; distinction "
                     "correcte entre code (texte, image, couleurs, logo) et canal (panneau "
                     "d'affichage) (1 point) ; explication correcte de l'absence de "
-                    "rétroaction directe (le conducteur ne peut pas répondre immédiatement "
-                    "à l'émetteur depuis son véhicule) (1 point)."
+                    "rétroaction directe (le conducteur n'a aucun moyen de s'adresser "
+                    "directement à l'émetteur depuis son véhicule, quel que soit le "
+                    "délai) (1 point)."
                 ),
                 "expected_points": [
                     "Identifie l'émetteur (SPW) et le récepteur (automobilistes)",
@@ -292,9 +298,9 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "3 points : identification de l'absence d'information sur le salaire "
                     "comme obstacle, appuyée sur le commentaire de Julien P. (1 point) ; "
                     "explication que les commentaires/partages/réponse de l'entreprise "
-                    "constituent une rétroaction visible et rapide (1 point) ; mise en "
-                    "évidence que ce canal permet un dialogue (l'entreprise répond "
-                    "elle-même à un commentaire) (1 point)."
+                    "constituent une rétroaction directement adressée à l'émetteur et "
+                    "publique (1 point) ; mise en évidence que ce canal permet un "
+                    "dialogue (l'entreprise répond elle-même à un commentaire) (1 point)."
                 ),
                 "expected_points": [
                     "Identifie l'absence d'information sur le salaire comme obstacle",
@@ -321,7 +327,8 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "explication de la conséquence concrète (message incomplet, sans "
                     "pièce jointe, empêchant l'évaluation de la candidature) (1 point) ; "
                     "explication du rôle de la rétroaction, rendue possible par le canal "
-                    "(le mail), qui permet à Karim de corriger rapidement sa candidature "
+                    "(le mail) : même arrivée avec un jour de délai, elle permet à Karim "
+                    "d'être informé du problème et de renvoyer une candidature complète "
                     "(1 point)."
                 ),
                 "expected_points": [

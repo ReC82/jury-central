@@ -43,6 +43,25 @@ prérequis particulier.
 
 ## 2. Théorie progressive
 
+Voici, avant toute définition, le schéma complet d'une communication — reviens-y chaque \
+fois que tu analyses un document :
+
+```
+Schéma de la communication
+
+   ÉMETTEUR
+      │   (formule un message, mis en forme avec un CODE)
+      ▼
+   CANAL   ◀── un OBSTACLE peut perturber le message ICI
+      │
+      ▼
+ RÉCEPTEUR
+      │
+      └──▶ RÉTROACTION (si le canal le permet) ──▶ revient vers l'ÉMETTEUR
+
+   (le CONTEXTE entoure et oriente le sens de tout l'échange)
+```
+
 Communiquer, c'est transmettre quelque chose à quelqu'un. Même dans les situations les \
 plus simples (un SMS, une affiche, un post sur un réseau social), cette transmission \
 repose toujours sur les mêmes éléments. Les repérer systématiquement permet de comprendre \
@@ -68,9 +87,11 @@ Deux autres éléments permettent d'expliquer ce qui se passe concrètement dans
 interaction réelle : un **obstacle** (ou bruit) est tout ce qui perturbe la transmission \
 du message — une coupure technique, un bruit ambiant, un mot mal choisi, une information \
 manquante. La **rétroaction** est la réponse que le récepteur peut renvoyer à l'émetteur ; \
-elle n'est pas toujours possible : elle dépend directement du canal utilisé. Un mail ou un \
-réseau social permettent une rétroaction rapide et visible ; une affiche, elle, ne permet \
-en général aucune rétroaction directe vers son émetteur.
+elle n'est pas toujours possible : elle dépend directement du canal utilisé, **jamais du \
+délai** avant qu'elle n'arrive. Un mail ou un réseau social permettent d'adresser une \
+réponse directement à l'émetteur — que cette réponse arrive en quelques minutes ou \
+beaucoup plus tard, peu importe : le canal la permet. Une affiche, elle, ne permet en \
+général aucune rétroaction directe vers son émetteur, quel que soit le délai.
 
 ## 3. Définitions importantes
 
@@ -89,8 +110,9 @@ de donner son sens exact au message.
 - **Obstacle (ou bruit)** : tout ce qui perturbe ou empêche la bonne transmission du \
 message (panne technique, bruit ambiant, formulation ambiguë, information manquante...).
 - **Rétroaction** : la réponse que le récepteur peut renvoyer à l'émetteur. Sa possibilité \
-dépend du canal : certains canaux la permettent immédiatement et publiquement, d'autres ne \
-la permettent pas du tout.
+dépend UNIQUEMENT du canal utilisé — jamais de la rapidité de la réponse : certains \
+canaux permettent d'adresser une réponse à l'émetteur (vite ou après un délai), d'autres \
+ne le permettent pas du tout.
 
 ## 4. Méthode étape par étape
 
@@ -106,8 +128,9 @@ quels symboles ?
 6. Précise le **contexte** : dans quelle situation ce message est-il émis ?
 7. Cherche un éventuel **obstacle** : quelque chose a-t-il perturbé ou pourrait-il \
 perturber la transmission ?
-8. Demande-toi si une **rétroaction** est possible : le récepteur peut-il répondre à \
-l'émetteur ? Par quel moyen, et à quelle vitesse ?
+8. Demande-toi si une **rétroaction** est possible : le récepteur dispose-t-il d'un moyen, \
+par ce canal, d'adresser une réponse à l'émetteur — peu importe le délai avant qu'elle \
+n'arrive ?
 
 ## 5. Exemples commentés
 
@@ -127,8 +150,10 @@ l'émetteur ? Par quel moyen, et à quelle vitesse ?
 avant l'ajout du CV en pièce jointe — un obstacle purement technique, indépendant de la \
 qualité de la candidature elle-même.
 - Rétroaction : le service recrutement a pu répondre directement à Karim pour signaler le \
-problème et lui demander de renvoyer sa candidature complète — le canal (le mail) rend \
-cette rétroaction rapide et facile.
+problème et lui demander de renvoyer sa candidature complète — la réponse n'est arrivée \
+que le lendemain, mais cela ne change rien : le canal (le mail) permet d'adresser une \
+réponse directement à Karim, que ce soit en quelques minutes ou, comme ici, un jour plus \
+tard.
 
 ### Exemple 2 — {FSE01_AFFICHE_TITLE}
 
@@ -145,10 +170,10 @@ porteuses de sens (le rouge signale le danger), un logo institutionnel.
 - Obstacle : le conducteur lit l'affiche en quelques secondes, à pleine vitesse, souvent \
 en étant partiellement concentré sur la conduite — la rapidité de lecture et la distraction \
 possible limitent ce que le message peut transmettre.
-- Rétroaction : une affiche ne permet, par nature, aucune rétroaction directe et \
-immédiate vers son émetteur ; le conducteur ne peut pas « répondre » au panneau. Seul le \
-QR code permet une forme de rétroaction indirecte et très différée, si l'automobiliste le \
-scanne plus tard.
+- Rétroaction : une affiche ne permet, par nature, aucune rétroaction directe vers son \
+émetteur, quel que soit le délai ; le conducteur n'a aucun moyen de « répondre » au \
+panneau. Seul le QR code permet une forme de rétroaction indirecte (vers une page \
+d'information, pas vers l'émetteur lui-même), si l'automobiliste le scanne plus tard.
 
 ### Exemple 3 — {FSE01_SOCIAL_TITLE}
 
@@ -166,10 +191,10 @@ réseaux sociaux, différents de ceux d'un mail professionnel.
 - Obstacle : l'absence d'information sur le salaire crée une incompréhension visible \
 (le commentaire de Julien P.) — un manque d'information dans le message lui-même peut \
 constituer un obstacle à une communication réussie, même sans aucune panne technique.
-- Rétroaction : très visible et rapide — les commentaires, les partages, et la réponse de \
-l'entreprise au commentaire de Fatima B. montrent que ce canal permet une rétroaction \
-publique, immédiate, et même un dialogue (l'émetteur répond à son tour à une réaction du \
-récepteur).
+- Rétroaction : très visible et directement adressée à l'émetteur — les commentaires, les \
+partages, et la réponse de l'entreprise au commentaire de Fatima B. montrent que ce canal \
+permet une rétroaction publique, et même un dialogue (l'émetteur répond à son tour à une \
+réaction du récepteur).
 
 ## 6. Mauvaises réponses comparées aux bonnes
 
@@ -183,9 +208,10 @@ message. »
 - ❌ **Mauvaise réponse** (question : « Une affiche permet-elle une rétroaction ? ») : \
 « Oui, parce que n'importe qui peut réagir à un message. » → ignore que la rétroaction \
 dépend concrètement du canal utilisé, pas d'une possibilité théorique.
-- ✅ **Bonne réponse** : « Non, pas directement : une affiche ne permet pas au récepteur de \
-répondre immédiatement à son émetteur. Seul le QR code offre une rétroaction indirecte et \
-différée, si le récepteur choisit de le scanner. »
+- ✅ **Bonne réponse** : « Non, pas directement : une affiche ne permet pas au récepteur \
+d'adresser une réponse à son émetteur, quel que soit le délai. Seul le QR code offre une \
+rétroaction indirecte (vers une page d'information), si le récepteur choisit de le \
+scanner. »
 
 ## 7. Pièges et erreurs fréquentes
 
@@ -197,8 +223,12 @@ circuler par différents canaux, et un même canal peut transporter différents 
 panne (coupure de connexion) — un manque d'information ou une formulation ambiguë peuvent \
 aussi perturber une communication, comme dans l'exemple du réseau social.
 - **Croire que la rétroaction est toujours possible** : elle dépend du canal. Un mail ou \
-un réseau social la permettent facilement ; une affiche, en général, ne la permet pas \
-directement.
+un réseau social la permettent ; une affiche, en général, ne la permet pas directement.
+- **Confondre rétroaction directe et rétroaction rapide** : le DÉLAI de réponse ne change \
+rien à la possibilité d'une rétroaction — le mail de Karim (exemple 1) le montre bien : la \
+réponse du service recrutement arrive seulement le lendemain, mais reste une rétroaction \
+directe, car elle est adressée à Karim par le même canal. Seul le canal utilisé détermine \
+si une rétroaction directe est possible, jamais sa rapidité.
 - **Confondre message et sujet général** : le message est ce qui est RÉELLEMENT transmis \
 dans cette situation précise (« ralentir à l'approche de ce passage piéton »), pas le \
 thème général (« la sécurité routière »).
@@ -223,9 +253,9 @@ correspond, PUIS indique si une rétroaction directe est possible et pourquoi.
 institutionnel.
 - Canal : un panneau d'affichage fixe installé en bordure de route.
 - Contexte : la sécurité routière, à proximité d'un passage piéton.
-- Rétroaction : non, pas directement — une affiche ne permet pas au conducteur de répondre \
-immédiatement à son émetteur ; seul le QR code permet une rétroaction indirecte et très \
-différée.
+- Rétroaction : non, pas directement — une affiche ne permet pas au conducteur d'adresser \
+une réponse à son émetteur, quel que soit le délai ; seul le QR code permet une \
+rétroaction indirecte, vers une page d'information et non vers l'émetteur lui-même.
 
 Ce corrigé fonctionne parce qu'il traite les six éléments un par un, sans les mélanger, et \
 qu'il justifie la réponse sur la rétroaction par une caractéristique réelle du canal \
@@ -250,9 +280,9 @@ alors qu'il était incomplet et sans pièce jointe. Conséquence concrète pour 
 le service recrutement reçoit un message qui s'arrête en pleine phrase, sans CV, ce qui \
 l'empêche d'évaluer la candidature. La rétroaction (la réponse du service recrutement \
 signalant le problème) permet de résoudre la situation : parce que le canal utilisé (le \
-mail) autorise une réponse rapide, Karim peut être informé de l'incident et renvoyer une \
-candidature complète, ce qui n'aurait pas été possible avec un canal qui ne permettrait \
-aucune rétroaction.
+mail) autorise une réponse adressée directement à Karim — même arrivée le lendemain —, \
+celui-ci peut être informé de l'incident et renvoyer une candidature complète, ce qui \
+n'aurait pas été possible avec un canal qui ne permettrait aucune rétroaction.
 
 Ce corrigé fonctionne parce qu'il distingue bien l'obstacle (la cause technique), sa \
 conséquence (un message incomplet et incompréhensible), et la rétroaction (la réponse qui \
@@ -285,8 +315,9 @@ dans la même phrase du document, sans se limiter à un seul, et parce qu'il jus
 (système de signes) — ne jamais confondre les deux.
 - Un obstacle (bruit) peut être technique (une coupure) ou lié au contenu du message \
 (une information manquante, une formulation ambiguë).
-- La rétroaction dépend du canal : un mail ou un réseau social la permettent facilement ; \
-une affiche, en général, ne la permet pas directement.
+- La rétroaction dépend UNIQUEMENT du canal, jamais du délai de réponse : un mail ou un \
+réseau social permettent d'adresser une réponse directement à l'émetteur (vite ou après \
+un délai) ; une affiche, en général, ne le permet pas du tout.
 - Face à un document, applique toujours la méthode dans l'ordre : émetteur → récepteur → \
 message → code → canal → contexte → obstacle → rétroaction.
 """

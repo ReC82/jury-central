@@ -15,17 +15,27 @@ import re
 
 from app.ai.fake_provider import FakeAIProvider
 from app.ai.provider import AINotConfiguredError
+from app.ai.schemas import Questionnaire
 from app.models import UAA, Module, Subject
 from app.seed import seed
-from app.v1.ai_bridge import CORRECTABLE_TYPES
+from app.v1.ai_bridge import CORRECTABLE_TYPES, content_to_questionnaire_question
 from app.v1.correction_worker import _UnconfiguredProvider
 from app.v1.fse_bank import import_fse01_to_bank
-from app.v1.fse_plan import FSE_MODULE_CODE, FSE_PLAN, FSE_PLAN_BY_CODE, FSE_SUBJECT_NAME
+from app.v1.fse_plan import (
+    FSE_MODULE_CODE,
+    FSE_PLAN,
+    FSE_PLAN_BY_CODE,
+    FSE_SUBJECT_NAME,
+    get_fse_context,
+)
+from app.v1.hybrid_correction import correct_session_hybrid
 from app.v1.models import (
     Question,
     QuestionnaireSession,
     SessionDifficultyRequest,
+    SessionMode,
     SessionStatus,
+    User,
 )
 from app.v1.session_service import (
     claim_next_pending_build_job,
@@ -33,9 +43,20 @@ from app.v1.session_service import (
     get_session_build_job,
     run_correction_job,
     run_session_build_job,
+    start_session,
 )
 
 FSE01_SLUG = "fse-fse01"
+
+
+def _user(db_session, email="fse96-review@example.invalid") -> User:
+    """Utilisateur minimal pour les appels de service directs (sans passer par
+    l'inscription HTTP) — même pattern que
+    `tests/test_ticket82_no_intrasession_duplicates.py::_user`."""
+    user = User(email=email, password_hash="x", display_name="t")
+    db_session.add(user)
+    db_session.commit()
+    return user
 
 
 def _csrf(html: str) -> str:
@@ -395,3 +416,190 @@ def test_ampcr_and_francais_unaffected_by_fse(authenticated_client, db_session, 
     assert response.status_code == 303
     url = _resolve_build_job_url(db_session, response.headers["location"])
     assert url.startswith("/sessions/")
+
+
+# =============================================================================================
+# 7. Review de beef790 — difficulté/sévérité : mécanisme réel, pas seulement la
+#    persistance (les tests de la section 5 ci-dessus vérifiaient surtout que les valeurs
+#    étaient enregistrées ; ceux-ci prouvent, avec FakeAIProvider, qu'elles sont bien
+#    TRANSMISES aux bons appels, et documentent explicitement la limite réelle du moteur
+#    pour la banque hand-authored de FSE01).
+# =============================================================================================
+
+
+def test_fse01_bank_questions_have_no_declared_difficulty_not_filtered_by_selection(db_session):
+    """Limite assumée et documentée (review #96, ne jamais prétendre le contraire) : les
+    14 questions importées de FSE01 n'ont AUCUNE difficulté déclarée
+    (`Question.difficulty_declared`), et `app.v1.bank.select_bank_questions` — la fonction
+    qui sélectionne dans la banque hand-authored — ne prend aucun paramètre de difficulté
+    (confirmé par introspection de sa signature, pas seulement par lecture du code). La
+    difficulté choisie par l'élève n'influence donc JAMAIS quelles questions, parmi ces 14,
+    sont servies ; elle n'a un effet réel que si la banque est insuffisante et qu'une
+    génération IA de complément est déclenchée (voir le test suivant)."""
+    import inspect
+
+    from app.v1.bank import select_bank_questions
+
+    seed()
+    uaa = db_session.query(UAA).filter_by(slug=FSE01_SLUG).first()
+    import_fse01_to_bank(db_session, uaa.module, uaa)
+    questions = db_session.query(Question).filter_by(uaa_id=uaa.id).all()
+    assert len(questions) == 14
+    assert all(q.difficulty_declared is None for q in questions), (
+        "les 14 questions FSE01 n'ont aucune difficulté déclarée : le moteur ne peut donc "
+        "pas filtrer parmi elles par difficulté — vérifié explicitement, jamais supposé"
+    )
+    assert "difficulty" not in inspect.signature(select_bank_questions).parameters, (
+        "select_bank_questions ne prend aucun paramètre de difficulté — ce test échouerait "
+        "s'il en gagnait un sans que cette hypothèse ne soit révisée explicitement"
+    )
+
+
+def _start_fse01_with_generation_shortfall(db_session, *, email: str, difficulty: SessionDifficultyRequest):
+    """Fraîchement seedée à chaque appel (fixture `db_session` function-scoped — base
+    vidée/recréée entre tests, voir `tests/conftest.py::_clean_database`) : indispensable
+    ici, car `start_session` PERSISTE dans la banque les questions générées pour combler
+    le manque (`persist_generated_questions`) — un deuxième appel dans la MÊME base, même
+    avec un autre utilisateur, retrouverait une banque déjà enrichie à 20 par le premier
+    appel et ne déclencherait plus aucune génération. Chaque difficulté est donc vérifiée
+    dans un test séparé, chacun avec sa propre base vierge."""
+    seed()
+    module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE).first()
+    uaa = db_session.query(UAA).filter_by(slug=FSE01_SLUG).first()
+    import_fse01_to_bank(db_session, module, uaa)
+    fake = FakeAIProvider()
+    user = _user(db_session, email=email)
+    start_session(
+        db_session, user=user, module_id=module.id, uaa_id=uaa.id, uaa_code="FSE01",
+        mode=SessionMode.PRACTICE, difficulty=difficulty,
+        provider=fake, question_count=20,  # > 14 : force la génération de complément
+    )
+    assert fake.questionnaire_calls, "banque (14) < question_count (20) doit déclencher une génération"
+    return fake.questionnaire_calls[-1]
+
+
+def test_fse01_easy_difficulty_is_transmitted_to_ai_generation_when_bank_is_insufficient(db_session):
+    """Avec `question_count` > taille de la banque (14), `start_session`
+    (app.v1.session_service) déclenche une génération IA de complément — c'est le SEUL
+    canal par lequel la difficulté choisie a un effet réel pour FSE01 (voir le test
+    `test_fse01_bank_questions_have_no_declared_difficulty_not_filtered_by_selection`).
+    Vérifie, avec `FakeAIProvider`, que la difficulté « facile » transmise dans la
+    `QuestionnaireRequest` correspond exactement à celle demandée (traduction
+    `_DIFFICULTY_TO_FRENCH`), et que le contexte pédagogique transmis est spécifiquement
+    celui de FSE01 (`course_key == "fse-fse01"`), jamais un contexte générique (ex. le
+    contexte AMPCR global)."""
+    request = _start_fse01_with_generation_shortfall(
+        db_session, email="fse96-review-easy@example.invalid", difficulty=SessionDifficultyRequest.EASY,
+    )
+    assert request.difficulty == "facile"
+    assert any(c.course_key == "fse-fse01" for c in request.contexts), (
+        "le contexte pédagogique transmis à la génération doit être celui de FSE01"
+    )
+
+
+def test_fse01_hard_difficulty_is_transmitted_to_ai_generation_when_bank_is_insufficient(db_session):
+    """Même vérification que le test précédent, pour la difficulté « difficile » — dans
+    une base séparée (voir `_start_fse01_with_generation_shortfall`), afin que les deux
+    valeurs de difficulté transmises puissent être comparées sans que la banque enrichie
+    par le premier appel ne fausse le second."""
+    request = _start_fse01_with_generation_shortfall(
+        db_session, email="fse96-review-hard@example.invalid", difficulty=SessionDifficultyRequest.HARD,
+    )
+    assert request.difficulty == "difficile"
+    assert any(c.course_key == "fse-fse01" for c in request.contexts), (
+        "le contexte pédagogique transmis à la génération doit être celui de FSE01"
+    )
+
+
+def test_fse01_severity_is_transmitted_to_correction_and_changes_points_awarded(db_session):
+    """Réutilise le vrai barème FSE01 (rubric du `long_answer` sur le mail de Karim,
+    banque réelle, contexte pédagogique réel `get_fse_context`) pour prouver, avec
+    `FakeAIProvider`, que (1) la sévérité choisie est bien celle reçue par
+    `correct_semantic_batch` (tracée dans `fake.semantic_calls`), et (2) qu'elle change
+    réellement les points attribués pour une même réponse — jamais un simple sélecteur
+    décoratif, pour FSE01 comme pour les autres matières (comportement générique déjà
+    couvert par `tests/test_ticket62_hybrid_correction_history_export.py`, reproduit ici
+    spécifiquement avec le contenu FSE01)."""
+    seed()
+    uaa = db_session.query(UAA).filter_by(slug=FSE01_SLUG).first()
+    import_fse01_to_bank(db_session, uaa.module, uaa)
+    questions = db_session.query(Question).filter_by(uaa_id=uaa.id).all()
+    long_answer_question = next(
+        q for q in questions if q.current_version.question_type == "long_answer"
+    )
+    content = long_answer_question.current_version.content_json
+    qq = content_to_questionnaire_question(
+        question_id="q1", question_type="long_answer", content=content, points_max=1.0,
+    )
+    questionnaire = Questionnaire(mode="exam", questions=[qq])
+    context = get_fse_context("fse-fse01")
+    assert context is not None
+    fake = FakeAIProvider()
+    answer = {"q1": "Une réponse de test suffisamment longue pour être prise en compte."}
+
+    lenient = correct_session_hybrid(fake, questionnaire, answer, {}, "very_lenient", (context,))
+    strict = correct_session_hybrid(fake, questionnaire, answer, {}, "very_strict", (context,))
+
+    assert fake.semantic_calls[-2][1] == "very_lenient"
+    assert fake.semantic_calls[-1][1] == "very_strict"
+    assert lenient.questions[0].points_awarded > strict.questions[0].points_awarded, (
+        "la sévérité doit réellement changer les points attribués pour une réponse identique"
+    )
+
+
+def test_fse01_severity_ui_choice_reaches_the_correction_call_with_correct_mapping(
+    authenticated_client, db_session, monkeypatch
+):
+    """Bout en bout HTTP (pas seulement au niveau service) : la valeur 1-5 choisie dans le
+    formulaire `/sessions/{id}/submit` est bien celle reçue par `correct_semantic_batch`,
+    via le mapping documenté dans `app.v1.session_service._SEVERITY_UI_TO_INTERNAL`
+    (1 -> very_lenient, ..., 5 -> very_strict)."""
+    seed()
+    fake = _patch_fake_provider(monkeypatch)
+    session_url = _start_session(authenticated_client, db_session, "exam", "medium")
+    session_id = int(session_url.rsplit("/", 1)[-1])
+    total = len(db_session.get(QuestionnaireSession, session_id).session_questions)
+    _answer_all_and_submit(authenticated_client, session_url, total, db_session, fake, severity=1)
+    assert fake.semantic_calls, "au moins une question FSE01 nécessite une notation sémantique"
+    assert fake.semantic_calls[-1][1] == "very_lenient"
+
+    fake2 = _patch_fake_provider(monkeypatch)
+    session_url_2 = _start_session(authenticated_client, db_session, "exam", "medium")
+    session_id_2 = int(session_url_2.rsplit("/", 1)[-1])
+    total2 = len(db_session.get(QuestionnaireSession, session_id_2).session_questions)
+    _answer_all_and_submit(authenticated_client, session_url_2, total2, db_session, fake2, severity=5)
+    assert fake2.semantic_calls[-1][1] == "very_strict"
+
+
+def test_fse01_difficulty_persists_across_multiple_reloads_and_partial_answers(
+    authenticated_client, db_session, monkeypatch
+):
+    """Renforce `test_fse01_settings_persist_across_resume` : la difficulté reste HARD à
+    travers PLUSIEURS rechargements successifs de la page de reprise, et après qu'une
+    réponse a été partiellement enregistrée — pas seulement juste après la création."""
+    seed()
+    _patch_fake_provider(monkeypatch)
+    session_url = _start_session(authenticated_client, db_session, "practice", "hard")
+    session_id = int(session_url.rsplit("/", 1)[-1])
+
+    for _ in range(3):
+        landing = authenticated_client.get(f"/uaa/{FSE01_SLUG}/practice")
+        assert "Reprendre l'entraînement en cours" in landing.text
+        db_session.expire_all()
+        session = db_session.get(QuestionnaireSession, session_id)
+        assert session.difficulty_requested == SessionDifficultyRequest.HARD
+
+    response = authenticated_client.get(f"{session_url}?q=1")
+    token = _csrf(response.text)
+    authenticated_client.post(
+        f"{session_url}/answer",
+        data={"csrf_token": token, "position": 1, "direction": "next", "text": "réponse partielle"},
+        follow_redirects=False,
+    )
+
+    landing = authenticated_client.get(f"/uaa/{FSE01_SLUG}/practice")
+    assert "Reprendre l'entraînement en cours" in landing.text
+    db_session.expire_all()
+    session = db_session.get(QuestionnaireSession, session_id)
+    assert session.difficulty_requested == SessionDifficultyRequest.HARD
+    assert session.status.value == "in_progress"

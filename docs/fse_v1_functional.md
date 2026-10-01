@@ -49,9 +49,9 @@ explicitement demandée par le cahier des charges du ticket #97 :
 
 | Document | Application |
 |---|---|
-| Candidature par mail — coupure de connexion | obstacle technique, rétroaction rapide |
-| Affiche de sécurité routière | canal sans rétroaction directe |
-| Publication sur réseau social | obstacle informationnel, rétroaction publique |
+| Candidature par mail — coupure de connexion | obstacle technique, rétroaction directe (même avec un jour de délai — voir § 4) |
+| Affiche de sécurité routière | canal sans rétroaction directe, quel que soit le délai |
+| Publication sur réseau social | obstacle informationnel, rétroaction directe et publique |
 
 14 questions (`app.v1.fse_bank.import_fse01_to_bank`), réparties par type :
 
@@ -108,6 +108,16 @@ les matières existantes (non-régression vérifiée par
   et exam) : avec 14 questions en banque, une session peut recevoir moins de 10 questions
   distinctes selon l'historique déjà vu par l'élève (repli existant du moteur, pas une
   particularité FSE — voir `app.v1.session_service.start_session`).
+- **La difficulté ne filtre jamais les 14 questions hand-authored** (`difficulty_declared`
+  vaut `None` pour toutes, `app.v1.bank.select_bank_questions` ne prend aucun paramètre de
+  difficulté — vérifié par introspection, pas supposé) : elle n'a un effet réel que si la
+  banque est insuffisante et qu'une génération IA de complément est déclenchée. Documenté
+  et testé explicitement (review du 2026-10-01, § 10.2 du rapport de ticket) pour ne jamais
+  prétendre à une sélection par difficulté qui n'existe pas.
+- La rétroaction « directe » (schéma de communication) ne doit jamais être confondue avec
+  une rétroaction « rapide » : le document mail (réponse à J+1) sert explicitement
+  d'exemple pédagogique de cette nuance depuis la correction du 2026-10-01 — voir le
+  « piège » dédié dans `app.v1.fse01_course`, § 7 du cours.
 
 ---
 
@@ -118,4 +128,4 @@ les matières existantes (non-régression vérifiée par
 - `app/v1/fse01_course.py` — `fse01_course_markdown()`.
 - `app/v1/fse_bank.py` — `import_fse01_to_bank`, les 14 questions.
 - `app/seed.py` — section « Formation sociale et économique (FSE) ».
-- `tests/test_ticket96_fse01.py` — 18 tests, aucun appel OpenAI réel.
+- `tests/test_ticket96_fse01.py` — 24 tests, aucun appel OpenAI réel.
