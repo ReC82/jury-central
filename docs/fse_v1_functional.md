@@ -108,12 +108,18 @@ les matières existantes (non-régression vérifiée par
   et exam) : avec 14 questions en banque, une session peut recevoir moins de 10 questions
   distinctes selon l'historique déjà vu par l'élève (repli existant du moteur, pas une
   particularité FSE — voir `app.v1.session_service.start_session`).
-- **La difficulté ne filtre jamais les 14 questions hand-authored** (`difficulty_declared`
-  vaut `None` pour toutes, `app.v1.bank.select_bank_questions` ne prend aucun paramètre de
-  difficulté — vérifié par introspection, pas supposé) : elle n'a un effet réel que si la
-  banque est insuffisante et qu'une génération IA de complément est déclenchée. Documenté
-  et testé explicitement (review du 2026-10-01, § 10.2 du rapport de ticket) pour ne jamais
-  prétendre à une sélection par difficulté qui n'existe pas.
+- **Mise à jour (second passage de review, 2026-10-01, § 11 du rapport de ticket)** : la
+  difficulté filtre désormais réellement la sélection parmi les 14 questions
+  hand-authored. Chacune porte une difficulté déclarée (`Question.difficulty_declared` :
+  6 EASY, 5 MEDIUM, 3 HARD, jugée sur la complexité cognitive réelle de la question) ;
+  `app.v1.bank.select_bank_questions`/`app.v1.session_service.compose_selection`
+  acceptent un paramètre `difficulty` et font passer EN PRIORITÉ (round-robin en deux
+  passes, diversité de types conservée) les questions de la difficulté demandée — toutes
+  celles disponibles à cette difficulté sont incluses avant tout complément d'une autre
+  difficulté. Effet vérifié dans le parcours NORMAL (10 questions, practice ET exam,
+  sessions successives, reprise), pas seulement via une génération IA forcée. Adaptation
+  générique du moteur, sans second système : no-op strict pour les matières qui ne
+  déclarent encore aucune difficulté (Informatique AMPCR, Français), vérifié directement.
 - La rétroaction « directe » (schéma de communication) ne doit jamais être confondue avec
   une rétroaction « rapide » : le document mail (réponse à J+1) sert explicitement
   d'exemple pédagogique de cette nuance depuis la correction du 2026-10-01 — voir le
@@ -128,4 +134,4 @@ les matières existantes (non-régression vérifiée par
 - `app/v1/fse01_course.py` — `fse01_course_markdown()`.
 - `app/v1/fse_bank.py` — `import_fse01_to_bank`, les 14 questions.
 - `app/seed.py` — section « Formation sociale et économique (FSE) ».
-- `tests/test_ticket96_fse01.py` — 24 tests, aucun appel OpenAI réel.
+- `tests/test_ticket96_fse01.py` — 30 tests, aucun appel OpenAI réel.

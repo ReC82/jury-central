@@ -59,6 +59,7 @@ from app.v1.models import (
     CorrectionJob,
     CorrectionJobStatus,
     Question,
+    QuestionDifficulty,
     QuestionnaireSession,
     SessionAnswer,
     SessionBuildJob,
@@ -173,14 +174,16 @@ def _generate_with_domain_retry(
     return collected
 
 
-def compose_selection(pool: list[Question], count: int) -> list[Question]:
-    """Répartit la sélection entre types disponibles (round-robin, diversité maximale) en
-    plafonnant STRICTEMENT les types sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION`
-    (§ 14 du ticket #55 : « maximum 3 réponses longues/sémantiques » — règle stricte, pas
-    seulement une préférence). Peut retourner MOINS de `count` questions si la banque
-    disponible ne fournit pas assez de types non-sémantiques : à l'appelant
-    (`start_session`) de compléter par génération ciblée plutôt que de violer le
-    plafond en repêchant des types déjà plafonnés."""
+def _round_robin_fill(
+    pool: list[Question], count: int, selected: list[Question], long_count: int
+) -> tuple[list[Question], int]:
+    """Cœur du round-robin par type (diversité maximale), plafonnant STRICTEMENT les types
+    sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION` (§ 14 du ticket #55) — extrait de
+    `compose_selection` (ticket #96, review) pour pouvoir être appelé deux fois de suite
+    (d'abord sur les questions de la difficulté demandée, puis sur le reste) SANS jamais
+    réinitialiser `long_count` entre les deux appels : le plafond doit rester valable sur
+    l'ensemble de la session, pas recommencer à zéro à la deuxième passe. Étend `selected`
+    EN PLACE (accumulateur) et renvoie `(selected, long_count)` mis à jour."""
     by_type: dict[str, list[Question]] = defaultdict(list)
     for question in pool:
         by_type[question.current_version.question_type].append(question)
@@ -190,8 +193,6 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
     type_cycle = list(by_type.keys())
     random.shuffle(type_cycle)
 
-    selected: list[Question] = []
-    long_count = 0
     progressed = True
     while len(selected) < count and progressed:
         progressed = False
@@ -208,6 +209,53 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
             long_count += is_long
             progressed = True
 
+    return selected, long_count
+
+
+def compose_selection(
+    pool: list[Question], count: int, difficulty: SessionDifficultyRequest | None = None
+) -> list[Question]:
+    """Répartit la sélection entre types disponibles (round-robin, diversité maximale) en
+    plafonnant STRICTEMENT les types sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION`
+    (§ 14 du ticket #55 : « maximum 3 réponses longues/sémantiques » — règle stricte, pas
+    seulement une préférence). Peut retourner MOINS de `count` questions si la banque
+    disponible ne fournit pas assez de types non-sémantiques : à l'appelant
+    (`start_session`) de compléter par génération ciblée plutôt que de violer le
+    plafond en repêchant des types déjà plafonnés.
+
+    `difficulty` (ticket #96, review) : EXÉCUTE D'ABORD le round-robin type-diverse
+    EXCLUSIVEMENT sur les questions dont `difficulty_declared` correspond à `difficulty`
+    (`_round_robin_fill`, pool `matching`) — diversité de types maintenue, mais seulement
+    parmi cette difficulté. Si cette première passe atteint déjà `count`, la session EST
+    entièrement de la difficulté demandée (filtre réellement effectif, pas seulement une
+    préférence noyée dans la diversité de types). Seulement si elle ne suffit pas (banque
+    insuffisante pour cette difficulté — cas réel de FSE01, dont les 14 questions ne
+    couvrent par exemple que 3 `HARD`), une SECONDE passe complète avec le reste du pool,
+    en conservant le même compteur `long_count` (le plafond sémantique reste valable sur
+    l'ensemble des deux passes, jamais remis à zéro). Un simple tri/réordonnancement du
+    pool AVANT le groupage par type aurait été insuffisant : avec une banque aussi petite
+    que celle de FSE01 (14 questions pour 10 demandées), le round-robin par type consomme
+    presque tout le pool en 1-2 tours quel que soit l'ordre interne de chaque bucket — seule
+    une vraie première passe RESTREINTE à la difficulté demandée (pool filtré, pas
+    seulement trié) produit un effet réellement observable. Jamais un filtre strict qui
+    ferait échouer ou raccourcir une session : la seconde passe garantit toujours jusqu'à
+    `count` questions si le pool total le permet. No-op strict (comportement rigoureusement
+    identique à avant ce ticket) quand `difficulty` est `None`/`ADAPTIVE`, ou qu'aucune
+    question du pool ne porte de difficulté déclarée — jamais de changement pour les
+    matières qui n'en déclarent pas encore (Informatique AMPCR, Français ; vérifié par
+    `tests/test_ticket96_fse01.py::test_other_subjects_selection_is_byte_for_byte_unaffected_by_difficulty_priority`)."""
+    target = None
+    if difficulty is not None and difficulty != SessionDifficultyRequest.ADAPTIVE:
+        target = QuestionDifficulty(difficulty.value)
+    if target is None or not any(q.difficulty_declared == target for q in pool):
+        selected, _ = _round_robin_fill(pool, count, [], 0)
+        return selected
+
+    matching = [q for q in pool if q.difficulty_declared == target]
+    other = [q for q in pool if q.difficulty_declared != target]
+    selected, long_count = _round_robin_fill(matching, count, [], 0)
+    if len(selected) < count:
+        selected, long_count = _round_robin_fill(other, count, selected, long_count)
     return selected
 
 
@@ -529,7 +577,10 @@ def _start_mc38_transversal_session(
     )
     oversample = _category_balanced_oversample(oversample, question_count)
     oversample = _limit_near_duplicate_clusters(oversample)
-    selected = compose_selection(oversample, question_count)
+    # Ticket #96 (review) : `difficulty` transmis pour cohérence avec `start_session` —
+    # no-op ici en pratique tant qu'aucune question MC01-38 ne déclare de difficulté (voir
+    # `compose_selection`, docstring).
+    selected = compose_selection(oversample, question_count, difficulty=difficulty)
 
     if len(selected) < question_count:
         missing = question_count - len(selected)
@@ -623,14 +674,14 @@ def start_session(
     # recours, plus bas, après tentative de génération.
     oversample = select_bank_questions(
         db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 3,
-        only_unseen=True,
+        only_unseen=True, difficulty=difficulty,
     )
     if uaa_id is None:
         # Parcours global/examen blanc AMPCR (§ 8 du ticket #64) : plusieurs mini-cours
         # obligatoires — jamais pertinent pour une session scopée à un seul UAA.
         oversample = _uaa_balanced_oversample(oversample, question_count)
     oversample = _limit_near_duplicate_clusters(oversample)
-    selected = compose_selection(oversample, question_count)
+    selected = compose_selection(oversample, question_count, difficulty=difficulty)
 
     if len(selected) < question_count:
         missing = question_count - len(selected)
@@ -681,7 +732,8 @@ def start_session(
         # question déjà retenue (ticket #82 : une session plus courte que demandé est
         # acceptable, un doublon intra-session ne l'est jamais).
         fallback_pool = select_bank_questions(
-            db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5
+            db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5,
+            difficulty=difficulty,
         )
         if not fallback_pool and not selected:
             raise SessionCreationError(

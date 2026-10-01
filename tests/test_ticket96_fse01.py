@@ -31,6 +31,7 @@ from app.v1.fse_plan import (
 from app.v1.hybrid_correction import correct_session_hybrid
 from app.v1.models import (
     Question,
+    QuestionDifficulty,
     QuestionnaireSession,
     SessionDifficultyRequest,
     SessionMode,
@@ -40,6 +41,7 @@ from app.v1.models import (
 from app.v1.session_service import (
     claim_next_pending_build_job,
     claim_next_pending_correction_job,
+    compose_selection,
     get_session_build_job,
     run_correction_job,
     run_session_build_job,
@@ -427,15 +429,13 @@ def test_ampcr_and_francais_unaffected_by_fse(authenticated_client, db_session, 
 # =============================================================================================
 
 
-def test_fse01_bank_questions_have_no_declared_difficulty_not_filtered_by_selection(db_session):
-    """Limite assumée et documentée (review #96, ne jamais prétendre le contraire) : les
-    14 questions importées de FSE01 n'ont AUCUNE difficulté déclarée
-    (`Question.difficulty_declared`), et `app.v1.bank.select_bank_questions` — la fonction
-    qui sélectionne dans la banque hand-authored — ne prend aucun paramètre de difficulté
-    (confirmé par introspection de sa signature, pas seulement par lecture du code). La
-    difficulté choisie par l'élève n'influence donc JAMAIS quelles questions, parmi ces 14,
-    sont servies ; elle n'a un effet réel que si la banque est insuffisante et qu'une
-    génération IA de complément est déclenchée (voir le test suivant)."""
+def test_fse01_bank_questions_now_declare_a_difficulty_and_it_is_honored_by_selection(db_session):
+    """Remplace l'ancienne limite assumée du commit `65f0712` (« les 14 questions FSE01
+    n'ont aucune difficulté déclarée, le moteur ne peut donc pas filtrer parmi elles ») —
+    corrigée par ce complément de review : `app.v1.bank.select_bank_questions` et
+    `app.v1.session_service.compose_selection` prennent désormais un paramètre
+    `difficulty`, honoré par un round-robin en deux passes (voir section 8 ci-dessous pour
+    la preuve par la sélection réelle, pas seulement la signature)."""
     import inspect
 
     from app.v1.bank import select_bank_questions
@@ -445,14 +445,11 @@ def test_fse01_bank_questions_have_no_declared_difficulty_not_filtered_by_select
     import_fse01_to_bank(db_session, uaa.module, uaa)
     questions = db_session.query(Question).filter_by(uaa_id=uaa.id).all()
     assert len(questions) == 14
-    assert all(q.difficulty_declared is None for q in questions), (
-        "les 14 questions FSE01 n'ont aucune difficulté déclarée : le moteur ne peut donc "
-        "pas filtrer parmi elles par difficulté — vérifié explicitement, jamais supposé"
+    assert any(q.difficulty_declared is not None for q in questions), (
+        "les questions FSE01 doivent désormais porter une difficulté déclarée"
     )
-    assert "difficulty" not in inspect.signature(select_bank_questions).parameters, (
-        "select_bank_questions ne prend aucun paramètre de difficulté — ce test échouerait "
-        "s'il en gagnait un sans que cette hypothèse ne soit révisée explicitement"
-    )
+    assert "difficulty" in inspect.signature(select_bank_questions).parameters
+    assert "difficulty" in inspect.signature(compose_selection).parameters
 
 
 def _start_fse01_with_generation_shortfall(db_session, *, email: str, difficulty: SessionDifficultyRequest):
@@ -480,10 +477,10 @@ def _start_fse01_with_generation_shortfall(db_session, *, email: str, difficulty
 
 def test_fse01_easy_difficulty_is_transmitted_to_ai_generation_when_bank_is_insufficient(db_session):
     """Avec `question_count` > taille de la banque (14), `start_session`
-    (app.v1.session_service) déclenche une génération IA de complément — c'est le SEUL
-    canal par lequel la difficulté choisie a un effet réel pour FSE01 (voir le test
-    `test_fse01_bank_questions_have_no_declared_difficulty_not_filtered_by_selection`).
-    Vérifie, avec `FakeAIProvider`, que la difficulté « facile » transmise dans la
+    (app.v1.session_service) déclenche une génération IA de complément — un SECOND canal,
+    distinct de la sélection dans la banque hand-authored (voir section 8 ci-dessous), par
+    lequel la difficulté choisie a aussi un effet. Vérifie, avec `FakeAIProvider`, que la
+    difficulté « facile » transmise dans la
     `QuestionnaireRequest` correspond exactement à celle demandée (traduction
     `_DIFFICULTY_TO_FRENCH`), et que le contexte pédagogique transmis est spécifiquement
     celui de FSE01 (`course_key == "fse-fse01"`), jamais un contexte générique (ex. le
@@ -603,3 +600,221 @@ def test_fse01_difficulty_persists_across_multiple_reloads_and_partial_answers(
     session = db_session.get(QuestionnaireSession, session_id)
     assert session.difficulty_requested == SessionDifficultyRequest.HARD
     assert session.status.value == "in_progress"
+
+
+# =============================================================================================
+# 8. Review de 65f0712 — la difficulté influence RÉELLEMENT les questions servies, pas
+#    seulement une valeur enregistrée/transmise à une génération forcée. Couvre le parcours
+#    NORMAL de FSE01 (banque déjà remplie, 14 questions, sessions de 10, practice ET exam,
+#    sessions successives, reprise) — sans fournisseur IA configuré (`_UnconfiguredProvider`,
+#    reflet exact de la production réelle de FSE01 aujourd'hui, OPENAI_API_KEY vide).
+#
+#    Mécanisme (app/v1/bank.py, app/v1/session_service.py — générique, adapté, pas un
+#    second moteur) :
+#    1. `app.v1.bank._prioritize_by_difficulty` place en tête, dans le pool brut lu en
+#       base, les questions dont `difficulty_declared` correspond à la difficulté demandée.
+#    2. `app.v1.session_service.compose_selection` exécute D'ABORD le round-robin
+#       type-diverse habituel UNIQUEMENT sur ces questions (`matching`), et ne complète
+#       avec le reste (`other`) que si cette première passe ne suffit pas à atteindre le
+#       nombre de questions demandé — sans jamais réinitialiser le plafond de types
+#       sémantiques longs entre les deux passes.
+#    Un simple tri avant le groupage par type ne suffisait pas : `compose_selection`
+#    regroupe par type puis mélange chaque groupe, ce qui aurait noyé toute préférence
+#    d'ordre avec une banque aussi petite que celle de FSE01 (14 questions pour 10
+#    demandées) — vérifié expérimentalement pendant le développement de ce correctif avant
+#    la réécriture en deux passes.
+# =============================================================================================
+
+
+def test_fse01_difficulty_declared_distribution_is_6_5_3(db_session):
+    """Précondition des tests ci-dessous, vérifiée explicitement plutôt que supposée : 6
+    questions EASY, 5 MEDIUM, 3 HARD — assez de chaque pour que le choix de difficulté ait
+    un effet substantiel et mesurable dans une session de 10 questions."""
+    from collections import Counter
+
+    seed()
+    uaa = db_session.query(UAA).filter_by(slug=FSE01_SLUG).first()
+    import_fse01_to_bank(db_session, uaa.module, uaa)
+    questions = db_session.query(Question).filter_by(uaa_id=uaa.id).all()
+    counts = Counter(q.difficulty_declared for q in questions)
+    assert counts == {
+        QuestionDifficulty.EASY: 6,
+        QuestionDifficulty.MEDIUM: 5,
+        QuestionDifficulty.HARD: 3,
+    }
+
+
+def _declared_difficulty_counts(session: QuestionnaireSession) -> dict:
+    from collections import Counter
+
+    return Counter(
+        sq.question_version.question.difficulty_declared for sq in session.session_questions
+    )
+
+
+def test_fse01_difficulty_filters_served_questions_in_normal_practice_session(db_session):
+    """Cœur de la demande de review : dans le parcours NORMAL (banque déjà remplie, 10
+    questions, AUCUN fournisseur IA configuré — `_UnconfiguredProvider`, comme en
+    production réelle pour FSE01 aujourd'hui), choisir EASY/MEDIUM/HARD produit des
+    sessions dont la composition par difficulté diffère RÉELLEMENT, et contient TOUJOURS
+    l'intégralité des questions disponibles à la difficulté demandée (6/5/3) — jamais
+    seulement une valeur enregistrée sans effet sur la sélection."""
+    seed()
+    module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE).first()
+    uaa = db_session.query(UAA).filter_by(slug=FSE01_SLUG).first()
+    import_fse01_to_bank(db_session, module, uaa)
+
+    def run(difficulty: SessionDifficultyRequest, email: str) -> QuestionnaireSession:
+        user = _user(db_session, email=email)
+        return start_session(
+            db_session, user=user, module_id=module.id, uaa_id=uaa.id, uaa_code="FSE01",
+            mode=SessionMode.PRACTICE, difficulty=difficulty,
+            provider=_UnconfiguredProvider(), question_count=10,
+        )
+
+    easy_counts = _declared_difficulty_counts(run(SessionDifficultyRequest.EASY, "diff-easy@example.invalid"))
+    medium_counts = _declared_difficulty_counts(run(SessionDifficultyRequest.MEDIUM, "diff-medium@example.invalid"))
+    hard_counts = _declared_difficulty_counts(run(SessionDifficultyRequest.HARD, "diff-hard@example.invalid"))
+
+    # Chaque difficulté demandée est intégralement représentée (toutes les questions
+    # disponibles à cette difficulté sont servies) — jamais une préférence noyée/ignorée.
+    assert easy_counts[QuestionDifficulty.EASY] == 6
+    assert medium_counts[QuestionDifficulty.MEDIUM] == 5
+    assert hard_counts[QuestionDifficulty.HARD] == 3
+
+    # Les trois compositions sont réellement différentes les unes des autres (pas le même
+    # ensemble de questions recyclé quel que soit le réglage).
+    assert easy_counts != medium_counts
+    assert medium_counts != hard_counts
+    assert easy_counts != hard_counts
+
+    # Chaque session reste bien composée de 10 questions (parcours normal, pas raccourci).
+    for counts in (easy_counts, medium_counts, hard_counts):
+        assert sum(counts.values()) == 10
+
+
+def test_fse01_difficulty_filters_served_questions_in_normal_exam_session(db_session):
+    """Même preuve que le test précédent, en examen (`SessionMode.EXAM`) — la demande
+    explicite couvre « entraînement ET examen de 10 questions » : même mécanisme
+    générique, aucune différence de traitement entre les deux modes."""
+    seed()
+    module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE).first()
+    uaa = db_session.query(UAA).filter_by(slug=FSE01_SLUG).first()
+    import_fse01_to_bank(db_session, module, uaa)
+
+    def run(difficulty: SessionDifficultyRequest, email: str) -> QuestionnaireSession:
+        user = _user(db_session, email=email)
+        return start_session(
+            db_session, user=user, module_id=module.id, uaa_id=uaa.id, uaa_code="FSE01",
+            mode=SessionMode.EXAM, difficulty=difficulty,
+            provider=_UnconfiguredProvider(), question_count=10,
+        )
+
+    easy_counts = _declared_difficulty_counts(run(SessionDifficultyRequest.EASY, "exam-diff-easy@example.invalid"))
+    hard_counts = _declared_difficulty_counts(run(SessionDifficultyRequest.HARD, "exam-diff-hard@example.invalid"))
+
+    assert easy_counts[QuestionDifficulty.EASY] == 6
+    assert hard_counts[QuestionDifficulty.HARD] == 3
+    assert easy_counts != hard_counts
+
+
+def test_fse01_difficulty_preference_holds_across_successive_sessions_without_ai(db_session):
+    """« Sessions successives » (demande explicite) : un même utilisateur qui enchaîne
+    plusieurs sessions HARD doit continuer à recevoir les 3 questions HARD à chaque fois,
+    même une fois qu'elles sont toutes déjà vues — preuve que le repli « dernier recours »
+    (`select_bank_questions` sur les questions déjà vues, `app.v1.session_service.
+    start_session`) reste lui aussi sensible à la difficulté demandée, pas seulement la
+    toute première sélection sur des questions inédites. Sans fournisseur IA configuré
+    (reflet de la production réelle) : la génération de complément échoue systématiquement
+    et le repli sur les questions déjà vues est donc réellement exercé, pas contourné."""
+    seed()
+    module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE).first()
+    uaa = db_session.query(UAA).filter_by(slug=FSE01_SLUG).first()
+    import_fse01_to_bank(db_session, module, uaa)
+    user = _user(db_session, email="successive-hard@example.invalid")
+
+    for attempt in range(1, 4):
+        session = start_session(
+            db_session, user=user, module_id=module.id, uaa_id=uaa.id, uaa_code="FSE01",
+            mode=SessionMode.PRACTICE, difficulty=SessionDifficultyRequest.HARD,
+            provider=_UnconfiguredProvider(), question_count=10,
+        )
+        counts = _declared_difficulty_counts(session)
+        assert counts[QuestionDifficulty.HARD] == 3, (
+            f"session {attempt} : les 3 questions HARD doivent rester présentes même une "
+            "fois déjà vues, via le repli difficulté-aware sur les questions vues"
+        )
+
+
+def test_fse01_difficulty_composition_persists_through_resume(authenticated_client, db_session, monkeypatch):
+    """« Reprise » (demande explicite) : la composition par difficulté d'une session HARD
+    ne change pas entre sa création et sa relecture (page rechargée plusieurs fois) — les
+    `SessionQuestion` sont figées à la création, jamais recalculées à l'affichage."""
+    seed()
+    _patch_fake_provider(monkeypatch)
+    session_url = _start_session(authenticated_client, db_session, "practice", "hard")
+    session_id = int(session_url.rsplit("/", 1)[-1])
+
+    db_session.expire_all()
+    original_counts = _declared_difficulty_counts(db_session.get(QuestionnaireSession, session_id))
+    assert original_counts[QuestionDifficulty.HARD] == 3
+
+    for _ in range(2):
+        authenticated_client.get(f"/uaa/{FSE01_SLUG}/practice")
+        authenticated_client.get(session_url)
+        db_session.expire_all()
+        reloaded_counts = _declared_difficulty_counts(db_session.get(QuestionnaireSession, session_id))
+        assert reloaded_counts == original_counts
+
+
+def test_other_subjects_selection_is_byte_for_byte_unaffected_by_difficulty_priority(db_session):
+    """« Préserve les autres matières » (demande explicite) : l'adaptation générique du
+    moteur (`app.v1.bank._prioritize_by_difficulty`, `app.v1.session_service.
+    compose_selection`) ne doit RIEN changer pour une matière qui ne déclare encore aucune
+    difficulté — vérifié directement (résultat byte-for-byte identique, même graine
+    aléatoire), pas seulement supposé parce que la précondition `difficulty_declared is
+    None` est vraie aujourd'hui."""
+    import random as random_module
+
+    from app.v1.bank import (
+        _prioritize_by_difficulty,
+        import_mc01_legacy_to_bank,
+        select_bank_questions,
+    )
+
+    seed()
+    ampcr = db_session.query(Module).filter_by(code="AMPCR").first()
+    mc01 = db_session.query(UAA).filter_by(slug="ampcr-mc01").first()
+    import_mc01_legacy_to_bank(db_session, ampcr, mc01)
+    questions = db_session.query(Question).filter_by(uaa_id=mc01.id).all()
+    assert questions, "précondition : MC01 doit avoir des questions importées"
+    assert all(q.difficulty_declared is None for q in questions), (
+        "précondition : Informatique AMPCR ne déclare encore aucune difficulté"
+    )
+
+    # `_prioritize_by_difficulty` : no-op strict, quelle que soit la difficulté demandée.
+    assert _prioritize_by_difficulty(questions, None) == questions
+    assert _prioritize_by_difficulty(questions, SessionDifficultyRequest.HARD) == questions
+
+    # `compose_selection` : résultat identique avec la même graine aléatoire, avec ou sans
+    # difficulté transmise.
+    random_module.seed(1234)
+    without_difficulty = compose_selection(list(questions), 10)
+    random_module.seed(1234)
+    with_difficulty = compose_selection(list(questions), 10, difficulty=SessionDifficultyRequest.HARD)
+    assert [q.id for q in without_difficulty] == [q.id for q in with_difficulty]
+
+    # `select_bank_questions` : même garantie, bout en bout (requête + priorisation).
+    # Comparaison par ENSEMBLE, pas par ordre : l'ordre lui-même dépend de `ORDER BY
+    # RANDOM()` côté SQLite (pas du module `random` de Python — `random.seed()` n'a donc
+    # aucune prise dessus, déjà le cas avant ce ticket), jamais une garantie de ce module ;
+    # la garantie réelle de non-régression est que l'ENSEMBLE renvoyé ne change pas.
+    user = _user(db_session, email="ampcr-no-regression@example.invalid")
+    pool_without = select_bank_questions(
+        db_session, user_id=user.id, module_id=ampcr.id, uaa_id=mc01.id, limit=30
+    )
+    pool_with = select_bank_questions(
+        db_session, user_id=user.id, module_id=ampcr.id, uaa_id=mc01.id, limit=30,
+        difficulty=SessionDifficultyRequest.HARD,
+    )
+    assert {q.id for q in pool_without} == {q.id for q in pool_with}

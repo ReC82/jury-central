@@ -12,7 +12,12 @@ dupliqué d'un document).
 
 14 questions couvrant les trois applications explicitement demandées par le ticket #97
 (mail, affiche, publication sur réseau social), variées dans leur type (identification,
-classement, justification courte, analyse de document) — jamais uniquement des QCM."""
+classement, justification courte, analyse de document) — jamais uniquement des QCM.
+
+Ticket #96 (review) : chaque question porte désormais une difficulté déclarée
+(`Question.difficulty_declared` — jamais renseignée avant ce ticket pour aucune matière du
+dépôt, voir `app.v1.bank._prioritize_by_difficulty`/`app.v1.session_service.compose_selection`
+pour son utilisation réelle par le moteur de sélection) : 6 EASY, 5 MEDIUM, 3 HARD."""
 
 from sqlalchemy.orm import Session
 
@@ -29,6 +34,7 @@ from app.v1.fse01_content import (
 from app.v1.models import (
     GenerationSource,
     Question,
+    QuestionDifficulty,
     create_question,
     create_source_document,
 )
@@ -50,7 +56,12 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
         mail.current_version_id, affiche.current_version_id, social.current_version_id,
     )
 
-    questions: list[tuple[str, dict]] = [
+    # Difficulté déclarée (ticket #96, review) : jugée sur la complexité cognitive réelle
+    # de chaque question — identification directe d'un élément nommé dans le document
+    # (EASY), explication reliant plusieurs éléments ou une définition simple (MEDIUM),
+    # analyse complète croisant plusieurs notions avec justification rédigée (HARD).
+    # Répartition : 6 EASY, 5 MEDIUM, 3 HARD.
+    questions: list[tuple[str, dict, QuestionDifficulty]] = [
         (
             "short_answer",
             {
@@ -66,6 +77,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                 ),
                 "max_length": 300,
             },
+            QuestionDifficulty.EASY,
         ),
         (
             "short_answer",
@@ -83,6 +95,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                 ),
                 "max_length": 400,
             },
+            QuestionDifficulty.MEDIUM,
         ),
         (
             "short_answer",
@@ -100,6 +113,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                 ),
                 "max_length": 300,
             },
+            QuestionDifficulty.MEDIUM,
         ),
         (
             "multiple_choice",
@@ -119,6 +133,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "construit."
                 ),
             },
+            QuestionDifficulty.EASY,
         ),
         (
             "multiple_choice",
@@ -137,6 +152,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "le contexte dans lequel il est émis."
                 ),
             },
+            QuestionDifficulty.EASY,
         ),
         (
             "multiple_choice",
@@ -155,6 +171,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "la permettent facilement, d'autres ne la permettent pas du tout."
                 ),
             },
+            QuestionDifficulty.EASY,
         ),
         (
             "classification",
@@ -179,6 +196,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "et le panneau d'affichage est le support matériel utilisé (canal)."
                 ),
             },
+            QuestionDifficulty.MEDIUM,
         ),
         (
             "classification",
@@ -206,6 +224,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "directe vers son émetteur, quel que soit le délai."
                 ),
             },
+            QuestionDifficulty.MEDIUM,
         ),
         (
             "vocabulary",
@@ -219,6 +238,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "du code."
                 ),
             },
+            QuestionDifficulty.EASY,
         ),
         (
             "vocabulary",
@@ -232,6 +252,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "information manquante ou une formulation ambiguë)."
                 ),
             },
+            QuestionDifficulty.EASY,
         ),
         (
             "ordering",
@@ -255,6 +276,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "rétroaction — si le canal le permet."
                 ),
             },
+            QuestionDifficulty.MEDIUM,
         ),
         (
             "document_analysis",
@@ -284,6 +306,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                 ],
                 "max_score": 4.0,
             },
+            QuestionDifficulty.HARD,
         ),
         (
             "document_analysis",
@@ -310,6 +333,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                 ],
                 "max_score": 3.0,
             },
+            QuestionDifficulty.HARD,
         ),
         (
             "long_answer",
@@ -338,11 +362,12 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                 ],
                 "max_score": 3.0,
             },
+            QuestionDifficulty.HARD,
         ),
     ]
 
     imported = 0
-    for question_type, content in questions:
+    for question_type, content, difficulty in questions:
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -352,6 +377,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
             question_type=question_type,
             content_json=content,
             generation_source=GenerationSource.IMPORTED,
+            difficulty_declared=difficulty,
             source_document_version_id=source_doc_id,
         )
         imported += 1
