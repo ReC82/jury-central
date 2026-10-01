@@ -170,6 +170,38 @@ Mettre à jour les fichiers concernés plutôt que créer une nouvelle documenta
 
 Éviter les doublons.
 
+## Comptes rendus permanents de Claude Code
+
+Consigne explicite de l'utilisateur du 1 octobre 2026, applicable à chaque ticket,
+review, diagnostic, incident, correction et livraison :
+
+- Rédiger le compte rendu complet dans un fichier Markdown versionné sous
+  `docs/claude-reports/`, même si aucun code applicatif n'a été modifié.
+- Nommer le fichier `YYYY-MM-DD_ticket-<numero>-<sujet>.md` ; pour un incident sans
+  numéro, `YYYY-MM-DD_incident-<sujet>.md`. Réutiliser le rapport du ticket pour ses
+  compléments ; conserver la chronologie des incidents et leurs étapes.
+- Commit et push du rapport sur la branche de travail autorisée : un fichier seulement
+  présent sur le serveur ou un compte rendu uniquement affiché dans tmux ne constitue
+  pas une livraison. Respecter § 8 : cela n'autorise aucun merge ou déploiement.
+- Fournir dans le message final le lien GitHub direct vers le fichier sur la branche
+  poussée, le nom de la branche et le SHA livré. Le message terminal reste bref :
+  résultat, blocages éventuels et lien ; ne pas demander à l'utilisateur de copier un
+  long compte rendu ou d'envoyer des captures pour la review.
+- ChatGPT lit directement ce rapport depuis GitHub pour vérifier la livraison et donner
+  la suite.
+
+Le rapport contient, selon la tâche :
+1. demande, périmètre, branche et référence des commits concernés ;
+2. diagnostic : faits observés, preuves, hypothèses et incertitudes distingués ;
+3. changements et actions effectivement effectués, notamment sur les services ou bases ;
+4. tests et résultats exacts, en distinguant automatisés, manuels et non réalisés ;
+5. état final et limites ; pour un incident, état des services et vérifications HTTP
+   locale/publique, ou raison explicite de leur absence ;
+6. procédure de vérification et points restant à résoudre.
+
+Ne jamais publier de secrets, de contenu de `.env`, de cookies, de jetons ou de données
+personnelles tirées des logs. Expurger les preuves avant de les committer.
+
 ---
 
 # 10. Administration
