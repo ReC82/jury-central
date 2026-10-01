@@ -1,15 +1,15 @@
-"""Plan Formation sociale et économique (FSE) — CESS Professionnel (ticket #96).
+"""Plan Formation sociale et économique (FSE) — CESS Professionnel (ticket #96/#97).
 
 Contexte : aucune matière « Formation sociale et économique » n'existait dans le dépôt
-avant ce ticket (confirmé par une recherche exhaustive du dépôt — aucune `Subject`, aucun
-`Module`, aucune UAA). Le périmètre complet (17 mini-cours FSE01→FSE17, voir le ticket
-#96 § Plan) est fixé par ChatGPT (chef de projet) ; seul FSE01 est livré avec un contenu
-réellement rédigé par ce ticket (cahier des charges détaillé du ticket #97) — les
-FSE02→FSE17 restent documentés (titre, thème, pages du programme) pour les tickets
-suivants, mais ne sont PAS seedés en base tant qu'ils n'ont pas de contenu réel : même
-principe que `app.v1.francais_plan` (ticket #94 PHASE A, FR01→FR05 seuls dans
-`FRANCAIS_PLAN` au moment de leur rédaction, FR06→FR20 ajoutés phase par phase) — jamais
-un cours vide présenté comme disponible (`docs/PROJECT_RULES.md` § 5/§ 10).
+avant le ticket #96. Le périmètre complet (17 mini-cours FSE01→FSE17, voir le ticket
+#96 § Plan) est fixé par ChatGPT (chef de projet). Ticket #96 : FSE01 livré. Ticket #97 :
+FSE02, FSE03, FSE04 livrés (cahier des charges détaillé du ticket #97, § prompts
+spécifiques par cours) — FSE05→FSE17 restent documentés (titre, thème, pages du
+programme, voir `docs/content_plan_fse.md`) pour les tickets suivants, mais ne sont PAS
+seedés en base tant qu'ils n'ont pas de contenu réel : même principe que
+`app.v1.francais_plan` (ticket #94 PHASE A, FR01→FR05 seuls dans `FRANCAIS_PLAN` au moment
+de leur rédaction, FR06→FR20 ajoutés phase par phase) — jamais un cours vide présenté
+comme disponible (`docs/PROJECT_RULES.md` § 5/§ 10).
 
 Ce module suit EXACTEMENT le même schéma que `app.v1.francais_plan`/`app.v1.ampcr_plan`
 (registre code→titre→contexte pédagogique borné), consulté par
@@ -46,9 +46,9 @@ class FSEUAAPlan:
         return f"fse-{self.code.lower()}"
 
 
-# Ticket #96/#97 : seul FSE01 est rédigé par ce ticket. Le reste du plan officiel
-# (FSE02→FSE17, § Plan du ticket #96) est documenté dans `docs/content_plan_fse.md` —
-# jamais ajouté ici tant qu'il n'a pas de contenu réel associé (voir docstring du module).
+# Ticket #96 : FSE01. Ticket #97 : FSE02-FSE04. Le reste du plan officiel (FSE05→FSE17,
+# § Plan du ticket #96) est documenté dans `docs/content_plan_fse.md` — jamais ajouté ici
+# tant qu'il n'a pas de contenu réel associé (voir docstring du module).
 FSE_PLAN: tuple[FSEUAAPlan, ...] = (
     FSEUAAPlan(
         code="FSE01",
@@ -71,6 +71,65 @@ FSE_PLAN: tuple[FSEUAAPlan, ...] = (
             "Reconnaître la rétroaction disponible (ou son absence) selon le canal utilisé",
         ),
     ),
+    FSEUAAPlan(
+        code="FSE02",
+        title="Les médias et leurs financements",
+        theme="Interactions médiatiques (Médias)",
+        program_pages="programme 474/2016/240, p. 43, 45",
+        allowed_notions=(
+            "offre médiatique : presse, radio, télévision, sites et réseaux sociaux",
+            "interactivité d'un média (possibilité pour le récepteur de réagir/participer)",
+            "financement d'un média par la vente directe (achat à l'unité)",
+            "financement d'un média par l'abonnement",
+            "financement d'un média par la publicité",
+            "financement d'un média par des fonds publics",
+            "lien entre le mode de financement d'un média, sa recherche d'audience et les comportements des publics",
+        ),
+        competencies=(
+            "Identifier le ou les modes de financement d'un média à partir d'un document",
+            "Expliquer en quoi la recherche d'audience influence le contenu proposé par un média",
+            "Comparer un média payant, un média gratuit financé par la publicité et un média financé par des fonds publics",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE03",
+        title="Identités, traces numériques et appartenance",
+        theme="Interactions médiatiques (Médias)",
+        program_pages="programme 474/2016/240, p. 44-45",
+        allowed_notions=(
+            "identité personnelle (ce que je suis) et identité collective (appartenance à un groupe)",
+            "identité numérique, comme application particulière de l'identité à un contexte médiatique",
+            "trace numérique volontaire (publiée soi-même) et trace numérique involontaire (publiée par autrui, ou déduite)",
+            "réputation, construite à partir des traces numériques visibles par autrui",
+            "distinction entre l'identité réelle d'une personne et l'image qu'elle donne à voir à autrui",
+        ),
+        competencies=(
+            "Distinguer une trace numérique volontaire d'une trace numérique involontaire",
+            "Expliquer la différence entre l'identité d'une personne et l'image qu'elle donne à voir à autrui",
+            "Expliquer les conséquences concrètes d'anciennes publications sur une candidature ou une réputation",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE04",
+        title="Normes, valeurs et influence sociale",
+        theme="Interactions médiatiques (Médias)",
+        program_pages="programme 474/2016/240, p. 44-46 (ressources remobilisées de l'UAA Normes et Société)",
+        allowed_notions=(
+            "norme (règle de comportement attendue dans un groupe ou une société)",
+            "valeur (ce qu'un groupe ou une société considère comme important ou souhaitable)",
+            "besoin et comportement, et leur rapport aux normes/valeurs d'un groupe",
+            "frustration liée à un besoin non satisfait ou à une norme contraignante",
+            "groupe d'appartenance",
+            "influence sociale et pression du groupe sur le comportement individuel",
+            "socialisation (processus par lequel une personne intègre les normes et valeurs d'un groupe)",
+            "limites de l'influence sociale comme explication d'un comportement (ne réduit pas tout comportement au groupe)",
+        ),
+        competencies=(
+            "Distinguer une norme, une valeur et un comportement dans une situation donnée",
+            "Expliquer comment la pression d'un groupe peut influencer un comportement individuel",
+            "Reconnaître les limites de l'explication par l'influence du groupe (responsabilité individuelle)",
+        ),
+    ),
 )
 
 FSE_PLAN_BY_CODE: dict[str, FSEUAAPlan] = {plan.code: plan for plan in FSE_PLAN}
@@ -90,13 +149,14 @@ def _build_context(plan: FSEUAAPlan) -> PedagogicalContext:
         competencies=list(plan.competencies),
         vocabulary=[],
         constraints=(
-            "PÉRIMÈTRE STRICT (consignes CESS P 2026-2027/1, ticket #96) : reste "
+            "PÉRIMÈTRE STRICT (consignes CESS P 2026-2027/1, tickets #96/#97) : reste "
             "exclusivement dans les notions listées ci-dessus — n'évalue et ne valorise "
             "jamais une connaissance de budget familial, crédits, emprunts, TAEG, IPP, "
             "fiscalité immobilière, ou toute autre notion hors de ce mini-cours. Les "
-            "exemples (mail, affiche, publication sur réseau social) sont originaux, "
-            "rédigés pour ce cours : ne jamais inventer de fait, d'organisme ou de règle "
-            "juridique absent du support fourni. Niveau adapté à un·e élève de CESS "
+            "exemples utilisés dans ce cours sont originaux, rédigés pour ce cours : ne "
+            "jamais inventer de fait, d'organisme réel ou de règle juridique absent du "
+            "support fourni — les organisations citées dans les exemples sont fictives "
+            "sauf mention contraire explicite. Niveau adapté à un·e élève de CESS "
             "Professionnel qui reprend ses études."
         ),
     )

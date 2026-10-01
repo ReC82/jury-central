@@ -18,6 +18,9 @@ from app.v1.francais_fr01_05_courses import (
 )
 from app.v1.francais_plan import FRANCAIS_MODULE_CODE, FRANCAIS_SUBJECT_NAME
 from app.v1.fse01_course import fse01_course_markdown
+from app.v1.fse02_course import fse02_course_markdown
+from app.v1.fse03_course import fse03_course_markdown
+from app.v1.fse04_course import fse04_course_markdown
 from app.v1.fse_plan import FSE_MODULE_CODE, FSE_SUBJECT_NAME
 
 SUBJECT_NAME = "Mathématiques"
@@ -4609,12 +4612,13 @@ FRANCAIS_FR05_BLOCKS = [
 
 
 # =========================================================================================
-# Formation sociale et économique (FSE) — CESS Professionnel (ticket #96)
+# Formation sociale et économique (FSE) — CESS Professionnel (ticket #96 : FSE01 ;
+# ticket #97 : FSE02-FSE04)
 # =========================================================================================
 #
-# Aucune matière FSE n'existait dans le dépôt avant ce ticket (voir `app.v1.fse_plan`,
-# docstring). Seul FSE01 (cahier des charges détaillé du ticket #97) est rédigé et seedé
-# ici — le reste du plan officiel (FSE02→FSE17) est documenté dans
+# Aucune matière FSE n'existait dans le dépôt avant le ticket #96 (voir `app.v1.fse_plan`,
+# docstring). FSE01 (ticket #96) et FSE02-FSE04 (ticket #97, cahier des charges détaillé)
+# sont rédigés et seedés ici — le reste du plan officiel (FSE05→FSE17) est documenté dans
 # `docs/content_plan_fse.md` mais n'est jamais seedé tant qu'il n'a pas de contenu réel
 # (même principe que Français FR06→FR20, ticket #94) : jamais un cours vide présenté
 # comme disponible.
@@ -4627,6 +4631,48 @@ FSE01_BLOCKS = [
         "title": "Cours complet",
         "type": BlockType.MARKDOWN,
         "content": fse01_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE02_CODE = "FSE02"
+FSE02_TITLE = "Les médias et leurs financements"
+
+FSE02_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse02_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE03_CODE = "FSE03"
+FSE03_TITLE = "Identités, traces numériques et appartenance"
+
+FSE03_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse03_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE04_CODE = "FSE04"
+FSE04_TITLE = "Normes, valeurs et influence sociale"
+
+FSE04_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse04_course_markdown(),
         "position": 1,
         "is_published": True,
         "space": BlockSpace.COURSE,
@@ -4867,13 +4913,16 @@ def seed() -> None:
         _seed_uaa(db, cessp, "FR04", FRANCAIS_FR04_TITLE, 5, FRANCAIS_FR04_BLOCKS, created, kept)
         _seed_uaa(db, cessp, "FR05", FRANCAIS_FR05_TITLE, 6, FRANCAIS_FR05_BLOCKS, created, kept)
 
-        # Formation sociale et économique (ticket #96) : même mécanisme générique,
-        # purement additif — ne touche jamais Mathématiques/Informatique/Français. Seul
-        # FSE01 est seedé (voir docstring de la section FSE ci-dessus).
+        # Formation sociale et économique (ticket #96 : FSE01 ; ticket #97 : FSE02-FSE04) :
+        # même mécanisme générique, purement additif — ne touche jamais
+        # Mathématiques/Informatique/Français (voir docstring de la section FSE ci-dessus).
         fse_subject = _ensure_subject(db, FSE_SUBJECT_NAME, created, kept)
         _ensure_modules(db, fse_subject, [FSE_MODULE_CODE], created, kept)
         fse_module = next(m for m in fse_subject.modules if m.code == FSE_MODULE_CODE)
         _seed_uaa(db, fse_module, FSE01_CODE, FSE01_TITLE, 1, FSE01_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE02_CODE, FSE02_TITLE, 2, FSE02_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE03_CODE, FSE03_TITLE, 3, FSE03_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE04_CODE, FSE04_TITLE, 4, FSE04_BLOCKS, created, kept)
 
         db.commit()
 
