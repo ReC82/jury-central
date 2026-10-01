@@ -278,3 +278,43 @@ lorsqu'elle réunit, selon ce qui est pertinent pour la tâche : contenu, géné
 progression, administration, documentation et tests — puis commit et push (§ 8).
 
 La tranche suivante ne démarre qu'une fois la précédente terminée.
+
+---
+
+# 18. Prévisualisation avant validation
+
+Consigne explicite de l'utilisateur du 1 octobre 2026, applicable à tout changement visible
+(page, parcours, formulaire) avant la suite de tests complète et la finalisation d'un
+ticket :
+
+- Avant d'exécuter la suite de tests complète et de finaliser un ticket qui modifie un
+  comportement visible, proposer une prévisualisation fonctionnelle que l'utilisateur peut
+  essayer lui-même, dans son navigateur (PC et téléphone) — jamais seulement une adresse
+  `localhost` inaccessible depuis l'extérieur.
+- Réutiliser une infrastructure de prévisualisation déjà en place si elle existe. Sinon,
+  mettre en place un accès isolé, **sans jamais modifier le fonctionnement, la
+  configuration nginx/systemd active, ou les données du site public** (voir § 16) :
+  code depuis la branche du ticket (de préférence un `git worktree` dédié, voir § 2/§ 17 —
+  jamais le répertoire de travail du service live), base de données de démonstration
+  séparée (jamais de donnée réelle), serveur et worker applicatifs séparés de ceux du site
+  public. Voir `docs/preview_procedure.md` pour la procédure technique détaillée et les
+  options concrètes selon les contraintes réseau rencontrées (port dédié vs sous-domaine
+  dédié).
+- Avant de transmettre le lien, effectuer uniquement les contrôles rapides nécessaires et
+  un parcours fonctionnel court (pas la suite de tests complète à ce stade) : l'objectif
+  est de confirmer que la prévisualisation fonctionne, pas de refaire la recette complète
+  en double.
+- Indiquer clairement, pour toute fonctionnalité de correction/génération : si elle utilise
+  un fournisseur IA réellement configuré ou un mécanisme simulé — une simulation ne valide
+  jamais la qualité pédagogique d'une correction réelle, uniquement le mécanisme, le
+  parcours et l'interface.
+- Si l'accès externe (port, sous-domaine, certificat) se heurte à une contrainte
+  d'infrastructure hors de portée (ex. pare-feu/groupe de sécurité cloud) : ne jamais
+  tenter de la contourner ni de modifier une configuration d'infrastructure sensible sans
+  autorisation explicite pour CETTE action précise — signaler le blocage, présenter les
+  options concrètes de déblocage, et attendre la décision de l'utilisateur (§ 11).
+- Attendre la validation visuelle et fonctionnelle explicite de l'utilisateur sur cette
+  prévisualisation avant de lancer la suite de tests complète et la finalisation
+  (commit/push de clôture, mise à jour des rapports). Les tests complets restent
+  obligatoires avant toute fusion/déploiement (§ 7/§ 8) — cette consigne change seulement
+  l'ORDRE (aperçu visuel d'abord), jamais l'exigence elle-même.
