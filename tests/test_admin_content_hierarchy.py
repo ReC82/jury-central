@@ -11,6 +11,10 @@ from app.seed import (
     FSE02_BLOCKS,
     FSE03_BLOCKS,
     FSE04_BLOCKS,
+    FSE05_BLOCKS,
+    FSE06_BLOCKS,
+    FSE07_BLOCKS,
+    FSE08_BLOCKS,
     MC01_BLOCKS,
     MC02_BLOCKS,
     MC03_BLOCKS,
@@ -259,15 +263,19 @@ def test_seed_is_idempotent(db_session):
     # (PHASE A) : 5 UAA supplémentaires (FR01→FR05), purement additif. Ticket #96 : 1
     # matière (Formation sociale et économique), 1 module (FSE), 1 UAA (FSE01)
     # supplémentaires, purement additif. Ticket #97 : 3 UAA supplémentaires
-    # (FSE02-FSE04), purement additif.
+    # (FSE02-FSE04), purement additif. Ticket #98 : 4 UAA supplémentaires
+    # (FSE05-FSE08), purement additif.
     francais_fr01_05_blocks = (
         FRANCAIS_FR01_BLOCKS + FRANCAIS_FR02_BLOCKS + FRANCAIS_FR03_BLOCKS
         + FRANCAIS_FR04_BLOCKS + FRANCAIS_FR05_BLOCKS
     )
-    fse_blocks = FSE01_BLOCKS + FSE02_BLOCKS + FSE03_BLOCKS + FSE04_BLOCKS
+    fse_blocks = (
+        FSE01_BLOCKS + FSE02_BLOCKS + FSE03_BLOCKS + FSE04_BLOCKS
+        + FSE05_BLOCKS + FSE06_BLOCKS + FSE07_BLOCKS + FSE08_BLOCKS
+    )
     assert db_session.query(Subject).count() == 4
     assert db_session.query(Module).count() == 6
-    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 5 + 4
+    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 5 + 8
     assert db_session.query(LessonBlock).count() == (
         len(UAA1_BLOCKS) + len(UAA2_BLOCKS) + len(MC01_BLOCKS) + len(MC02_BLOCKS)
         + len(MC03_BLOCKS)

@@ -41,6 +41,10 @@ from app.v1.fse_bank import (
     import_fse02_to_bank,
     import_fse03_to_bank,
     import_fse04_to_bank,
+    import_fse05_to_bank,
+    import_fse06_to_bank,
+    import_fse07_to_bank,
+    import_fse08_to_bank,
 )
 from app.v1.fse_plan import get_fse_plan_by_slug
 from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
@@ -130,13 +134,17 @@ _FRANCAIS_BANK_IMPORTERS = {
     "francais-fr05": import_francais_fr05_to_bank,
 }
 
-# Ticket #96/#97 : même mécanisme que `_FRANCAIS_BANK_IMPORTERS` ci-dessus, pour la
+# Ticket #96/#97/#98 : même mécanisme que `_FRANCAIS_BANK_IMPORTERS` ci-dessus, pour la
 # matière Formation sociale et économique.
 _FSE_BANK_IMPORTERS = {
     "fse-fse01": import_fse01_to_bank,
     "fse-fse02": import_fse02_to_bank,
     "fse-fse03": import_fse03_to_bank,
     "fse-fse04": import_fse04_to_bank,
+    "fse-fse05": import_fse05_to_bank,
+    "fse-fse06": import_fse06_to_bank,
+    "fse-fse07": import_fse07_to_bank,
+    "fse-fse08": import_fse08_to_bank,
 }
 
 

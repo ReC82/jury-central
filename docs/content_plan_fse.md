@@ -3,27 +3,36 @@
 Document de planification (même rôle que `docs/content_plan_informatique_francais.md`
 pour Informatique/Français), pas une documentation technique permanente — voir
 `docs/ARCHITECTURE.md` pour ce qui est réellement implémenté. Produit dans le cadre du
-ticket GitHub #96/#97. Traçabilité du contenu : voir `docs/content_workflow.md`, section
-« Contenu rédigé à partir d'un cahier des charges » — le cahier des charges pédagogique
-complet est fourni directement dans les tickets #96/#97 (pas de fichier
+ticket GitHub #96/#97/#98. Traçabilité du contenu : voir `docs/content_workflow.md`,
+section « Contenu rédigé à partir d'un cahier des charges » — le cahier des charges
+pédagogique complet est fourni directement dans les tickets #96/#97/#98 (pas de fichier
 `docs/sources_cours/` séparé pour le contenu des leçons), le périmètre officiel provenant
 des documents utilisateur cités au § 2.
 
 ---
 
-# 1. État — ticket #96 (2026-10-01)
+# 1. État — tickets #96/#97/#98 (2026-10-01)
 
-Matière créée (`Subject` « Formation sociale et économique », `Module` code `FSE`) et
-**FSE01 — Communiquer : le schéma de communication** livré complet (théorie, 14 questions
-de banque, practice avec choix de difficulté, examen avec choix de difficulté ET de
-sévérité de cotation, correction hybride, résultats, historique) — voir
-`app/v1/fse_plan.py`, `app/v1/fse01_course.py`, `app/v1/fse01_content.py`,
-`app/v1/fse_bank.py`.
+Matière créée (`Subject` « Formation sociale et économique », `Module` code `FSE`).
+**FSE01-FSE08 livrés complets** (théorie, 14 questions de banque chacun, practice avec
+choix de difficulté réellement effectif, examen avec choix de difficulté ET de sévérité de
+cotation distincts, correction hybride, résultats, historique) :
+- Ticket #96 : FSE01 — voir `app/v1/fse_plan.py`, `app/v1/fse01_course.py`,
+  `app/v1/fse01_content.py`.
+- Ticket #97 : FSE02, FSE03, FSE04 — `app/v1/fse0[2-4]_course.py`/`fse0[2-4]_content.py`.
+- Ticket #98 : FSE05, FSE06, FSE07, FSE08 — `app/v1/fse0[5-8]_course.py`/
+  `fse0[5-8]_content.py`. FSE06/FSE08 mobilisent des affirmations juridiques et
+  institutionnelles réelles, vérifiées auprès de sources belges officielles et
+  référencées dans chaque cours (§ « Sources officielles vérifiées ») et dans
+  `docs/claude-reports/2026-10-01_ticket-96-fse.md` § 14.
 
-FSE02→FSE17 ci-dessous restent au stade de PLAN (titre, thème, pages du programme) : ils
+Tous ces cours partagent `app/v1/fse_bank.py` (banque unique, import idempotent par
+cours).
+
+FSE09→FSE17 ci-dessous restent au stade de PLAN (titre, thème, pages du programme) : ils
 ne sont ni seedés en base ni présentés comme disponibles (même principe que Français
 FR06→FR20 au moment du ticket #94 PHASE A) — chacun fera l'objet d'un ticket de rédaction
-dédié, suivant le même cahier des charges de rédaction que le ticket #97 (objectifs
+dédié, suivant le même cahier des charges de rédaction que les tickets #97/#98 (objectifs
 observables, théorie progressive, définitions, méthode, 3 exemples commentés, 2 exercices
 guidés corrigés, pièges, fiche mémo, 8 exercices d'entraînement, examen /20).
 
@@ -51,13 +60,13 @@ maximum, seuil de réussite 50 %).
 | Code | Titre | Thème | Pages programme |
 |---|---|---|---|
 | **FSE01** | **Communiquer : le schéma de communication** (livré, ticket #96) | Médias | p. 43-45 |
-| FSE02 | Les médias et leurs financements | Médias | p. 43, 45 |
-| FSE03 | Identités, traces numériques et appartenance | Médias | p. 44-45 |
-| FSE04 | Normes, valeurs et influence sociale | Médias | p. 44-46 |
-| FSE05 | Image, vie privée et données personnelles | Médias | p. 45 |
-| FSE06 | Droits et comportements illicites en ligne | Médias | p. 45 |
-| FSE07 | Analyser un dossier médiatique | Médias | p. 41-47 |
-| FSE08 | La Belgique : État et niveaux de pouvoir | Citoyen | p. 56-57, 61 |
+| **FSE02** | **Les médias et leurs financements** (livré, ticket #97) | Médias | p. 43, 45 |
+| **FSE03** | **Identités, traces numériques et appartenance** (livré, ticket #97) | Médias | p. 44-45 |
+| **FSE04** | **Normes, valeurs et influence sociale** (livré, ticket #97) | Médias | p. 44-46 |
+| **FSE05** | **Image, vie privée et données personnelles** (livré, ticket #98) | Médias | p. 45 |
+| **FSE06** | **Droits et comportements illicites en ligne** (livré, ticket #98) | Médias | p. 45 |
+| **FSE07** | **Analyser un dossier médiatique** (livré, ticket #98) | Médias | p. 41-47 |
+| **FSE08** | **La Belgique : État et niveaux de pouvoir** (livré, ticket #98) | Citoyen | p. 56-57, 61 |
 | FSE09 | Qui décide de quoi ? | Citoyen | p. 61-62 |
 | FSE10 | Élections et participation citoyenne | Citoyen | p. 61-62 |
 | FSE11 | Partis politiques et choix argumenté | Citoyen | p. 61-62 |
@@ -80,7 +89,11 @@ du ticket #96) — à respecter explicitement lors de la rédaction de FSE12-14.
 
 # 4. Prochaine étape
 
-Rédaction de FSE02-04 (cahier des charges déjà fourni par le ticket #97), en réutilisant
-strictement `app/v1/fse_plan.py`/`app/v1/fse_bank.py` (mêmes conventions que FSE01, jamais
-un second moteur) — voir `docs/claude-reports/2026-10-01_ticket-96-fse.md` pour le détail
-de l'implémentation de FSE01 et les chemins de code à réutiliser.
+Rédaction de FSE09-12 (ou lot suivant selon le prochain ticket), en réutilisant
+strictement `app/v1/fse_plan.py`/`app/v1/fse_bank.py` (mêmes conventions que FSE01-FSE08,
+jamais un second moteur) — voir `docs/claude-reports/2026-10-01_ticket-96-fse.md` pour le
+détail de l'implémentation de FSE01-FSE08 et les chemins de code à réutiliser. FSE09-11
+(thème « Citoyen », élections/partis) nécessiteront la même vigilance que FSE06/FSE08 sur
+la vérification de sources officielles pour toute affirmation institutionnelle ou
+électorale ; FSE12-14 (budget de l'État, sécurité sociale) devront respecter la note p. 61
+du programme (§ 3 ci-dessus : le volet législation reste hors évaluation sommative).

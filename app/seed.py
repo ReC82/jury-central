@@ -21,6 +21,10 @@ from app.v1.fse01_course import fse01_course_markdown
 from app.v1.fse02_course import fse02_course_markdown
 from app.v1.fse03_course import fse03_course_markdown
 from app.v1.fse04_course import fse04_course_markdown
+from app.v1.fse05_course import fse05_course_markdown
+from app.v1.fse06_course import fse06_course_markdown
+from app.v1.fse07_course import fse07_course_markdown
+from app.v1.fse08_course import fse08_course_markdown
 from app.v1.fse_plan import FSE_MODULE_CODE, FSE_SUBJECT_NAME
 
 SUBJECT_NAME = "Mathématiques"
@@ -4613,15 +4617,15 @@ FRANCAIS_FR05_BLOCKS = [
 
 # =========================================================================================
 # Formation sociale et économique (FSE) — CESS Professionnel (ticket #96 : FSE01 ;
-# ticket #97 : FSE02-FSE04)
+# ticket #97 : FSE02-FSE04 ; ticket #98 : FSE05-FSE08)
 # =========================================================================================
 #
 # Aucune matière FSE n'existait dans le dépôt avant le ticket #96 (voir `app.v1.fse_plan`,
-# docstring). FSE01 (ticket #96) et FSE02-FSE04 (ticket #97, cahier des charges détaillé)
-# sont rédigés et seedés ici — le reste du plan officiel (FSE05→FSE17) est documenté dans
-# `docs/content_plan_fse.md` mais n'est jamais seedé tant qu'il n'a pas de contenu réel
-# (même principe que Français FR06→FR20, ticket #94) : jamais un cours vide présenté
-# comme disponible.
+# docstring). FSE01 (ticket #96), FSE02-FSE04 (ticket #97) et FSE05-FSE08 (ticket #98,
+# cahiers des charges détaillés) sont rédigés et seedés ici — le reste du plan officiel
+# (FSE09→FSE17) est documenté dans `docs/content_plan_fse.md` mais n'est jamais seedé tant
+# qu'il n'a pas de contenu réel (même principe que Français FR06→FR20, ticket #94) : jamais
+# un cours vide présenté comme disponible.
 
 FSE01_CODE = "FSE01"
 FSE01_TITLE = "Communiquer : le schéma de communication"
@@ -4673,6 +4677,62 @@ FSE04_BLOCKS = [
         "title": "Cours complet",
         "type": BlockType.MARKDOWN,
         "content": fse04_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE05_CODE = "FSE05"
+FSE05_TITLE = "Image, vie privée et données personnelles"
+
+FSE05_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse05_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE06_CODE = "FSE06"
+FSE06_TITLE = "Droits et comportements illicites en ligne"
+
+FSE06_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse06_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE07_CODE = "FSE07"
+FSE07_TITLE = "Analyser un dossier médiatique"
+
+FSE07_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse07_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE08_CODE = "FSE08"
+FSE08_TITLE = "La Belgique : État et niveaux de pouvoir"
+
+FSE08_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse08_course_markdown(),
         "position": 1,
         "is_published": True,
         "space": BlockSpace.COURSE,
@@ -4913,9 +4973,10 @@ def seed() -> None:
         _seed_uaa(db, cessp, "FR04", FRANCAIS_FR04_TITLE, 5, FRANCAIS_FR04_BLOCKS, created, kept)
         _seed_uaa(db, cessp, "FR05", FRANCAIS_FR05_TITLE, 6, FRANCAIS_FR05_BLOCKS, created, kept)
 
-        # Formation sociale et économique (ticket #96 : FSE01 ; ticket #97 : FSE02-FSE04) :
-        # même mécanisme générique, purement additif — ne touche jamais
-        # Mathématiques/Informatique/Français (voir docstring de la section FSE ci-dessus).
+        # Formation sociale et économique (ticket #96 : FSE01 ; ticket #97 : FSE02-FSE04 ;
+        # ticket #98 : FSE05-FSE08) : même mécanisme générique, purement additif — ne touche
+        # jamais Mathématiques/Informatique/Français (voir docstring de la section FSE
+        # ci-dessus).
         fse_subject = _ensure_subject(db, FSE_SUBJECT_NAME, created, kept)
         _ensure_modules(db, fse_subject, [FSE_MODULE_CODE], created, kept)
         fse_module = next(m for m in fse_subject.modules if m.code == FSE_MODULE_CODE)
@@ -4923,6 +4984,10 @@ def seed() -> None:
         _seed_uaa(db, fse_module, FSE02_CODE, FSE02_TITLE, 2, FSE02_BLOCKS, created, kept)
         _seed_uaa(db, fse_module, FSE03_CODE, FSE03_TITLE, 3, FSE03_BLOCKS, created, kept)
         _seed_uaa(db, fse_module, FSE04_CODE, FSE04_TITLE, 4, FSE04_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE05_CODE, FSE05_TITLE, 5, FSE05_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE06_CODE, FSE06_TITLE, 6, FSE06_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE07_CODE, FSE07_TITLE, 7, FSE07_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE08_CODE, FSE08_TITLE, 8, FSE08_BLOCKS, created, kept)
 
         db.commit()
 

@@ -1,12 +1,15 @@
-"""Plan Formation sociale et économique (FSE) — CESS Professionnel (ticket #96/#97).
+"""Plan Formation sociale et économique (FSE) — CESS Professionnel (ticket #96/#97/#98).
 
 Contexte : aucune matière « Formation sociale et économique » n'existait dans le dépôt
 avant le ticket #96. Le périmètre complet (17 mini-cours FSE01→FSE17, voir le ticket
 #96 § Plan) est fixé par ChatGPT (chef de projet). Ticket #96 : FSE01 livré. Ticket #97 :
-FSE02, FSE03, FSE04 livrés (cahier des charges détaillé du ticket #97, § prompts
-spécifiques par cours) — FSE05→FSE17 restent documentés (titre, thème, pages du
-programme, voir `docs/content_plan_fse.md`) pour les tickets suivants, mais ne sont PAS
-seedés en base tant qu'ils n'ont pas de contenu réel : même principe que
+FSE02, FSE03, FSE04 livrés. Ticket #98 : FSE05, FSE06, FSE07, FSE08 livrés (cahier des
+charges détaillé du ticket #98, § prompts spécifiques par cours — périmètre officiel CESS P
+2026-2027/1, affirmations juridiques/institutionnelles vérifiées auprès de sources belges
+officielles, voir `app.v1.fse05_course`/`fse06_course`/`fse08_course` § Sources et le rapport
+docs/claude-reports pour les URL et dates exactes) — FSE09→FSE17 restent documentés (titre,
+thème, pages du programme, voir `docs/content_plan_fse.md`) pour les tickets suivants, mais ne
+sont PAS seedés en base tant qu'ils n'ont pas de contenu réel : même principe que
 `app.v1.francais_plan` (ticket #94 PHASE A, FR01→FR05 seuls dans `FRANCAIS_PLAN` au moment
 de leur rédaction, FR06→FR20 ajoutés phase par phase) — jamais un cours vide présenté
 comme disponible (`docs/PROJECT_RULES.md` § 5/§ 10).
@@ -46,9 +49,9 @@ class FSEUAAPlan:
         return f"fse-{self.code.lower()}"
 
 
-# Ticket #96 : FSE01. Ticket #97 : FSE02-FSE04. Le reste du plan officiel (FSE05→FSE17,
-# § Plan du ticket #96) est documenté dans `docs/content_plan_fse.md` — jamais ajouté ici
-# tant qu'il n'a pas de contenu réel associé (voir docstring du module).
+# Ticket #96 : FSE01. Ticket #97 : FSE02-FSE04. Ticket #98 : FSE05-FSE08. Le reste du plan
+# officiel (FSE09→FSE17, § Plan du ticket #96) est documenté dans `docs/content_plan_fse.md`
+# — jamais ajouté ici tant qu'il n'a pas de contenu réel associé (voir docstring du module).
 FSE_PLAN: tuple[FSEUAAPlan, ...] = (
     FSEUAAPlan(
         code="FSE01",
@@ -128,6 +131,95 @@ FSE_PLAN: tuple[FSEUAAPlan, ...] = (
             "Distinguer une norme, une valeur et un comportement dans une situation donnée",
             "Expliquer comment la pression d'un groupe peut influencer un comportement individuel",
             "Reconnaître les limites de l'explication par l'influence du groupe (responsabilité individuelle)",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE05",
+        title="Image, vie privée et données personnelles",
+        theme="Interactions médiatiques (Médias)",
+        program_pages="programme 474/2016/240, p. 45",
+        allowed_notions=(
+            "droit à l'image : droit de décider si l'on peut être photographié/filmé, et si cette image peut être utilisée ou diffusée",
+            "distinction entre prise de vue (photographier/filmer) et diffusion (publier/partager/transmettre)",
+            "sujet principal (personne mise en avant, reconnaissable) et personne accessoire (présente par hasard, non individualisée)",
+            "absence de règle absolue selon laquelle un lieu public autoriserait toute diffusion",
+            "exception de l'activité strictement personnelle ou domestique (partage dans un cercle très restreint)",
+            "consentement spécifique à une finalité précise (un accord pour un usage n'autorise pas automatiquement un autre usage)",
+            "vie privée : droit au respect de sa sphère personnelle, y compris en ligne",
+            "donnée personnelle : toute information qui permet d'identifier une personne",
+            "finalité : but précis pour lequel une donnée personnelle est collectée et utilisée",
+            "protection renforcée des mineurs (accord parental, association croissante de l'enfant selon son âge)",
+        ),
+        competencies=(
+            "Distinguer, dans une situation donnée, la prise de vue et la diffusion",
+            "Déterminer si une personne est sujet principal ou personne accessoire sur une image, et la conséquence sur le consentement nécessaire",
+            "Identifier une exception au principe du consentement (activité personnelle/domestique) sans la généraliser",
+            "Reconnaître une utilisation de données personnelles qui dépasse la finalité annoncée",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE06",
+        title="Droits et comportements illicites en ligne",
+        theme="Interactions médiatiques (Médias)",
+        program_pages="programme 474/2016/240, p. 45",
+        allowed_notions=(
+            "liberté d'expression et ses limites",
+            "cyberharcèlement (propos ou actes hostiles répétés en ligne, visant une même personne)",
+            "injure (propos insultant visant une personne, sans fait précis affirmé)",
+            "accusation non étayée / calomnie (affirmation d'un fait précis et négatif, non prouvé, qui nuit à la réputation)",
+            "menace (annonce d'un mal futur, dans le but de faire peur ou de contraindre)",
+            "racisme / discrimination (traitement défavorable fondé sur une origine, une couleur de peau, une religion ou une autre caractéristique protégée)",
+            "usurpation d'identité (se faire passer pour quelqu'un d'autre en ligne, sans son accord)",
+            "intrusion informatique (accès non autorisé à un compte, un appareil ou des données d'autrui)",
+            "diffusion malveillante (partage d'une information, d'une image ou d'une vidéo dans le but explicite de nuire)",
+            "traitement de données sans base valable (collecte ou usage de données personnelles sans justification ni information des personnes concernées)",
+        ),
+        competencies=(
+            "Reconnaître, dans un scénario donné, le ou les comportements en ligne en jeu et les indices qui permettent de les identifier",
+            "Distinguer une critique ou une opinion (couverte par la liberté d'expression) d'un comportement qui en dépasse les limites",
+            "Expliquer, sans citer de peine ni d'article de loi, pourquoi un comportement décrit pose problème",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE07",
+        title="Analyser un dossier médiatique",
+        theme="Interactions médiatiques (Médias)",
+        program_pages="programme 474/2016/240, p. 41-47",
+        allowed_notions=(
+            "recueillir, traiter, analyser et synthétiser des informations (méthode documentaire)",
+            "fait (élément vérifiable) distinct d'une interprétation (explication discutable à partir d'un fait) et d'une opinion (jugement personnel)",
+            "vérifier un document : auteur, date, contexte et preuves disponibles",
+            "enjeu juridique d'une situation médiatique (ex. droit à l'image, comportement en ligne, vus en FSE05/FSE06)",
+            "enjeu sociologique d'une situation médiatique (ex. normes, valeurs, influence sociale, vus en FSE04)",
+            "conclusion argumentée, appuyée explicitement sur des faits et enjeux identifiés",
+        ),
+        competencies=(
+            "Distinguer, dans un dossier donné, un fait, une interprétation et une opinion",
+            "Vérifier la fiabilité d'un document (auteur, date, contexte, preuves) avant de l'utiliser dans une analyse",
+            "Identifier les enjeux juridiques et sociologiques d'un dossier médiatique, en mobilisant les notions déjà enseignées (FSE01, FSE04, FSE05, FSE06)",
+            "Rédiger une conclusion argumentée qui s'appuie sur les faits et enjeux identifiés",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE08",
+        title="La Belgique : État et niveaux de pouvoir",
+        theme="Le citoyen et l'État (Citoyen)",
+        program_pages="programme 474/2016/240, p. 56-57, 61",
+        allowed_notions=(
+            "monarchie constitutionnelle (le roi ne dispose que des pouvoirs attribués par la Constitution)",
+            "démocratie parlementaire (le pouvoir est exercé par des représentants élus, réunis en parlements)",
+            "séparation des pouvoirs : législatif (faire les lois), exécutif (les appliquer), judiciaire (trancher les litiges)",
+            "niveau fédéral (compétences concernant l'ensemble du pays : justice, affaires étrangères, défense, sécurité sociale)",
+            "les trois Régions (flamande, wallonne, Bruxelles-Capitale) : compétences territoriales (économie, emploi, environnement, logement)",
+            "les trois Communautés (française, flamande, germanophone) : compétences liées aux personnes, à la langue et à la culture (enseignement, culture)",
+            "provinces et communes : niveaux de pouvoir locaux, la commune étant le niveau le plus proche du citoyen",
+            "loi (norme fédérale), décret (norme d'une Région hors Bruxelles, ou d'une Communauté), ordonnance (norme de la Région de Bruxelles-Capitale) comme vocabulaire d'identification",
+        ),
+        competencies=(
+            "Situer une compétence citée dans un document au bon niveau de pouvoir (fédéral, Région, Communauté, province, commune)",
+            "Distinguer les trois Régions et les trois Communautés, et expliquer la différence de logique entre elles (territoriale vs personnes/langue)",
+            "Identifier si une norme citée est une loi, un décret ou une ordonnance, à partir du niveau de pouvoir qui l'a adoptée",
+            "Expliquer en quoi la Belgique est une monarchie constitutionnelle et une démocratie parlementaire, avec la séparation des pouvoirs comme repère",
         ),
     ),
 )
