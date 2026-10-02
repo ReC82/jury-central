@@ -191,8 +191,12 @@ def test_fse17_course_page_is_real_content(client, db_session):
     response = client.get(f"/uaa/{FSE17_SLUG}")
     assert response.status_code == 200
     text = response.text
+    # Ticket #105 : les titres de section exacts ont été reformulés par la refonte
+    # pédagogique et visuelle (découpage en plusieurs blocs titrés) — ce test vérifie la
+    # substance de chaque section plutôt que le libellé exact de son ancien titre.
     for notion in (
-        "Carte des deux thèmes", "Tableau notion", "Lexique", "Confusions fréquentes",
+        "Interactions médiatiques", "Le citoyen et l'État", "Ce que je dois savoir faire",
+        "Lexique", "Confusions fréquentes",
         "CITER", "IDENTIFIER", "EXPLIQUER", "JUSTIFIER",
         "examens blancs", "simulations pédagogiques du Jury",
     ):

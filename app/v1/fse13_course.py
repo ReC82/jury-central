@@ -11,6 +11,7 @@ Périmètre strict (ticket #100, programme p. 61) : solidarité, mutualisation d
 assurance sociale, redistribution, financement, risques couverts — sans aucun calcul de
 droits (montants, conditions d'accès précises), conformément au ticket."""
 
+from app.v1.fse_course_sections import build_course_sections
 
 
 def fse13_course_markdown() -> str:
@@ -210,3 +211,9 @@ https://socialsecurity.belgium.be/fr/propos-de-la-securite-sociale/structure-et-
 En cas de doute sur un droit réel, consulte cet organisme officiel plutôt que ce cours, qui \
 reste un support pédagogique simplifié et n'enseigne aucun calcul de droit précis.
 """
+
+
+def fse13_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE13 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE13", fse13_course_markdown())

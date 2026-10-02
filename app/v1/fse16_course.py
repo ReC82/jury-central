@@ -18,6 +18,8 @@ from app.v1.fse16_content import (
     FSE16_PROPOSAL_TITLE,
 )
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse16_course_markdown() -> str:
     return f"""# FSE16 — Analyser une décision publique
@@ -210,3 +212,9 @@ l'effet principal visé.
 - Une conclusion doit toujours s'appuyer sur des éléments précis du dossier, jamais sur une \
 impression générale.
 """
+
+
+def fse16_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE16 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE16", fse16_course_markdown())

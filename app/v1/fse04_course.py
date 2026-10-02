@@ -26,6 +26,8 @@ from app.v1.fse04_content import (
     FSE04_TESTIMONY_TITLE,
 )
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse04_course_markdown() -> str:
     return f"""# FSE04 — Normes, valeurs et influence sociale
@@ -247,3 +249,9 @@ norme peuvent toujours coexister.
 - La pression du groupe n'efface jamais la responsabilité individuelle du comportement \
 choisi.
 """
+
+
+def fse04_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE04 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE04", fse04_course_markdown())

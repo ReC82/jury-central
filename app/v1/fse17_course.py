@@ -14,7 +14,20 @@ FSE01-FSE16, sans ajouter de nouvelle matière ») et n'a pas sa propre banque d
 son entraînement/examen réutilise la banque transversale FSE01-FSE16 via
 `app.v1.session_service._start_fse_transversal_session` (voir ce module et
 `app.v1.fse17_transversal` pour le mécanisme, strictement banque — jamais de génération IA,
-le volume existant de 16 cours × 14 questions suffit très largement)."""
+le volume existant de 16 cours × 14 questions suffit très largement).
+
+Refonte pédagogique et visuelle (ticket #105, étape 5) : FSE17 a une structure propre,
+différente du schéma en 10 sections de FSE02-FSE16 — `fse17_course_sections()` la découpe
+donc à la main (pas via `app.v1.fse_course_sections.build_course_sections`), section par
+section, en réutilisant la même fonction mécanique de correction du bug de liste
+(`fix_list_blank_lines`) et de conversion en citations (`pieges_to_blockquotes`, pour la
+section « Confusions fréquentes », qui est déjà, par nature, une liste de pièges)."""
+
+from app.v1.fse_course_sections import (
+    fix_list_blank_lines,
+    parse_numbered_sections,
+    pieges_to_blockquotes,
+)
 
 
 def fse17_course_markdown() -> str:
@@ -327,3 +340,36 @@ thèmes du programme (Médias et Citoyen), avec une correction, des points parti
 corrigé détaillé pour chaque question, exactement comme pour les autres cours FSE — mais \
 elles ne remplacent jamais l'épreuve réelle, son barème officiel ni ses consignes propres.
 """
+
+
+def fse17_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE17 — refonte pédagogique et visuelle
+    (ticket #105). Structure propre à FSE17 (voir docstring du module), découpée à la
+    main plutôt que via `app.v1.fse_course_sections.build_course_sections`."""
+    full = fse17_course_markdown()
+    intro, _, rest = full.partition("## 1.")
+    sections = parse_numbered_sections("## 1." + rest)
+    return [
+        (
+            "FSE17 — Introduction : une révision, pas une nouvelle matière",
+            fix_list_blank_lines(intro.split("\n", 1)[1].strip()),
+        ),
+        ("FSE17 — Les deux thèmes du programme", fix_list_blank_lines(sections[1])),
+        (
+            "FSE17 — Tableau de révision : notion et savoir-faire",
+            fix_list_blank_lines(sections[2]),
+        ),
+        ("FSE17 — Lexique transversal", fix_list_blank_lines(sections[3])),
+        ("FSE17 — Confusions fréquentes entre cours", pieges_to_blockquotes(sections[4])),
+        ("FSE17 — Fiches méthode : les verbes à maîtriser", fix_list_blank_lines(sections[5])),
+        (
+            "FSE17 — Organiser son temps pendant l'épreuve",
+            fix_list_blank_lines(sections[6]),
+        ),
+        ("FSE17 — Douze exercices transversaux", fix_list_blank_lines(sections[7])),
+        (
+            "FSE17 — Corrigés des douze exercices transversaux",
+            fix_list_blank_lines(sections[8]),
+        ),
+        ("FSE17 — Accès aux trois examens blancs", fix_list_blank_lines(sections[9])),
+    ]
