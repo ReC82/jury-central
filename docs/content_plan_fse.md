@@ -3,38 +3,42 @@
 Document de planification (même rôle que `docs/content_plan_informatique_francais.md`
 pour Informatique/Français), pas une documentation technique permanente — voir
 `docs/ARCHITECTURE.md` pour ce qui est réellement implémenté. Produit dans le cadre du
-ticket GitHub #96/#97/#98. Traçabilité du contenu : voir `docs/content_workflow.md`,
+ticket GitHub #96-#102. Traçabilité du contenu : voir `docs/content_workflow.md`,
 section « Contenu rédigé à partir d'un cahier des charges » — le cahier des charges
-pédagogique complet est fourni directement dans les tickets #96/#97/#98 (pas de fichier
+pédagogique complet est fourni directement dans les tickets #96-#101 (pas de fichier
 `docs/sources_cours/` séparé pour le contenu des leçons), le périmètre officiel provenant
 des documents utilisateur cités au § 2.
 
 ---
 
-# 1. État — tickets #96/#97/#98 (2026-10-01)
+# 1. État — tickets #96-#102 (2026-10-02) — PROGRAMME COMPLET
 
 Matière créée (`Subject` « Formation sociale et économique », `Module` code `FSE`).
-**FSE01-FSE08 livrés complets** (théorie, 14 questions de banque chacun, practice avec
-choix de difficulté réellement effectif, examen avec choix de difficulté ET de sévérité de
-cotation distincts, correction hybride, résultats, historique) :
+**FSE01-FSE17 livrés complets** (théorie, 14 questions de banque chacun pour FSE01-16,
+practice avec choix de difficulté réellement effectif, examen avec choix de difficulté ET
+de sévérité de cotation distincts, correction hybride, résultats, historique) :
 - Ticket #96 : FSE01 — voir `app/v1/fse_plan.py`, `app/v1/fse01_course.py`,
   `app/v1/fse01_content.py`.
 - Ticket #97 : FSE02, FSE03, FSE04 — `app/v1/fse0[2-4]_course.py`/`fse0[2-4]_content.py`.
 - Ticket #98 : FSE05, FSE06, FSE07, FSE08 — `app/v1/fse0[5-8]_course.py`/
-  `fse0[5-8]_content.py`. FSE06/FSE08 mobilisent des affirmations juridiques et
-  institutionnelles réelles, vérifiées auprès de sources belges officielles et
-  référencées dans chaque cours (§ « Sources officielles vérifiées ») et dans
-  `docs/claude-reports/2026-10-01_ticket-96-fse.md` § 14.
+  `fse0[5-8]_content.py`.
+- Ticket #99 : FSE09, FSE10, FSE11, FSE12 — `app/v1/fse0[9]_course.py`/`fse1[0-2]_course.py`.
+- Ticket #100 : FSE13, FSE14, FSE15, FSE16 — `app/v1/fse1[3-6]_course.py`.
+- Ticket #101 : FSE17 (révision transversale, sans banque propre) —
+  `app/v1/fse17_course.py` + `app.v1.session_service._start_fse_transversal_session` pour
+  les trois examens blancs progressifs (facile/moyen/difficile = sélecteur de difficulté
+  existant appliqué au pool transversal FSE01-16).
+- Ticket #102 : contrôle de couverture — matrice exhaustive, absence de contenu hors
+  périmètre, audit anti-doublon global (5 paires trouvées et corrigées, dont 1 croisée
+  entre deux cours), aucune question orpheline.
+
+FSE06/FSE08/FSE09/FSE10/FSE11/FSE14 mobilisent des affirmations juridiques et
+institutionnelles réelles, vérifiées auprès de sources belges officielles et référencées
+dans chaque cours (§ « Sources officielles vérifiées ») et dans
+`docs/claude-reports/2026-10-01_ticket-96-fse.md` § 14 et § 15.
 
 Tous ces cours partagent `app/v1/fse_bank.py` (banque unique, import idempotent par
-cours).
-
-FSE09→FSE17 ci-dessous restent au stade de PLAN (titre, thème, pages du programme) : ils
-ne sont ni seedés en base ni présentés comme disponibles (même principe que Français
-FR06→FR20 au moment du ticket #94 PHASE A) — chacun fera l'objet d'un ticket de rédaction
-dédié, suivant le même cahier des charges de rédaction que les tickets #97/#98 (objectifs
-observables, théorie progressive, définitions, méthode, 3 exemples commentés, 2 exercices
-guidés corrigés, pièges, fiche mémo, 8 exercices d'entraînement, examen /20).
+cours) ; FSE17 n'y a volontairement aucune entrée.
 
 ---
 
@@ -67,33 +71,32 @@ maximum, seuil de réussite 50 %).
 | **FSE06** | **Droits et comportements illicites en ligne** (livré, ticket #98) | Médias | p. 45 |
 | **FSE07** | **Analyser un dossier médiatique** (livré, ticket #98) | Médias | p. 41-47 |
 | **FSE08** | **La Belgique : État et niveaux de pouvoir** (livré, ticket #98) | Citoyen | p. 56-57, 61 |
-| FSE09 | Qui décide de quoi ? | Citoyen | p. 61-62 |
-| FSE10 | Élections et participation citoyenne | Citoyen | p. 61-62 |
-| FSE11 | Partis politiques et choix argumenté | Citoyen | p. 61-62 |
-| FSE12 | Le budget de l'État | Citoyen | p. 61 |
-| FSE13 | La sécurité sociale : rôle et financement | Citoyen | p. 61 |
-| FSE14 | La sécurité sociale : organismes et enjeux | Citoyen | p. 61-62 |
-| FSE15 | Le circuit économique et les interventions de l'État | Citoyen | p. 43, 61-63 |
-| FSE16 | Analyser une décision publique | Citoyen | p. 57-58, 62-64 |
-| FSE17 | Révision générale et examens blancs | — | — |
+| **FSE09** | **Qui décide de quoi ?** (livré, ticket #99) | Citoyen | p. 61-62 |
+| **FSE10** | **Élections et participation citoyenne** (livré, ticket #99) | Citoyen | p. 61-62 |
+| **FSE11** | **Partis politiques et choix argumenté** (livré, ticket #99) | Citoyen | p. 61-62 |
+| **FSE12** | **Le budget de l'État** (livré, ticket #99) | Citoyen | p. 61 |
+| **FSE13** | **La sécurité sociale : rôle et financement** (livré, ticket #100) | Citoyen | p. 61 |
+| **FSE14** | **La sécurité sociale : organismes et enjeux** (livré, ticket #100) | Citoyen | p. 61-62 |
+| **FSE15** | **Le circuit économique et les interventions de l'État** (livré, ticket #100) | Citoyen | p. 43, 61-63 |
+| **FSE16** | **Analyser une décision publique** (livré, ticket #100) | Citoyen | p. 57-58, 62-64 |
+| **FSE17** | **Révision générale et examens blancs** (livré, ticket #101) | Synthèse | — |
 
 FSE01-07 couvrent l'UAA « Interactions médiatiques » ; FSE08-16 couvrent l'UAA « Le citoyen
-et l'État » ; FSE17 est une révision transversale (rôle comparable à MC38 pour AMPCR —
-voir `app/v1/mc38_transversal.py` — mais jamais implémentée comme telle avant son propre
-ticket dédié).
+et l'État » ; FSE17 est une révision transversale (même principe que MC38 pour AMPCR — voir
+`app/v1/mc38_transversal.py` — mais strictement banque, sans aucune génération IA : voir
+`app.v1.session_service._start_fse_transversal_session`).
 
 Note p. 61 du programme : le volet législation reste hors évaluation sommative (acceptation
-du ticket #96) — à respecter explicitement lors de la rédaction de FSE12-14.
+du ticket #96) — respecté explicitement dans FSE15 (ticket #100, vérifié par
+`tests/test_ticket102_coverage.py::test_fse15_respects_legislation_exclusion`).
 
 ---
 
-# 4. Prochaine étape
+# 4. Programme officiel complet livré (2026-10-02)
 
-Rédaction de FSE09-12 (ou lot suivant selon le prochain ticket), en réutilisant
-strictement `app/v1/fse_plan.py`/`app/v1/fse_bank.py` (mêmes conventions que FSE01-FSE08,
-jamais un second moteur) — voir `docs/claude-reports/2026-10-01_ticket-96-fse.md` pour le
-détail de l'implémentation de FSE01-FSE08 et les chemins de code à réutiliser. FSE09-11
-(thème « Citoyen », élections/partis) nécessiteront la même vigilance que FSE06/FSE08 sur
-la vérification de sources officielles pour toute affirmation institutionnelle ou
-électorale ; FSE12-14 (budget de l'État, sécurité sociale) devront respecter la note p. 61
-du programme (§ 3 ci-dessus : le volet législation reste hors évaluation sommative).
+Les 17 mini-cours officiels FSE01-FSE17 sont désormais tous rédigés, banqués (sauf FSE17)
+et installés. Prochaine étape éventuelle : un ticket futur pourrait enrichir une UAA
+existante (jamais en ajouter une 18e hors du programme officiel) selon le retour de
+l'utilisateur sur l'ensemble du parcours. Voir
+`docs/claude-reports/2026-10-01_ticket-96-fse.md` § 1-15 pour le détail complet de
+l'implémentation et les chemins de code à réutiliser pour toute évolution future.
