@@ -23,6 +23,7 @@ analyse ») :
   `docs/components/PosterCard.md` — appliqués à FSE01 uniquement pour cette étape (ticket
   #108 : l'extension à FSE02-17 attend un retour visuel explicite)."""
 
+import re
 from pathlib import Path
 
 # =============================================================================================
@@ -137,60 +138,103 @@ Logo institutionnel, en bas à droite de l'affiche : logo du Service public de W
 Un petit QR code est imprimé dans le coin inférieur gauche de l'affiche ; il renvoie, une \
 fois scanné, vers une page d'information sur les limitations de vitesse en zone habitée."""
 
-# Ticket #108 § 3-4 : illustration générée une seule fois via l'API OpenAI et conservée
-# durablement sur disque (voir app/v1/fse01_image.py) — jamais un appel API à l'ouverture
-# du cours. Le slogan et les mentions restent en HTML/CSS (jamais du texte intégré à
-# l'image) pour garantir leur exactitude et leur lisibilité. Vérification d'existence du
-# fichier au chargement du module (lecture disque locale, pas un appel réseau) : si
-# l'image n'a jamais été générée ou a été supprimée, un rendu de secours en CSS pur est
-# utilisé à la place, jamais une image cassée. Voir docs/components/PosterCard.md.
+# Ticket #108 § 3-4, recomposition ticket #110 (retour visuel : l'affiche ressemblait à
+# une illustration suivie d'un bandeau séparé — slogan, sous-titre, identité d'émetteur et
+# QR code sont désormais DANS la composition elle-même, en superposition HTML/SVG sur
+# l'illustration générée, dimensionnée en unités de container-query (`cqw`) pour rester
+# proportionnée du téléphone à l'agrandissement au clic. Illustration générée une seule
+# fois via l'API OpenAI et conservée durablement sur disque (voir app/v1/fse01_image.py) —
+# jamais un appel API à l'ouverture du cours. Vérification d'existence du fichier au
+# chargement du module (lecture disque locale, pas un appel réseau) : si l'image n'a
+# jamais été générée ou a été supprimée, un rendu de secours en CSS pur est utilisé à la
+# place, jamais une image cassée. Voir docs/components/PosterCard.md.
 _POSTER_IMAGE_REL_URL = "/static/img/fse01_affiche_securite_routiere.png"
 _POSTER_IMAGE_FILE = (
     Path(__file__).resolve().parent.parent / "static" / "img" / "fse01_affiche_securite_routiere.png"
 )
-
-_POSTER_ALT_TEXT = (
-    "Illustration pédagogique et fictive : une silhouette d'enfant traverse un passage "
-    "piéton pendant qu'une voiture ralentit."
+_POSTER_QR_SVG_FILE = (
+    Path(__file__).resolve().parent.parent / "static" / "img" / "fse01_qr_vitesse.svg"
 )
 
-_POSTER_FALLBACK_SVG = """<div class="jc-poster-fallback" role="img" aria-label="Illustration non disponible : silhouette schématique d'un enfant qui traverse devant une voiture qui ralentit.">
-<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
-<rect x="0" y="120" width="200" height="12" fill="#d7dce1"></rect>
-<rect x="10" y="123" width="20" height="6" fill="#fff"></rect>
-<rect x="50" y="123" width="20" height="6" fill="#fff"></rect>
-<rect x="90" y="123" width="20" height="6" fill="#fff"></rect>
-<rect x="130" y="123" width="20" height="6" fill="#fff"></rect>
-<rect x="170" y="123" width="20" height="6" fill="#fff"></rect>
-<circle cx="70" cy="70" r="10" fill="#b02a37"></circle>
-<rect x="63" y="80" width="14" height="30" rx="4" fill="#b02a37"></rect>
-<rect x="120" y="85" width="55" height="25" rx="6" fill="#b02a37"></rect>
-<circle cx="132" cy="112" r="6" fill="#55606b"></circle>
-<circle cx="163" cy="112" r="6" fill="#55606b"></circle>
-</svg>
-</div>"""
+# Destination du QR code : une page réelle, vérifiée (consultée au moment de la rédaction
+# de ce cours), de l'Agence wallonne pour la Sécurité routière (AWSR), consacrée à la
+# vitesse — cohérente avec le texte du document (`FSE01_AFFICHE_TEXT`, inchangé) qui décrit
+# « une page d'information sur les limitations de vitesse en zone habitée ». Une simple
+# page d'information n'est PAS une rétroaction adressée à l'émetteur (voir l'analyse de ce
+# document dans `app.v1.fse01_course`, section Exemples) : ce lien reste cohérent avec
+# cette nuance, jamais présenté comme un moyen de répondre au SPW.
+FSE01_POSTER_QR_TARGET_URL = "https://www.awsr.be/securite-routiere/vitesse/"
+
+_POSTER_ALT_TEXT = (
+    "Affiche de sécurité routière, reconstitution pédagogique fictive. Slogan : « 90, "
+    "c'est déjà trop vite quand un enfant traverse ». Sous-titre : « Ralentir, c'est voir "
+    "à temps. » Illustration : une silhouette d'enfant traverse un passage piéton pendant "
+    "qu'une voiture ralentit. En bas à droite : identité graphique fictive « Sécurité "
+    "routière Wallonie ». En bas à gauche : QR code renvoyant vers une page d'information "
+    "réelle sur la vitesse (awsr.be)."
+)
 
 
-def _poster_visual_html() -> str:
+def _poster_qr_svg() -> str:
+    """Lit le vrai visuel de QR code déjà généré (voir le script de génération dans
+    `docs/components/PosterCard.md`) et retire les attributs `width`/`height` figés en mm
+    pour laisser le CSS (`.jc-poster-qr-box svg`) contrôler la taille d'affichage."""
+    content = _POSTER_QR_SVG_FILE.read_text(encoding="utf-8")
+    match = re.search(r"<svg[^>]*>.*</svg>", content, re.DOTALL)
+    svg = match.group(0)
+    svg = re.sub(r'\s(width|height)="[^"]*"', "", svg)
+    return svg.replace('id="qr-path"', "")
+
+
+_POSTER_BADGE_SVG = """<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" r="47" fill="#2b3440" stroke="#ffffff" stroke-width="4"></circle>
+<text x="50" y="62" text-anchor="middle" font-size="34" font-weight="800" fill="#ffffff" font-family="sans-serif">SPW</text>
+</svg>"""
+
+
+def _poster_visual_inner_html() -> str:
+    """Illustration (image réelle ou rendu de secours) — jamais le slogan/l'identité/le QR,
+    superposés séparément dans `FSE01_AFFICHE_CARD_HTML` pour s'adapter à sa présence."""
     if _POSTER_IMAGE_FILE.exists():
-        return (
-            f'<img src="{_POSTER_IMAGE_REL_URL}" alt="{_POSTER_ALT_TEXT}" '
-            f'class="jc-poster-image" loading="lazy">'
-        )
-    return _POSTER_FALLBACK_SVG
+        return f'<img src="{_POSTER_IMAGE_REL_URL}" alt="" class="jc-poster-image" loading="lazy">'
+    return (
+        '<div class="jc-poster-fallback-visual">'
+        '<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">'
+        '<rect x="0" y="120" width="200" height="12" fill="#d7dce1"></rect>'
+        '<rect x="10" y="123" width="20" height="6" fill="#fff"></rect>'
+        '<rect x="50" y="123" width="20" height="6" fill="#fff"></rect>'
+        '<rect x="90" y="123" width="20" height="6" fill="#fff"></rect>'
+        '<rect x="130" y="123" width="20" height="6" fill="#fff"></rect>'
+        '<rect x="170" y="123" width="20" height="6" fill="#fff"></rect>'
+        '<circle cx="70" cy="70" r="10" fill="#b02a37"></circle>'
+        '<rect x="63" y="80" width="14" height="30" rx="4" fill="#b02a37"></rect>'
+        '<rect x="120" y="85" width="55" height="25" rx="6" fill="#b02a37"></rect>'
+        '<circle cx="132" cy="112" r="6" fill="#55606b"></circle>'
+        '<circle cx="163" cy="112" r="6" fill="#55606b"></circle>'
+        "</svg></div>"
+    )
 
 
-FSE01_AFFICHE_CARD_HTML = f"""<div class="jc-doc jc-poster">
-<div class="jc-doc-header"><strong>🪧 Affiche — sécurité routière</strong><span class="jc-doc-fictive-badge">Reconstitution pédagogique fictive — pas une véritable campagne officielle</span></div>
-{_poster_visual_html()}
-<div class="jc-poster-textblock">
+FSE01_AFFICHE_CARD_HTML = f"""<div class="jc-poster-wrap">
+<figure class="jc-poster">
+<div class="jc-poster-visual jc-zoomable" role="img" aria-label="{_POSTER_ALT_TEXT}">
+{_poster_visual_inner_html()}
+<div class="jc-poster-slogan-zone">
 <p class="jc-poster-slogan">90, C'EST DÉJÀ TROP VITE QUAND UN ENFANT TRAVERSE</p>
 <p class="jc-poster-subtitle">Ralentir, c'est voir à temps.</p>
 </div>
-<div class="jc-poster-footer">
-<span>Logo (bas à droite, fictif) : Service public de Wallonie — Sécurité routière Wallonie</span>
-<span>QR code (bas à gauche, fictif) : renvoie vers une page d'information sur les limitations de vitesse en zone habitée</span>
+<div class="jc-poster-badge" aria-hidden="true">
+<div class="jc-poster-badge-circle">{_POSTER_BADGE_SVG}</div>
+<span class="jc-poster-badge-label">Sécurité routière Wallonie</span>
 </div>
+<div class="jc-poster-qr" aria-hidden="true">
+<div class="jc-poster-qr-box">{_poster_qr_svg()}</div>
+</div>
+</div>
+</figure>
+<p class="jc-poster-caption">Document pédagogique fictif — pas une véritable campagne officielle. \
+Cliquer sur l'affiche pour l'agrandir. Le QR code renvoie vers une vraie page d'information : \
+<a href="{FSE01_POSTER_QR_TARGET_URL}" target="_blank" rel="noopener">awsr.be — la vitesse</a>.</p>
 </div>"""
 
 # =============================================================================================

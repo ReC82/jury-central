@@ -789,63 +789,143 @@ table.value-table tbody th {
     font-weight: 700;
 }
 
-/* --- Affiche illustrée (ticket #108 § 3-4) : image générée (ou rendu de secours en CSS
-   pur si la génération a échoué) + slogan/mentions en HTML pour garantir leur exactitude
-   et leur lisibilité, jamais du texte intégré à l'image elle-même. --- */
+/* --- Affiche illustrée (ticket #108 § 3-4, recomposée ticket #110) : UNE seule
+   composition — slogan, sous-titre, identité d'émetteur et QR code sont superposés en
+   HTML/SVG directement sur l'illustration (générée une fois, ou rendu de secours en CSS
+   pur), jamais des blocs séparés en dessous. Dimensionnée en unités `cqw` (container
+   query) : le texte reste proportionné du téléphone à l'agrandissement au clic, sans
+   recalcul JS. Largeur maximale ~440px, centrée, proportions d'image toujours préservées
+   (`width:100%; height:auto`, jamais de recadrage ni d'étirement). --- */
 
-.jc-poster-image {
+.jc-poster-wrap {
+    max-width: 440px;
+    margin: 0 auto 1.25rem;
+}
+
+.jc-poster {
+    margin: 0;
+}
+
+.jc-poster-visual {
+    position: relative;
+    container-type: inline-size;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18);
+    cursor: zoom-in;
+    background: #f4f1ec;
+}
+
+.jc-poster-image,
+.jc-poster-fallback-visual {
     display: block;
     width: 100%;
     height: auto;
 }
 
-.jc-poster-fallback {
+.jc-poster-fallback-visual {
+    aspect-ratio: 2 / 3;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f4f1ec;
-    padding: 1.5rem;
 }
 
-.jc-poster-fallback svg {
-    max-width: 220px;
+.jc-poster-fallback-visual svg {
+    max-width: 45%;
+    height: auto;
+}
+
+.jc-poster-slogan-zone {
+    position: absolute;
+    top: 4%;
+    left: 6%;
+    right: 6%;
+    text-align: center;
+}
+
+.jc-poster-slogan {
+    margin: 0;
+    font-weight: 800;
+    font-size: 6.6cqw;
+    line-height: 1.18;
+    letter-spacing: 0.01em;
+    color: var(--jc-red);
+}
+
+.jc-poster-subtitle {
+    margin: 0.35em 0 0;
+    font-size: 3.6cqw;
+    font-weight: 600;
+    color: #3a2020;
+}
+
+.jc-poster-badge {
+    position: absolute;
+    right: 4%;
+    bottom: 3%;
+    width: 19%;
+    text-align: center;
+}
+
+.jc-poster-badge-circle {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.jc-poster-badge-circle svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.jc-poster-badge-label {
+    display: block;
+    margin-top: 0.25em;
+    font-size: 1.9cqw;
+    line-height: 1.15;
+    color: #2b3440;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 4px;
+    padding: 0.1em 0.15em;
+}
+
+.jc-poster-qr {
+    position: absolute;
+    left: 4%;
+    bottom: 3%;
+    width: 19%;
+}
+
+.jc-poster-qr-box {
+    background: #fff;
+    border-radius: 6px;
+    padding: 8%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.jc-poster-qr-box svg {
+    display: block;
     width: 100%;
     height: auto;
 }
 
-.jc-poster-textblock {
-    background: var(--jc-red);
-    color: #fff;
+.jc-poster-caption {
     text-align: center;
-    padding: 1.1rem 1rem;
-}
-
-.jc-poster-slogan {
-    font-size: 1.2rem;
-    font-weight: 800;
-    letter-spacing: 0.01em;
-    margin: 0 0 0.4rem;
-    line-height: 1.3;
-}
-
-.jc-poster-subtitle {
-    font-size: 0.95rem;
-    margin: 0;
-}
-
-.jc-poster-footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    padding: 0.65rem 1.1rem;
     font-size: 0.78rem;
     color: #55606b;
-    border-top: 1px solid #eef0f2;
+    margin: 0.5rem 0 0;
+}
+
+.jc-poster-caption a {
+    color: var(--jc-blue);
 }
 
 @media print {
-    .jc-poster-image { max-height: 420px; object-fit: cover; }
+    .jc-poster-wrap { max-width: 340px; break-inside: avoid; }
+    .jc-poster-visual { cursor: default; box-shadow: none; border: 1px solid #d7dce1; }
 }
 
 /* --- Schéma de communication responsive (ticket #108 § 5) : deux rendus SVG distincts
@@ -862,4 +942,37 @@ table.value-table tbody th {
 @media print {
     .jc-diagram--mobile { display: none !important; }
     .jc-diagram--desktop { display: block !important; }
+}
+
+/* --- Agrandissement au clic (ticket #110) : générique, réutilisable par tout visuel
+   marqué `.jc-zoomable` (voir enableZoomableImages() dans design_system.js) — pas
+   seulement l'affiche. Le même élément passe en position fixe et s'agrandit, plutôt que
+   d'ouvrir un fichier image séparé : la composition complète (texte inclus) reste visible
+   en grand, pas seulement l'illustration brute. --- */
+
+.jc-zoomable--active {
+    position: fixed !important;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    width: min(94vw, 620px) !important;
+    max-width: none !important;
+    cursor: zoom-out;
+}
+
+.jc-zoom-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    z-index: 1000;
+}
+
+body.jc-zoom-open {
+    overflow: hidden;
+}
+
+@media print {
+    .jc-zoomable--active { position: static !important; width: auto !important; }
+    .jc-zoom-backdrop { display: none !important; }
 }
