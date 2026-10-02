@@ -16,6 +16,8 @@ from app.v1.fse16_content import (
     FSE16_BUDGET_NOTE_TITLE,
     FSE16_PROPOSAL_TEXT,
     FSE16_PROPOSAL_TITLE,
+    FSE16_REACTIONS_CARD_HTML,
+    FSE16_REACTIONS_TITLE,
 )
 
 from app.v1.fse_course_sections import build_course_sections
@@ -102,17 +104,17 @@ dépense régionale augmente immédiatement) d'un **effet possible à plus long 
 compensation partielle par de nouvelles recettes), explicitement présenté comme une \
 **hypothèse incertaine**, pas un résultat garanti.
 
-### Exemple 3 — Réaction de l'association environnementale
+### Exemple 3 — {FSE16_REACTIONS_TITLE}
 
-« Nous saluons l'effet attendu de réduction de l'usage de la voiture individuelle, mais \
-rappelons que cet effet dépendra de la capacité réelle du réseau à absorber la demande \
-supplémentaire — un effet incertain à court terme, qui pourrait ne se concrétiser qu'à plus \
-long terme si le réseau est renforcé en conséquence. »
+{FSE16_REACTIONS_CARD_HTML}
 
-**Analyse commentée :** cette réaction illustre une **limite** explicite de l'effet attendu \
-(réduction de l'usage de la voiture) : cet effet dépend de la **capacité réelle du réseau** \
-à absorber la demande supplémentaire — sans cette condition, l'effet pourrait ne pas se \
-réaliser, ou seulement à plus long terme.
+**Analyse commentée :** les trois réactions montrent des effets différents selon l'agent \
+concerné (vu en FSE15) : un effet positif direct pour le ménage (accès facilité à un \
+emploi), un effet mixte pour l'entreprise de transport (plus de fréquentation, mais aussi \
+plus de coûts), et une **limite** explicite relevée par l'association environnementale : \
+l'effet attendu de réduction de l'usage de la voiture dépend de la **capacité réelle du \
+réseau** à absorber la demande supplémentaire — sans cette condition, l'effet pourrait ne \
+pas se réaliser, ou seulement à plus long terme.
 
 ## 6. Mauvaises réponses comparées aux bonnes
 

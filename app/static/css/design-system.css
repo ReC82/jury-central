@@ -1213,3 +1213,275 @@ body.jc-zoom-open {
     .jc-exercise-card { break-inside: avoid; }
     .jc-exercise-correction summary { border: 1px solid #000; color: #000; background: none; }
 }
+
+/* --- Pages de médias réalistes (ticket #115, FSE02) : s'appuient sur .jc-doc pour
+   l'habillage externe (en-tête, étiquette Fictif) — composants réutilisables, pas encore
+   appliqués au-delà de FSE02 pour cette étape. --- */
+
+.jc-webpage-masthead {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: #1f2933;
+    margin-bottom: 0.3rem;
+}
+
+.jc-webpage-masthead--free { color: var(--jc-orange); }
+.jc-webpage-masthead--public { color: var(--jc-blue); }
+
+.jc-webpage-masthead-tag {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #55606b;
+    letter-spacing: normal;
+}
+
+.jc-webpage-tagline {
+    font-size: 0.92rem;
+    color: #3a4552;
+    margin: 0 0 0.85rem;
+}
+
+.jc-pricing-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.65rem;
+    margin: 0 0 0.85rem;
+}
+
+.jc-pricing-card {
+    border: 1px solid #d7dce1;
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    text-align: center;
+    background: #fafbfc;
+}
+
+.jc-pricing-card-label {
+    display: block;
+    font-size: 0.78rem;
+    color: #55606b;
+    margin-bottom: 0.3rem;
+}
+
+.jc-pricing-card-price {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--jc-blue);
+}
+
+.jc-pricing-card-price small {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #55606b;
+}
+
+.jc-webpage-quote {
+    font-style: italic;
+    color: #3a4552;
+    border-left: 3px solid var(--jc-blue);
+    padding-left: 0.75rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.92rem;
+}
+
+.jc-webpage-note {
+    font-size: 0.88rem;
+    color: #55606b;
+    margin: 0 0 0.75rem;
+}
+
+.jc-reader-letters {
+    background: var(--jc-blue-bg);
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+}
+
+.jc-reader-letters-title {
+    display: block;
+    font-weight: 700;
+    color: var(--jc-blue);
+    margin-bottom: 0.25rem;
+    font-size: 0.88rem;
+}
+
+.jc-reader-letters p {
+    margin: 0;
+    font-size: 0.88rem;
+}
+
+.jc-ad-banner {
+    border-radius: 6px;
+    padding: 0.55rem 0.75rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.jc-ad-banner--a {
+    background: var(--jc-gold-bg);
+    color: #7a5c00;
+    border: 1px dashed var(--jc-gold);
+}
+
+.jc-ad-banner--b {
+    background: var(--jc-purple-bg);
+    color: var(--jc-purple);
+    border: 1px dashed var(--jc-purple);
+}
+
+.jc-webpage-headline {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2933;
+    margin: 0 0 0.75rem;
+}
+
+.jc-webpage-article-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: #55606b;
+    border-top: 1px solid #eef0f2;
+    padding-top: 0.6rem;
+}
+
+.jc-webpage-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+}
+
+.jc-webpage-feature-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.jc-webpage-feature p {
+    margin: 0.2rem 0 0;
+    font-size: 0.88rem;
+}
+
+@media print {
+    .jc-pricing-cards { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* --- Document source générique (ticket #115) : variante légère de .jc-doc pour un
+   document textuel simple (note, mémo, dossier...) qui ne justifie pas un composant
+   entièrement bespoke — texte réel, structure préservée (listes, paragraphes). --- */
+
+.jc-source-doc-caption {
+    font-size: 0.82rem;
+    font-style: italic;
+    color: #55606b;
+    margin: 0 0 0.75rem;
+}
+
+.jc-source-doc-body p,
+.jc-source-doc-body ul,
+.jc-source-doc-body ol {
+    font-size: 0.93rem;
+}
+
+.jc-source-doc-body ul,
+.jc-source-doc-body ol {
+    margin: 0 0 0.75rem 1.2rem;
+    padding: 0;
+}
+
+.jc-source-doc-body li {
+    margin-bottom: 0.3rem;
+}
+
+/* --- Couleurs génériques d'intervenant (ticket #115) : 5 teintes stables, réutilisables
+   par tout dialogue à plusieurs voix (groupe en ligne, chat de classe, réactions de
+   plusieurs parties). La même personne garde la même couleur partout dans un même
+   document — attribuer p1/p2/... par ordre d'apparition, jamais au hasard. --- */
+
+.jc-social-avatar--p1 { background: var(--jc-blue); }
+.jc-social-avatar--p2 { background: var(--jc-purple); }
+.jc-social-avatar--p3 { background: var(--jc-green); }
+.jc-social-avatar--p4 { background: var(--jc-orange); }
+.jc-social-avatar--p5 { background: var(--jc-gold); }
+
+/* --- Fil de discussion compact (ticket #115, ex. FSE07) : messages successifs avec
+   avatar coloré et horodatage, plus léger que EmailCard (pas d'en-tête de/à, juste
+   auteur + heure) — adapté à une conversation de groupe. --- */
+
+.jc-chat-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.jc-chat-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+}
+
+.jc-chat-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.jc-chat-author {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1f2933;
+}
+
+.jc-chat-time {
+    font-size: 0.75rem;
+    color: #55606b;
+}
+
+.jc-chat-text {
+    margin: 0.15rem 0 0;
+    font-size: 0.9rem;
+}
+
+/* --- Carte de citation/réaction (ticket #115, ex. FSE04 témoignage, FSE16 réactions) :
+   une voix identifiée, isolée, pas un fil de discussion. --- */
+
+.jc-quote-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.65rem;
+}
+
+.jc-quote-card:last-child { margin-bottom: 0; }
+
+.jc-quote-author {
+    display: block;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1f2933;
+    margin-bottom: 0.2rem;
+}
+
+.jc-quote-text {
+    margin: 0;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+@media print {
+    .jc-chat-message, .jc-quote-card { break-inside: avoid; }
+}

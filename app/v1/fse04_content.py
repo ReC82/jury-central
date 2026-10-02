@@ -41,3 +41,58 @@ compris. Je n'ai ni partagé la vidéo, ni laissé de commentaire moqueur. Je sa
 d'autres membres du groupe n'ont pas non plus participé, même s'ils ne l'ont pas dit \
 publiquement. Ce n'est pas parce qu'un groupe entier semble pousser dans une direction \
 que chaque personne qui en fait partie agit forcément de la même façon. »"""
+
+# Ticket #115 : présentation réaliste — texte brut ci-dessus inchangé (utilisé par la
+# banque de questions, `app.v1.fse_bank.import_fse04_to_bank`). Chaque membre garde la
+# même couleur partout (voir `.jc-social-avatar--pN`, générique et réutilisable).
+FSE04_GROUP_CARD_HTML = """<div class="jc-doc jc-social" id="document-groupe">
+<div class="jc-doc-header"><strong>👥 Groupe public — « Fous rires du quotidien »</strong><span class="jc-doc-fictive-badge">Fictif</span></div>
+<div class="jc-doc-body">
+<div class="jc-social-post-head">
+<span class="jc-social-avatar jc-social-avatar--p1" aria-hidden="true">?</span>
+<div class="jc-social-meta">
+<span class="jc-social-author">Fous rires du quotidien</span>
+<span class="jc-social-time">Groupe public — 2 400 membres</span>
+</div>
+</div>
+<p class="jc-social-text">« Regardez ce qui est arrivé à ce pauvre gars dans la rue aujourd'hui, j'étais mort de rire ! » <em>[vidéo jointe, non reproduite ici : une personne trébuche dans un lieu public et est filmée à son insu par un passant, visiblement désorientée et gênée après sa chute]</em></p>
+<div class="jc-social-reactions">
+<span>🔁 340 partages en quelques heures</span>
+</div>
+<div class="jc-social-comments">
+<div class="jc-social-comment">
+<span class="jc-social-avatar jc-social-avatar--sm jc-social-avatar--p2" aria-hidden="true">A</span>
+<div><strong>Membre A</strong><p>« Hahaha, il a trop la honte ! »</p></div>
+</div>
+<div class="jc-social-comment">
+<span class="jc-social-avatar jc-social-avatar--sm jc-social-avatar--p3" aria-hidden="true">B</span>
+<div><strong>Membre B</strong><p>« Quelqu'un sait qui c'est ? Faut vraiment pas avoir de chance »</p></div>
+</div>
+<div class="jc-social-comment">
+<span class="jc-social-avatar jc-social-avatar--sm jc-social-avatar--p4" aria-hidden="true">C</span>
+<div><strong>Membre C</strong><p>« Je l'ai aussi envoyée à mes potes, trop drôle »</p></div>
+</div>
+<div class="jc-social-comment">
+<span class="jc-social-avatar jc-social-avatar--sm jc-social-avatar--p5" aria-hidden="true">D</span>
+<div><strong>Membre D</strong><p>« Franchement, c'est méchant de se moquer comme ça, elle n'a rien demandé »</p></div>
+</div>
+<div class="jc-social-comment">
+<span class="jc-social-avatar jc-social-avatar--sm jc-social-avatar--p1" aria-hidden="true">E</span>
+<div><strong>Membre E</strong><p>« Allez, c'est juste pour rire, personne n'est blessé »</p></div>
+</div>
+</div>
+</div>
+</div>"""
+
+FSE04_TESTIMONY_CARD_HTML = """<div class="jc-doc" id="document-temoignage">
+<div class="jc-doc-header"><strong>🗣️ Témoignage — Karim, membre du groupe</strong><span class="jc-doc-fictive-badge">Fictif</span></div>
+<div class="jc-doc-body">
+<div class="jc-quote-card">
+<span class="jc-social-avatar jc-social-avatar--p2" aria-hidden="true">K</span>
+<div>
+<span class="jc-quote-author">Karim</span>
+<p class="jc-quote-text">« J'ai vu la vidéo passer dans le groupe, comme beaucoup d'autres membres. Honnêtement, la première réaction, c'est presque un réflexe de sourire parce que tout le monde autour de moi trouvait ça drôle, et le groupe entier semblait d'accord. Mais je me suis dit que cette personne n'avait rien demandé, et que ça pourrait être n'importe qui, moi y compris. Je n'ai ni partagé la vidéo, ni laissé de commentaire moqueur. Je sais que d'autres membres du groupe n'ont pas non plus participé, même s'ils ne l'ont pas dit publiquement. Ce n'est pas parce qu'un groupe entier semble pousser dans une direction que chaque personne qui en fait partie agit forcément de la même façon. »</p>
+</div>
+</div>
+</div>
+</div>"""

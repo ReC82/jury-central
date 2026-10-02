@@ -14,11 +14,11 @@ complet. Ce cours ne réapprend pas le droit à l'image (FSE05) ni les comportem
 sans les ré-enseigner (« ne pas étendre à un cours complet de journalisme », ticket #98)."""
 
 from app.v1.fse07_content import (
-    FSE07_CHAT_TEXT,
+    FSE07_CHAT_CARD_HTML,
     FSE07_CHAT_TITLE,
-    FSE07_FORUM_TEXT,
+    FSE07_FORUM_CARD_HTML,
     FSE07_FORUM_TITLE,
-    FSE07_SCHOOL_TEXT,
+    FSE07_SCHOOL_CARD_HTML,
     FSE07_SCHOOL_TITLE,
 )
 
@@ -102,7 +102,7 @@ identifiés — jamais sur le document le moins fiable du dossier.
 
 ### Exemple 1 — {FSE07_SCHOOL_TITLE}
 
-{FSE07_SCHOOL_TEXT}
+{FSE07_SCHOOL_CARD_HTML}
 
 **Analyse commentée :** ce document est **signé** (M. Devos, directeur adjoint), **daté** (14 \
 mars 2026) et décrit des faits précis et vérifiables (date de l'incident, nombre d'élèves dans \
@@ -110,7 +110,7 @@ le groupe, mesure prise). C'est le document le plus fiable du dossier.
 
 ### Exemple 2 — {FSE07_CHAT_TITLE}
 
-{FSE07_CHAT_TEXT}
+{FSE07_CHAT_CARD_HTML}
 
 **Analyse commentée :** ce document mélange des **faits** (« il tombe dans la cour »), des \
 **opinions** (« trop drôle » / « ça craint ») et une **interprétation** (« tout le monde filme \
@@ -122,7 +122,7 @@ groupe n'efface pas les positions individuelles.
 
 ### Exemple 3 — {FSE07_FORUM_TITLE}
 
-{FSE07_FORUM_TEXT}
+{FSE07_FORUM_CARD_HTML}
 
 **Analyse commentée :** ce document est **anonyme**, **non daté**, et affirme des faits non \
 confirmés par les deux autres documents (« humilié devant toute l'école », alors que la note de \
