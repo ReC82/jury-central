@@ -2,8 +2,10 @@
 
 Introduit lors des retouches visuelles de FSE01 (ticket #112), remplace le rendu en bloc de
 texte brut des exercices guidés (un `<details>` unique empilant consigne et corrigé imbriqué).
-Composant réutilisable, mais appliqué à FSE01 uniquement pour cette étape — l'extension à
-d'autres cours attend une confirmation explicite de l'utilisateur.
+Étendu à FSE02-FSE16 (ticket #115) via la transformation générique
+`app.v1.fse_course_sections.exercises_to_cards()` — y compris la conversion réelle en
+HTML des listes jusque-là fondues en texte littéral à l'intérieur de certains corrigés
+(ex. FSE03, liste numérotée), diagnostiquée en écrivant cette extension.
 
 ---
 
