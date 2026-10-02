@@ -59,6 +59,68 @@ function makeEmptyCellsEditable(root) {
     });
 }
 
+/* --- Agrandissement au clic (ticket #110) : générique pour tout visuel marqué
+   `.jc-zoomable` (ex. la composition de l'affiche FSE01) — l'élément lui-même passe en
+   position fixe et s'agrandit (voir .jc-zoomable--active, design-system.css), plutôt que
+   d'ouvrir une image séparée : la composition complète (texte superposé inclus) reste
+   visible en grand. Un seul fond semi-opaque partagé, créé une fois. */
+function enableZoomableImages(root) {
+    const elements = root.querySelectorAll(".jc-zoomable");
+    if (elements.length === 0) {
+        return;
+    }
+    let backdrop = document.querySelector(".jc-zoom-backdrop");
+    if (!backdrop) {
+        backdrop = document.createElement("div");
+        backdrop.className = "jc-zoom-backdrop";
+        backdrop.hidden = true;
+        document.body.appendChild(backdrop);
+        backdrop.addEventListener("click", closeZoom);
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                closeZoom();
+            }
+        });
+    }
+
+    function closeZoom() {
+        const active = document.querySelector(".jc-zoomable--active");
+        if (active) {
+            active.classList.remove("jc-zoomable--active");
+        }
+        backdrop.hidden = true;
+        document.body.classList.remove("jc-zoom-open");
+    }
+
+    function toggleZoom(element) {
+        const isActive = element.classList.contains("jc-zoomable--active");
+        closeZoom();
+        if (!isActive) {
+            element.classList.add("jc-zoomable--active");
+            backdrop.hidden = false;
+            document.body.classList.add("jc-zoom-open");
+        }
+    }
+
+    elements.forEach((element) => {
+        if (element.dataset.zoomBound) {
+            return;
+        }
+        element.dataset.zoomBound = "1";
+        element.setAttribute("role", "button");
+        element.setAttribute("tabindex", "0");
+        const baseLabel = element.getAttribute("aria-label") || "Image";
+        element.setAttribute("aria-label", `${baseLabel} — cliquer pour agrandir`);
+        element.addEventListener("click", () => toggleZoom(element));
+        element.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                toggleZoom(element);
+            }
+        });
+    });
+}
+
 /*
  * Point d'entrée unique du rendu de contenu riche (voir app/static/js/rich_content.js) :
  * habille tout le HTML déjà présent dans `root` (rendu Markdown côté serveur — tableaux,
@@ -70,6 +132,7 @@ function enhanceRichContent(root) {
     wrapBlockquotesAsWarningCards(root);
     wrapTablesResponsively(root);
     makeEmptyCellsEditable(root);
+    enableZoomableImages(root);
 }
 
 /* --- Exercices rédigés : ne jamais afficher la correction immédiatement --- */
