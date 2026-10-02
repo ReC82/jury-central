@@ -318,6 +318,196 @@ table.value-table tbody th {
     .jc-flow { break-inside: avoid; }
 }
 
+/* --- Grille de définitions (terme / explication / exemple) — refonte FSE, ticket #103 ---
+   Isole chaque définition d'une leçon dans une mini-carte, plus légère qu'une .jc-card
+   complète (jamais imbriquée dans une autre .jc-card) : terme en évidence, explication
+   courte, exemple concret optionnel. Voir docs/components/DefinitionGrid.md. */
+
+.jc-definitions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.85rem;
+    margin: 1.25rem 0;
+}
+
+.jc-definition {
+    background: var(--jc-blue-bg);
+    border: 1px solid var(--jc-blue);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+}
+
+.jc-definition-term {
+    font-weight: 700;
+    color: var(--jc-blue);
+    margin-bottom: 0.3rem;
+    display: block;
+}
+
+.jc-definition-body {
+    font-size: 0.93rem;
+    margin: 0;
+}
+
+.jc-definition-example {
+    margin: 0.45rem 0 0;
+    padding-top: 0.45rem;
+    border-top: 1px dashed rgba(21, 101, 192, 0.3);
+    font-size: 0.88rem;
+    color: #3a4552;
+}
+
+.jc-definition-example strong {
+    color: var(--jc-blue);
+}
+
+@media print {
+    .jc-definitions { break-inside: avoid; }
+}
+
+/* --- Comparaison visuelle entre deux notions souvent confondues --- */
+
+.jc-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    margin: 1.25rem 0;
+}
+
+.jc-compare-item {
+    border-radius: 8px;
+    border: 1px solid;
+    padding: 0.8rem 1rem;
+}
+
+.jc-compare-item--bad {
+    background: var(--jc-red-bg);
+    border-color: var(--jc-red);
+}
+
+.jc-compare-item--good {
+    background: var(--jc-green-bg);
+    border-color: var(--jc-green);
+}
+
+.jc-compare-item--a {
+    background: var(--jc-blue-bg);
+    border-color: var(--jc-blue);
+}
+
+.jc-compare-item--b {
+    background: var(--jc-orange-bg);
+    border-color: var(--jc-orange);
+}
+
+.jc-compare-label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.jc-compare-item--bad .jc-compare-label { color: var(--jc-red); }
+.jc-compare-item--good .jc-compare-label { color: var(--jc-green); }
+.jc-compare-item--a .jc-compare-label { color: var(--jc-blue); }
+.jc-compare-item--b .jc-compare-label { color: var(--jc-orange); }
+
+.jc-compare-item p:last-child { margin-bottom: 0; }
+
+@media (max-width: 576px) {
+    .jc-compare { grid-template-columns: 1fr; }
+}
+
+@media print {
+    .jc-compare { break-inside: avoid; }
+}
+
+/* --- Carte "document" (mail, affiche, publication) : support analysé par le cours,
+   toujours séparé de son analyse (celle-ci reste en texte/tableau/cartes juste après). --- */
+
+.jc-doc {
+    border: 1px solid #d7dce1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.25rem 0;
+    background: #fff;
+}
+
+.jc-doc-header {
+    background: var(--jc-gray-bg);
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    color: #444;
+    border-bottom: 1px solid #d7dce1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.jc-doc-header strong { color: #1f2933; }
+
+.jc-doc-fictive-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--jc-purple-bg);
+    color: var(--jc-purple);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.jc-doc-body { padding: 1rem 1.1rem; }
+
+.jc-doc-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 0.6rem;
+    font-size: 0.85rem;
+    margin: 0 0 0.75rem;
+}
+
+.jc-doc-meta dt { font-weight: 600; color: #55606b; }
+.jc-doc-meta dd { margin: 0; }
+
+.jc-doc-text { font-size: 0.95rem; }
+
+.jc-doc-comments {
+    border-top: 1px dashed #d7dce1;
+    margin-top: 0.85rem;
+    padding-top: 0.65rem;
+}
+
+.jc-doc-comment {
+    font-size: 0.9rem;
+    margin-bottom: 0.45rem;
+}
+
+.jc-doc-comment strong { color: var(--jc-blue); }
+
+@media print {
+    .jc-doc { break-inside: avoid; }
+}
+
+/* --- Conteneur de schéma SVG (remplace les schémas en caractères) --- */
+
+.jc-diagram {
+    margin: 1.25rem 0;
+    text-align: center;
+}
+
+.jc-diagram svg {
+    max-width: 100%;
+    height: auto;
+}
+
+@media print {
+    .jc-diagram { break-inside: avoid; }
+}
+
 /* --- Navigation Cours / S'entraîner / S'évaluer (ticket #22) --- */
 
 .jc-space-nav .nav {

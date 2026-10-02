@@ -17,7 +17,7 @@ from app.v1.francais_fr01_05_courses import (
     fr05_course_markdown,
 )
 from app.v1.francais_plan import FRANCAIS_MODULE_CODE, FRANCAIS_SUBJECT_NAME
-from app.v1.fse01_course import fse01_course_markdown
+from app.v1.fse01_course import fse01_course_sections
 from app.v1.fse02_course import fse02_course_markdown
 from app.v1.fse03_course import fse03_course_markdown
 from app.v1.fse04_course import fse04_course_markdown
@@ -4634,20 +4634,35 @@ FRANCAIS_FR05_BLOCKS = [
 # docstring). Les 17 mini-cours officiels FSE01-FSE17 sont désormais tous rédigés et seedés
 # ici (tickets #96-#101, cahiers des charges détaillés) — jamais un cours vide présenté
 # comme disponible.
+#
+# Refonte pédagogique et visuelle (ticket #105, pilote FSE01) : un mini-cours FSE n'est
+# plus livré comme un seul bloc « Cours complet » (une seule carte indifférenciée) mais
+# comme plusieurs blocs titrés, chaque titre pilotant automatiquement le type de carte
+# affiché (`app.card_kind.classify_block_title`) — voir `_fse_course_blocks()`.
+
+
+def _fse_course_blocks(sections: list[tuple[str, str]]) -> list[dict]:
+    """Construit les blocs de leçon (espace Cours) d'un mini-cours FSE à partir de
+    sections (titre, Markdown) — refonte ticket #105. Chaque section devient un bloc
+    distinct dont le titre pilote le type de carte affiché, jamais un seul bloc
+    « Cours complet » mélangeant théorie/exemples/méthode/mémo dans une carte unique."""
+    return [
+        {
+            "title": title,
+            "type": BlockType.MARKDOWN,
+            "content": markdown,
+            "position": position,
+            "is_published": True,
+            "space": BlockSpace.COURSE,
+        }
+        for position, (title, markdown) in enumerate(sections, start=1)
+    ]
+
 
 FSE01_CODE = "FSE01"
 FSE01_TITLE = "Communiquer : le schéma de communication"
 
-FSE01_BLOCKS = [
-    {
-        "title": "Cours complet",
-        "type": BlockType.MARKDOWN,
-        "content": fse01_course_markdown(),
-        "position": 1,
-        "is_published": True,
-        "space": BlockSpace.COURSE,
-    }
-]
+FSE01_BLOCKS = _fse_course_blocks(fse01_course_sections())
 
 FSE02_CODE = "FSE02"
 FSE02_TITLE = "Les médias et leurs financements"
@@ -5113,7 +5128,17 @@ def seed() -> None:
         fse_subject = _ensure_subject(db, FSE_SUBJECT_NAME, created, kept)
         _ensure_modules(db, fse_subject, [FSE_MODULE_CODE], created, kept)
         fse_module = next(m for m in fse_subject.modules if m.code == FSE_MODULE_CODE)
-        _seed_uaa(db, fse_module, FSE01_CODE, FSE01_TITLE, 1, FSE01_BLOCKS, created, kept)
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE01_CODE,
+            FSE01_TITLE,
+            1,
+            FSE01_BLOCKS,
+            created,
+            kept,
+            obsolete_titles=frozenset({"Cours complet"}),
+        )
         _seed_uaa(db, fse_module, FSE02_CODE, FSE02_TITLE, 2, FSE02_BLOCKS, created, kept)
         _seed_uaa(db, fse_module, FSE03_CODE, FSE03_TITLE, 3, FSE03_BLOCKS, created, kept)
         _seed_uaa(db, fse_module, FSE04_CODE, FSE04_TITLE, 4, FSE04_BLOCKS, created, kept)
