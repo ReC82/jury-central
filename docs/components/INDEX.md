@@ -70,6 +70,10 @@ quel par `app/content.py`) :
 - [DialogueComponents](DialogueComponents.md) — ChatThread, QuoteCard et couleurs
   génériques d'intervenant (`.jc-social-avatar--p1` à `--p5`) pour tout échange à
   plusieurs voix (ticket #115, FSE02/04/07/16 pour l'instant).
+- [ProfileAndGroupCards](ProfileAndGroupCards.md) — carte de profil professionnel (portrait
+  + nom + fonction), image de scène intégrée à une publication, cartes de groupe
+  d'appartenance — jamais de classification pédagogique révélée sur le document lui-même
+  (ticket #118, FSE03 pour l'instant).
 
 ---
 

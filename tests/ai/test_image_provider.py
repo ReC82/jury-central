@@ -108,3 +108,65 @@ def test_generate_image_invalid_base64(monkeypatch):
 
     with pytest.raises(AIResponseError):
         provider.generate_image(prompt="a red circle")
+
+
+def test_edit_image_success(monkeypatch):
+    captured = {}
+    raw_bytes = b"\x89PNG\r\n\x1a\nfake-edited-bytes"
+    b64 = base64.b64encode(raw_bytes).decode("ascii")
+
+    def fake_post(url, headers=None, data=None, files=None, timeout=None):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["data"] = data
+        captured["files"] = files
+        captured["timeout"] = timeout
+        return _FakeResponse(200, {"data": [{"b64_json": b64}]})
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+
+    provider = ImageProvider(api_key="sk-test", model="gpt-image-2.5-flare", timeout_seconds=30)
+    result = provider.edit_image(
+        prompt="same character, new scene",
+        reference_images=[b"fake-reference-png-bytes"],
+        size="1024x1024",
+        quality="high",
+    )
+
+    assert result == raw_bytes
+    assert captured["url"] == "https://api.openai.com/v1/images/edits"
+    assert captured["headers"]["Authorization"] == "Bearer sk-test"
+    assert "sk-test" not in str(captured["data"])
+    assert "sk-test" not in str(captured["files"])
+    assert captured["data"]["model"] == "gpt-image-2.5-flare"
+    assert captured["data"]["prompt"] == "same character, new scene"
+    assert captured["data"]["input_fidelity"] == "high"
+    assert len(captured["files"]) == 1
+    assert captured["files"][0][0] == "image[]"
+
+
+def test_edit_image_error_response_never_leaks_key(monkeypatch):
+    def fake_post(url, headers=None, data=None, files=None, timeout=None):
+        return _FakeResponse(
+            400,
+            {"error": {"type": "invalid_request_error", "message": "bad image"}},
+        )
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+    provider = ImageProvider(api_key="sk-test", model="gpt-image-2.5-flare", timeout_seconds=30)
+
+    with pytest.raises(AIResponseError) as exc_info:
+        provider.edit_image(prompt="x", reference_images=[b"ref"])
+
+    assert "sk-test" not in str(exc_info.value)
+
+
+def test_edit_image_timeout(monkeypatch):
+    def fake_post(url, headers=None, data=None, files=None, timeout=None):
+        raise httpx.TimeoutException("timed out")
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+    provider = ImageProvider(api_key="sk-test", model="gpt-image-2.5-flare", timeout_seconds=30)
+
+    with pytest.raises(AITimeoutError):
+        provider.edit_image(prompt="x", reference_images=[b"ref"])

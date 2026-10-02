@@ -1485,3 +1485,98 @@ body.jc-zoom-open {
 @media print {
     .jc-chat-message, .jc-quote-card { break-inside: avoid; }
 }
+
+/* --- Carte de profil professionnel (ticket #118, FSE03) : portrait + nom + fonction,
+   dimensions raisonnables — le portrait accompagne le contenu, ne domine jamais la carte.
+   S'appuie sur .jc-doc pour l'habillage externe. --- */
+
+.jc-profile-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.65rem;
+}
+
+.jc-profile-portrait {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.jc-profile-name {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1f2933;
+}
+
+.jc-profile-function {
+    margin: 0.15rem 0 0;
+    font-size: 0.85rem;
+    color: #55606b;
+}
+
+.jc-profile-summary {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* --- Illustration de scène dans un document (ticket #118, ex. publication d'anniversaire)
+   : taille raisonnable, jamais plein cadre — le visuel accompagne le texte. --- */
+
+.jc-doc-scene-image {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    border-radius: 8px;
+    margin: 0 auto 0.65rem;
+}
+
+.jc-doc-tag {
+    display: inline-block;
+    font-size: 0.78rem;
+    background: var(--jc-gray-bg);
+    color: #55606b;
+    border-radius: 999px;
+    padding: 0.1rem 0.55rem;
+}
+
+/* --- Cartes de groupe d'appartenance (ticket #118, FSE03) : icône + nom, neutre, ne
+   révèle aucune classification pédagogique (volontaire/involontaire) sur le document
+   lui-même. --- */
+
+.jc-group-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.65rem;
+}
+
+.jc-group-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.4rem;
+    border: 1px solid #d7dce1;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: #fafbfc;
+}
+
+.jc-group-icon {
+    font-size: 1.6rem;
+}
+
+.jc-group-name {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1f2933;
+}
+
+@media print {
+    .jc-doc-scene-image { max-width: 220px; }
+}
