@@ -14,11 +14,11 @@ recherche d'audience. Aucune autre notion (ex. régulation des médias, déontol
 journalistique) n'est introduite : elle n'est pas au programme de ce mini-cours."""
 
 from app.v1.fse02_content import (
-    FSE02_FREE_AD_TEXT,
+    FSE02_FREE_AD_CARD_HTML,
     FSE02_FREE_AD_TITLE,
-    FSE02_PAID_TEXT,
+    FSE02_PAID_CARD_HTML,
     FSE02_PAID_TITLE,
-    FSE02_PUBLIC_TEXT,
+    FSE02_PUBLIC_CARD_HTML,
     FSE02_PUBLIC_TITLE,
 )
 
@@ -66,11 +66,18 @@ Le mode de financement influence directement le comportement du média. Un médi
 par la publicité cherche à maximiser son **audience** (le nombre de personnes qui le \
 consultent), car plus l'audience est grande, plus les annonceurs sont prêts à payer — ce \
 qui peut pousser à privilégier des sujets qui attirent beaucoup de clics plutôt que des \
-sujets moins populaires mais utiles. Un média financé par fonds publics n'a pas cette \
-contrainte : il peut traiter des sujets qui intéressent peu de monde, sans perdre de \
-revenus. Un média payant (vente/abonnement) dépend, lui, de la fidélité de ses \
+sujets moins populaires mais utiles. Un média financé EXCLUSIVEMENT par des fonds publics \
+n'a pas cette contrainte : il peut traiter des sujets qui intéressent peu de monde, sans \
+perdre de revenus. Un média payant (vente/abonnement) dépend, lui, de la fidélité de ses \
 lecteurs/lectrices : il doit leur apporter une valeur suffisante pour qu'ils continuent à \
 payer.
+
+Attention à une généralisation fréquente : beaucoup de médias financés par des fonds \
+publics dans la réalité combinent cette dotation avec d'autres sources (un peu de \
+publicité, par exemple) — un financement MIXTE. L'indépendance totale vis-à-vis de \
+l'audience et de la publicité ne vaut que pour un financement exclusivement public, comme \
+celui de RCW dans l'exemple étudié plus loin ; un média public qui diffuse aussi de la \
+publicité reste, lui, partiellement concerné par la recherche d'audience.
 
 ## 3. Définitions importantes
 
@@ -109,35 +116,45 @@ est mentionné.
 
 ### Exemple 1 — {FSE02_PAID_TITLE}
 
-{FSE02_PAID_TEXT}
+{FSE02_PAID_CARD_HTML}
 
 **Analyse commentée :** ce média se finance par la **vente** (numéro à l'unité à 2,50 €) \
 et l'**abonnement** (9 ou 14 €/mois). Le document précise explicitement l'absence de \
 publicité : L'Hebdo du Littoral dépend donc entièrement de la fidélité de ses \
-lecteurs/lectrices, pas de l'audience publicitaire. Son interactivité est limitée et \
-différée : un encadré « Vos lettres » publié chaque semaine, pas de réaction immédiate.
+lecteurs/lectrices, pas de l'audience publicitaire — un financement exclusivement privé \
+par la vente/l'abonnement, sans aucune part de publicité ni de fonds publics. Son \
+interactivité est limitée et différée : un encadré « Vos lettres » publié chaque semaine, \
+pas de réaction immédiate.
 
 ### Exemple 2 — {FSE02_FREE_AD_TITLE}
 
-{FSE02_FREE_AD_TEXT}
+{FSE02_FREE_AD_CARD_HTML}
 
 **Analyse commentée :** ce média est gratuit pour le récepteur et se finance \
 exclusivement par la **publicité** (deux bannières publicitaires visibles, et le texte \
 l'indique explicitement). Le document précise que plus un article est consulté, plus il \
 génère de revenus : Le Flash Infos a donc un intérêt direct à maximiser son **audience**, \
-ce qui peut l'inciter à privilégier des sujets qui attirent beaucoup de clics. Son \
-interactivité est forte et immédiate : compteur de vues, partage, commentaires publics.
+ce qui peut l'inciter à privilégier des sujets qui attirent beaucoup de clics. Le \
+compteur de vues mesure cette audience, mais ne constitue pas en soi une interactivité : \
+l'interactivité réelle de ce média vient du partage et des commentaires publics, qui \
+permettent au récepteur de réagir, pas du simple fait que les vues soient comptées.
 
 ### Exemple 3 — {FSE02_PUBLIC_TITLE}
 
-{FSE02_PUBLIC_TEXT}
+{FSE02_PUBLIC_CARD_HTML}
 
 **Analyse commentée :** ce média se finance par des **fonds publics** (une dotation \
-votée chaque année). Le document précise qu'il ne diffuse aucune publicité commerciale et \
-qu'il peut traiter des sujets qui intéressent peu les annonceurs (santé publique, \
-éducation) — contrairement au Flash Infos, RCW n'a pas besoin de maximiser son audience \
-pour obtenir des revenus. Son interactivité est forte et immédiate : une émission en \
-direct où les auditeurs peuvent appeler l'antenne.
+votée chaque année), et le document précise qu'il s'agit ici de sa SEULE source de \
+revenus (pas de vente, pas de publicité) — un financement exclusivement public, à ne pas \
+généraliser à tous les médias publics réels, dont beaucoup combinent en réalité une \
+dotation publique avec d'autres sources (publicité partielle, par exemple). Le document \
+précise qu'il ne diffuse aucune publicité commerciale et qu'il peut traiter des sujets qui \
+intéressent peu les annonceurs (santé publique, éducation) — contrairement au Flash \
+Infos, RCW n'a pas besoin de maximiser son audience pour obtenir des revenus, PARCE QUE \
+son financement est exclusivement public : un média public qui combinerait dotation ET \
+publicité resterait, lui, partiellement soumis à cette logique d'audience. Son \
+interactivité est forte et immédiate : une émission en direct où les auditeurs peuvent \
+appeler l'antenne.
 
 ## 6. Mauvaises réponses comparées aux bonnes
 
@@ -238,14 +255,19 @@ qui se passerait pour un média financé autrement.
 ## 10. Fiche mémo
 
 - Quatre modes de financement d'un média : vente, abonnement, publicité, fonds publics — \
-souvent combinés.
+souvent combinés (financement mixte) ; vérifie toujours ce que le document précise \
+réellement, sans supposer un seul mode par défaut.
 - Un média financé par la publicité dépend de son audience : plus il attire de vues, plus \
 il génère de revenus publicitaires.
-- Un média financé par des fonds publics ne dépend ni de l'audience ni de la publicité : \
-il peut traiter des sujets peu populaires sans perdre de financement.
+- Un média financé EXCLUSIVEMENT par des fonds publics ne dépend ni de l'audience ni de la \
+publicité : il peut traiter des sujets peu populaires sans perdre de financement — un \
+média public financé en partie par la publicité reste, lui, partiellement concerné par \
+cette logique d'audience.
 - Un média payant (vente/abonnement) dépend de la fidélité de son public.
-- Interactivité (réagir au message) et mode de financement sont deux notions \
-indépendantes — ne jamais les confondre.
+- Interactivité (réagir au message), délai de la réponse et mode de financement sont trois \
+notions indépendantes — ne jamais les confondre. Un compteur de vues mesure l'audience, \
+pas l'interactivité : seule la possibilité de réagir (commenter, partager, appeler) compte \
+comme interactivité.
 """
 
 

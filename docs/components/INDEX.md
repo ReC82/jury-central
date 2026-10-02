@@ -67,6 +67,9 @@ quel par `app/content.py`) :
   consigne visible, lien vers le document, accordéon « Voir le corrigé »), corrigé
   structuré en HTML réel (ticket #112, étendu à FSE02-17 au ticket #115) — toujours un exercice guidé du
   cours, jamais un nouveau moteur de correction/notation.
+- [DialogueComponents](DialogueComponents.md) — ChatThread, QuoteCard et couleurs
+  génériques d'intervenant (`.jc-social-avatar--p1` à `--p5`) pour tout échange à
+  plusieurs voix (ticket #115, FSE02/04/07/16 pour l'instant).
 
 ---
 

@@ -20,9 +20,9 @@ cyberharcèlement — au contraire, le cours souligne explicitement la responsab
 individuelle qui subsiste malgré la pression de groupe)."""
 
 from app.v1.fse04_content import (
-    FSE04_GROUP_TEXT,
+    FSE04_GROUP_CARD_HTML,
     FSE04_GROUP_TITLE,
-    FSE04_TESTIMONY_TEXT,
+    FSE04_TESTIMONY_CARD_HTML,
     FSE04_TESTIMONY_TITLE,
 )
 
@@ -109,7 +109,7 @@ différemment.
 
 ### Exemple 1 — {FSE04_GROUP_TITLE}
 
-{FSE04_GROUP_TEXT}
+{FSE04_GROUP_CARD_HTML}
 
 **Analyse commentée :**
 - Valeur implicite dans ce groupe : l'humour et le divertissement priment sur le respect \
@@ -128,7 +128,7 @@ responsabilité individuelle.
 
 ### Exemple 2 — {FSE04_TESTIMONY_TITLE}
 
-{FSE04_TESTIMONY_TEXT}
+{FSE04_TESTIMONY_CARD_HTML}
 
 **Analyse commentée :** ce témoignage illustre directement la limite de l'influence \
 sociale comme explication. Karim décrit ressentir la pression du groupe (« un réflexe de \

@@ -43,3 +43,24 @@ de réduction de l'usage de la voiture individuelle, mais rappelons que cet effe
 la capacité réelle du réseau à absorber la demande supplémentaire — un effet incertain à \
 court terme, qui pourrait ne se concrétiser qu'à plus long terme si le réseau est renforcé en \
 conséquence. »"""
+
+# Ticket #115 : présentation réaliste — texte brut ci-dessus inchangé (banque de questions,
+# `app.v1.fse_bank.import_fse16_to_bank`, document « document 3 » référencé dans les
+# exercices). Chaque partie prenante garde la même couleur (`.jc-social-avatar--pN`).
+FSE16_REACTIONS_CARD_HTML = """<div class="jc-doc" id="document-reactions">
+<div class="jc-doc-header"><strong>💬 Réactions — trois groupes concernés</strong><span class="jc-doc-fictive-badge">Fictif</span></div>
+<div class="jc-doc-body">
+<div class="jc-quote-card">
+<span class="jc-social-avatar jc-social-avatar--p1" aria-hidden="true">🏠</span>
+<div><span class="jc-quote-author">Un ménage concerné</span><p class="jc-quote-text">« Cette aide me permettrait d'accepter un emploi plus loin de chez moi, que je refusais jusqu'ici à cause du coût du transport. »</p></div>
+</div>
+<div class="jc-quote-card">
+<span class="jc-social-avatar jc-social-avatar--p2" aria-hidden="true">🚌</span>
+<div><span class="jc-quote-author">Une entreprise de transport collectif</span><p class="jc-quote-text">« Nous nous attendons à une hausse de la fréquentation, mais aussi à des coûts supplémentaires pour augmenter la capacité de nos lignes les plus demandées. »</p></div>
+</div>
+<div class="jc-quote-card">
+<span class="jc-social-avatar jc-social-avatar--p3" aria-hidden="true">🌱</span>
+<div><span class="jc-quote-author">Une association de défense de l'environnement</span><p class="jc-quote-text">« Nous saluons l'effet attendu de réduction de l'usage de la voiture individuelle, mais rappelons que cet effet dépendra de la capacité réelle du réseau à absorber la demande supplémentaire — un effet incertain à court terme, qui pourrait ne se concrétiser qu'à plus long terme si le réseau est renforcé en conséquence. »</p></div>
+</div>
+</div>
+</div>"""
