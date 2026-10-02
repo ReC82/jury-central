@@ -36,6 +36,25 @@ from app.v1.francais_fr01_05_bank import (
     import_francais_fr05_to_bank,
 )
 from app.v1.francais_plan import get_francais_plan_by_slug
+from app.v1.fse_bank import (
+    import_fse01_to_bank,
+    import_fse02_to_bank,
+    import_fse03_to_bank,
+    import_fse04_to_bank,
+    import_fse05_to_bank,
+    import_fse06_to_bank,
+    import_fse07_to_bank,
+    import_fse08_to_bank,
+    import_fse09_to_bank,
+    import_fse10_to_bank,
+    import_fse11_to_bank,
+    import_fse12_to_bank,
+    import_fse13_to_bank,
+    import_fse14_to_bank,
+    import_fse15_to_bank,
+    import_fse16_to_bank,
+)
+from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, get_fse_plan_by_slug
 from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
 from app.v1.models import (
     QuestionnaireSession,
@@ -123,13 +142,37 @@ _FRANCAIS_BANK_IMPORTERS = {
     "francais-fr05": import_francais_fr05_to_bank,
 }
 
+# Ticket #96/#97/#98 : même mécanisme que `_FRANCAIS_BANK_IMPORTERS` ci-dessus, pour la
+# matière Formation sociale et économique.
+_FSE_BANK_IMPORTERS = {
+    "fse-fse01": import_fse01_to_bank,
+    "fse-fse02": import_fse02_to_bank,
+    "fse-fse03": import_fse03_to_bank,
+    "fse-fse04": import_fse04_to_bank,
+    "fse-fse05": import_fse05_to_bank,
+    "fse-fse06": import_fse06_to_bank,
+    "fse-fse07": import_fse07_to_bank,
+    "fse-fse08": import_fse08_to_bank,
+    "fse-fse09": import_fse09_to_bank,
+    "fse-fse10": import_fse10_to_bank,
+    "fse-fse11": import_fse11_to_bank,
+    "fse-fse12": import_fse12_to_bank,
+    "fse-fse13": import_fse13_to_bank,
+    "fse-fse14": import_fse14_to_bank,
+    "fse-fse15": import_fse15_to_bank,
+    "fse-fse16": import_fse16_to_bank,
+    # FSE17 (ticket #101) volontairement ABSENT de ce dict : révision transversale sans
+    # banque propre, voir app.v1.session_service._start_fse_transversal_session (même
+    # principe que MC38, qui n'est pas non plus dans _FRANCAIS_BANK_IMPORTERS/ci-dessus).
+}
+
 
 def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
     """Amorce paresseuse de la banque hand-authored au premier accès practice/exam de
-    l'UAA concernée — MC01 (ticket #55), Français C01 (ticket #47) et FR01→FR05 (ticket
-    #94, PHASE A), même principe (idempotent, jamais de doublon). `_FRANCAIS_BANK_
-    IMPORTERS` évite d'accumuler un `elif` par cours à mesure que FR06→FR20 sont ajoutés
-    (phases B/C/D)."""
+    l'UAA concernée — MC01 (ticket #55), Français C01 (ticket #47), FR01→FR05 (ticket #94,
+    PHASE A) et FSE01 (ticket #96), même principe (idempotent, jamais de doublon).
+    `_FRANCAIS_BANK_IMPORTERS`/`_FSE_BANK_IMPORTERS` évitent d'accumuler un `elif` par
+    cours à mesure que de nouveaux mini-cours sont ajoutés."""
     if uaa.slug == "ampcr-mc01":
         import_mc01_legacy_to_bank(db, module, uaa)
         db.commit()
@@ -139,20 +182,29 @@ def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
     elif uaa.slug in _FRANCAIS_BANK_IMPORTERS:
         _FRANCAIS_BANK_IMPORTERS[uaa.slug](db, module, uaa)
         db.commit()
+    elif uaa.slug in _FSE_BANK_IMPORTERS:
+        _FSE_BANK_IMPORTERS[uaa.slug](db, module, uaa)
+        db.commit()
 
 
 # --- Landing pages (appelées depuis app/main.py pour les UAA AMPCR) ---------------------------
 
 
 def _resumable_session_for_uaa(db, *, user_id: int, module_id: int, mode: SessionMode, uaa: UAA):
-    """Repère une session per-MC déjà en cours pour `uaa`. MC38 (ticket #58) est un cas
-    particulier : ses questions appartiennent à MC01→MC37, jamais à MC38 lui-même, donc
-    `uaa_id=uaa.id` ne matcherait jamais — on utilise le marqueur `scope` à la place (voir
+    """Repère une session per-MC déjà en cours pour `uaa`. MC38 (ticket #58) et FSE17
+    (ticket #101) sont des cas particuliers : leurs questions appartiennent respectivement
+    à MC01→MC37 et FSE01→FSE16, jamais à MC38/FSE17 eux-mêmes, donc `uaa_id=uaa.id` ne
+    matcherait jamais — on utilise le marqueur `scope` à la place (voir
     `get_in_progress_session`)."""
     plan = get_plan_by_slug(uaa.slug)
     if plan is not None and plan.code == MC38_CODE:
         return get_in_progress_session(
             db, user_id=user_id, module_id=module_id, mode=mode, scope=MC38_SESSION_SCOPE
+        )
+    fse_plan = get_fse_plan_by_slug(uaa.slug)
+    if fse_plan is not None and fse_plan.code == FSE17_CODE:
+        return get_in_progress_session(
+            db, user_id=user_id, module_id=module_id, mode=mode, scope=FSE17_SESSION_SCOPE
         )
     return get_in_progress_session(db, user_id=user_id, module_id=module_id, mode=mode, uaa_id=uaa.id)
 
@@ -224,12 +276,17 @@ def _enqueue_build_for_uaa(
     module = uaa.module
     _ensure_bank_seeded(db, module, uaa)
     plan = get_plan_by_slug(uaa.slug)
-    francais_plan = None
     if plan is not None:
         uaa_code = plan.code
     else:
         francais_plan = get_francais_plan_by_slug(uaa.slug)
-        uaa_code = francais_plan.code if francais_plan else None
+        if francais_plan is not None:
+            uaa_code = francais_plan.code
+        else:
+            # Ticket #96-#101 : Formation sociale et économique, même résolution que
+            # Français ci-dessus — FSE01-FSE17 sont tous enregistrés.
+            fse_plan = get_fse_plan_by_slug(uaa.slug)
+            uaa_code = fse_plan.code if fse_plan else None
     # MC38 examen (ticket #58 § 6) : « utiliser 20 questions si le moteur le permet déjà »
     # — même volume que l'examen blanc global, cohérent avec sa nature transversale
     # MC01→MC37 (voir app.v1.session_service._start_mc38_transversal_session). Français
@@ -238,10 +295,14 @@ def _enqueue_build_for_uaa(
     # MC01→MC37, jamais comme MC38) — chacun garde le volume standard, y compris à
     # l'examen ; seul FR20 (§ 12 du ticket, phase D, pas encore implémenté) jouera le
     # rôle transversal de MC38 et nécessitera sa propre fonction de composition dédiée
-    # (jamais un simple ajustement de `question_count` comme ici).
+    # (jamais un simple ajustement de `question_count` comme ici). Ticket #101 : FSE17
+    # joue ce même rôle transversal pour FSE (voir
+    # app.v1.session_service._start_fse_transversal_session) — même volume à l'examen,
+    # ce qui réalise concrètement les « trois examens blancs progressifs » (facile/moyen/
+    # difficile = le sélecteur de difficulté déjà existant sur cette même page).
     question_count = (
         GLOBAL_EXAM_QUESTION_COUNT
-        if mode == SessionMode.EXAM and (uaa_code == "MC38" or uaa_code == "C01")
+        if mode == SessionMode.EXAM and uaa_code in ("MC38", "C01", FSE17_CODE)
         else DEFAULT_QUESTION_COUNT
     )
     return enqueue_session_build(

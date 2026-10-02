@@ -1,0 +1,53 @@
+"""Documents support — FSE07 « Analyser un dossier médiatique » (ticket #98, cahier des
+charges détaillé).
+
+Trois documents fictifs, rédigés pour ce cours, formant un dossier complet autour d'une même
+situation (ticket #98 § FSE07, "Application attendue" : « dossier original complet de 3
+documents sur une vidéo diffusée dans un groupe »), volontairement de fiabilité différente
+pour entraîner la vérification d'auteur/date/contexte/preuves : une note signée et datée de la
+direction d'une école (haute fiabilité), un échange de messages dans un groupe-classe (mélange
+de faits, interprétations et opinions), et une publication anonyme sur un forum, non datée et
+sans preuve (faible fiabilité, à questionner). Cette situation réutilise volontairement des
+notions déjà enseignées (FSE01 schéma de communication, FSE04 normes/valeurs, FSE05 droit à
+l'image, FSE06 comportements en ligne) sans les réévaluer directement : FSE07 porte sur la
+méthode d'analyse d'un dossier, pas sur une nouvelle matière de fond."""
+
+FSE07_SCHOOL_TITLE = "Note de la direction — école fictive « Athénée du Parc »"
+FSE07_SCHOOL_TEXT = """[Document fictif, rédigé pour cet exercice]
+
+Note interne — Athénée du Parc
+Signée par : M. Devos, directeur adjoint
+Date : 14 mars 2026
+
+Le 12 mars 2026, durant la récréation de midi, un élève a filmé un camarade qui trébuchait dans \
+la cour, sans le consentement de la personne filmée. La vidéo a été partagée le jour même dans le \
+groupe de discussion de la classe de 5e B, comptant 24 élèves. La direction a été informée le 13 \
+mars par un enseignant. L'élève ayant filmé et partagé la vidéo a été reçu avec ses parents le 14 \
+mars. La vidéo a été supprimée du groupe à la demande de la direction. Aucune autre mesure n'est \
+communiquée dans cette note."""
+
+FSE07_CHAT_TITLE = "Messages échangés dans le groupe de la classe de 5e B"
+FSE07_CHAT_TEXT = """[Échange fictif, rédigé pour cet exercice — prénoms fictifs]
+
+Yasmine, 12 mars, 12h41 : « Vous avez vu la vidéo de Lucas qui tombe dans la cour ? Trop drôle »
+Karim, 12 mars, 12h43 : « Pas cool de filmer ça sans lui demander, non ? »
+Yasmine, 12 mars, 12h45 : « Oh ça va, c'est juste une vidéo, il va pas en mourir »
+Elena, 12 mars, 12h50 : « Moi je trouve que ça craint, il a eu l'air vraiment gêné après »
+Thibault, 12 mars, 13h02 : « De toute façon tout le monde filme tout le temps, c'est normal \
+maintenant »
+Karim, 12 mars, 13h10 : « Justement, je pense que c'est là le problème »
+Elena, 13 mars, 08h15 : « La direction est au courant, Lucas a dû être super mal à l'aise \
+pendant deux jours »"""
+
+FSE07_FORUM_TITLE = "Publication anonyme sur un forum local (non datée, auteur non identifié)"
+FSE07_FORUM_TEXT = """[Document fictif, rédigé pour cet exercice]
+
+Sujet : « Encore une école qui ne fait rien contre le harcèlement »
+
+Posté par : Utilisateur anonyme « parent_inquiet93 »
+
+« On m'a raconté qu'un élève de l'Athénée du Parc a été filmé et humilié devant toute l'école, et \
+que la direction n'a strictement rien fait. C'est à chaque fois pareil dans ces écoles, elles \
+préfèrent cacher les problèmes plutôt que de sanctionner vraiment les responsables. Il paraît même \
+que ce genre de vidéo circule encore ailleurs. Il serait temps que les autorités s'occupent \
+sérieusement de ce problème qui ne fait qu'empirer d'année en année. »"""

@@ -37,7 +37,9 @@ from app.v1.models import (
     ContentStatus,
     GenerationSource,
     Question,
+    QuestionDifficulty,
     QuestionVersion,
+    SessionDifficultyRequest,
     UserQuestionHistory,
     add_question_version,
     create_question,
@@ -262,6 +264,32 @@ def _split_unseen_and_seen(
     return unseen, seen
 
 
+def _prioritize_by_difficulty(
+    questions: list[Question], difficulty: SessionDifficultyRequest | None
+) -> list[Question]:
+    """Replace en tête `questions` celles dont `difficulty_declared` correspond exactement
+    à `difficulty` (ticket #96, review) — sans jamais EXCLURE les autres : une difficulté
+    insuffisamment représentée en banque ne doit jamais faire échouer ni raccourcir une
+    session pour ce seul motif (même philosophie que le reste de ce module, § anti-échec).
+
+    No-op STRICT (ordre de `questions` totalement inchangé) dans trois cas, pour ne jamais
+    changer le comportement des matières qui ne déclarent encore aucune difficulté
+    (Informatique AMPCR, Français — vérifié par `tests/test_ticket96_fse01.py::
+    test_other_subjects_selection_is_byte_for_byte_unaffected_by_difficulty_priority`) :
+    `difficulty` est `None`, vaut `ADAPTIVE` (aucune préférence par construction — une
+    sélection adaptative n'a de sens qu'au niveau d'un futur algorithme dédié, jamais comme
+    un simple repli silencieux ici), ou aucune question du lot ne porte de difficulté
+    déclarée."""
+    if difficulty is None or difficulty == SessionDifficultyRequest.ADAPTIVE:
+        return questions
+    target = QuestionDifficulty(difficulty.value)
+    matching = [q for q in questions if q.difficulty_declared == target]
+    if not matching:
+        return questions
+    other = [q for q in questions if q.difficulty_declared != target]
+    return matching + other
+
+
 def select_bank_questions(
     db: Session,
     *,
@@ -270,6 +298,7 @@ def select_bank_questions(
     uaa_id: int | None,
     limit: int,
     only_unseen: bool = False,
+    difficulty: SessionDifficultyRequest | None = None,
 ) -> list[Question]:
     """Sélectionne jusqu'à `limit` questions ACTIVE, en excluant celles déjà vues par
     l'utilisateur — par identité exacte ET par quasi-doublon structurel (voir
@@ -286,7 +315,13 @@ def select_bank_questions(
 
     `only_unseen=False` (par défaut, comportement historique) : repli explicite intégré —
     si le nombre de questions jamais vues est insuffisant, complète avec des questions déjà
-    vues plutôt que d'échouer."""
+    vues plutôt que d'échouer.
+
+    `difficulty` (ticket #96, review — § `_prioritize_by_difficulty`) : fait préférer, à
+    l'intérieur du groupe jamais-vu COMME du groupe déjà-vu, les questions de la difficulté
+    demandée — sans jamais en exclure d'autres. Laisse `compose_selection`
+    (`app.v1.session_service`) faire respecter la diversité de types par-dessus cette
+    priorité."""
     seen_question_ids = {
         row[0]
         for row in db.query(UserQuestionHistory.question_id).filter_by(user_id=user_id).distinct()
@@ -296,6 +331,7 @@ def select_bank_questions(
     query = db.query(Question).filter_by(module_id=module_id, status=ContentStatus.ACTIVE)
     query = query.filter_by(uaa_id=uaa_id) if uaa_id is not None else query.filter(Question.uaa_id.is_not(None))
     all_active = query.order_by(func.random()).all()
+    all_active = _prioritize_by_difficulty(all_active, difficulty)
     unseen, seen = _split_unseen_and_seen(
         all_active, seen_question_ids=seen_question_ids, seen_signatures=seen_signatures
     )
@@ -383,6 +419,56 @@ def select_transversal_bank_questions(
         Question.uaa_id.in_(uaa_ids),
     )
     all_active = [q for q in query.order_by(func.random()).all() if not is_meta_revision_question(_question_full_text(q))]
+    unseen, seen = _split_unseen_and_seen(
+        all_active, seen_question_ids=seen_question_ids, seen_signatures=seen_signatures
+    )
+
+    if only_unseen:
+        return unseen[:limit]
+
+    selected = unseen[:limit]
+    if len(selected) < limit:
+        selected += seen[: limit - len(selected)]
+    return selected
+
+
+def select_fse_transversal_bank_questions(
+    db: Session, *, user_id: int, module_id: int, limit: int, only_unseen: bool = False
+) -> list[Question]:
+    """Sélection dédiée à FSE17 (ticket #101, révision transversale), même principe que
+    `select_transversal_bank_questions` (MC38, ticket #58) mais strictement BANQUE : FSE17
+    puise exclusivement dans les 16 mini-cours réels FSE01→FSE16, JAMAIS dans FSE17
+    lui-même (qui n'a pas de banque propre, voir `app.v1.fse17_course`). Contrairement à
+    MC38, aucune garde anti-méta n'est nécessaire : FSE n'appelle jamais de génération IA
+    pour composer une session (banque hand-authored uniquement, voir
+    `app.v1.session_service._start_fse_transversal_session`), donc aucune question MÉTA ne
+    peut jamais y être produite.
+
+    `only_unseen` : voir `select_bank_questions`, même contrat (ticket #64 § 1)."""
+    from app.models import UAA
+    from app.v1.fse_plan import fse01_to_fse16_codes
+
+    uaa_ids = [
+        row[0]
+        for row in db.query(UAA.id).filter(
+            UAA.module_id == module_id, UAA.code.in_(fse01_to_fse16_codes())
+        )
+    ]
+    if not uaa_ids:
+        return []
+
+    seen_question_ids = {
+        row[0]
+        for row in db.query(UserQuestionHistory.question_id).filter_by(user_id=user_id).distinct()
+    }
+    seen_signatures = _seen_signatures(db, user_id=user_id)
+
+    query = db.query(Question).filter(
+        Question.module_id == module_id,
+        Question.status == ContentStatus.ACTIVE,
+        Question.uaa_id.in_(uaa_ids),
+    )
+    all_active = query.order_by(func.random()).all()
     unseen, seen = _split_unseen_and_seen(
         all_active, seen_question_ids=seen_question_ids, seen_signatures=seen_signatures
     )

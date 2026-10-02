@@ -41,10 +41,12 @@ from app.v1.bank import (
     persist_generated_questions,
     recent_seen_prompts,
     select_bank_questions,
+    select_fse_transversal_bank_questions,
     select_transversal_bank_questions,
 )
 from app.v1.dedup import is_near_duplicate, question_signature
 from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE, get_francais_context
+from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, FSE_PLAN_BY_CODE, get_fse_context
 from app.v1.hybrid_correction import correct_session_hybrid, correct_session_hybrid_resumable
 from app.v1.mc38_transversal import (
     MC38_CODE,
@@ -58,6 +60,7 @@ from app.v1.models import (
     CorrectionJob,
     CorrectionJobStatus,
     Question,
+    QuestionDifficulty,
     QuestionnaireSession,
     SessionAnswer,
     SessionBuildJob,
@@ -172,14 +175,16 @@ def _generate_with_domain_retry(
     return collected
 
 
-def compose_selection(pool: list[Question], count: int) -> list[Question]:
-    """Répartit la sélection entre types disponibles (round-robin, diversité maximale) en
-    plafonnant STRICTEMENT les types sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION`
-    (§ 14 du ticket #55 : « maximum 3 réponses longues/sémantiques » — règle stricte, pas
-    seulement une préférence). Peut retourner MOINS de `count` questions si la banque
-    disponible ne fournit pas assez de types non-sémantiques : à l'appelant
-    (`start_session`) de compléter par génération ciblée plutôt que de violer le
-    plafond en repêchant des types déjà plafonnés."""
+def _round_robin_fill(
+    pool: list[Question], count: int, selected: list[Question], long_count: int
+) -> tuple[list[Question], int]:
+    """Cœur du round-robin par type (diversité maximale), plafonnant STRICTEMENT les types
+    sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION` (§ 14 du ticket #55) — extrait de
+    `compose_selection` (ticket #96, review) pour pouvoir être appelé deux fois de suite
+    (d'abord sur les questions de la difficulté demandée, puis sur le reste) SANS jamais
+    réinitialiser `long_count` entre les deux appels : le plafond doit rester valable sur
+    l'ensemble de la session, pas recommencer à zéro à la deuxième passe. Étend `selected`
+    EN PLACE (accumulateur) et renvoie `(selected, long_count)` mis à jour."""
     by_type: dict[str, list[Question]] = defaultdict(list)
     for question in pool:
         by_type[question.current_version.question_type].append(question)
@@ -189,8 +194,6 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
     type_cycle = list(by_type.keys())
     random.shuffle(type_cycle)
 
-    selected: list[Question] = []
-    long_count = 0
     progressed = True
     while len(selected) < count and progressed:
         progressed = False
@@ -207,6 +210,53 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
             long_count += is_long
             progressed = True
 
+    return selected, long_count
+
+
+def compose_selection(
+    pool: list[Question], count: int, difficulty: SessionDifficultyRequest | None = None
+) -> list[Question]:
+    """Répartit la sélection entre types disponibles (round-robin, diversité maximale) en
+    plafonnant STRICTEMENT les types sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION`
+    (§ 14 du ticket #55 : « maximum 3 réponses longues/sémantiques » — règle stricte, pas
+    seulement une préférence). Peut retourner MOINS de `count` questions si la banque
+    disponible ne fournit pas assez de types non-sémantiques : à l'appelant
+    (`start_session`) de compléter par génération ciblée plutôt que de violer le
+    plafond en repêchant des types déjà plafonnés.
+
+    `difficulty` (ticket #96, review) : EXÉCUTE D'ABORD le round-robin type-diverse
+    EXCLUSIVEMENT sur les questions dont `difficulty_declared` correspond à `difficulty`
+    (`_round_robin_fill`, pool `matching`) — diversité de types maintenue, mais seulement
+    parmi cette difficulté. Si cette première passe atteint déjà `count`, la session EST
+    entièrement de la difficulté demandée (filtre réellement effectif, pas seulement une
+    préférence noyée dans la diversité de types). Seulement si elle ne suffit pas (banque
+    insuffisante pour cette difficulté — cas réel de FSE01, dont les 14 questions ne
+    couvrent par exemple que 3 `HARD`), une SECONDE passe complète avec le reste du pool,
+    en conservant le même compteur `long_count` (le plafond sémantique reste valable sur
+    l'ensemble des deux passes, jamais remis à zéro). Un simple tri/réordonnancement du
+    pool AVANT le groupage par type aurait été insuffisant : avec une banque aussi petite
+    que celle de FSE01 (14 questions pour 10 demandées), le round-robin par type consomme
+    presque tout le pool en 1-2 tours quel que soit l'ordre interne de chaque bucket — seule
+    une vraie première passe RESTREINTE à la difficulté demandée (pool filtré, pas
+    seulement trié) produit un effet réellement observable. Jamais un filtre strict qui
+    ferait échouer ou raccourcir une session : la seconde passe garantit toujours jusqu'à
+    `count` questions si le pool total le permet. No-op strict (comportement rigoureusement
+    identique à avant ce ticket) quand `difficulty` est `None`/`ADAPTIVE`, ou qu'aucune
+    question du pool ne porte de difficulté déclarée — jamais de changement pour les
+    matières qui n'en déclarent pas encore (Informatique AMPCR, Français ; vérifié par
+    `tests/test_ticket96_fse01.py::test_other_subjects_selection_is_byte_for_byte_unaffected_by_difficulty_priority`)."""
+    target = None
+    if difficulty is not None and difficulty != SessionDifficultyRequest.ADAPTIVE:
+        target = QuestionDifficulty(difficulty.value)
+    if target is None or not any(q.difficulty_declared == target for q in pool):
+        selected, _ = _round_robin_fill(pool, count, [], 0)
+        return selected
+
+    matching = [q for q in pool if q.difficulty_declared == target]
+    other = [q for q in pool if q.difficulty_declared != target]
+    selected, long_count = _round_robin_fill(matching, count, [], 0)
+    if len(selected) < count:
+        selected, long_count = _round_robin_fill(other, count, selected, long_count)
     return selected
 
 
@@ -423,6 +473,11 @@ def _pedagogical_context_for(uaa_code: str | None) -> PedagogicalContext:
         context = get_francais_context(plan.course_key)
         if context is not None:
             return context
+    if uaa_code and uaa_code in FSE_PLAN_BY_CODE:
+        plan = FSE_PLAN_BY_CODE[uaa_code]
+        context = get_fse_context(plan.course_key)
+        if context is not None:
+            return context
     # Parcours global : contexte générique couvrant l'ensemble du programme AMPCR.
     return PedagogicalContext(
         course_key="ampcr-global",
@@ -523,7 +578,10 @@ def _start_mc38_transversal_session(
     )
     oversample = _category_balanced_oversample(oversample, question_count)
     oversample = _limit_near_duplicate_clusters(oversample)
-    selected = compose_selection(oversample, question_count)
+    # Ticket #96 (review) : `difficulty` transmis pour cohérence avec `start_session` —
+    # no-op ici en pratique tant qu'aucune question MC01-38 ne déclare de difficulté (voir
+    # `compose_selection`, docstring).
+    selected = compose_selection(oversample, question_count, difficulty=difficulty)
 
     if len(selected) < question_count:
         missing = question_count - len(selected)
@@ -586,6 +644,76 @@ def _start_mc38_transversal_session(
     )
 
 
+def _start_fse_transversal_session(
+    db: DBSession,
+    *,
+    user: User,
+    module_id: int,
+    mode: SessionMode,
+    difficulty: SessionDifficultyRequest,
+    question_count: int,
+) -> QuestionnaireSession:
+    """FSE17 (ticket #101) : même principe que `_start_mc38_transversal_session`, mais
+    strictement BANQUE — FSE17 n'est pas une matière propre, ses sessions tirent
+    exclusivement dans FSE01→FSE16 (jamais dans son propre contenu de synthèse, voir
+    `app.v1.fse17_course`). Contrairement à MC38, AUCUNE génération IA n'est jamais
+    déclenchée ici : le volume de banque existant (16 cours × 14 questions = 224) suffit
+    très largement à couvrir `question_count` (20 pour un « examen blanc », voir
+    `GLOBAL_EXAM_QUESTION_COUNT`), conformément au principe FSE établi depuis le ticket #96
+    (banque hand-authored uniquement, jamais une nouvelle intégration IA).
+
+    `difficulty` réalise concrètement les « trois examens blancs progressifs » du ticket
+    #101 (facile/moyen/difficile) : `compose_selection` ci-dessous applique le même
+    correctif générique de priorisation par difficulté que pour chaque cours FSE pris
+    individuellement (ticket #96, review) — ici appliqué à l'ensemble du pool FSE01-16.
+
+    Ordre important (bug constaté en test, corrigé ici) : balancer par UAA AVANT de
+    connaître la difficulté (comme le fait `start_session` pour le parcours global AMPCR,
+    où la difficulté n'a jamais d'effet) détruirait le filtre de difficulté — avec 16 UAA
+    et seulement 3 questions `HARD` par cours (48 au total), un `_uaa_balanced_oversample`
+    appliqué sur tout le pool AVANT la difficulté ne retient qu'une poignée de `HARD` par
+    UAA avant même que `compose_selection` ne s'exécute. Ce correctif sépare donc d'abord
+    le pool par difficulté (comme le fait déjà `compose_selection` en interne), balance
+    CHAQUE sous-pool par UAA séparément, puis ne laisse `compose_selection` qu'ordonner
+    par type — jamais l'inverse."""
+    raw_pool = select_fse_transversal_bank_questions(
+        db, user_id=user.id, module_id=module_id, limit=question_count * 12, only_unseen=True
+    )
+    target = None
+    if difficulty is not None and difficulty != SessionDifficultyRequest.ADAPTIVE:
+        target = QuestionDifficulty(difficulty.value)
+    if target is not None and any(q.difficulty_declared == target for q in raw_pool):
+        matching = [q for q in raw_pool if q.difficulty_declared == target]
+        other = [q for q in raw_pool if q.difficulty_declared != target]
+        oversample = (
+            _uaa_balanced_oversample(matching, question_count)
+            + _uaa_balanced_oversample(other, question_count)
+        )
+    else:
+        oversample = _uaa_balanced_oversample(raw_pool, question_count)
+    oversample = _limit_near_duplicate_clusters(oversample)
+    selected = compose_selection(oversample, question_count, difficulty=difficulty)
+
+    if len(selected) < question_count:
+        # Jamais de génération IA pour FSE (voir docstring) : passe directement au dernier
+        # recours banque (questions déjà vues autorisées), même principe que
+        # `_start_mc38_transversal_session` après l'étape de génération (ici absente).
+        fallback_pool = select_fse_transversal_bank_questions(
+            db, user_id=user.id, module_id=module_id, limit=question_count * 5
+        )
+        if not fallback_pool and not selected:
+            raise SessionCreationError(
+                "Aucune question disponible pour la révision transversale FSE17 (banque "
+                "FSE01-16 vide)."
+            )
+        selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
+
+    return _finalize_session(
+        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
+        parameters_json={"scope": FSE17_SESSION_SCOPE},
+    )
+
+
 def start_session(
     db: DBSession,
     *,
@@ -605,11 +733,17 @@ def start_session(
     MC38 (ticket #58) est délégué à `_start_mc38_transversal_session` : ce mini-cours
     n'est pas une matière propre, ses sessions tirent exclusivement dans MC01→MC37 (jamais
     dans son propre contexte « révision/mémorisation », source du bug de questions méta
-    constaté en validation staging)."""
+    constaté en validation staging). FSE17 (ticket #101) est délégué de la même façon à
+    `_start_fse_transversal_session`, strictement banque (FSE01→FSE16)."""
     if uaa_code == MC38_CODE:
         return _start_mc38_transversal_session(
             db, user=user, module_id=module_id, mc38_uaa_id=uaa_id, mode=mode, difficulty=difficulty,
             provider=provider, question_count=question_count,
+        )
+    if uaa_code == FSE17_CODE:
+        return _start_fse_transversal_session(
+            db, user=user, module_id=module_id, mode=mode, difficulty=difficulty,
+            question_count=question_count,
         )
 
     # Anti-répétition (ticket #64 § 1) : la sélection banque initiale n'interroge QUE des
@@ -617,14 +751,14 @@ def start_session(
     # recours, plus bas, après tentative de génération.
     oversample = select_bank_questions(
         db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 3,
-        only_unseen=True,
+        only_unseen=True, difficulty=difficulty,
     )
     if uaa_id is None:
         # Parcours global/examen blanc AMPCR (§ 8 du ticket #64) : plusieurs mini-cours
         # obligatoires — jamais pertinent pour une session scopée à un seul UAA.
         oversample = _uaa_balanced_oversample(oversample, question_count)
     oversample = _limit_near_duplicate_clusters(oversample)
-    selected = compose_selection(oversample, question_count)
+    selected = compose_selection(oversample, question_count, difficulty=difficulty)
 
     if len(selected) < question_count:
         missing = question_count - len(selected)
@@ -675,7 +809,8 @@ def start_session(
         # question déjà retenue (ticket #82 : une session plus courte que demandé est
         # acceptable, un doublon intra-session ne l'est jamais).
         fallback_pool = select_bank_questions(
-            db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5
+            db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5,
+            difficulty=difficulty,
         )
         if not fallback_pool and not selected:
             raise SessionCreationError(
@@ -703,6 +838,8 @@ def describe_session_scope(session: QuestionnaireSession) -> str:
     (une seule UAA pour une session per-MC, plusieurs pour un parcours global)."""
     if (session.parameters_json or {}).get("scope") == MC38_SESSION_SCOPE:
         return "MC38 — Révision transversale (MC01→MC37)"
+    if (session.parameters_json or {}).get("scope") == FSE17_SESSION_SCOPE:
+        return "FSE17 — Révision transversale (FSE01→FSE16)"
 
     uaa_titles: list[str] = []
     seen_ids: set[int] = set()

@@ -310,3 +310,76 @@ lorsqu'elle réunit, selon ce qui est pertinent pour la tâche : contenu, géné
 progression, administration, documentation et tests — puis commit et push (§ 8).
 
 La tranche suivante ne démarre qu'une fois la précédente terminée.
+
+---
+
+# 18. Prévisualisation avant validation
+
+**Mise à jour du 1 octobre 2026 (même jour, consigne explicite ultérieure et plus
+spécifique — prévaut sur la règle générale ci-dessous tant qu'elle n'est pas révoquée)** :
+`https://jury-central.lodylands.com` sert la plateforme d'essai personnelle de
+l'utilisateur. Pour cette plateforme précise, et uniquement sur instruction explicite au
+cas par cas, l'utilisateur peut autoriser l'installation directe du code d'une branche de
+ticket (non fusionnée) sur ce site, AVANT la suite de tests complète et avant toute
+fusion — ceci déroge explicitement au § 8/§ 16 (aucun déploiement sans demande explicite,
+jamais une branche autre que `develop`) pour ce cas précis, jamais par défaut. Ordre à
+respecter quand cette autorisation est donnée :
+
+1. Sauvegarder la base réelle (`jury_central.db`, copie `sqlite3 ... ".backup ..."`) et
+   relever le commit actuellement en place, pour permettre un retour arrière — préserver
+   comptes, sessions, autres matières et configuration IA existante (`.env` jamais modifié).
+2. Commit/push des changements sur la branche du ticket, puis installation sur le site par
+   le mécanisme déjà utilisé (checkout du commit exact dans `/srv/jury-central`, seed
+   idempotent, redémarrage des services existants) — jamais de nouvelle infrastructure
+   pour ce besoin.
+3. Contrôles rapides uniquement (site accessible, fonctionnalité visible, parcours de
+   démarrage, worker opérationnel) — pas la suite de tests complète à ce stade.
+4. Lien direct transmis dès que la fonctionnalité est utilisable ; attendre le retour de
+   l'utilisateur avant de relancer des tests longs ou de poursuivre.
+5. Développement et préparation des changements : toujours dans un `git worktree` séparé
+   (jamais directement dans `/srv/jury-central`, dont le `WorkingDirectory` est partagé
+   avec le(s) service(s) live — voir `docs/claude-reports/2026-10-01_incident-502.md` § 7).
+6. Suite de tests complète, Ruff, et mise à jour des rapports : après la validation
+   utilisateur de l'aperçu installé, avant toute intégration définitive (fusion vers
+   `develop`).
+
+Cette dérogation est strictement scopée à cette plateforme et vaut pour la demande qui l'a
+autorisée — elle ne s'étend pas automatiquement à un autre site ni à un ticket futur sans
+nouvelle instruction explicite. **Hors de ce cas précis**, la règle générale ci-dessous
+reste la référence par défaut :
+
+Consigne explicite de l'utilisateur du 1 octobre 2026, applicable à tout changement visible
+(page, parcours, formulaire) avant la suite de tests complète et la finalisation d'un
+ticket :
+
+- Avant d'exécuter la suite de tests complète et de finaliser un ticket qui modifie un
+  comportement visible, proposer une prévisualisation fonctionnelle que l'utilisateur peut
+  essayer lui-même, dans son navigateur (PC et téléphone) — jamais seulement une adresse
+  `localhost` inaccessible depuis l'extérieur.
+- Réutiliser une infrastructure de prévisualisation déjà en place si elle existe. Sinon,
+  mettre en place un accès isolé, **sans jamais modifier le fonctionnement, la
+  configuration nginx/systemd active, ou les données du site public** (voir § 16) :
+  code depuis la branche du ticket (de préférence un `git worktree` dédié, voir § 2/§ 17 —
+  jamais le répertoire de travail du service live), base de données de démonstration
+  séparée (jamais de donnée réelle), serveur et worker applicatifs séparés de ceux du site
+  public. Voir `docs/preview_procedure.md` pour la procédure technique détaillée et les
+  options concrètes selon les contraintes réseau rencontrées (port dédié vs sous-domaine
+  dédié).
+- Avant de transmettre le lien, effectuer uniquement les contrôles rapides nécessaires et
+  un parcours fonctionnel court (pas la suite de tests complète à ce stade) : l'objectif
+  est de confirmer que la prévisualisation fonctionne, pas de refaire la recette complète
+  en double.
+- Indiquer clairement, pour toute fonctionnalité de correction/génération : si elle utilise
+  un fournisseur IA réellement configuré ou un mécanisme simulé — une simulation ne valide
+  jamais la qualité pédagogique d'une correction réelle, uniquement le mécanisme, le
+  parcours et l'interface.
+- Si l'accès externe (port, sous-domaine, certificat) se heurte à une contrainte
+  d'infrastructure hors de portée (ex. pare-feu/groupe de sécurité cloud) : ne jamais
+  tenter de la contourner ni de modifier une configuration d'infrastructure sensible sans
+  autorisation explicite pour CETTE action précise — signaler le blocage, présenter les
+  options concrètes de déblocage, et attendre la décision de l'utilisateur (§ 11).
+- Attendre la validation visuelle et fonctionnelle explicite de l'utilisateur sur cette
+  prévisualisation avant de lancer la suite de tests complète et la finalisation
+  (commit/push de clôture, mise à jour des rapports). Les tests complets restent
+  obligatoires avant toute fusion/déploiement (§ 7/§ 8) — cette consigne change seulement
+  l'ORDRE (aperçu visuel d'abord), jamais l'exigence elle-même.

@@ -17,6 +17,24 @@ from app.v1.francais_fr01_05_courses import (
     fr05_course_markdown,
 )
 from app.v1.francais_plan import FRANCAIS_MODULE_CODE, FRANCAIS_SUBJECT_NAME
+from app.v1.fse01_course import fse01_course_markdown
+from app.v1.fse02_course import fse02_course_markdown
+from app.v1.fse03_course import fse03_course_markdown
+from app.v1.fse04_course import fse04_course_markdown
+from app.v1.fse05_course import fse05_course_markdown
+from app.v1.fse06_course import fse06_course_markdown
+from app.v1.fse07_course import fse07_course_markdown
+from app.v1.fse08_course import fse08_course_markdown
+from app.v1.fse09_course import fse09_course_markdown
+from app.v1.fse10_course import fse10_course_markdown
+from app.v1.fse11_course import fse11_course_markdown
+from app.v1.fse12_course import fse12_course_markdown
+from app.v1.fse13_course import fse13_course_markdown
+from app.v1.fse14_course import fse14_course_markdown
+from app.v1.fse15_course import fse15_course_markdown
+from app.v1.fse16_course import fse16_course_markdown
+from app.v1.fse17_course import fse17_course_markdown
+from app.v1.fse_plan import FSE_MODULE_CODE, FSE_SUBJECT_NAME
 
 SUBJECT_NAME = "Mathématiques"
 MODULE_CODES = ["MB32", "MQ32", "MQ34"]
@@ -4606,6 +4624,256 @@ FRANCAIS_FR05_BLOCKS = [
 ]
 
 
+# =========================================================================================
+# Formation sociale et économique (FSE) — CESS Professionnel (ticket #96 : FSE01 ;
+# ticket #97 : FSE02-FSE04 ; ticket #98 : FSE05-FSE08 ; ticket #99 : FSE09-FSE12 ;
+# ticket #100 : FSE13-FSE16 ; ticket #101 : FSE17)
+# =========================================================================================
+#
+# Aucune matière FSE n'existait dans le dépôt avant le ticket #96 (voir `app.v1.fse_plan`,
+# docstring). Les 17 mini-cours officiels FSE01-FSE17 sont désormais tous rédigés et seedés
+# ici (tickets #96-#101, cahiers des charges détaillés) — jamais un cours vide présenté
+# comme disponible.
+
+FSE01_CODE = "FSE01"
+FSE01_TITLE = "Communiquer : le schéma de communication"
+
+FSE01_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse01_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE02_CODE = "FSE02"
+FSE02_TITLE = "Les médias et leurs financements"
+
+FSE02_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse02_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE03_CODE = "FSE03"
+FSE03_TITLE = "Identités, traces numériques et appartenance"
+
+FSE03_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse03_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE04_CODE = "FSE04"
+FSE04_TITLE = "Normes, valeurs et influence sociale"
+
+FSE04_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse04_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE05_CODE = "FSE05"
+FSE05_TITLE = "Image, vie privée et données personnelles"
+
+FSE05_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse05_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE06_CODE = "FSE06"
+FSE06_TITLE = "Droits et comportements illicites en ligne"
+
+FSE06_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse06_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE07_CODE = "FSE07"
+FSE07_TITLE = "Analyser un dossier médiatique"
+
+FSE07_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse07_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE08_CODE = "FSE08"
+FSE08_TITLE = "La Belgique : État et niveaux de pouvoir"
+
+FSE08_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse08_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE09_CODE = "FSE09"
+FSE09_TITLE = "Qui décide de quoi ?"
+
+FSE09_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse09_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE10_CODE = "FSE10"
+FSE10_TITLE = "Élections et participation citoyenne"
+
+FSE10_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse10_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE11_CODE = "FSE11"
+FSE11_TITLE = "Partis politiques et choix argumenté"
+
+FSE11_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse11_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE12_CODE = "FSE12"
+FSE12_TITLE = "Le budget de l'État"
+
+FSE12_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse12_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE13_CODE = "FSE13"
+FSE13_TITLE = "La sécurité sociale : rôle et financement"
+
+FSE13_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse13_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE14_CODE = "FSE14"
+FSE14_TITLE = "La sécurité sociale : organismes et enjeux"
+
+FSE14_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse14_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE15_CODE = "FSE15"
+FSE15_TITLE = "Le circuit économique et les interventions de l'État"
+
+FSE15_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse15_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE16_CODE = "FSE16"
+FSE16_TITLE = "Analyser une décision publique"
+
+FSE16_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse16_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+FSE17_CODE = "FSE17"
+FSE17_TITLE = "Révision générale et méthode d'examen"
+
+FSE17_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fse17_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
+
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
 
@@ -4839,12 +5107,37 @@ def seed() -> None:
         _seed_uaa(db, cessp, "FR04", FRANCAIS_FR04_TITLE, 5, FRANCAIS_FR04_BLOCKS, created, kept)
         _seed_uaa(db, cessp, "FR05", FRANCAIS_FR05_TITLE, 6, FRANCAIS_FR05_BLOCKS, created, kept)
 
+        # Formation sociale et économique (tickets #96-#101, FSE01-FSE17) : même mécanisme
+        # générique, purement additif — ne touche jamais Mathématiques/Informatique/
+        # Français (voir docstring de la section FSE ci-dessus).
+        fse_subject = _ensure_subject(db, FSE_SUBJECT_NAME, created, kept)
+        _ensure_modules(db, fse_subject, [FSE_MODULE_CODE], created, kept)
+        fse_module = next(m for m in fse_subject.modules if m.code == FSE_MODULE_CODE)
+        _seed_uaa(db, fse_module, FSE01_CODE, FSE01_TITLE, 1, FSE01_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE02_CODE, FSE02_TITLE, 2, FSE02_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE03_CODE, FSE03_TITLE, 3, FSE03_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE04_CODE, FSE04_TITLE, 4, FSE04_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE05_CODE, FSE05_TITLE, 5, FSE05_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE06_CODE, FSE06_TITLE, 6, FSE06_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE07_CODE, FSE07_TITLE, 7, FSE07_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE08_CODE, FSE08_TITLE, 8, FSE08_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE09_CODE, FSE09_TITLE, 9, FSE09_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE10_CODE, FSE10_TITLE, 10, FSE10_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE11_CODE, FSE11_TITLE, 11, FSE11_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE12_CODE, FSE12_TITLE, 12, FSE12_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE13_CODE, FSE13_TITLE, 13, FSE13_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE14_CODE, FSE14_TITLE, 14, FSE14_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE15_CODE, FSE15_TITLE, 15, FSE15_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE16_CODE, FSE16_TITLE, 16, FSE16_BLOCKS, created, kept)
+        _seed_uaa(db, fse_module, FSE17_CODE, FSE17_TITLE, 17, FSE17_BLOCKS, created, kept)
+
         db.commit()
 
         all_subjects = (
             f"{SUBJECT_NAME} ({', '.join(MODULE_CODES)}), "
             f"{INFORMATIQUE_SUBJECT_NAME} ({', '.join(INFORMATIQUE_MODULE_CODES)}), "
-            f"{FRANCAIS_SUBJECT_NAME} ({FRANCAIS_MODULE_CODE})"
+            f"{FRANCAIS_SUBJECT_NAME} ({FRANCAIS_MODULE_CODE}), "
+            f"{FSE_SUBJECT_NAME} ({FSE_MODULE_CODE})"
         )
         print(f"Seed terminé : {all_subjects}")
         print(
