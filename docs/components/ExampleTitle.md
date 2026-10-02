@@ -1,8 +1,7 @@
 # ExampleTitle
 
-Introduit lors des retouches visuelles de FSE01 (ticket #112). Composant réutilisable, mais
-appliqué à FSE01 uniquement pour cette étape — l'extension à d'autres cours attend une
-confirmation explicite de l'utilisateur.
+Introduit lors des retouches visuelles de FSE01 (ticket #112), étendu à FSE02-FSE16
+(ticket #115) via la transformation générique `app.v1.fse_course_sections.exemple_headers_to_titles`.
 
 ---
 

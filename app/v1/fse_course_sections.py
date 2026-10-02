@@ -107,6 +107,162 @@ def mauvaises_bonnes_to_comparegrid(text: str) -> str:
     return "\n\n".join(blocks)
 
 
+_EXEMPLE_HEADER_RE = re.compile(r"^### (Exemple .+)$", re.MULTILINE)
+
+
+def exemple_headers_to_titles(text: str) -> str:
+    """Convertit chaque titre Markdown `### Exemple N — ...` en
+    `<h3 class="jc-example-title">` (HTML brut, pour porter la classe d'espacement dédiée
+    — 32px avant/16px après, voir `docs/components/ExampleTitle.md`, tickets #112/#115)."""
+    return _EXEMPLE_HEADER_RE.sub(r'<h3 class="jc-example-title">\1</h3>', text)
+
+
+_ANALYSE_RE = re.compile(r"\*\*Analyse comment[ée]e\s*:\*\*\s*")
+_DECRYPT_TITLE_HTML = (
+    '<h4 class="jc-decrypt-title"><span aria-hidden="true">🔍</span> '
+    "Décryptons ce document</h4>"
+)
+
+
+def analyse_commentee_to_decrypt(text: str) -> str:
+    """Remplace `**Analyse commentée :**` par le titre dédié « Décryptons ce document »
+    (voir `docs/components/DecryptTitle.md`, tickets #112/#115), en séparant le texte qui
+    suit dans son propre paragraphe."""
+    return _ANALYSE_RE.sub(f"\n\n{_DECRYPT_TITLE_HTML}\n\n", text)
+
+
+_BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
+
+
+def _inline_md_to_html(text: str) -> str:
+    """Convertit le gras Markdown (`**...**`) en `<strong>` — nécessaire car ce texte est
+    inséré dans un bloc HTML brut, jamais retraité par `render_markdown` (voir docstring
+    du module, tickets #112/#115)."""
+    return _BOLD_RE.sub(r"<strong>\1</strong>", text)
+
+
+_LIST_LINE_RE = re.compile(r"^(-|\d+\.)\s+")
+
+
+def _paragraphs_to_html(text: str) -> str:
+    """Convertit un texte brut (paragraphes séparés par une ligne vide, gras `**...**`) en
+    HTML réel : un paragraphe dont CHAQUE ligne est un élément de liste (`- ...`/`N. ...`)
+    devient un vrai `<ul>`/`<ol>`, les autres deviennent des `<p>`. Nécessaire car ce texte
+    est inséré dans un bloc HTML brut (`<details>`), jamais retraité par
+    `render_markdown` — c'est la cause exacte des listes à tirets/numéros restées
+    littérales dans certains corrigés (ex. FSE03), diagnostiquée au ticket #112/#115."""
+    blocks = [b.strip() for b in text.split("\n\n") if b.strip()]
+    html_blocks: list[str] = []
+    for block in blocks:
+        lines = [line.strip() for line in block.split("\n") if line.strip()]
+        if lines and all(_LIST_LINE_RE.match(line) for line in lines):
+            ordered = bool(re.match(r"^\d+\.\s", lines[0]))
+            tag = "ol" if ordered else "ul"
+            items = "\n".join(
+                f"<li>{_inline_md_to_html(_LIST_LINE_RE.sub('', line))}</li>" for line in lines
+            )
+            html_blocks.append(f"<{tag}>\n{items}\n</{tag}>")
+        else:
+            paragraph = " ".join(lines)
+            html_blocks.append(f"<p>{_inline_md_to_html(paragraph)}</p>")
+    return "\n".join(html_blocks)
+
+
+_EXERCISE_BLOCK_RE = re.compile(
+    r"<details>\s*"
+    r"<summary>Exercice \d+ — (?P<title>.+?) \(essaie avant de regarder la correction\)</summary>\s*"
+    r"(?P<instructions>.*?)\s*"
+    r"<details>\s*"
+    r"<summary>Voir la correction expliquée</summary>\s*"
+    r"(?P<correction>.*?)\s*"
+    r"</details>\s*"
+    r"</details>",
+    re.DOTALL,
+)
+
+_FLASH_QUESTION_RE = re.compile(
+    r"\*\*Question\s*:\*\*\s*(?P<question>.+?)\n\n"
+    r"\*\*Corrigé expliqué\s*:\*\*\s*(?P<correction>.+)",
+    re.DOTALL,
+)
+
+_WHY_CORRECT_RE = re.compile(r"\n\n(Ce corrigé fonctionne parce qu.+)\Z", re.DOTALL)
+
+
+def _why_correct_split(correction_raw: str) -> tuple[str, str]:
+    """Sépare la dernière phrase « Ce corrigé fonctionne parce que... » (présente dans
+    tous les corrigés FSE02-17, vérifié avant d'écrire cette fonction) du reste du
+    corrigé, pour l'afficher dans son propre encadré `.jc-why-correct` (voir FSE01,
+    ticket #112). Retourne (corrigé_sans_la_phrase, html_de_l_encadré_ou_chaine_vide)."""
+    match = _WHY_CORRECT_RE.search(correction_raw)
+    if not match:
+        return correction_raw, ""
+    remainder = correction_raw[: match.start()].strip()
+    why_html = (
+        '<div class="jc-why-correct">'
+        '<span class="jc-why-correct-label">Pourquoi cette réponse est correcte</span>'
+        f"<p>{_inline_md_to_html(match.group(1).strip())}</p>"
+        "</div>"
+    )
+    return remainder, why_html
+
+
+def _exercise_card_html(number: int, title: str, instructions_raw: str, correction_raw: str) -> str:
+    instructions_html = _paragraphs_to_html(instructions_raw)
+    correction_body, why_html = _why_correct_split(correction_raw)
+    correction_html = _paragraphs_to_html(correction_body)
+    return (
+        f'<div class="jc-exercise-card">\n'
+        f'<div class="jc-exercise-card-header">'
+        f'<span class="jc-exercise-number" aria-hidden="true">{number}</span>'
+        f'<h4 class="jc-exercise-title">{_inline_md_to_html(title)}</h4>'
+        f"</div>\n"
+        f'<div class="jc-exercise-instructions">\n{instructions_html}\n</div>\n'
+        f'<details class="jc-exercise-correction">\n<summary>Voir le corrigé</summary>\n'
+        f'<div class="jc-exercise-correction-body">\n{correction_html}\n{why_html}\n</div>\n'
+        f"</details>\n"
+        f"</div>"
+    )
+
+
+def exercises_to_cards(text: str) -> str:
+    """Convertit les exercices guidés (format `<details>` imbriqués, tickets #96-#101) en
+    cartes individuelles (`.jc-exercise-card`), comme FSE01 (ticket #112) : consigne
+    toujours visible, accordéon « Voir le corrigé » stylé comme un bouton (fermé par
+    défaut), corrigé structuré en HTML réel. Le « Corrigé très expliqué » final (question
+    flash, jamais replié dans la version originale) devient un exercice supplémentaire à
+    part entière, avec sa propre carte et son propre accordéon — cohérent avec
+    « corrigés fermés au chargement » appliqué partout. Voir
+    `docs/components/ExerciseStepCard.md`."""
+    cards: list[str] = []
+    number = 0
+    for match in _EXERCISE_BLOCK_RE.finditer(text):
+        number += 1
+        cards.append(
+            _exercise_card_html(
+                number,
+                match.group("title").strip(),
+                match.group("instructions").strip(),
+                match.group("correction").strip(),
+            )
+        )
+
+    flash_match = _FLASH_QUESTION_RE.search(text)
+    if flash_match:
+        number += 1
+        question = flash_match.group("question").strip().strip("«»\" ")
+        cards.append(
+            _exercise_card_html(
+                number,
+                "Question flash",
+                question,
+                flash_match.group("correction").strip(),
+            )
+        )
+
+    return "\n\n".join(cards)
+
+
 def pieges_to_blockquotes(text: str) -> str:
     """Convertit chaque puce de premier niveau en citation Markdown (`> ...`), reconnue
     automatiquement comme WarningCard par `design_system.js`. Les puces imbriquées (sous
@@ -136,7 +292,12 @@ def build_course_sections(code: str, markdown: str) -> list[tuple[str, str]]:
             fix_list_blank_lines(sections[2] + "\n\n" + sections[3]),
         ),
         (f"{code} — Méthode", fix_list_blank_lines(sections[4])),
-        (f"{code} — Exemples commentés", fix_list_blank_lines(sections[5])),
+        (
+            f"{code} — Exemples commentés",
+            analyse_commentee_to_decrypt(
+                exemple_headers_to_titles(fix_list_blank_lines(sections[5]))
+            ),
+        ),
         (
             f"{code} — Comparer pour ne pas confondre",
             mauvaises_bonnes_to_comparegrid(sections[6])
@@ -145,7 +306,7 @@ def build_course_sections(code: str, markdown: str) -> list[tuple[str, str]]:
         ),
         (
             f"{code} — Exercices guidés",
-            fix_list_blank_lines(sections[8] + "\n\n" + sections[9]),
+            exercises_to_cards(sections[8] + "\n\n" + sections[9]),
         ),
         (f"{code} — Fiche mémo", fix_list_blank_lines(sections[10])),
     ]

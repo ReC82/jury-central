@@ -59,12 +59,13 @@ quel par `app/content.py`) :
   destiné à un usage mobile peut fournir deux rendus distincts (large/colonne) permutés par
   média-requête, plutôt qu'un simple redimensionnement qui rendrait le texte illisible.
 - [ExampleTitle](ExampleTitle.md) — titre d'un exemple commenté, espacé précisément de
-  l'exemple précédent et du document qui suit (ticket #112, FSE01 uniquement).
+  l'exemple précédent et du document qui suit (ticket #112, étendu à FSE02-17 au
+  ticket #115).
 - [DecryptTitle](DecryptTitle.md) — titre dédié annonçant l'analyse d'un document juste
-  après celui-ci (ticket #112, FSE01 uniquement).
+  après celui-ci (ticket #112, étendu à FSE02-17 au ticket #115).
 - [ExerciseStepCard](ExerciseStepCard.md) — une carte par exercice guidé (numéro, titre,
   consigne visible, lien vers le document, accordéon « Voir le corrigé »), corrigé
-  structuré en HTML réel (ticket #112, FSE01 uniquement) — toujours un exercice guidé du
+  structuré en HTML réel (ticket #112, étendu à FSE02-17 au ticket #115) — toujours un exercice guidé du
   cours, jamais un nouveau moteur de correction/notation.
 
 ---
