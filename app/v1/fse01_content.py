@@ -68,7 +68,7 @@ Le service recrutement — Entrepôts Dufresne"""
 
 # Ticket #108 § 3 : vraie mise en page de messagerie (en-têtes, avatars, fil de discussion),
 # texte réel et sélectionnable — jamais une image. Voir docs/components/EmailCard.md.
-FSE01_MAIL_CARD_HTML = """<div class="jc-doc jc-mail">
+FSE01_MAIL_CARD_HTML = """<div class="jc-doc jc-mail" id="document-mail">
 <div class="jc-doc-header"><strong>✉️ Mail — candidature</strong><span class="jc-doc-fictive-badge">Fictif</span></div>
 <div class="jc-mail-thread">
 <div class="jc-mail-message">
@@ -215,7 +215,7 @@ def _poster_visual_inner_html() -> str:
     )
 
 
-FSE01_AFFICHE_CARD_HTML = f"""<div class="jc-poster-wrap">
+FSE01_AFFICHE_CARD_HTML = f"""<div class="jc-poster-wrap" id="document-affiche">
 <figure class="jc-poster">
 <div class="jc-poster-visual jc-zoomable" role="img" aria-label="{_POSTER_ALT_TEXT}">
 {_poster_visual_inner_html()}
@@ -264,11 +264,11 @@ formation complémentaire est prévue à l'embauche. N'hésitez pas à postuler 
 
 # Ticket #108 § 3 : vraie mise en page de publication (avatar, réactions, fil de
 # commentaires), texte réel et sélectionnable. Voir docs/components/SocialPostCard.md.
-FSE01_SOCIAL_CARD_HTML = """<div class="jc-doc jc-social">
+FSE01_SOCIAL_CARD_HTML = """<div class="jc-doc jc-social" id="document-social">
 <div class="jc-doc-header"><strong>📱 Publication — réseau social</strong><span class="jc-doc-fictive-badge">Fictif</span></div>
 <div class="jc-doc-body">
 <div class="jc-social-post-head">
-<span class="jc-social-avatar" aria-hidden="true">TS</span>
+<span class="jc-social-avatar jc-social-avatar--company" aria-hidden="true">TS</span>
 <div class="jc-social-meta">
 <span class="jc-social-author">Techno Services Wallonie</span>
 <span class="jc-social-time">Publié il y a 3 heures</span>
@@ -282,25 +282,25 @@ expérience en électromécanique appréciée. Postulez via le lien en commentai
 <span>👍 24 réactions</span><span>💬 7 commentaires</span><span>🔁 5 partages</span>
 </div>
 <div class="jc-social-comments">
-<div class="jc-social-comment">
-<span class="jc-social-avatar jc-social-avatar--sm" aria-hidden="true">FB</span>
+<div class="jc-social-comment jc-social-comment--fatima">
+<span class="jc-social-avatar jc-social-avatar--sm jc-social-avatar--fatima" aria-hidden="true">FB</span>
 <div><strong>Fatima B.</strong><p>« Le poste est-il ouvert aux débutant·e·s avec un \
 certificat obtenu via le Forem ? »</p></div>
 </div>
-<div class="jc-social-comment">
-<span class="jc-social-avatar jc-social-avatar--sm" aria-hidden="true">MT</span>
-<div><strong>Mourad T.</strong> <em>(a partagé la publication)</em><p>« Je connais \
-quelqu'un que ça peut intéresser, je transmets ! »</p></div>
-</div>
-<div class="jc-social-comment">
-<span class="jc-social-avatar jc-social-avatar--sm" aria-hidden="true">JP</span>
-<div><strong>Julien P.</strong><p>« Encore une offre qui ne précise pas le salaire... »</p></div>
-</div>
-<div class="jc-social-comment jc-social-comment--company">
-<span class="jc-social-avatar jc-social-avatar--sm" aria-hidden="true">TS</span>
+<div class="jc-social-comment jc-social-comment--company jc-social-comment--reply">
+<span class="jc-social-avatar jc-social-avatar--sm jc-social-avatar--company" aria-hidden="true">TS</span>
 <div><strong>Techno Services Wallonie</strong><span class="jc-social-reply-badge">Réponse \
 de l'entreprise</span><p>« Oui, une formation complémentaire est prévue à l'embauche. \
 N'hésitez pas à postuler ! »</p></div>
+</div>
+<div class="jc-social-comment jc-social-comment--mourad">
+<span class="jc-social-avatar jc-social-avatar--sm jc-social-avatar--mourad" aria-hidden="true">MT</span>
+<div><strong>Mourad T.</strong> <em>(a partagé la publication)</em><p>« Je connais \
+quelqu'un que ça peut intéresser, je transmets ! »</p></div>
+</div>
+<div class="jc-social-comment jc-social-comment--julien">
+<span class="jc-social-avatar jc-social-avatar--sm jc-social-avatar--julien" aria-hidden="true">JP</span>
+<div><strong>Julien P.</strong><p>« Encore une offre qui ne précise pas le salaire... »</p></div>
 </div>
 </div>
 </div>
