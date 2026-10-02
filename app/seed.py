@@ -5003,18 +5003,21 @@ def seed() -> None:
             created,
             kept,
             # "Cours complet" (ticket #105) : ancien bloc unique, retiré définitivement.
-            # Les deux titres suivants (ticket #108) sont ajoutés pour forcer le
-            # remplacement du contenu déjà seedé par la version enrichie (cartes-documents
-            # réalistes, schéma responsive, icônes) : FSE01 est un contenu entièrement
-            # piloté par le code (jamais édité depuis l'admin, voir docstring de la section
-            # FSE), donc retirer-puis-recréer sous le même titre est sûr ici — contrairement
-            # à la garantie générale de `_seed_uaa` (jamais écraser un bloc existant), qui
-            # reste inchangée pour tout titre non listé ici.
+            # Les titres suivants sont ajoutés pour forcer le remplacement du contenu déjà
+            # seedé par une version enrichie (ticket #108 : cartes-documents réalistes,
+            # schéma responsive, icônes ; ticket #112 : espacement des exemples, avatars
+            # colorés, titre "Décryptons ce document", refonte des exercices guidés en
+            # cartes HTML) : FSE01 est un contenu entièrement piloté par le code (jamais
+            # édité depuis l'admin, voir docstring de la section FSE), donc
+            # retirer-puis-recréer sous le même titre est sûr ici — contrairement à la
+            # garantie générale de `_seed_uaa` (jamais écraser un bloc existant), qui reste
+            # inchangée pour tout titre non listé ici.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
                     "FSE01 — Théorie : le schéma de communication",
                     "FSE01 — Exemples commentés : mail, affiche, réseau social",
+                    "FSE01 — Exercices guidés",
                 }
             ),
         )
