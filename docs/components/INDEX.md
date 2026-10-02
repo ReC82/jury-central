@@ -47,8 +47,17 @@ quel par `app/content.py`) :
   réponse, côte à côte.
 - [DocCard](DocCard.md) — document support (mail, affiche, publication) séparé de son
   analyse.
+- [EmailCard](EmailCard.md) — variante de DocCard : mail réaliste (en-tête, fil de réponse),
+  texte réel et sélectionnable (ticket #108, FSE01 uniquement pour l'instant).
+- [SocialPostCard](SocialPostCard.md) — variante de DocCard : publication de réseau social
+  réaliste (avatar, réactions, commentaires), texte réel (ticket #108, FSE01 uniquement).
+- [PosterCard](PosterCard.md) — variante de DocCard : affiche avec illustration générée une
+  fois via l'API OpenAI et conservée durablement + slogan/mentions en HTML (ticket #108,
+  FSE01 uniquement).
 - [Diagram](Diagram.md) — schéma SVG relationnel (remplace les schémas en caractères),
-  pour les cas que `.jc-flow` (linéaire) ne couvre pas.
+  pour les cas que `.jc-flow` (linéaire) ne couvre pas. Depuis le ticket #108, un schéma
+  destiné à un usage mobile peut fournir deux rendus distincts (large/colonne) permutés par
+  média-requête, plutôt qu'un simple redimensionnement qui rendrait le texte illisible.
 
 ---
 

@@ -548,3 +548,318 @@ table.value-table tbody th {
     background: var(--jc-blue);
     transition: width 0.15s ease-out;
 }
+
+/* --- Icône de notion dans la grille de définitions (ticket #108) : additif, n'affecte
+   jamais .jc-definition/.jc-definition-term utilisés sans cette en-tête par FSE02-FSE17
+   (voir docs/components/DefinitionGrid.md). --- */
+
+.jc-definition-head {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.35rem;
+}
+
+.jc-definition-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--jc-blue);
+    color: #fff;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.jc-definition-head .jc-definition-term {
+    margin-bottom: 0;
+    display: inline;
+}
+
+/* --- Document "mail" réaliste (ticket #108 § 3) : texte réel, sélectionnable — jamais une
+   image. S'appuie sur .jc-doc pour l'habillage externe (en-tête, étiquette Fictif). --- */
+
+.jc-mail-thread {
+    padding: 0;
+}
+
+.jc-mail-message {
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid #eef0f2;
+}
+
+.jc-mail-message:last-child {
+    border-bottom: none;
+}
+
+.jc-mail-message--reply {
+    background: #fafbfc;
+}
+
+.jc-mail-message-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+
+.jc-mail-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    background: var(--jc-blue);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.jc-mail-avatar--reply {
+    background: var(--jc-green);
+}
+
+.jc-mail-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.85rem;
+}
+
+.jc-mail-from {
+    font-weight: 700;
+    color: #1f2933;
+}
+
+.jc-mail-address {
+    font-weight: 400;
+    color: #55606b;
+    word-break: break-word;
+}
+
+.jc-mail-to {
+    color: #55606b;
+    font-size: 0.8rem;
+}
+
+.jc-mail-date {
+    font-size: 0.78rem;
+    color: #55606b;
+    white-space: nowrap;
+}
+
+.jc-mail-subject {
+    font-weight: 600;
+    color: #1f2933;
+    margin: 0.2rem 0 0.55rem;
+}
+
+.jc-mail-body p {
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+}
+
+.jc-mail-body p:last-child {
+    margin-bottom: 0;
+}
+
+.jc-mail-interrupted {
+    border: 1px dashed var(--jc-red);
+    background: var(--jc-red-bg);
+    color: var(--jc-red);
+    border-radius: 6px;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem !important;
+    font-weight: 600;
+}
+
+@media (max-width: 576px) {
+    .jc-mail-message-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+    }
+}
+
+/* --- Publication "réseau social" réaliste (ticket #108 § 3) : texte réel, sélectionnable.
+   S'appuie également sur .jc-doc pour l'habillage externe. --- */
+
+.jc-social-post-head {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.65rem;
+}
+
+.jc-social-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 50%;
+    background: var(--jc-orange);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.jc-social-avatar--sm {
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: 0.7rem;
+}
+
+.jc-social-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.jc-social-author {
+    font-weight: 700;
+    color: #1f2933;
+}
+
+.jc-social-time {
+    font-size: 0.78rem;
+    color: #55606b;
+}
+
+.jc-social-text {
+    font-size: 0.95rem;
+    margin: 0 0 0.75rem;
+}
+
+.jc-social-reactions {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #55606b;
+    border-top: 1px solid #eef0f2;
+    border-bottom: 1px solid #eef0f2;
+    padding: 0.5rem 0;
+    margin-bottom: 0.75rem;
+}
+
+.jc-social-comments {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.jc-social-comment {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+}
+
+.jc-social-comment p {
+    margin: 0.1rem 0 0;
+    font-size: 0.88rem;
+}
+
+.jc-social-comment strong {
+    font-size: 0.85rem;
+    color: #1f2933;
+}
+
+.jc-social-comment--company {
+    background: var(--jc-blue-bg);
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+}
+
+.jc-social-reply-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: var(--jc-blue);
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    margin-left: 0.4rem;
+    font-weight: 700;
+}
+
+/* --- Affiche illustrée (ticket #108 § 3-4) : image générée (ou rendu de secours en CSS
+   pur si la génération a échoué) + slogan/mentions en HTML pour garantir leur exactitude
+   et leur lisibilité, jamais du texte intégré à l'image elle-même. --- */
+
+.jc-poster-image {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.jc-poster-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f4f1ec;
+    padding: 1.5rem;
+}
+
+.jc-poster-fallback svg {
+    max-width: 220px;
+    width: 100%;
+    height: auto;
+}
+
+.jc-poster-textblock {
+    background: var(--jc-red);
+    color: #fff;
+    text-align: center;
+    padding: 1.1rem 1rem;
+}
+
+.jc-poster-slogan {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    margin: 0 0 0.4rem;
+    line-height: 1.3;
+}
+
+.jc-poster-subtitle {
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.jc-poster-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.65rem 1.1rem;
+    font-size: 0.78rem;
+    color: #55606b;
+    border-top: 1px solid #eef0f2;
+}
+
+@media print {
+    .jc-poster-image { max-height: 420px; object-fit: cover; }
+}
+
+/* --- Schéma de communication responsive (ticket #108 § 5) : deux rendus SVG distincts
+   (desktop large / mobile en colonne), permutés par média-requête plutôt que redimensionnés
+   — un simple scale-down du schéma large rendrait le texte illisible sur téléphone. --- */
+
+.jc-diagram--mobile { display: none; }
+
+@media (max-width: 576px) {
+    .jc-diagram--desktop { display: none; }
+    .jc-diagram--mobile { display: block; }
+}
+
+@media print {
+    .jc-diagram--mobile { display: none !important; }
+    .jc-diagram--desktop { display: block !important; }
+}

@@ -4834,7 +4834,16 @@ def _seed_uaa(
             removed_obsolete += 1
     db.flush()
 
-    existing_by_title = {block.title: block for block in uaa.lesson_blocks}
+    # Requête fraîche plutôt que `uaa.lesson_blocks` (ticket #108) : cette collection de
+    # relation peut rester périmée juste après les suppressions ci-dessus (observé lors de
+    # deux appels `seed()` consécutifs dans le même process/session — `_fse_course_blocks`
+    # retire puis recrée certains titres sous le même nom pour forcer un rafraîchissement
+    # de contenu, voir le site d'appel FSE01). Une requête directe élimine tout risque de
+    # recréer un doublon ou, pire, d'ignorer à tort un bloc déjà supprimé comme "existant".
+    existing_by_title = {
+        block.title: block
+        for block in db.query(LessonBlock).filter_by(uaa_id=uaa.id).all()
+    }
     for block_data in blocks:
         existing_block = existing_by_title.get(block_data["title"])
         if existing_block is None:
@@ -4993,7 +5002,21 @@ def seed() -> None:
             FSE01_BLOCKS,
             created,
             kept,
-            obsolete_titles=frozenset({"Cours complet"}),
+            # "Cours complet" (ticket #105) : ancien bloc unique, retiré définitivement.
+            # Les deux titres suivants (ticket #108) sont ajoutés pour forcer le
+            # remplacement du contenu déjà seedé par la version enrichie (cartes-documents
+            # réalistes, schéma responsive, icônes) : FSE01 est un contenu entièrement
+            # piloté par le code (jamais édité depuis l'admin, voir docstring de la section
+            # FSE), donc retirer-puis-recréer sous le même titre est sûr ici — contrairement
+            # à la garantie générale de `_seed_uaa` (jamais écraser un bloc existant), qui
+            # reste inchangée pour tout titre non listé ici.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE01 — Théorie : le schéma de communication",
+                    "FSE01 — Exemples commentés : mail, affiche, réseau social",
+                }
+            ),
         )
         _seed_uaa(
             db,

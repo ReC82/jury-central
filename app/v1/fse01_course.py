@@ -79,46 +79,46 @@ est question.
 
 <div class="jc-definitions">
 <div class="jc-definition">
-<span class="jc-definition-term">Émetteur</span>
+<div class="jc-definition-head"><span class="jc-definition-icon" aria-hidden="true">🗣️</span><span class="jc-definition-term">Émetteur</span></div>
 <p class="jc-definition-body">La personne (ou l'organisation) qui envoie le message.</p>
 </div>
 <div class="jc-definition">
-<span class="jc-definition-term">Récepteur</span>
+<div class="jc-definition-head"><span class="jc-definition-icon" aria-hidden="true">👂</span><span class="jc-definition-term">Récepteur</span></div>
 <p class="jc-definition-body">La personne (ou le groupe) à qui le message est destiné.</p>
 </div>
 <div class="jc-definition">
-<span class="jc-definition-term">Message</span>
+<div class="jc-definition-head"><span class="jc-definition-icon" aria-hidden="true">💬</span><span class="jc-definition-term">Message</span></div>
 <p class="jc-definition-body">Ce qui est réellement transmis — l'information, la demande, \
 l'annonce.</p>
 </div>
 <div class="jc-definition">
-<span class="jc-definition-term">Code</span>
+<div class="jc-definition-head"><span class="jc-definition-icon" aria-hidden="true">🔤</span><span class="jc-definition-term">Code</span></div>
 <p class="jc-definition-body">Le système de signes utilisé pour mettre le message en \
 forme.</p>
 <p class="jc-definition-example"><strong>Exemple :</strong> une langue, des images, des \
 couleurs, des pictogrammes, des émojis.</p>
 </div>
 <div class="jc-definition">
-<span class="jc-definition-term">Canal (ou contact)</span>
+<div class="jc-definition-head"><span class="jc-definition-icon" aria-hidden="true">📡</span><span class="jc-definition-term">Canal (ou contact)</span></div>
 <p class="jc-definition-body">Le support matériel ou technique par lequel le message \
 circule.</p>
 <p class="jc-definition-example"><strong>Exemple :</strong> une connexion internet, une \
 feuille affichée, une plateforme en ligne.</p>
 </div>
 <div class="jc-definition">
-<span class="jc-definition-term">Contexte (ou référent)</span>
+<div class="jc-definition-head"><span class="jc-definition-icon" aria-hidden="true">🧭</span><span class="jc-definition-term">Contexte (ou référent)</span></div>
 <p class="jc-definition-body">La situation, le sujet ou les circonstances qui donnent son \
 sens exact au message.</p>
 </div>
 <div class="jc-definition">
-<span class="jc-definition-term">Obstacle (ou bruit)</span>
+<div class="jc-definition-head"><span class="jc-definition-icon" aria-hidden="true">⚠️</span><span class="jc-definition-term">Obstacle (ou bruit)</span></div>
 <p class="jc-definition-body">Tout ce qui perturbe ou empêche la bonne transmission du \
 message.</p>
 <p class="jc-definition-example"><strong>Exemple :</strong> une panne technique, un bruit \
 ambiant, une formulation ambiguë, une information manquante.</p>
 </div>
 <div class="jc-definition">
-<span class="jc-definition-term">Rétroaction</span>
+<div class="jc-definition-head"><span class="jc-definition-icon" aria-hidden="true">🔁</span><span class="jc-definition-term">Rétroaction</span></div>
 <p class="jc-definition-body">La réponse que le récepteur peut renvoyer à l'émetteur. Sa \
 possibilité dépend UNIQUEMENT du canal utilisé — jamais de la rapidité de la réponse.</p>
 </div>

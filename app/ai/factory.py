@@ -6,6 +6,7 @@ configuration et permettre aux tests de substituer un fournisseur factice
 (`monkeypatch.setattr("app.practice.get_ai_provider", ...)`, voir `tests/ai/`).
 """
 
+from app.ai.image_provider import ImageProvider
 from app.ai.openai_provider import OpenAIProvider
 from app.ai.provider import AIProvider
 from app.config import settings
@@ -18,4 +19,15 @@ def get_ai_provider() -> AIProvider:
         api_key=settings.openai_api_key,
         model=settings.openai_model,
         timeout_seconds=settings.ai_request_timeout_seconds,
+    )
+
+
+def get_image_provider() -> ImageProvider:
+    """Génération d'images (ticket #108) — même clé API que `get_ai_provider()`, mais un
+    modèle et un délai dédiés (`settings.openai_image_model`/`ai_image_request_timeout_seconds`),
+    jamais ceux utilisés pour la génération/correction d'exercices."""
+    return ImageProvider(
+        api_key=settings.openai_api_key,
+        model=settings.openai_image_model,
+        timeout_seconds=settings.ai_image_request_timeout_seconds,
     )
