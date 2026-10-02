@@ -41,11 +41,12 @@ from app.v1.bank import (
     persist_generated_questions,
     recent_seen_prompts,
     select_bank_questions,
+    select_fse_transversal_bank_questions,
     select_transversal_bank_questions,
 )
 from app.v1.dedup import is_near_duplicate, question_signature
 from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE, get_francais_context
-from app.v1.fse_plan import FSE_PLAN_BY_CODE, get_fse_context
+from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, FSE_PLAN_BY_CODE, get_fse_context
 from app.v1.hybrid_correction import correct_session_hybrid, correct_session_hybrid_resumable
 from app.v1.mc38_transversal import (
     MC38_CODE,
@@ -643,6 +644,76 @@ def _start_mc38_transversal_session(
     )
 
 
+def _start_fse_transversal_session(
+    db: DBSession,
+    *,
+    user: User,
+    module_id: int,
+    mode: SessionMode,
+    difficulty: SessionDifficultyRequest,
+    question_count: int,
+) -> QuestionnaireSession:
+    """FSE17 (ticket #101) : même principe que `_start_mc38_transversal_session`, mais
+    strictement BANQUE — FSE17 n'est pas une matière propre, ses sessions tirent
+    exclusivement dans FSE01→FSE16 (jamais dans son propre contenu de synthèse, voir
+    `app.v1.fse17_course`). Contrairement à MC38, AUCUNE génération IA n'est jamais
+    déclenchée ici : le volume de banque existant (16 cours × 14 questions = 224) suffit
+    très largement à couvrir `question_count` (20 pour un « examen blanc », voir
+    `GLOBAL_EXAM_QUESTION_COUNT`), conformément au principe FSE établi depuis le ticket #96
+    (banque hand-authored uniquement, jamais une nouvelle intégration IA).
+
+    `difficulty` réalise concrètement les « trois examens blancs progressifs » du ticket
+    #101 (facile/moyen/difficile) : `compose_selection` ci-dessous applique le même
+    correctif générique de priorisation par difficulté que pour chaque cours FSE pris
+    individuellement (ticket #96, review) — ici appliqué à l'ensemble du pool FSE01-16.
+
+    Ordre important (bug constaté en test, corrigé ici) : balancer par UAA AVANT de
+    connaître la difficulté (comme le fait `start_session` pour le parcours global AMPCR,
+    où la difficulté n'a jamais d'effet) détruirait le filtre de difficulté — avec 16 UAA
+    et seulement 3 questions `HARD` par cours (48 au total), un `_uaa_balanced_oversample`
+    appliqué sur tout le pool AVANT la difficulté ne retient qu'une poignée de `HARD` par
+    UAA avant même que `compose_selection` ne s'exécute. Ce correctif sépare donc d'abord
+    le pool par difficulté (comme le fait déjà `compose_selection` en interne), balance
+    CHAQUE sous-pool par UAA séparément, puis ne laisse `compose_selection` qu'ordonner
+    par type — jamais l'inverse."""
+    raw_pool = select_fse_transversal_bank_questions(
+        db, user_id=user.id, module_id=module_id, limit=question_count * 12, only_unseen=True
+    )
+    target = None
+    if difficulty is not None and difficulty != SessionDifficultyRequest.ADAPTIVE:
+        target = QuestionDifficulty(difficulty.value)
+    if target is not None and any(q.difficulty_declared == target for q in raw_pool):
+        matching = [q for q in raw_pool if q.difficulty_declared == target]
+        other = [q for q in raw_pool if q.difficulty_declared != target]
+        oversample = (
+            _uaa_balanced_oversample(matching, question_count)
+            + _uaa_balanced_oversample(other, question_count)
+        )
+    else:
+        oversample = _uaa_balanced_oversample(raw_pool, question_count)
+    oversample = _limit_near_duplicate_clusters(oversample)
+    selected = compose_selection(oversample, question_count, difficulty=difficulty)
+
+    if len(selected) < question_count:
+        # Jamais de génération IA pour FSE (voir docstring) : passe directement au dernier
+        # recours banque (questions déjà vues autorisées), même principe que
+        # `_start_mc38_transversal_session` après l'étape de génération (ici absente).
+        fallback_pool = select_fse_transversal_bank_questions(
+            db, user_id=user.id, module_id=module_id, limit=question_count * 5
+        )
+        if not fallback_pool and not selected:
+            raise SessionCreationError(
+                "Aucune question disponible pour la révision transversale FSE17 (banque "
+                "FSE01-16 vide)."
+            )
+        selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
+
+    return _finalize_session(
+        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
+        parameters_json={"scope": FSE17_SESSION_SCOPE},
+    )
+
+
 def start_session(
     db: DBSession,
     *,
@@ -662,11 +733,17 @@ def start_session(
     MC38 (ticket #58) est délégué à `_start_mc38_transversal_session` : ce mini-cours
     n'est pas une matière propre, ses sessions tirent exclusivement dans MC01→MC37 (jamais
     dans son propre contexte « révision/mémorisation », source du bug de questions méta
-    constaté en validation staging)."""
+    constaté en validation staging). FSE17 (ticket #101) est délégué de la même façon à
+    `_start_fse_transversal_session`, strictement banque (FSE01→FSE16)."""
     if uaa_code == MC38_CODE:
         return _start_mc38_transversal_session(
             db, user=user, module_id=module_id, mc38_uaa_id=uaa_id, mode=mode, difficulty=difficulty,
             provider=provider, question_count=question_count,
+        )
+    if uaa_code == FSE17_CODE:
+        return _start_fse_transversal_session(
+            db, user=user, module_id=module_id, mode=mode, difficulty=difficulty,
+            question_count=question_count,
         )
 
     # Anti-répétition (ticket #64 § 1) : la sélection banque initiale n'interroge QUE des
@@ -761,6 +838,8 @@ def describe_session_scope(session: QuestionnaireSession) -> str:
     (une seule UAA pour une session per-MC, plusieurs pour un parcours global)."""
     if (session.parameters_json or {}).get("scope") == MC38_SESSION_SCOPE:
         return "MC38 — Révision transversale (MC01→MC37)"
+    if (session.parameters_json or {}).get("scope") == FSE17_SESSION_SCOPE:
+        return "FSE17 — Révision transversale (FSE01→FSE16)"
 
     uaa_titles: list[str] = []
     seen_ids: set[int] = set()

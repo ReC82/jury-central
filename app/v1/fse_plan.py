@@ -1,18 +1,15 @@
-"""Plan Formation sociale et économique (FSE) — CESS Professionnel (ticket #96/#97/#98).
+"""Plan Formation sociale et économique (FSE) — CESS Professionnel (ticket #96-#101).
 
 Contexte : aucune matière « Formation sociale et économique » n'existait dans le dépôt
 avant le ticket #96. Le périmètre complet (17 mini-cours FSE01→FSE17, voir le ticket
 #96 § Plan) est fixé par ChatGPT (chef de projet). Ticket #96 : FSE01 livré. Ticket #97 :
-FSE02, FSE03, FSE04 livrés. Ticket #98 : FSE05, FSE06, FSE07, FSE08 livrés (cahier des
-charges détaillé du ticket #98, § prompts spécifiques par cours — périmètre officiel CESS P
-2026-2027/1, affirmations juridiques/institutionnelles vérifiées auprès de sources belges
-officielles, voir `app.v1.fse05_course`/`fse06_course`/`fse08_course` § Sources et le rapport
-docs/claude-reports pour les URL et dates exactes) — FSE09→FSE17 restent documentés (titre,
-thème, pages du programme, voir `docs/content_plan_fse.md`) pour les tickets suivants, mais ne
-sont PAS seedés en base tant qu'ils n'ont pas de contenu réel : même principe que
-`app.v1.francais_plan` (ticket #94 PHASE A, FR01→FR05 seuls dans `FRANCAIS_PLAN` au moment
-de leur rédaction, FR06→FR20 ajoutés phase par phase) — jamais un cours vide présenté
-comme disponible (`docs/PROJECT_RULES.md` § 5/§ 10).
+FSE02, FSE03, FSE04 livrés. Ticket #98 : FSE05, FSE06, FSE07, FSE08 livrés. Ticket #99 :
+FSE09, FSE10, FSE11, FSE12 livrés. Ticket #100 : FSE13, FSE14, FSE15, FSE16 livrés.
+Ticket #101 : FSE17 livré (révision transversale, sans banque propre — voir
+`app.v1.session_service._start_fse_transversal_session`). Les affirmations juridiques et
+institutionnelles (FSE06, FSE08-11, FSE14) sont vérifiées auprès de sources belges
+officielles et référencées avec URL + date dans chaque cours concerné (§ Sources
+officielles vérifiées) et dans le rapport docs/claude-reports.
 
 Ce module suit EXACTEMENT le même schéma que `app.v1.francais_plan`/`app.v1.ampcr_plan`
 (registre code→titre→contexte pédagogique borné), consulté par
@@ -49,9 +46,9 @@ class FSEUAAPlan:
         return f"fse-{self.code.lower()}"
 
 
-# Ticket #96 : FSE01. Ticket #97 : FSE02-FSE04. Ticket #98 : FSE05-FSE08. Le reste du plan
-# officiel (FSE09→FSE17, § Plan du ticket #96) est documenté dans `docs/content_plan_fse.md`
-# — jamais ajouté ici tant qu'il n'a pas de contenu réel associé (voir docstring du module).
+# Ticket #96 : FSE01. Ticket #97 : FSE02-FSE04. Ticket #98 : FSE05-FSE08. Ticket #99 :
+# FSE09-FSE12. Ticket #100 : FSE13-FSE16. Ticket #101 : FSE17 (révision transversale, sans
+# banque propre). Les 17 mini-cours officiels sont désormais tous enregistrés ici.
 FSE_PLAN: tuple[FSEUAAPlan, ...] = (
     FSEUAAPlan(
         code="FSE01",
@@ -222,6 +219,151 @@ FSE_PLAN: tuple[FSEUAAPlan, ...] = (
             "Expliquer en quoi la Belgique est une monarchie constitutionnelle et une démocratie parlementaire, avec la séparation des pouvoirs comme repère",
         ),
     ),
+    FSEUAAPlan(
+        code="FSE09",
+        title="Qui décide de quoi ?",
+        theme="Le citoyen et l'État (Citoyen)",
+        program_pages="programme 474/2016/240, p. 61-62",
+        allowed_notions=(
+            "répartition des compétences entre niveaux de pouvoir (approfondit FSE08)",
+            "compétences du niveau fédéral (justice, affaires étrangères, défense, sécurité sociale)",
+            "compétences des Régions (économie, emploi, environnement, logement, travaux publics)",
+            "compétences des Communautés (enseignement, culture, aide à la jeunesse)",
+            "rôle de proximité des communes et rôle d'appui technique des provinces",
+            "matières partagées entre plusieurs niveaux (ex. santé) — jamais une réponse unique trompeuse",
+        ),
+        competencies=(
+            "Associer une situation concrète au niveau de pouvoir compétent et à la matière concernée",
+            "Reconnaître qu'une situation peut impliquer plusieurs niveaux de pouvoir à la fois",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE10",
+        title="Élections et participation citoyenne",
+        theme="Le citoyen et l'État (Citoyen)",
+        program_pages="programme 474/2016/240, p. 61-62",
+        allowed_notions=(
+            "niveaux pour lesquels on vote : fédéral, régional, européen, communal, provincial",
+            "scrutin proportionnel et nécessité d'une coalition",
+            "obligation de vote et conditions d'âge, vérifiées par scrutin et par région à la date du cours",
+            "procuration, vote valable/blanc/nul, témoin du dépouillement",
+            "pétition et distinction entre consultation populaire et référendum",
+        ),
+        competencies=(
+            "Analyser des bulletins fictifs et un tableau daté des scrutins",
+            "Expliquer vote blanc/nul/procuration sans confondre abstention et vote blanc",
+            "Ne jamais généraliser une règle électorale d'un scrutin ou d'une région à un autre",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE11",
+        title="Partis politiques et choix argumenté",
+        theme="Le citoyen et l'État (Citoyen)",
+        program_pages="programme 474/2016/240, p. 61-62",
+        allowed_notions=(
+            "familles politiques : socialiste, libérale, écologiste, centriste/humaniste, positions radicales",
+            "axe gauche-centre-droite comme repère simplifié, jamais une vérité absolue",
+            "les six partis de l'exemple 2024 (PS, MR, Ecolo, Les Engagés, PTB, Vlaams Belang), identifiés par famille à partir de sources datées",
+            "comparaison neutre de propositions par valeurs, priorités et effets attendus",
+        ),
+        competencies=(
+            "Associer des extraits sourcés aux familles politiques",
+            "Comparer deux propositions sans exprimer d'opinion personnelle",
+            "Reconnaître les limites de l'axe gauche-centre-droite",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE12",
+        title="Le budget de l'État",
+        theme="Le citoyen et l'État (Citoyen)",
+        program_pages="programme 474/2016/240, p. 61",
+        allowed_notions=(
+            "recettes fiscales (impôts, dont l'IPP nommée sans calcul), parafiscales (cotisations) et non fiscales",
+            "dépenses de fonctionnement, d'investissement et de transfert",
+            "solde budgétaire, déficit et dette comme vocabulaire d'analyse",
+            "calculs simples de recettes/dépenses/solde sur données fictives",
+        ),
+        competencies=(
+            "Classer des recettes et des dépenses selon leur type",
+            "Calculer recettes, dépenses et solde en détaillant les opérations",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE13",
+        title="La sécurité sociale : rôle et financement",
+        theme="Le citoyen et l'État (Citoyen)",
+        program_pages="programme 474/2016/240, p. 61",
+        allowed_notions=(
+            "solidarité, mutualisation des risques, assurance sociale, redistribution",
+            "cotisations travailleurs/employeurs, financement public et alternatif",
+            "distinction entre financement, gestion et versement",
+            "risques couverts (maladie/invalidité, chômage, vieillesse, accident du travail, charges familiales)",
+            "repères salarié/indépendant, sans calcul de droits",
+        ),
+        competencies=(
+            "Expliquer le trajet d'une cotisation à une prestation",
+            "Identifier le risque couvert dans une situation donnée",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE14",
+        title="La sécurité sociale : organismes et enjeux",
+        theme="Le citoyen et l'État (Citoyen)",
+        program_pages="programme 474/2016/240, p. 61-62",
+        allowed_notions=(
+            "organismes et rôles : ONSS, INAMI, ONEM, SFP, FEDRIS, ONVA, INASTI",
+            "allocations familiales régionalisées (FAMIWAL en Wallonie, FAMIRIS à Bruxelles)",
+            "distinction collecteur/gestionnaire/intermédiaire payeur",
+            "enjeux de vieillissement, d'emploi et de dépenses de santé, sans montants ni âges non vérifiés",
+        ),
+        competencies=(
+            "Associer un organisme à son rôle et à sa branche",
+            "Expliquer deux pressions sur le financement à partir d'un document daté",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE15",
+        title="Le circuit économique et les interventions de l'État",
+        theme="Le citoyen et l'État (Citoyen)",
+        program_pages="programme 474/2016/240, p. 43, 61-63",
+        allowed_notions=(
+            "agents : ménages, entreprises, État, reste du monde",
+            "flux réels et flux monétaires",
+            "politiques de redistribution, de régulation et de production de biens/services collectifs",
+        ),
+        competencies=(
+            "Compléter un circuit économique et y représenter les effets d'une aide publique",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE16",
+        title="Analyser une décision publique",
+        theme="Le citoyen et l'État (Citoyen)",
+        program_pages="programme 474/2016/240, p. 57-58, 62-64",
+        allowed_notions=(
+            "méthode d'analyse : décision, niveau compétent, objectifs, agents, flux, effets attendus, limites, conséquences indirectes",
+            "distinction court terme / long terme",
+            "réutilisation de budget, sécurité sociale et circuit économique comme outils d'analyse",
+        ),
+        competencies=(
+            "Analyser un dossier de 3 documents sur une décision publique",
+            "Rédiger une conclusion fondée sur les documents",
+        ),
+    ),
+    FSEUAAPlan(
+        code="FSE17",
+        title="Révision générale et méthode d'examen",
+        theme="Synthèse (Médias + Citoyen)",
+        program_pages="synthèse de FSE01-FSE16 — aucune notion nouvelle",
+        allowed_notions=(
+            "synthèse exclusive des notions déjà enseignées en FSE01-FSE16",
+            "méthode d'examen : citer, identifier, expliquer, justifier",
+        ),
+        competencies=(
+            "Mobiliser les notions de FSE01-FSE16 dans un contexte transversal",
+            "Appliquer la méthode d'examen appropriée selon le verbe de consigne",
+        ),
+    ),
 )
 
 FSE_PLAN_BY_CODE: dict[str, FSEUAAPlan] = {plan.code: plan for plan in FSE_PLAN}
@@ -241,7 +383,7 @@ def _build_context(plan: FSEUAAPlan) -> PedagogicalContext:
         competencies=list(plan.competencies),
         vocabulary=[],
         constraints=(
-            "PÉRIMÈTRE STRICT (consignes CESS P 2026-2027/1, tickets #96/#97) : reste "
+            "PÉRIMÈTRE STRICT (consignes CESS P 2026-2027/1, tickets #96-#101) : reste "
             "exclusivement dans les notions listées ci-dessus — n'évalue et ne valorise "
             "jamais une connaissance de budget familial, crédits, emprunts, TAEG, IPP, "
             "fiscalité immobilière, ou toute autre notion hors de ce mini-cours. Les "
@@ -259,3 +401,15 @@ FSE_CONTEXTS: dict[str, PedagogicalContext] = {plan.course_key: _build_context(p
 
 def get_fse_context(course_key: str) -> PedagogicalContext | None:
     return FSE_CONTEXTS.get(course_key)
+
+
+# Ticket #101 : codes FSE01→FSE16 (périmètre réel de la révision transversale FSE17 — jamais
+# FSE17 lui-même, qui n'a pas de banque propre). Utilisé par
+# `app.v1.session_service._start_fse_transversal_session`, même principe que
+# `app.v1.mc38_transversal.MC38_SESSION_SCOPE`/`mc01_to_mc37_codes`.
+FSE17_CODE = "FSE17"
+FSE17_SESSION_SCOPE = "fse17_transversal"
+
+
+def fse01_to_fse16_codes() -> list[str]:
+    return [plan.code for plan in FSE_PLAN if plan.code != FSE17_CODE]

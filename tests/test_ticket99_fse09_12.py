@@ -1,21 +1,19 @@
-"""Ticket #98 — Formation sociale et économique : FSE05 « Image, vie privée et données
-personnelles », FSE06 « Droits et comportements illicites en ligne », FSE07 « Analyser un
-dossier médiatique », FSE08 « La Belgique : État et niveaux de pouvoir ».
+"""Ticket #99 — Formation sociale et économique : FSE09 « Qui décide de quoi ? », FSE10
+« Élections et participation citoyenne », FSE11 « Partis politiques et choix argumenté »,
+FSE12 « Le budget de l'État ».
 
-Même moteur, mêmes conventions que FSE01-FSE04 (tickets #96/#97, voir
-`tests/test_ticket96_fse01.py`/`tests/test_ticket97_fse02_04.py` pour la preuve exhaustive
+Même moteur, mêmes conventions que FSE01-FSE08 (tickets #96-#98, voir
+`tests/test_ticket96_fse01.py`/`tests/test_ticket98_fse05_08.py` pour la preuve exhaustive
 du mécanisme générique partagé — pas répétée ici en entier) : théorie/entraînement/examen
 réutilisant le moteur V1, difficulté réellement effective, sévérité distincte, reprise,
 résultats.
 
-Nouveauté ticket #98 : FSE05, FSE06 et FSE08 mobilisent des affirmations juridiques et
-institutionnelles réelles (droit à l'image, comportements en ligne, organisation de l'État
-belge), vérifiées auprès de sources belges officielles et référencées dans
-`app.v1.fse05_course`/`fse06_course`/`fse08_course` (§ Sources officielles vérifiées) et dans
-le rapport docs/claude-reports — vérifié ici par la présence de ces sections dans le contenu
-publié, pas par une revérification des faits eux-mêmes (hors périmètre d'un test automatisé).
-FSE08 est le premier cours du thème « Le citoyen et l'État » (les cours précédents relevaient
-tous du thème « Interactions médiatiques »).
+Nouveauté ticket #99 : FSE09 (compétences), FSE10 (élections) et FSE11 (partis) mobilisent
+des affirmations juridiques/institutionnelles réelles, vérifiées auprès de sources belges
+officielles et référencées dans `app.v1.fse09_course`/`fse10_course`/`fse11_course`
+(§ Sources officielles vérifiées) et dans le rapport docs/claude-reports. FSE12 reste
+purement conceptuel (budget), sans vérification externe nécessaire au-delà de l'exclusion
+stricte de l'IPP (jamais calculée ni déclarée).
 
 Aucun appel OpenAI réel : `FakeAIProvider`/`_UnconfiguredProvider` partout."""
 
@@ -31,10 +29,10 @@ from app.seed import seed
 from app.v1.ai_bridge import CORRECTABLE_TYPES
 from app.v1.correction_worker import _UnconfiguredProvider
 from app.v1.fse_bank import (
-    import_fse05_to_bank,
-    import_fse06_to_bank,
-    import_fse07_to_bank,
-    import_fse08_to_bank,
+    import_fse09_to_bank,
+    import_fse10_to_bank,
+    import_fse11_to_bank,
+    import_fse12_to_bank,
 )
 from app.v1.fse_plan import FSE_MODULE_CODE, FSE_PLAN_BY_CODE, FSE_SUBJECT_NAME
 from app.v1.models import (
@@ -57,10 +55,10 @@ from app.v1.session_service import (
 )
 
 COURSES = {
-    "FSE05": {"slug": "fse-fse05", "title": "Image, vie privée et données personnelles", "importer": import_fse05_to_bank},
-    "FSE06": {"slug": "fse-fse06", "title": "Droits et comportements illicites en ligne", "importer": import_fse06_to_bank},
-    "FSE07": {"slug": "fse-fse07", "title": "Analyser un dossier médiatique", "importer": import_fse07_to_bank},
-    "FSE08": {"slug": "fse-fse08", "title": "La Belgique : État et niveaux de pouvoir", "importer": import_fse08_to_bank},
+    "FSE09": {"slug": "fse-fse09", "title": "Qui décide de quoi ?", "importer": import_fse09_to_bank},
+    "FSE10": {"slug": "fse-fse10", "title": "Élections et participation citoyenne", "importer": import_fse10_to_bank},
+    "FSE11": {"slug": "fse-fse11", "title": "Partis politiques et choix argumenté", "importer": import_fse11_to_bank},
+    "FSE12": {"slug": "fse-fse12", "title": "Le budget de l'État", "importer": import_fse12_to_bank},
 }
 
 
@@ -141,7 +139,7 @@ def _answer_all_and_submit(client, session_url: str, total: int, db_session, pro
 # =============================================================================================
 
 
-@pytest.mark.parametrize("code", ["FSE05", "FSE06", "FSE07", "FSE08"])
+@pytest.mark.parametrize("code", ["FSE09", "FSE10", "FSE11", "FSE12"])
 def test_course_registered_in_fse_plan(code):
     assert code in FSE_PLAN_BY_CODE
     plan = FSE_PLAN_BY_CODE[code]
@@ -149,64 +147,28 @@ def test_course_registered_in_fse_plan(code):
     assert plan.slug == COURSES[code]["slug"]
 
 
-def test_fse08_is_first_citoyen_theme_course():
-    """FSE01-FSE07 relèvent tous du thème « Interactions médiatiques » ; FSE08 est le
-    premier cours du thème « Le citoyen et l'État » (ticket #98)."""
-    for code in ("FSE01", "FSE02", "FSE03", "FSE04", "FSE05", "FSE06", "FSE07"):
-        assert "Médias" in FSE_PLAN_BY_CODE[code].theme
-    assert "Citoyen" in FSE_PLAN_BY_CODE["FSE08"].theme
-
-
 # =============================================================================================
-# 2. Matière / module / UAA — FSE01-08 seedés dans l'ordre, idempotent
+# 2. Matière / module / UAA — FSE09-12 seedés dans l'ordre, idempotent
 # =============================================================================================
 
 
-def test_fse01_to_fse08_seeded_in_order(db_session):
-    """Tickets #99-#101 ont ajouté FSE09-FSE17 après FSE08 (voir
-    tests/test_ticket99_fse09_12.py et suivants) : ce test reste focalisé sur la
-    non-régression de l'ordre FSE01->FSE08 (ticket #98)."""
+def test_fse09_to_fse12_seeded_in_order(db_session):
     seed()
     subject = db_session.query(Subject).filter_by(name=FSE_SUBJECT_NAME).first()
     module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE, subject_id=subject.id).first()
     uaas = db_session.query(UAA).filter_by(module_id=module.id).order_by(UAA.position).all()
-    assert [u.code for u in uaas[:8]] == [
-        "FSE01", "FSE02", "FSE03", "FSE04", "FSE05", "FSE06", "FSE07", "FSE08",
-    ]
-    assert all(u.is_published for u in uaas[:8])
+    codes = [u.code for u in uaas]
+    assert codes[8:12] == ["FSE09", "FSE10", "FSE11", "FSE12"]
+    assert all(u.is_published for u in uaas[8:12])
 
 
-def test_fse_seed_is_idempotent_with_eight_courses(db_session):
-    """Tickets #99-#101 ont ajouté FSE09-FSE17 (17 UAA au total, voir les fichiers de test
-    dédiés) : ce test vérifie seulement que FSE01-FSE08 restent présents et idempotents."""
+def test_fse_seed_is_idempotent_with_fse09_12(db_session):
     seed()
     seed()
     subject = db_session.query(Subject).filter_by(name=FSE_SUBJECT_NAME).first()
     module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE, subject_id=subject.id).first()
     uaa_codes = {u.code for u in db_session.query(UAA).filter_by(module_id=module.id).all()}
-    assert {"FSE01", "FSE02", "FSE03", "FSE04", "FSE05", "FSE06", "FSE07", "FSE08"} <= uaa_codes
-
-
-def test_module_listing_shows_all_eight_courses_in_order(client, db_session):
-    seed()
-    subject = db_session.query(Subject).filter_by(name=FSE_SUBJECT_NAME).first()
-    module = subject.modules[0]
-    response = client.get(f"/modules/{module.slug}")
-    assert response.status_code == 200
-    text = response.text
-    titles = [
-        "Communiquer : le schéma de communication",
-        "Les médias et leurs financements",
-        "Identités, traces numériques et appartenance",
-        "Normes, valeurs et influence sociale",
-        "Image, vie privée et données personnelles",
-        "Droits et comportements illicites en ligne",
-        "Analyser un dossier médiatique",
-        "La Belgique : État et niveaux de pouvoir",
-    ]
-    positions = [text.find(title) for title in titles]
-    assert all(p != -1 for p in positions), "les 8 cours doivent être listés"
-    assert positions == sorted(positions), "les 8 cours doivent être listés dans l'ordre FSE01->FSE08"
+    assert {"FSE09", "FSE10", "FSE11", "FSE12"} <= uaa_codes
 
 
 # =============================================================================================
@@ -214,62 +176,62 @@ def test_module_listing_shows_all_eight_courses_in_order(client, db_session):
 # =============================================================================================
 
 
-def test_fse05_course_page_is_real_content(client, db_session):
+def test_fse09_course_page_is_real_content(client, db_session):
     seed()
-    response = client.get("/uaa/fse-fse05")
+    response = client.get("/uaa/fse-fse09")
     assert response.status_code == 200
     text = response.text
-    for notion in ("droit à l'image", "prise de vue", "diffusion", "sujet principal", "personne accessoire", "donnée personnelle", "finalité"):
-        assert notion in text
-    assert "provisoire" not in text.lower()
-    assert "stub" not in text.lower()
-    # Ticket #98 : affirmations juridiques vérifiées et référencées (§ Sources).
-    assert "Sources officielles vérifiées" in text
-    assert "autoriteprotectiondonnees.be" in text
-    assert "consulté le 2026-10-01" in text
-
-
-def test_fse06_course_page_is_real_content(client, db_session):
-    seed()
-    response = client.get("/uaa/fse-fse06")
-    assert response.status_code == 200
-    text = response.text
-    for notion in ("cyberharcèlement", "injure", "calomnie", "menace", "discrimination", "usurpation d'identité", "intrusion informatique", "liberté d'expression"):
-        assert notion in text
-    assert "provisoire" not in text.lower()
-    # Ticket #98 : jamais de qualification pénale ni de peine figée (pas de numéro
-    # d'article ni de durée de peine citée, même si le mot « article » apparaît pour
-    # rappeler explicitement de ne jamais en citer).
-    assert not re.search(r"article\s+\d", text, re.IGNORECASE)
-    assert not re.search(r"\bart\.?\s*\d", text, re.IGNORECASE)
-    assert "Sources officielles vérifiées" in text
-    assert "safeonweb.be" in text
-
-
-def test_fse07_course_page_is_real_content(client, db_session):
-    seed()
-    response = client.get("/uaa/fse-fse07")
-    assert response.status_code == 200
-    text = response.text
-    for notion in ("fait", "interprétation", "opinion", "fiabilité", "enjeu juridique", "enjeu sociologique", "conclusion argumentée"):
-        assert notion in text
-    assert "Athénée du Parc" in text
-    assert "provisoire" not in text.lower()
-
-
-def test_fse08_course_page_is_real_content(client, db_session):
-    seed()
-    response = client.get("/uaa/fse-fse08")
-    assert response.status_code == 200
-    text = response.text
-    for notion in ("monarchie constitutionnelle", "démocratie parlementaire", "séparation des pouvoirs", "Région", "Communauté", "commune", "décret", "ordonnance"):
+    for notion in ("compétence", "niveau fédéral", "Région", "Communauté", "matières personnalisables"):
         assert notion in text
     assert "provisoire" not in text.lower()
     assert "Sources officielles vérifiées" in text
     assert "lachambre.be" in text
 
 
-@pytest.mark.parametrize("slug", ["fse-fse05", "fse-fse06", "fse-fse07", "fse-fse08"])
+def test_fse10_course_page_is_real_content(client, db_session):
+    seed()
+    response = client.get("/uaa/fse-fse10")
+    assert response.status_code == 200
+    text = response.text
+    for notion in ("scrutin proportionnel", "procuration", "vote blanc", "vote nul", "témoin du dépouillement", "pétition", "consultation populaire"):
+        assert notion in text
+    assert "provisoire" not in text.lower()
+    assert "Sources officielles vérifiées" in text
+    assert "2026-10-01" in text
+    # Ticket #99 : vote obligatoire non uniforme — ne jamais généraliser sans préciser.
+    assert "Flandre" in text
+
+
+def test_fse11_course_page_is_real_content(client, db_session):
+    seed()
+    response = client.get("/uaa/fse-fse11")
+    assert response.status_code == 200
+    text = response.text
+    for notion in ("famille politique", "socialiste", "libérale", "écologiste", "axe gauche-centre-droite"):
+        assert notion in text
+    for party in ("PS", "MR", "Ecolo", "Les Engagés", "PTB", "Vlaams Belang"):
+        assert party in text
+    assert "provisoire" not in text.lower()
+    assert "Sources officielles vérifiées" in text
+    assert "brusselstimes.com" in text
+    # Ticket #99 : jamais d'opinion personnelle demandée à l'élève.
+    assert "opinion personnelle" in text
+
+
+def test_fse12_course_page_is_real_content(client, db_session):
+    seed()
+    response = client.get("/uaa/fse-fse12")
+    assert response.status_code == 200
+    text = response.text
+    for notion in ("recette fiscale", "recette parafiscale", "dépense de fonctionnement", "solde budgétaire", "déficit", "dette"):
+        assert notion in text
+    assert "provisoire" not in text.lower()
+    # Ticket #96/#99 : l'IPP n'est jamais calculée ni déclarée.
+    assert "IPP" in text
+    assert not re.search(r"calcul(e|er|é)?\s+(l'|ton |son )?IPP", text, re.IGNORECASE)
+
+
+@pytest.mark.parametrize("slug", ["fse-fse09", "fse-fse10", "fse-fse11", "fse-fse12"])
 def test_hidden_answers_use_details_collapsed_by_default(client, db_session, slug):
     seed()
     response = client.get(f"/uaa/{slug}")
@@ -282,7 +244,7 @@ def test_hidden_answers_use_details_collapsed_by_default(client, db_session, slu
 # =============================================================================================
 
 
-@pytest.mark.parametrize("code", ["FSE05", "FSE06", "FSE07", "FSE08"])
+@pytest.mark.parametrize("code", ["FSE09", "FSE10", "FSE11", "FSE12"])
 def test_bank_import_is_idempotent_and_uses_only_relevant_types(db_session, code):
     seed()
     info = COURSES[code]
@@ -298,7 +260,7 @@ def test_bank_import_is_idempotent_and_uses_only_relevant_types(db_session, code
     assert all(q.module.code == FSE_MODULE_CODE for q in questions), "isolation : jamais mélangé avec une autre matière"
 
 
-@pytest.mark.parametrize("code", ["FSE05", "FSE06", "FSE07", "FSE08"])
+@pytest.mark.parametrize("code", ["FSE09", "FSE10", "FSE11", "FSE12"])
 def test_no_orphan_document_dependent_questions(db_session, code):
     seed()
     info = COURSES[code]
@@ -314,7 +276,7 @@ def test_no_orphan_document_dependent_questions(db_session, code):
     assert checked >= 4
 
 
-@pytest.mark.parametrize("code", ["FSE05", "FSE06", "FSE07", "FSE08"])
+@pytest.mark.parametrize("code", ["FSE09", "FSE10", "FSE11", "FSE12"])
 def test_difficulty_distribution_is_7_4_3(db_session, code):
     seed()
     info = COURSES[code]
@@ -329,14 +291,31 @@ def test_difficulty_distribution_is_7_4_3(db_session, code):
     }
 
 
+@pytest.mark.parametrize("code", ["FSE09", "FSE10", "FSE11", "FSE12"])
+def test_bank_has_no_near_duplicate_questions(db_session, code):
+    """Ticket #102 (contrôle de couverture) : l'audit a révélé des paires de questions
+    quasi-identiques dans des banques FSE déjà livrées (prompts réutilisés mot pour mot
+    pour deux ensembles différents, voir `app.v1.dedup.is_near_duplicate`) — corrigées dans
+    ce ticket. Garde de non-régression explicite."""
+    from app.v1.dedup import is_near_duplicate, question_signature
+
+    seed()
+    info = COURSES[code]
+    uaa = db_session.query(UAA).filter_by(slug=info["slug"]).first()
+    info["importer"](db_session, uaa.module, uaa)
+    questions = db_session.query(Question).filter_by(uaa_id=uaa.id).all()
+    sigs = [question_signature(q.current_version.question_type, q.current_version.content_json) for q in questions]
+    for i in range(len(sigs)):
+        for j in range(i + 1, len(sigs)):
+            assert not is_near_duplicate(sigs[i], sigs[j]), f"questions {i} et {j} de {code} sont quasi-identiques"
+
+
 # =============================================================================================
-# 5. Difficulté réellement effective (héritée du correctif ticket #96 review) — vérifiée
-#    explicitement pour chaque nouveau cours, pas seulement supposée parce que le moteur
-#    est partagé.
+# 5. Difficulté réellement effective
 # =============================================================================================
 
 
-@pytest.mark.parametrize("code", ["FSE05", "FSE06", "FSE07", "FSE08"])
+@pytest.mark.parametrize("code", ["FSE09", "FSE10", "FSE11", "FSE12"])
 def test_difficulty_filters_served_questions_in_normal_practice_session(db_session, code):
     seed()
     info = COURSES[code]
@@ -362,11 +341,11 @@ def test_difficulty_filters_served_questions_in_normal_practice_session(db_sessi
 
 
 # =============================================================================================
-# 6. Parcours complet — un aller-retour HTTP réel par cours (théorie déjà couverte § 3)
+# 6. Parcours complet
 # =============================================================================================
 
 
-@pytest.mark.parametrize("code", ["FSE05", "FSE06", "FSE07", "FSE08"])
+@pytest.mark.parametrize("code", ["FSE09", "FSE10", "FSE11", "FSE12"])
 def test_full_exam_flow_with_difficulty_and_severity(authenticated_client, db_session, monkeypatch, code):
     seed()
     info = COURSES[code]
@@ -392,7 +371,7 @@ def test_full_exam_flow_with_difficulty_and_severity(authenticated_client, db_se
     assert f"/uaa/{info['slug']}" in results.text
 
 
-@pytest.mark.parametrize("code", ["FSE05", "FSE06", "FSE07", "FSE08"])
+@pytest.mark.parametrize("code", ["FSE09", "FSE10", "FSE11", "FSE12"])
 def test_settings_persist_across_resume(authenticated_client, db_session, monkeypatch, code):
     seed()
     info = COURSES[code]
@@ -411,26 +390,16 @@ def test_settings_persist_across_resume(authenticated_client, db_session, monkey
 
 
 # =============================================================================================
-# 7. Non-régression — FSE01-04 et les autres matières restent inchangés
+# 7. Non-régression — FSE01-08 et les autres matières restent inchangés
 # =============================================================================================
 
 
-def test_fse01_to_fse04_still_work_after_fse05_08_added(authenticated_client, db_session, monkeypatch):
-    # Ticket #82 (connexions concurrentes SQLite) : jamais appeler un importeur de banque
-    # directement via la fixture `db_session` ici — la route HTTP ci-dessous déclenche déjà
-    # `_ensure_bank_seeded` sur sa PROPRE connexion (`get_db`), une seconde connexion
-    # concurrente sur le même fichier SQLite produirait "database is locked".
+def test_fse01_still_works_after_fse09_12_added(authenticated_client, db_session, monkeypatch):
     seed()
     _patch_fake_provider(monkeypatch)
-    for slug, title in [
-        ("fse-fse01", "Communiquer : le schéma de communication"),
-        ("fse-fse02", "Les médias et leurs financements"),
-        ("fse-fse03", "Identités, traces numériques et appartenance"),
-        ("fse-fse04", "Normes, valeurs et influence sociale"),
-    ]:
-        response = authenticated_client.get(f"/uaa/{slug}")
-        assert response.status_code == 200
-        assert title in response.text
+    response = authenticated_client.get("/uaa/fse-fse01")
+    assert response.status_code == 200
+    assert "Communiquer : le schéma de communication" in response.text
 
     session_url = _start_session(authenticated_client, db_session, "fse-fse01", "practice", "medium")
     assert session_url.startswith("/sessions/")

@@ -141,33 +141,35 @@ def test_fse01_registered_in_fse_plan():
     assert plan.slug == FSE01_SLUG
 
 
-def test_only_fse01_to_fse08_in_plan_for_now():
+def test_fse01_to_fse17_in_plan():
     """Ticket #96 : FSE01 rédigé. Ticket #97 : FSE02-FSE04 rédigés (voir
     tests/test_ticket97_fse02_04.py). Ticket #98 : FSE05-FSE08 rédigés (voir
-    tests/test_ticket98_fse05_08.py). FSE09->FSE17 restent documentés dans
-    docs/content_plan_fse.md mais jamais présentés comme un cours disponible."""
+    tests/test_ticket98_fse05_08.py). Tickets #99/#100/#101 : FSE09-FSE17 rédigés (voir
+    tests/test_ticket99_fse09_12.py, tests/test_ticket100_fse13_16.py,
+    tests/test_ticket101_fse17.py). Le programme officiel des 17 mini-cours est désormais
+    complet."""
     assert [plan.code for plan in FSE_PLAN] == [
         "FSE01", "FSE02", "FSE03", "FSE04", "FSE05", "FSE06", "FSE07", "FSE08",
+        "FSE09", "FSE10", "FSE11", "FSE12", "FSE13", "FSE14", "FSE15", "FSE16", "FSE17",
     ]
 
 
 # =============================================================================================
-# 2. Matière / module / UAA — création idempotente, FSE09->FSE17 absents
+# 2. Matière / module / UAA — création idempotente, les 17 mini-cours présents
 # =============================================================================================
 
 
 def test_fse_subject_module_uaa_seeded(db_session):
-    """Ticket #97 : FSE02-FSE04 ajoutés après FSE01. Ticket #98 : FSE05-FSE08 ajoutés — voir
-    tests/test_ticket97_fse02_04.py et tests/test_ticket98_fse05_08.py pour la couverture
-    dédiée de ces cours (plan, ordre, idempotence). Ce test reste focalisé sur FSE01
-    lui-même."""
+    """Tickets #97-#101 : FSE02-FSE17 ajoutés après FSE01 — voir les fichiers de test dédiés
+    à chaque ticket pour la couverture complète (plan, ordre, idempotence). Ce test reste
+    focalisé sur FSE01 lui-même."""
     seed()
     subject = db_session.query(Subject).filter_by(name=FSE_SUBJECT_NAME).first()
     assert subject is not None
     module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE, subject_id=subject.id).first()
     assert module is not None
     uaas = db_session.query(UAA).filter_by(module_id=module.id).all()
-    assert len(uaas) == 8
+    assert len(uaas) == 17
     fse01 = next(u for u in uaas if u.code == "FSE01")
     assert fse01.is_published is True
     assert fse01.slug == FSE01_SLUG
@@ -178,7 +180,7 @@ def test_fse_seed_is_idempotent(db_session):
     seed()
     subject = db_session.query(Subject).filter_by(name=FSE_SUBJECT_NAME).first()
     module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE, subject_id=subject.id).first()
-    assert db_session.query(UAA).filter_by(module_id=module.id).count() == 8
+    assert db_session.query(UAA).filter_by(module_id=module.id).count() == 17
 
 
 def test_fse_visible_in_subjects_navigation(client, db_session):

@@ -432,6 +432,56 @@ def select_transversal_bank_questions(
     return selected
 
 
+def select_fse_transversal_bank_questions(
+    db: Session, *, user_id: int, module_id: int, limit: int, only_unseen: bool = False
+) -> list[Question]:
+    """Sélection dédiée à FSE17 (ticket #101, révision transversale), même principe que
+    `select_transversal_bank_questions` (MC38, ticket #58) mais strictement BANQUE : FSE17
+    puise exclusivement dans les 16 mini-cours réels FSE01→FSE16, JAMAIS dans FSE17
+    lui-même (qui n'a pas de banque propre, voir `app.v1.fse17_course`). Contrairement à
+    MC38, aucune garde anti-méta n'est nécessaire : FSE n'appelle jamais de génération IA
+    pour composer une session (banque hand-authored uniquement, voir
+    `app.v1.session_service._start_fse_transversal_session`), donc aucune question MÉTA ne
+    peut jamais y être produite.
+
+    `only_unseen` : voir `select_bank_questions`, même contrat (ticket #64 § 1)."""
+    from app.models import UAA
+    from app.v1.fse_plan import fse01_to_fse16_codes
+
+    uaa_ids = [
+        row[0]
+        for row in db.query(UAA.id).filter(
+            UAA.module_id == module_id, UAA.code.in_(fse01_to_fse16_codes())
+        )
+    ]
+    if not uaa_ids:
+        return []
+
+    seen_question_ids = {
+        row[0]
+        for row in db.query(UserQuestionHistory.question_id).filter_by(user_id=user_id).distinct()
+    }
+    seen_signatures = _seen_signatures(db, user_id=user_id)
+
+    query = db.query(Question).filter(
+        Question.module_id == module_id,
+        Question.status == ContentStatus.ACTIVE,
+        Question.uaa_id.in_(uaa_ids),
+    )
+    all_active = query.order_by(func.random()).all()
+    unseen, seen = _split_unseen_and_seen(
+        all_active, seen_question_ids=seen_question_ids, seen_signatures=seen_signatures
+    )
+
+    if only_unseen:
+        return unseen[:limit]
+
+    selected = unseen[:limit]
+    if len(selected) < limit:
+        selected += seen[: limit - len(selected)]
+    return selected
+
+
 def persist_generated_questions(
     db: Session,
     *,
