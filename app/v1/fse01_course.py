@@ -18,6 +18,13 @@ ligne vide avant toute liste, sinon elle est fondue dans le paragraphe précéde
 de texte brut avec des tirets littéraux — chaque liste de ce fichier est donc précédée d'une
 ligne vide, systématiquement.
 
+Second bug corrigé (ticket #112) : ce même `render_markdown` ne retraite JAMAIS le Markdown
+situé à l'intérieur d'un bloc HTML brut (`<details>`, `<div>`...) — une liste à tirets à
+l'intérieur d'un `<details>` restait donc fondue en texte brut quelle que soit la présence
+d'une ligne vide. `_section_exercises()` écrit désormais ses corrigés entièrement en HTML
+réel (tableaux, sections, listes), jamais en syntaxe Markdown imbriquée dans du HTML brut —
+voir `docs/components/ExerciseStepCard.md`.
+
 Périmètre strict (ticket #96/#97, programme p. 43-45) : émetteur, récepteur, message,
 code, canal/contact, contexte/référent, obstacle/bruit, rétroaction — appliqués à un mail,
 une affiche et une publication sur réseau social. Aucune autre notion (fonctions du
@@ -195,21 +202,28 @@ def _section_examples() -> str:
         ("Obstacle", "L'absence d'information sur le salaire crée une incompréhension visible (le commentaire de Julien P.) — un manque d'information peut constituer un obstacle, même sans panne technique."),
         ("Rétroaction", "Oui, directe et quasi immédiate : les commentaires, les partages et la réponse de l'entreprise à Fatima B. montrent un dialogue réel, adressé publiquement à l'émetteur."),
     ]
-    return f"""### Exemple 1 — {FSE01_MAIL_TITLE}
+    decrypt_title = '<h4 class="jc-decrypt-title"><span aria-hidden="true">🔍</span> Décryptons ce document</h4>'
+    return f"""<h3 class="jc-example-title">Exemple 1 — {FSE01_MAIL_TITLE}</h3>
 
 {FSE01_MAIL_CARD_HTML}
 
+{decrypt_title}
+
 {_analysis_table(mail_rows)}
 
-### Exemple 2 — {FSE01_AFFICHE_TITLE}
+<h3 class="jc-example-title">Exemple 2 — {FSE01_AFFICHE_TITLE}</h3>
 
 {FSE01_AFFICHE_CARD_HTML}
 
+{decrypt_title}
+
 {_analysis_table(affiche_rows)}
 
-### Exemple 3 — {FSE01_SOCIAL_TITLE}
+<h3 class="jc-example-title">Exemple 3 — {FSE01_SOCIAL_TITLE}</h3>
 
 {FSE01_SOCIAL_CARD_HTML}
+
+{decrypt_title}
 
 {_analysis_table(social_rows)}"""
 
@@ -281,81 +295,127 @@ d'information. »</p>
 
 
 def _section_exercises() -> str:
-    return """<details>
-<summary>Exercice 1 — Annoter le schéma de l'affiche (essaie avant de regarder la \
-correction)</summary>
-
-Reprends l'affiche de sécurité routière. Pour chacun des six premiers éléments du schéma \
-(émetteur, récepteur, message, code, canal, contexte), note en une phrase ce qui \
-correspond, PUIS indique si une rétroaction directe est possible et pourquoi.
-
-<details>
-<summary>Voir la correction expliquée</summary>
-
-- Émetteur : le Service public de Wallonie (organisme à l'origine de la campagne).
-- Récepteur : les automobilistes circulant sur cette route.
-- Message : inciter les conducteurs à ralentir près d'un passage piéton.
-- Code : texte court, image (silhouette d'enfant), couleurs (rouge = danger), logo \
-institutionnel.
-- Canal : un panneau d'affichage fixe installé en bordure de route.
-- Contexte : la sécurité routière, à proximité d'un passage piéton.
-- Rétroaction : non, pas directement — une affiche ne permet pas au conducteur d'adresser \
-une réponse à son émetteur, quel que soit le délai ; seul le QR code permet une \
-rétroaction indirecte, vers une page d'information et non vers l'émetteur lui-même.
-
-Ce corrigé fonctionne parce qu'il traite les six éléments un par un, sans les mélanger, et \
-qu'il justifie la réponse sur la rétroaction par une caractéristique réelle du canal \
-(l'affiche), pas par une impression générale.
+    return """<div class="jc-exercise-card">
+<div class="jc-exercise-card-header">
+<span class="jc-exercise-number" aria-hidden="true">1</span>
+<h4 class="jc-exercise-title">Annoter le schéma de l'affiche</h4>
+</div>
+<div class="jc-exercise-instructions">
+<p>Reprends l'affiche de sécurité routière et procède en deux étapes :</p>
+<ol>
+<li>Pour chacun des six premiers éléments du schéma (émetteur, récepteur, message, code, \
+canal, contexte), note en une phrase ce qui correspond dans ce document.</li>
+<li>Indique si une rétroaction directe est possible, et justifie ta réponse.</li>
+</ol>
+<p class="jc-exercise-doclink"><a href="#document-affiche">↑ Revoir l'affiche</a></p>
+</div>
+<details class="jc-exercise-correction">
+<summary>Voir le corrigé</summary>
+<div class="jc-exercise-correction-body">
+<table>
+<thead><tr><th>Élément</th><th>Réponse</th><th>Justification</th></tr></thead>
+<tbody>
+<tr><td>Émetteur</td><td>Le Service public de Wallonie (SPW)</td><td>Organisme à l'origine de la campagne.</td></tr>
+<tr><td>Récepteur</td><td>Les automobilistes</td><td>Ce sont eux qui circulent sur cette route et lisent l'affiche.</td></tr>
+<tr><td>Message</td><td>Inciter à ralentir près d'un passage piéton</td><td>C'est ce que le slogan demande explicitement.</td></tr>
+<tr><td>Code</td><td>Texte court, image (silhouette d'enfant), couleurs (rouge = danger), logo institutionnel</td><td>Ce sont les signes utilisés pour construire le message.</td></tr>
+<tr><td>Canal</td><td>Un panneau d'affichage fixe en bordure de route</td><td>C'est le support matériel par lequel le message circule.</td></tr>
+<tr><td>Contexte</td><td>La sécurité routière, à proximité d'un passage piéton</td><td>C'est la situation qui donne son sens au message.</td></tr>
+<tr><td>Rétroaction</td><td>Non, pas directement</td><td>Une affiche ne permet pas au conducteur d'adresser une réponse à son émetteur, quel que soit le délai ; seul le QR code permet une rétroaction indirecte, vers une page d'information — jamais vers l'émetteur lui-même.</td></tr>
+</tbody>
+</table>
+<div class="jc-why-correct">
+<span class="jc-why-correct-label">Pourquoi cette réponse est correcte</span>
+<p>Elle traite les six éléments un par un, sans les mélanger, et justifie la réponse sur la \
+rétroaction par une caractéristique réelle du canal (l'affiche), pas par une impression \
+générale.</p>
+</div>
+</div>
 </details>
+</div>
+
+<div class="jc-exercise-card">
+<div class="jc-exercise-card-header">
+<span class="jc-exercise-number" aria-hidden="true">2</span>
+<h4 class="jc-exercise-title">Analyser la candidature de Karim</h4>
+</div>
+<div class="jc-exercise-instructions">
+<p>Reprends le mail de Karim Haddad et réponds en trois temps :</p>
+<ol>
+<li>Identifie précisément l'obstacle qui a perturbé cette communication.</li>
+<li>Explique sa conséquence concrète pour le récepteur.</li>
+<li>Explique comment la rétroaction du service recrutement permet de résoudre le \
+problème.</li>
+</ol>
+<p class="jc-exercise-doclink"><a href="#document-mail">↑ Revoir le mail</a></p>
+</div>
+<details class="jc-exercise-correction">
+<summary>Voir le corrigé</summary>
+<div class="jc-exercise-correction-body">
+<div class="jc-exercise-section">
+<span class="jc-exercise-section-label">Obstacle</span>
+<p>Une coupure de connexion internet survenue pendant la rédaction du mail de Karim : son \
+logiciel de messagerie a envoyé automatiquement le message resté inactif, alors qu'il \
+était incomplet et sans pièce jointe.</p>
+</div>
+<div class="jc-exercise-section">
+<span class="jc-exercise-section-label">Conséquence</span>
+<p>Le service recrutement reçoit un message qui s'arrête en pleine phrase, sans CV, ce qui \
+l'empêche d'évaluer la candidature.</p>
+</div>
+<div class="jc-exercise-section">
+<span class="jc-exercise-section-label">Rétroaction</span>
+<p>La réponse du service recrutement signalant le problème permet de résoudre la \
+situation : parce que le canal utilisé (le mail) autorise une réponse adressée directement \
+à Karim — même arrivée le lendemain —, celui-ci peut être informé de l'incident et \
+renvoyer une candidature complète.</p>
+</div>
+<div class="jc-why-correct">
+<span class="jc-why-correct-label">Pourquoi cette réponse est correcte</span>
+<p>Elle distingue bien l'obstacle (la cause technique), sa conséquence (un message \
+incomplet et incompréhensible), et la rétroaction (la réponse qui permet de corriger la \
+situation), sans les confondre.</p>
+</div>
+</div>
 </details>
+</div>
 
-<details>
-<summary>Exercice 2 — Analyser la candidature de Karim (essaie avant de regarder la \
-correction)</summary>
-
-Reprends le mail de Karim Haddad. Identifie précisément l'obstacle qui a perturbé cette \
-communication, explique sa conséquence concrète pour le récepteur, puis explique comment \
-la rétroaction du service recrutement permet de résoudre le problème.
-
-<details>
-<summary>Voir la correction expliquée</summary>
-
-L'obstacle est une coupure de connexion internet survenue pendant la rédaction du mail de \
-Karim : son logiciel de messagerie a envoyé automatiquement le message resté inactif, \
-alors qu'il était incomplet et sans pièce jointe. Conséquence concrète pour le récepteur : \
-le service recrutement reçoit un message qui s'arrête en pleine phrase, sans CV, ce qui \
-l'empêche d'évaluer la candidature. La rétroaction (la réponse du service recrutement \
-signalant le problème) permet de résoudre la situation : parce que le canal utilisé (le \
-mail) autorise une réponse adressée directement à Karim — même arrivée le lendemain —, \
-celui-ci peut être informé de l'incident et renvoyer une candidature complète.
-
-Ce corrigé fonctionne parce qu'il distingue bien l'obstacle (la cause technique), sa \
-conséquence (un message incomplet et incompréhensible), et la rétroaction (la réponse qui \
-permet de corriger la situation), sans les confondre.
+<div class="jc-exercise-card">
+<div class="jc-exercise-card-header">
+<span class="jc-exercise-number" aria-hidden="true">3</span>
+<h4 class="jc-exercise-title">Question flash — la publication Techno Services Wallonie</h4>
+</div>
+<div class="jc-exercise-instructions">
+<p>Dans la publication, quel(s) élément(s) du schéma de communication le commentaire de \
+Julien P. (« Encore une offre qui ne précise pas le salaire... ») met-il en évidence ?</p>
+<p class="jc-exercise-doclink"><a href="#document-social">↑ Revoir la publication</a></p>
+</div>
+<details class="jc-exercise-correction">
+<summary>Voir le corrigé</summary>
+<div class="jc-exercise-correction-body">
+<p>Ce commentaire met en évidence <strong>deux éléments à la fois</strong> :</p>
+<div class="jc-compare">
+<div class="jc-compare-item jc-compare-item--a">
+<span class="jc-compare-label">Obstacle</span>
+<p>Une information manquante dans le message initial (l'absence du salaire) crée une \
+incompréhension chez une partie des récepteurs.</p>
+</div>
+<div class="jc-compare-item jc-compare-item--b">
+<span class="jc-compare-label">Rétroaction</span>
+<p>Ce commentaire est lui-même une rétroaction : grâce au canal utilisé (le réseau \
+social), le récepteur peut exprimer directement et publiquement sa réaction à \
+l'émetteur.</p>
+</div>
+</div>
+<div class="jc-why-correct">
+<span class="jc-why-correct-label">Pourquoi cette réponse est correcte</span>
+<p>Elle identifie précisément deux éléments du schéma présents dans la même phrase du \
+document, sans se limiter à un seul, et justifie chaque élément par un passage exact du \
+document.</p>
+</div>
+</div>
 </details>
-</details>
-
-<details>
-<summary>Question flash — la publication Techno Services Wallonie (essaie avant de \
-regarder la correction)</summary>
-
-Dans la publication, quel élément du schéma de communication le commentaire de Julien P. \
-(« Encore une offre qui ne précise pas le salaire... ») met-il en évidence ?
-
-<details>
-<summary>Voir la correction expliquée</summary>
-
-Ce commentaire met en évidence DEUX éléments à la fois. D'abord un obstacle : une \
-information manquante dans le message initial (l'absence du salaire) crée une \
-incompréhension chez une partie des récepteurs. Ensuite, ce commentaire est lui-même une \
-rétroaction : grâce au canal utilisé (le réseau social), le récepteur peut exprimer \
-directement et publiquement sa réaction à l'émetteur.
-
-Ce corrigé fonctionne parce qu'il identifie précisément deux éléments du schéma présents \
-dans la même phrase du document, sans se limiter à un seul, et parce qu'il justifie chaque \
-élément par un passage exact du document.
-</details>
-</details>"""
+</div>"""
 
 
 def _section_memo() -> str:

@@ -226,8 +226,11 @@ def test_fse01_course_page_is_real_content(client, db_session):
 def test_fse01_hidden_answers_use_details_collapsed_by_default(client, db_session):
     seed()
     response = client.get(f"/uaa/{FSE01_SLUG}")
-    assert "<details>" in response.text
-    assert "Voir la correction expliquée" in response.text
+    # Ticket #112 : les corrigés utilisent <details class="jc-exercise-correction">
+    # (toujours l'élément natif <details>, sans l'attribut "open" — fermé par défaut).
+    assert "<details" in response.text
+    assert "<details open" not in response.text
+    assert "Voir le corrigé" in response.text
 
 
 # =============================================================================================

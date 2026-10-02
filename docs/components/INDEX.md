@@ -58,6 +58,14 @@ quel par `app/content.py`) :
   pour les cas que `.jc-flow` (linéaire) ne couvre pas. Depuis le ticket #108, un schéma
   destiné à un usage mobile peut fournir deux rendus distincts (large/colonne) permutés par
   média-requête, plutôt qu'un simple redimensionnement qui rendrait le texte illisible.
+- [ExampleTitle](ExampleTitle.md) — titre d'un exemple commenté, espacé précisément de
+  l'exemple précédent et du document qui suit (ticket #112, FSE01 uniquement).
+- [DecryptTitle](DecryptTitle.md) — titre dédié annonçant l'analyse d'un document juste
+  après celui-ci (ticket #112, FSE01 uniquement).
+- [ExerciseStepCard](ExerciseStepCard.md) — une carte par exercice guidé (numéro, titre,
+  consigne visible, lien vers le document, accordéon « Voir le corrigé »), corrigé
+  structuré en HTML réel (ticket #112, FSE01 uniquement) — toujours un exercice guidé du
+  cours, jamais un nouveau moteur de correction/notation.
 
 ---
 
