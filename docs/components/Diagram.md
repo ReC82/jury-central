@@ -40,6 +40,33 @@ utilisent ce composant SVG.
 
 ---
 
+# Adaptation mobile : deux rendus SVG distincts, pas un simple redimensionnement (ticket #108)
+
+Un schéma large (ex. émetteur/message/récepteur en ligne horizontale) redimensionné par le
+seul `max-width: 100%` reste lisible sur ordinateur, mais le texte devient minuscule une
+fois la largeur ramenée à celle d'un téléphone (le `viewBox` scale tout proportionnellement,
+texte compris). Plutôt que de réduire la taille de police pour compenser (ce qui rendrait le
+schéma illisible dans l'autre sens, ou imposerait un défilement), **deux SVG distincts** sont
+écrits à la main pour les schémas relationnels destinés à un usage mobile : un rendu large
+(disposition horizontale, `viewBox` proche du format d'un écran d'ordinateur) et un rendu en
+colonne (disposition verticale, texte proportionnellement plus grand, pensé pour un
+`viewBox` étroit), permutés par média-requête CSS :
+
+```css
+.jc-diagram--mobile { display: none; }
+@media (max-width: 576px) {
+    .jc-diagram--desktop { display: none; }
+    .jc-diagram--mobile { display: block; }
+}
+```
+
+Les deux SVG partagent le même contenu informatif (mêmes éléments, mêmes nuances
+conservées — ex. distinction code/canal, rétroaction/rapidité de réponse) ; seule la
+disposition spatiale change. Voir `app/v1/fse01_content.py::FSE01_COMMUNICATION_DIAGRAM_SVG`
+(concatène les deux rendus) pour un exemple complet.
+
+---
+
 # Quand l'utiliser
 
 - Pour un schéma relationnel (plusieurs éléments reliés par des flèches, éventuellement une
