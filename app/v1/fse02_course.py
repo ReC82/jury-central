@@ -22,6 +22,8 @@ from app.v1.fse02_content import (
     FSE02_PUBLIC_TITLE,
 )
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse02_course_markdown() -> str:
     return f"""# FSE02 — Les médias et leurs financements
@@ -245,3 +247,9 @@ il peut traiter des sujets peu populaires sans perdre de financement.
 - Interactivité (réagir au message) et mode de financement sont deux notions \
 indépendantes — ne jamais les confondre.
 """
+
+
+def fse02_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE02 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE02", fse02_course_markdown())

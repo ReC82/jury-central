@@ -13,6 +13,8 @@ compétences déjà introduite en FSE08 (programme p. 61-62) — réutilise son 
 
 from app.v1.fse09_content import FSE09_SITUATIONS_TEXT
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse09_course_markdown() -> str:
     return f"""# FSE09 — Qui décide de quoi ?
@@ -198,3 +200,9 @@ précis n'est enseigné ni évalué ici, conformément au périmètre du cours).
 
 En cas de doute sur un cas réel, consulte ces organismes officiels plutôt que ce cours.
 """
+
+
+def fse09_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE09 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE09", fse09_course_markdown())

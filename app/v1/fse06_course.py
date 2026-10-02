@@ -16,6 +16,8 @@ et de la Police fédérale belge — voir section 11."""
 
 from app.v1.fse06_content import FSE06_SCENARIOS_TEXT
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse06_course_markdown() -> str:
     return f"""# FSE06 — Droits et comportements illicites en ligne
@@ -235,3 +237,9 @@ https://www.police.be/5344/fr/questions/cybercriminalite/usurpation-didentite �
 En cas de situation réelle, consulte ces organismes officiels plutôt que ce cours, qui reste un \
 support pédagogique simplifié et ne fige aucune qualification pénale.
 """
+
+
+def fse06_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE06 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE06", fse06_course_markdown())

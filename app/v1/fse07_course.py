@@ -22,6 +22,8 @@ from app.v1.fse07_content import (
     FSE07_SCHOOL_TITLE,
 )
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse07_course_markdown() -> str:
     return f"""# FSE07 — Analyser un dossier médiatique
@@ -229,3 +231,9 @@ enjeu sociologique (ex. normes, influence sociale) en même temps : les identifi
 - Une conclusion argumentée s'appuie sur les faits et enjeux identifiés, jamais sur une opinion \
 du dossier ni sur son document le moins fiable.
 """
+
+
+def fse07_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE07 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE07", fse07_course_markdown())

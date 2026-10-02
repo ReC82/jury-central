@@ -13,8 +13,51 @@ loi/décret/ordonnance) — jamais de budget familial, crédit, emprunt, TAEG, I
 immobilière détaillée (hors périmètre, ticket #96/#98), et jamais un cours exhaustif de droit
 constitutionnel (ticket #98 : « sans cours exhaustif de droit constitutionnel »)."""
 
+from app.v1.fse_course_sections import build_course_sections
+
+FSE08_POWER_LEVELS_DIAGRAM_SVG = """<div class="jc-diagram" role="img" aria-label="Schéma des niveaux de pouvoir belges : le niveau fédéral (justice, défense, affaires étrangères) se décline en Régions (compétentes par territoire : économie, emploi, environnement, logement) et en Communautés (compétentes par personnes et langue : enseignement, culture) ; les provinces et communes sont des subdivisions des Régions, le niveau le plus proche du citoyen. Régions et Communautés sont deux découpages différents, pas une hiérarchie de commandement entre eux.">
+<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="fse08-arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#8a97a3" />
+    </marker>
+  </defs>
+  <rect x="270" y="18" width="360" height="72" rx="10" fill="#e8f1fc" stroke="#1565c0" stroke-width="2" />
+  <text x="450" y="44" text-anchor="middle" font-size="17" font-weight="600" fill="#0d3b66">Niveau fédéral</text>
+  <text x="450" y="65" text-anchor="middle" font-size="12.5" fill="#1f2933">justice · affaires étrangères · défense · sécurité sociale</text>
+  <text x="450" y="81" text-anchor="middle" font-size="11.5" fill="#55606b">compétences pour l'ensemble du pays</text>
+
+  <line x1="390" y1="90" x2="220" y2="150" stroke="#8a97a3" stroke-width="2" marker-end="url(#fse08-arrow)" />
+  <line x1="510" y1="90" x2="680" y2="150" stroke="#8a97a3" stroke-width="2" marker-end="url(#fse08-arrow)" />
+
+  <rect x="40" y="152" width="360" height="100" rx="10" fill="#eaf7ee" stroke="#1e7e45" stroke-width="2" />
+  <text x="220" y="178" text-anchor="middle" font-size="16" font-weight="600" fill="#15532d">Régions</text>
+  <text x="220" y="198" text-anchor="middle" font-size="12" fill="#1f2933">wallonne · flamande · Bruxelles-Capitale</text>
+  <text x="220" y="217" text-anchor="middle" font-size="12" fill="#1f2933">économie · emploi · environnement · logement</text>
+  <text x="220" y="236" text-anchor="middle" font-size="11.5" fill="#55606b">critère : le territoire</text>
+
+  <rect x="500" y="152" width="360" height="100" rx="10" fill="#fdf2e3" stroke="#b5600a" stroke-width="2" />
+  <text x="680" y="178" text-anchor="middle" font-size="16" font-weight="600" fill="#7a4306">Communautés</text>
+  <text x="680" y="198" text-anchor="middle" font-size="12" fill="#1f2933">française · flamande · germanophone</text>
+  <text x="680" y="217" text-anchor="middle" font-size="12" fill="#1f2933">enseignement · culture · aide à la jeunesse</text>
+  <text x="680" y="236" text-anchor="middle" font-size="11.5" fill="#55606b">critère : les personnes et la langue</text>
+
+  <line x1="220" y1="252" x2="220" y2="300" stroke="#8a97a3" stroke-width="2" marker-end="url(#fse08-arrow)" />
+
+  <rect x="40" y="302" width="360" height="72" rx="10" fill="#f1f3f5" stroke="#55606b" stroke-width="2" />
+  <text x="220" y="328" text-anchor="middle" font-size="15" font-weight="600" fill="#2b3440">Provinces et communes</text>
+  <text x="220" y="348" text-anchor="middle" font-size="12" fill="#1f2933">subdivisions des Régions</text>
+  <text x="220" y="364" text-anchor="middle" font-size="11.5" fill="#55606b">niveau le plus proche du citoyen</text>
+
+  <text x="680" y="328" text-anchor="middle" font-size="11.5" fill="#55606b" font-style="italic">Régions et Communautés sont deux</text>
+  <text x="680" y="344" text-anchor="middle" font-size="11.5" fill="#55606b" font-style="italic">découpages différents, pas un lien</text>
+  <text x="680" y="360" text-anchor="middle" font-size="11.5" fill="#55606b" font-style="italic">d'autorité entre eux.</text>
+</svg>
+</div>"""
+
+
 def fse08_course_markdown() -> str:
-    return """# FSE08 — La Belgique : État et niveaux de pouvoir
+    return f"""# FSE08 — La Belgique : État et niveaux de pouvoir
 
 ## 1. Ce que tu dois savoir faire à l'examen
 
@@ -57,6 +100,8 @@ Communauté correspond aux personnes qui parlent une langue donnée — ces deux
 superposent pas exactement (par exemple, les habitants de la Région de Bruxelles-Capitale \
 dépendent de la Communauté française ou de la Communauté flamande selon les choix qu'ils font, \
 et non d'une Communauté bruxelloise propre).
+
+{FSE08_POWER_LEVELS_DIAGRAM_SVG}
 
 ## 3. Définitions importantes
 
@@ -230,3 +275,9 @@ Document complémentaire ci-dessus (`app.v1.fse08_content.FSE08_MAP_TEXT`) : tab
 original, rédigé pour ce cours à partir de ces sources — jamais une reproduction d'un document \
 officiel.
 """
+
+
+def fse08_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE08 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE08", fse08_course_markdown())

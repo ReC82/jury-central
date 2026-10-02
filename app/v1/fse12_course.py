@@ -14,6 +14,8 @@ n'est enseigné ni évalué ici (exclusion explicite du ticket #96, confirmée p
 
 from app.v1.fse12_content import FSE12_BUDGET_TEXT
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse12_course_markdown() -> str:
     return f"""# FSE12 — Le budget de l'État
@@ -186,3 +188,9 @@ intérêts, eux-mêmes une dépense.
 - L'IPP n'est jamais calculée ni déclarée dans ce cours : seule sa nature de recette fiscale \
 compte.
 """
+
+
+def fse12_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE12 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE12", fse12_course_markdown())

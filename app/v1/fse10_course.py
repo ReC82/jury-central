@@ -18,6 +18,8 @@ from app.v1.fse10_content import (
     FSE10_TABLE_TEXT,
 )
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse10_course_markdown() -> str:
     return f"""# FSE10 — Élections et participation citoyenne
@@ -233,3 +235,9 @@ https://electionslocales.wallonie.be/home/lexique.default.html — consulté le 
 Ces règles peuvent évoluer : avant toute affirmation sur un scrutin réel, vérifie la date \
 et la région auprès d'une source officielle plutôt que de ce cours.
 """
+
+
+def fse10_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE10 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE10", fse10_course_markdown())

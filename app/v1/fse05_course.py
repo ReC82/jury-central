@@ -18,6 +18,8 @@ section 11 ci-dessous pour les URL et la date de vérification exactes."""
 
 from app.v1.fse05_content import FSE05_SITUATIONS_TEXT
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse05_course_markdown() -> str:
     return f"""# FSE05 — Image, vie privée et données personnelles
@@ -252,3 +254,9 @@ Ces règles évoluent : en cas de doute sur un cas réel, consulte systématique
 l'Autorité de protection des données plutôt que ce cours, qui reste un support pédagogique \
 simplifié.
 """
+
+
+def fse05_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE05 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE05", fse05_course_markdown())

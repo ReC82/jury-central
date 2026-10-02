@@ -20,6 +20,8 @@ from app.v1.fse03_content import (
     FSE03_PROFILE_TITLE,
 )
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse03_course_markdown() -> str:
     return f"""# FSE03 — Identités, traces numériques et appartenance
@@ -235,3 +237,9 @@ de traces anciennes ou sorties de leur contexte.
 - Une ancienne publication peut avoir des conséquences réelles des années plus tard (ex. \
 une candidature), même sans lien avec le sujet concerné.
 """
+
+
+def fse03_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE03 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE03", fse03_course_markdown())

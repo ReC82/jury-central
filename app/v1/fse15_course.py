@@ -14,6 +14,61 @@ aucune question de ce cours ne porte sur un texte de loi précis."""
 
 from app.v1.fse15_content import FSE15_AID_TEXT
 
+from app.v1.fse_course_sections import build_course_sections
+
+FSE15_CIRCUIT_DIAGRAM_SVG = """<div class="jc-diagram" role="img" aria-label="Schéma du circuit économique à quatre agents : ménages et entreprises échangent travail (flux réel) contre salaire (flux monétaire) ; chacun verse des impôts et cotisations à l'État (flux monétaire) et reçoit en retour des prestations sociales et des services publics (flux réel et monétaire) ; les entreprises échangent des biens et services (flux réel) contre paiement (flux monétaire) avec le reste du monde.">
+<svg viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="fse15-arrow-blue" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#1565c0" />
+    </marker>
+    <marker id="fse15-arrow-green" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#1e7e45" />
+    </marker>
+  </defs>
+
+  <rect x="30" y="30" width="230" height="80" rx="10" fill="#e8f1fc" stroke="#1565c0" stroke-width="2" />
+  <text x="145" y="64" text-anchor="middle" font-size="16" font-weight="600" fill="#0d3b66">Ménages</text>
+  <text x="145" y="84" text-anchor="middle" font-size="11.5" fill="#55606b">personnes et familles</text>
+
+  <rect x="640" y="30" width="230" height="80" rx="10" fill="#e8f1fc" stroke="#1565c0" stroke-width="2" />
+  <text x="755" y="64" text-anchor="middle" font-size="16" font-weight="600" fill="#0d3b66">Entreprises</text>
+  <text x="755" y="84" text-anchor="middle" font-size="11.5" fill="#55606b">produisent biens et services</text>
+
+  <line x1="260" y1="55" x2="640" y2="55" stroke="#1e7e45" stroke-width="2" marker-end="url(#fse15-arrow-green)" />
+  <text x="450" y="45" text-anchor="middle" font-size="11.5" fill="#15532d">travail (flux réel)</text>
+  <line x1="640" y1="85" x2="260" y2="85" stroke="#1565c0" stroke-width="2" marker-end="url(#fse15-arrow-blue)" />
+  <text x="450" y="104" text-anchor="middle" font-size="11.5" fill="#0d3b66">salaire (flux monétaire)</text>
+
+  <rect x="335" y="195" width="230" height="80" rx="10" fill="#fdf2e3" stroke="#b5600a" stroke-width="2" />
+  <text x="450" y="229" text-anchor="middle" font-size="16" font-weight="600" fill="#7a4306">État</text>
+  <text x="450" y="249" text-anchor="middle" font-size="11.5" fill="#55606b">impôts, cotisations, dépenses publiques</text>
+
+  <line x1="180" y1="112" x2="368" y2="193" stroke="#1565c0" stroke-width="2" marker-end="url(#fse15-arrow-blue)" />
+  <text x="215" y="148" text-anchor="middle" font-size="11" fill="#0d3b66">impôts /</text>
+  <text x="215" y="161" text-anchor="middle" font-size="11" fill="#0d3b66">cotisations</text>
+  <line x1="400" y1="197" x2="212" y2="116" stroke="#1e7e45" stroke-width="2" marker-end="url(#fse15-arrow-green)" />
+  <text x="150" y="150" text-anchor="middle" font-size="11" fill="#15532d">prestations</text>
+  <text x="150" y="163" text-anchor="middle" font-size="11" fill="#15532d">sociales</text>
+
+  <line x1="720" y1="112" x2="532" y2="193" stroke="#1565c0" stroke-width="2" marker-end="url(#fse15-arrow-blue)" />
+  <text x="685" y="148" text-anchor="middle" font-size="11" fill="#0d3b66">impôts /</text>
+  <text x="685" y="161" text-anchor="middle" font-size="11" fill="#0d3b66">cotisations</text>
+  <line x1="500" y1="197" x2="688" y2="116" stroke="#1e7e45" stroke-width="2" marker-end="url(#fse15-arrow-green)" />
+  <text x="760" y="150" text-anchor="middle" font-size="11" fill="#15532d">services</text>
+  <text x="760" y="163" text-anchor="middle" font-size="11" fill="#15532d">publics</text>
+
+  <rect x="640" y="350" width="230" height="80" rx="10" fill="#f1f3f5" stroke="#55606b" stroke-width="2" />
+  <text x="755" y="384" text-anchor="middle" font-size="16" font-weight="600" fill="#2b3440">Reste du monde</text>
+  <text x="755" y="404" text-anchor="middle" font-size="11.5" fill="#55606b">échanges avec l'étranger</text>
+
+  <line x1="735" y1="110" x2="735" y2="350" stroke="#1e7e45" stroke-width="2" marker-end="url(#fse15-arrow-green)" />
+  <text x="695" y="230" text-anchor="middle" font-size="11" fill="#15532d">exportations</text>
+  <line x1="775" y1="350" x2="775" y2="110" stroke="#1565c0" stroke-width="2" marker-end="url(#fse15-arrow-blue)" />
+  <text x="815" y="230" text-anchor="middle" font-size="11" fill="#0d3b66">paiement</text>
+</svg>
+</div>"""
+
 
 def fse15_course_markdown() -> str:
     return f"""# FSE15 — Le circuit économique et les interventions de l'État
@@ -55,6 +110,8 @@ prestations pour d'autres), la **régulation** (fixer des règles pour encadrer 
 économiques) et la **production de biens et services collectifs** (ex. infrastructures, \
 enseignement public) que le marché privé ne produirait pas nécessairement seul, ou pas pour \
 tous.
+
+{FSE15_CIRCUIT_DIAGRAM_SVG}
 
 ## 3. Définitions importantes
 
@@ -200,3 +257,9 @@ collectifs.
 jamais s'arrêter au premier agent concerné.
 - Le volet législation reste hors évaluation : seul le mécanisme économique compte ici.
 """
+
+
+def fse15_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE15 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE15", fse15_course_markdown())

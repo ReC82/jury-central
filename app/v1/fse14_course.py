@@ -12,6 +12,7 @@ Périmètre strict (ticket #100, programme p. 61-62) : associer organismes et r�
 (FAMIWAL/FAMIRIS), enjeux de vieillissement/emploi/dépenses de santé — SANS mémorisation de
 montants, âges de pension ou règles d'accès non vérifiés, conformément au ticket."""
 
+from app.v1.fse_course_sections import build_course_sections
 
 
 def fse14_course_markdown() -> str:
@@ -215,3 +216,9 @@ https://www.iriscare.brussels/fr/service/iriscare/direction-iriscare/departement
 
 En cas de doute sur un droit réel, consulte ces organismes officiels plutôt que ce cours.
 """
+
+
+def fse14_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE14 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE14", fse14_course_markdown())

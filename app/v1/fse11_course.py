@@ -21,6 +21,8 @@ from app.v1.fse11_content import (
     FSE11_PROPOSALS_TEXT,
 )
 
+from app.v1.fse_course_sections import build_course_sections
+
 
 def fse11_course_markdown() -> str:
     return f"""# FSE11 — Partis politiques et choix argumenté
@@ -222,3 +224,9 @@ En cas de doute sur une position actuelle précise d'un parti, consulte son site
 une source de presse datée plutôt que ce cours, qui ne vise que l'identification de la \
 famille politique générale.
 """
+
+
+def fse11_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE11 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
+    return build_course_sections("FSE11", fse11_course_markdown())
