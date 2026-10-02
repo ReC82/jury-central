@@ -14,10 +14,14 @@ protection des données personnelles au sens juridique) n'est introduite ici : e
 d'un autre mini-cours (FSE05, voir `docs/content_plan_fse.md`)."""
 
 from app.v1.fse03_content import (
-    FSE03_HR_NOTE_TEXT,
+    FSE03_BIRTHDAY_CARD_HTML,
+    FSE03_FORUM_CARD_HTML,
+    FSE03_GROUPS_CARD_HTML,
+    FSE03_HR_NOTE_CARD_HTML,
     FSE03_HR_NOTE_TITLE,
-    FSE03_PROFILE_TEXT,
+    FSE03_PROFILE_CARD_HTML,
     FSE03_PROFILE_TITLE,
+    FSE03_RECOMMENDATION_CARD_HTML,
 )
 
 from app.v1.fse_course_sections import build_course_sections
@@ -98,7 +102,15 @@ le document donne à voir.
 
 ### Exemple 1 — {FSE03_PROFILE_TITLE}
 
-{FSE03_PROFILE_TEXT}
+{FSE03_PROFILE_CARD_HTML}
+
+{FSE03_BIRTHDAY_CARD_HTML}
+
+{FSE03_FORUM_CARD_HTML}
+
+{FSE03_RECOMMENDATION_CARD_HTML}
+
+{FSE03_GROUPS_CARD_HTML}
 
 **Analyse commentée :**
 - Trace 1 (photo de profil professionnelle) : **volontaire** — publiée par Sophie \
@@ -115,7 +127,7 @@ groupe professionnel (gestionnaires de stock).
 
 ### Exemple 2 — {FSE03_HR_NOTE_TITLE}
 
-{FSE03_HR_NOTE_TEXT}
+{FSE03_HR_NOTE_CARD_HTML}
 
 **Analyse commentée :** ce document montre concrètement comment des traces numériques \
 influencent une situation réelle. La recommandation professionnelle (trace involontaire, \

@@ -1,0 +1,9 @@
+{
+  "prompt": "Using the exact same woman shown in the reference image (a woman in her early thirties with shoulder-length straight dark brown hair, warm medium skin tone, a friendly confident expression, same hair, same face, same skin tone — keep her appearance identical to the reference), create a new flat vector illustration scene: she is laughing at an outdoor birthday celebration with two friends standing beside her, string lights and a small birthday cake with candles visible in the background, warm pastel color palette, early evening setting. Same clean flat minimal illustration style as the reference image, soft rounded shapes, no text, no logos, no watermarks, not photorealistic.",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1024",
+  "quality": "high",
+  "generated_at": "2026-10-02T23:07:51.146234+00:00",
+  "reference_image": "fse03_sophie_portrait.png",
+  "input_fidelity": null
+}

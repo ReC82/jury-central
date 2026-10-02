@@ -26,6 +26,7 @@ import httpx
 from app.ai.provider import AINotConfiguredError, AIResponseError, AITimeoutError
 
 IMAGES_URL = "https://api.openai.com/v1/images/generations"
+IMAGES_EDITS_URL = "https://api.openai.com/v1/images/edits"
 
 # Voir app/ai/openai_provider.py::_MAX_ERROR_MESSAGE_LENGTH — même borne, même raison : un
 # message d'erreur fournisseur ne doit jamais gonfler nos logs, et ne contient aucun secret.
@@ -114,6 +115,85 @@ class ImageProvider:
 
         try:
             b64_data = data["data"][0]["b64_json"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise AIResponseError(
+                "Réponse du service de génération d'images dans un format inattendu."
+            ) from exc
+
+        try:
+            return base64.b64decode(b64_data)
+        except (ValueError, TypeError) as exc:
+            raise AIResponseError("Image reçue illisible (décodage base64 impossible).") from exc
+
+    def edit_image(
+        self,
+        prompt: str,
+        reference_images: list[bytes],
+        size: str = "1024x1024",
+        quality: str = "high",
+        input_fidelity: str | None = "high",
+        model: str | None = None,
+    ) -> bytes:
+        """`POST /v1/images/edits` (multipart/form-data) : génère une nouvelle image à
+        partir d'une ou plusieurs images de référence (jusqu'à 16, ici une seule) + un
+        prompt décrivant la nouvelle scène — pas un simple inpainting d'une zone masquée,
+        voir la documentation officielle (ticket #118). Utilisé pour la cohérence d'un
+        personnage entre deux illustrations distinctes (ex. FSE03 : même portrait de
+        Sophie Lambert réutilisé comme référence pour la scène d'anniversaire), sans quoi
+        deux appels indépendants à `generate_image()` produiraient deux apparences
+        différentes.
+
+        `model` : par défaut `self._model` (`settings.openai_image_model`, le modèle de
+        génération rapide) ; passer explicitement le modèle d'édition de précision
+        (vérifié empiriquement : `gpt-image-2.5-flare` ne supporte PAS `input_fidelity` et
+        rejette l'appel avec `invalid_input_fidelity_model` — seul le modèle d'édition,
+        ex. `gpt-image-2.5-sunburst`, l'accepte) quand `input_fidelity` est utilisé.
+        `input_fidelity=None` l'omet entièrement du payload (nécessaire avec un modèle qui
+        ne le supporte pas)."""
+        files = [
+            ("image[]", (f"reference_{i}.png", content, "image/png"))
+            for i, content in enumerate(reference_images)
+        ]
+        data = {
+            "model": model or self._model,
+            "prompt": prompt,
+            "size": size,
+            "quality": quality,
+            "n": 1,
+        }
+        if input_fidelity is not None:
+            # "high" : priorise la fidélité au visage/personnage de référence plutôt que
+            # la liberté créative — essentiel pour la cohérence d'un même personnage
+            # entre deux illustrations (voir docstring de la méthode).
+            data["input_fidelity"] = input_fidelity
+        headers = {"Authorization": f"Bearer {self._api_key}"}  # pas de Content-Type : httpx le fixe (multipart + boundary)
+        try:
+            response = httpx.post(
+                IMAGES_EDITS_URL,
+                headers=headers,
+                data=data,
+                files=files,
+                timeout=self._timeout_seconds,
+            )
+        except httpx.TimeoutException as exc:
+            raise AITimeoutError(
+                "Le service de génération d'images n'a pas répondu à temps."
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise AIResponseError(
+                f"Erreur réseau vers le service de génération d'images : {exc}"
+            ) from exc
+
+        if response.status_code != 200:
+            self._raise_for_error_response(response)
+
+        try:
+            response_data = response.json()
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise AIResponseError("Réponse du service de génération d'images illisible.") from exc
+
+        try:
+            b64_data = response_data["data"][0]["b64_json"]
         except (KeyError, IndexError, TypeError) as exc:
             raise AIResponseError(
                 "Réponse du service de génération d'images dans un format inattendu."

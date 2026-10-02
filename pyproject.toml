@@ -39,6 +39,7 @@ seed-db = "app.seed:seed"
 reset-db = "app.seed:reset"
 safe-local-server = "app.safe_local_server:main"
 generate-fse01-poster-image = "app.v1.fse01_image:main"
+generate-fse03-sophie-images = "app.v1.fse03_image:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app", "generators"]
