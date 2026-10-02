@@ -26,3 +26,11 @@ def test_classify_default_theory():
 
 def test_classify_memo_keyword():
     assert classify_block_title("Fiche mémo — Architecture générale d'un PC") == "summary"
+
+
+def test_classify_method_keyword():
+    assert classify_block_title("FSE01 — Méthode") == "method"
+
+
+def test_classify_source_keyword_as_info():
+    assert classify_block_title("FSE09 — Sources et ressources vérifiées") == "info"

@@ -96,11 +96,19 @@ def test_no_forbidden_content_in_fse_bank_source(pattern_name):
 
 @pytest.mark.parametrize("code", [f"FSE{str(i).zfill(2)}" for i in range(1, 18)])
 def test_no_forbidden_content_in_course_markdown(db_session, code):
+    """FSE01 (ticket #105) expose `fse01_course_sections()` (plusieurs blocs titrés,
+    refonte pédagogique et visuelle) plutôt que `fse01_course_markdown()` (un seul bloc) —
+    les deux conventions sont acceptées ici, le contenu analysé est le même texte
+    concaténé, une fois les sections regroupées."""
     seed()
     module_name = f"app.v1.{code.lower()}_course"
     course_module = __import__(module_name, fromlist=["x"])
-    markdown_fn = getattr(course_module, f"{code.lower()}_course_markdown")
-    text = markdown_fn()
+    markdown_fn = getattr(course_module, f"{code.lower()}_course_markdown", None)
+    if markdown_fn is not None:
+        text = markdown_fn()
+    else:
+        sections_fn = getattr(course_module, f"{code.lower()}_course_sections")
+        text = "\n\n".join(markdown for _title, markdown in sections_fn())
     for name, pattern in _FORBIDDEN_PATTERNS.items():
         if name in ("calcul_ipp", "declaration_ipp") and code != "FSE12":
             continue  # seul FSE12 mentionne l'IPP (comme catégorie, jamais calculée).

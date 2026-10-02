@@ -34,6 +34,22 @@ précise pas explicitement.
   badges, pas une carte encadrée — voir la fiche pour le détail).
 - [CourseCard](CourseCard.md) — carte de navigation vers une UAA, **non implémentée**.
 
+# Composants internes à une carte (sous-éléments, ticket #103)
+
+Contrairement aux cartes ci-dessus (une par bloc de leçon, via `app/card_kind.py`), ces
+composants vivent À L'INTÉRIEUR d'une carte existante (généralement `TheoryCard`/
+`ExampleCard`), embarqués directement en HTML brut dans le Markdown du bloc (passé tel
+quel par `app/content.py`) :
+
+- [DefinitionGrid](DefinitionGrid.md) — plusieurs définitions courtes côte à côte (terme,
+  explication, exemple).
+- [CompareGrid](CompareGrid.md) — deux notions souvent confondues, ou mauvaise/bonne
+  réponse, côte à côte.
+- [DocCard](DocCard.md) — document support (mail, affiche, publication) séparé de son
+  analyse.
+- [Diagram](Diagram.md) — schéma SVG relationnel (remplace les schémas en caractères),
+  pour les cas que `.jc-flow` (linéaire) ne couvre pas.
+
 ---
 
 # État d'implémentation
