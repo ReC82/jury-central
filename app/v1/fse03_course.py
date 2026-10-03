@@ -34,6 +34,8 @@ from app.v1.fse03_content import (
     FSE03_HR_NOTE_TITLE,
     FSE03_PROFILE_CARD_HTML,
     FSE03_PROFILE_TITLE,
+    FSE03_RECENT_POST_CARD_HTML,
+    FSE03_RECENT_POST_TITLE,
     FSE03_RECOMMENDATION_CARD_HTML,
 )
 
@@ -116,6 +118,20 @@ ce commentaire date d'avant le début de sa carrière et ne reflète pas ses com
 réelles. On voit ici la différence entre l'identité réelle de Sophie (une professionnelle \
 rigoureuse, selon son ancien collègue) et l'image que certaines traces anciennes peuvent \
 donner à un observateur qui ne connaît pas le contexte.
+
+### Exemple 3 — {FSE03_RECENT_POST_TITLE}
+
+{FSE03_RECENT_POST_CARD_HTML}
+
+**Analyse commentée :** cette publication est, comme la photo de profil (exemple 1), une \
+trace **volontaire** : Sophie l'a écrite et publiée elle-même. Elle est aussi **récente** \
+et directement liée à son contexte professionnel actuel — à l'inverse du commentaire \
+ancien vu dans l'exemple 1, qui datait d'avant le début de sa carrière. Elle illustre un \
+cas où l'image donnée à voir correspond bien à l'identité réelle de Sophie aujourd'hui : \
+une professionnelle investie dans son métier. Toutes les traces ne créent donc pas un \
+écart entre identité réelle et image perçue : ce sont surtout les traces anciennes, hors \
+contexte, ou publiées par d'autres qui risquent de produire cet écart — pas une trace \
+récente et volontaire qui reste fidèle à la situation actuelle de la personne.
 
 ## 6. Mauvaises réponses comparées aux bonnes
 

@@ -96,3 +96,31 @@ FSE04_TESTIMONY_CARD_HTML = """<div class="jc-doc" id="document-temoignage">
 </div>
 </div>
 </div>"""
+
+# Ticket #133 (audit de couverture, issue #131) : 3e exemple commenté, exigé par le
+# contrat de rédaction (issues #96-#101, "3 exemples commentés") mais absent jusqu'ici
+# (seulement 2 — voir audit). Illustre concrètement la "frustration" (théorique jusqu'ici,
+# jamais montrée dans un document travaillé) : message privé, jamais rendu public — à
+# distinguer du désaccord PUBLIC du membre D (exemple 1), pour montrer que la frustration
+# ne débouche pas toujours sur un comportement visible. Document original, aucune nouvelle
+# image (avatar générique déjà utilisé ailleurs dans ce cours).
+FSE04_FRUSTRATION_TITLE = "Message privé d'une autre membre du groupe, jamais rendu public"
+FSE04_FRUSTRATION_TEXT = """[Message privé fictif envoyé par une autre membre du groupe à une amie, créé pour cet \
+exercice — jamais publié dans le groupe lui-même]
+
+Je ne sais pas trop quoi penser... tout le monde trouve ça drôle dans le groupe, et je \
+n'ai pas envie de passer pour celle qui ne suit pas le mouvement, mais perso ça me met \
+mal à l'aise de voir cette vidéo partagée comme ça. Je crois que je vais juste rien dire."""
+
+FSE04_FRUSTRATION_CARD_HTML = """<div class="jc-doc" id="document-frustration">
+<div class="jc-doc-header"><strong>🗣️ Message privé — une autre membre du groupe</strong><span class="jc-doc-fictive-badge">Fictif</span></div>
+<div class="jc-doc-body">
+<div class="jc-quote-card">
+<span class="jc-social-avatar jc-social-avatar--p3" aria-hidden="true">?</span>
+<div>
+<span class="jc-quote-author">Membre E, à une amie (jamais publié dans le groupe)</span>
+<p class="jc-quote-text">« Je ne sais pas trop quoi penser... tout le monde trouve ça drôle dans le groupe, et je n'ai pas envie de passer pour celle qui ne suit pas le mouvement, mais perso ça me met mal à l'aise de voir cette vidéo partagée comme ça. Je crois que je vais juste rien dire. »</p>
+</div>
+</div>
+</div>
+</div>"""

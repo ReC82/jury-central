@@ -33,6 +33,8 @@ cyberharcèlement — au contraire, le cours souligne explicitement la responsab
 individuelle qui subsiste malgré la pression de groupe)."""
 
 from app.v1.fse04_content import (
+    FSE04_FRUSTRATION_CARD_HTML,
+    FSE04_FRUSTRATION_TITLE,
     FSE04_GROUP_CARD_HTML,
     FSE04_GROUP_TITLE,
     FSE04_TESTIMONY_CARD_HTML,
@@ -112,6 +114,20 @@ partager ni commenter moqueusement : « Ce n'est pas parce qu'un groupe entier s
 pousser dans une direction que chaque personne qui en fait partie agit forcément de la \
 même façon. » Ce témoignage prouve que l'appartenance à un groupe qui encourage un \
 comportement donné n'oblige jamais une personne à adopter ce comportement.
+
+### Exemple 3 — {FSE04_FRUSTRATION_TITLE}
+
+{FSE04_FRUSTRATION_CARD_HTML}
+
+**Analyse commentée :** ce message privé illustre concrètement la **frustration** : cette \
+membre ressent une tension entre son **besoin** de s'intégrer au groupe (ne pas « passer \
+pour celle qui ne suit pas le mouvement ») et sa **valeur** personnelle de respect (le \
+malaise face à la moquerie). Contrairement au membre D (exemple 1), qui exprime son \
+désaccord publiquement, elle choisit de ne rien dire dans le groupe — la frustration \
+qu'elle ressent ne débouche donc pas sur un comportement visible. Cela montre qu'une \
+personne peut ressentir un inconfort réel face à une norme de groupe sans que cela change \
+son comportement observable : la frustration est une tension intérieure, pas toujours une \
+prise de position publique.
 
 ## 6. Mauvaises réponses comparées aux bonnes
 

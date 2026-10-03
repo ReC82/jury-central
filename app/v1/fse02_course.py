@@ -79,6 +79,17 @@ l'audience et de la publicité ne vaut que pour un financement exclusivement pub
 celui de RCW dans l'exemple étudié plus loin ; un média public qui diffuse aussi de la \
 publicité reste, lui, partiellement concerné par la recherche d'audience.
 
+Chacun de ces quatre modes de financement correspond à un **flux économique réel entre \
+agents** : quand un récepteur (un **ménage**) paie un abonnement ou un numéro, il verse \
+un flux monétaire directement au média (une **entreprise**) ; quand un annonceur (une \
+**entreprise**) paie pour de la publicité, il verse lui aussi un flux monétaire au média ; \
+une dotation de fonds publics est un flux monétaire qui part de l'**État** vers le média, \
+financé par les impôts que les ménages et les entreprises lui versent par ailleurs. \
+Observer le financement d'un média, c'est donc déjà observer un petit morceau du circuit \
+économique complet, qui sera détaillé plus loin dans ce module (FSE15) : même sans le \
+connaître encore, retiens que chaque mode de financement relie toujours au moins deux \
+agents économiques par un flux monétaire précis.
+
 ## 3. Définitions importantes
 
 - **Média** : support qui transmet de l'information à un large public (presse, radio, \
@@ -264,6 +275,9 @@ publicité : il peut traiter des sujets peu populaires sans perdre de financemen
 média public financé en partie par la publicité reste, lui, partiellement concerné par \
 cette logique d'audience.
 - Un média payant (vente/abonnement) dépend de la fidélité de son public.
+- Chaque mode de financement est un flux monétaire entre agents économiques (ménage, \
+entreprise, État) — un abonnement relie un ménage à une entreprise, une dotation publique \
+relie l'État à un média.
 - Interactivité (réagir au message), délai de la réponse et mode de financement sont trois \
 notions indépendantes — ne jamais les confondre. Un compteur de vues mesure l'audience, \
 pas l'interactivité : seule la possibilité de réagir (commenter, partager, appeler) compte \
