@@ -183,3 +183,136 @@ def test_reseed_on_pre_ticket126_content_actually_refreshes_section3(db_session)
     ).first()
     assert "jc-theory-cards" in refreshed.content
     assert "jc-prose" not in refreshed.content
+
+
+# =============================================================================================
+# 4. FSE03 « Quelle image les autres voient-ils ? » — composition finale (correction après
+#    retour visuel réel sur le site : la version précédente, .jc-prose aligné à gauche,
+#    n'était pas jugée suffisante pour cette section précise).
+# =============================================================================================
+
+
+def _fse03_image_html() -> str:
+    from app.v1.fse03_course import fse03_course_sections
+
+    sections = dict(fse03_course_sections())
+    return render_markdown(sections["FSE03 — Quelle image les autres voient-ils ?"])
+
+
+def test_fse03_image_section_has_flow_then_three_cards_then_split_then_takeaway():
+    html = _fse03_image_html()
+    flow_idx = html.index('<div class="jc-flow">')
+    cards_idx = html.index('<div class="jc-theory-cards jc-theory-cards--three">')
+    split_idx = html.index('<div class="jc-theory-split">')
+    takeaway_idx = html.index('<div class="jc-takeaway">')
+    glossary_idx = html.index('<details class="jc-glossary">')
+    assert flow_idx < cards_idx < split_idx < takeaway_idx < glossary_idx
+
+
+def test_fse03_image_three_limit_cards_present_with_icons_and_titles():
+    html = _fse03_image_html()
+    assert html.count('<div class="jc-theory-card">') == 3
+    for title in ("Une image partielle", "Une trace ancienne", "Un contexte manquant"):
+        assert title in html
+    assert '<span class="jc-theory-card-icon"' in html
+
+
+def test_fse03_image_split_has_identity_and_concrete_example():
+    html = _fse03_image_html()
+    assert "Identité réelle et image perçue" in html
+    assert "Exemple concret" in html
+    assert "recruteur" in html
+
+
+def test_fse03_image_takeaway_matches_exact_requested_sentence():
+    html = _fse03_image_html()
+    assert (
+        "La réputation est une image perçue : elle ne résume pas qui est réellement "
+        "une personne." in html
+    )
+
+
+def test_fse03_image_no_isolated_prose_column_for_the_three_limits_paragraph():
+    """L'ancien paragraphe unique mélangeant les trois limites (partielle/ancienne/hors
+    contexte) ne doit plus exister : chaque limite a sa propre carte."""
+    html = _fse03_image_html()
+    assert "Cette perception peut être" not in html
+
+
+def test_fse03_image_nuances_preserved_despite_simplified_takeaway():
+    html = _fse03_image_html()
+    assert "jamais la personne tout entière" in html
+    assert "ne dit rien de certain" in html
+    assert "détaché de ce contexte" in html
+    assert "identité réelle" in html.lower()
+
+
+def test_fse03_image_glossary_unchanged_seven_definitions():
+    html = _fse03_image_html()
+    for term in (
+        "Identité personnelle", "Identité collective", "Groupe d'appartenance",
+        "Identité numérique", "Trace numérique volontaire", "Trace numérique involontaire",
+        "Réputation",
+    ):
+        assert term in html
+
+
+def test_fse03_image_no_markdown_leak():
+    html = _fse03_image_html()
+    assert "**" not in html
+
+
+def test_reseed_on_pre_ticket126_content_refreshes_fse03_image_section(db_session):
+    from app.models import UAA, BlockType, LessonBlock, Module
+    from app.seed import seed
+    from app.v1.fse_plan import FSE_MODULE_CODE
+
+    seed()
+
+    uaa = db_session.query(UAA).join(Module).filter(
+        Module.code == FSE_MODULE_CODE, UAA.code == "FSE03"
+    ).first()
+    block = db_session.query(LessonBlock).filter_by(
+        uaa_id=uaa.id, title="FSE03 — Quelle image les autres voient-ils ?"
+    ).first()
+
+    block.content = '<div class="jc-prose">\n<p>Ancien contenu pré-ticket #126.</p>\n</div>'
+    block.type = BlockType.MARKDOWN
+    db_session.commit()
+
+    seed()
+
+    db_session.expire_all()
+    refreshed = db_session.query(LessonBlock).filter_by(
+        uaa_id=uaa.id, title="FSE03 — Quelle image les autres voient-ils ?"
+    ).first()
+    assert "jc-theory-cards--three" in refreshed.content
+    assert refreshed.content.count('<div class="jc-prose">') == 0
+
+
+# =============================================================================================
+# 5. Grille de définitions des cours génériques — toujours visible, jamais repliée
+#    (correctif : repliée au ticket #120 quand redondante, ce qui retirait la seule
+#    respiration visuelle de FSE05/FSE10/FSE13, les théories les plus denses)
+# =============================================================================================
+
+
+def test_three_way_cards_variant_exists_with_fixed_columns():
+    css = CSS_PATH.read_text(encoding="utf-8")
+    rule = css.split(".jc-theory-cards--three {", 1)[1].split("}", 1)[0]
+    assert "grid-template-columns: repeat(3, 1fr)" in rule
+    assert "auto-fit" not in rule
+
+
+def test_densest_generic_courses_keep_their_definitions_grid_visible():
+    import importlib
+
+    from app.v1.fse_course_sections import build_course_sections
+
+    for code in ("fse05", "fse10", "fse13"):
+        module = importlib.import_module(f"app.v1.{code}_course")
+        markdown = getattr(module, f"{code}_course_markdown")()
+        sections = dict(build_course_sections(code.upper(), markdown))
+        html = sections[f"{code.upper()} — Théorie : notions et définitions"]
+        assert "jc-definitions" in html
+        assert "jc-glossary" not in html, f"{code} : la grille ne doit plus être repliée"

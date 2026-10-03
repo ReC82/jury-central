@@ -316,14 +316,18 @@ personne y apparaît.</p>
 
 
 def _section_image() -> str:
-    """« Quelle image les autres voient-ils ? » — schéma traces → perception → réputation,
-    identité réelle vs image perçue, puis lexique repliable reprenant les 7 définitions
-    (désormais déjà présentes dans les explications visibles ci-dessus) pour l'examen
-    (ticket #120)."""
-    return """<div class="jc-prose">
-<p>L'ensemble des traces visibles par autrui construit progressivement une image de la \
-personne, telle qu'elle est perçue par les autres.</p>
-</div>
+    """« Quelle image les autres voient-ils ? » — ticket #126 (correction de composition
+    après retour visuel réel sur le site, le ticket #124 n'ayant pas suffi) : introduction
+    courte (pleine largeur, pas de `.jc-prose` isolé) → schéma traces → perception →
+    réputation → trois limites en cartes de largeur égale
+    (`.jc-theory-cards.jc-theory-cards--three`) → rangée à deux colonnes identité réelle/
+    image perçue + exemple concret (`.jc-theory-split`) → encadré « À retenir » compact →
+    lexique repliable des 7 définitions, inchangé. Aucune nuance retirée : les trois
+    limites (partielle/ancienne/hors contexte) et la distinction identité réelle/image
+    perçue restent intégralement expliquées, seule la phrase de l'encadré est une synthèse
+    volontairement courte."""
+    return """<p>L'ensemble des traces visibles par autrui construit progressivement une \
+image de la personne, telle qu'elle est perçue par les autres.</p>
 
 <div class="jc-flow">
 <div class="jc-flow-step">Traces visibles<small>ce que l'on peut voir en ligne</small></div>
@@ -333,24 +337,48 @@ personne, telle qu'elle est perçue par les autres.</p>
 <div class="jc-flow-step">Réputation<small>l'image qui en résulte</small></div>
 </div>
 
-<div class="jc-prose">
-<p>Cette perception peut être <strong>partielle</strong> (elle ne montre qu'une partie des \
-traces, jamais la personne tout entière), <strong>ancienne</strong> (une trace vieille de \
-plusieurs années ne dit rien de certain sur la personne aujourd'hui), ou <strong>sortie de \
-son contexte</strong> (un message écrit dans une situation précise peut être lu très \
-différemment une fois détaché de cette situation).</p>
-<p>C'est pourquoi il faut toujours distinguer <strong>l'identité réelle</strong> d'une \
-personne — qui elle est réellement, aujourd'hui — de <strong>l'image qu'elle donne à voir \
-à autrui</strong> à travers ses traces, volontaires ou non.</p>
-<p><strong>Exemple :</strong> un recruteur qui découvre un commentaire vieux de cinq ans, \
-sans connaître son contexte, peut s'en faire une image différente de qui la personne est \
-réellement aujourd'hui.</p>
+<div class="jc-theory-cards jc-theory-cards--three">
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">🧩</span>
+<span class="jc-theory-card-title">Une image partielle</span>
+<p>Les traces visibles ne montrent qu'une partie de la personne — jamais la personne tout \
+entière.</p>
+</div>
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">🕰️</span>
+<span class="jc-theory-card-title">Une trace ancienne</span>
+<p>Une trace vieille de plusieurs années ne dit rien de certain sur qui est la personne \
+aujourd'hui.</p>
+</div>
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">🖼️</span>
+<span class="jc-theory-card-title">Un contexte manquant</span>
+<p>Un message écrit dans une situation précise peut être interprété très différemment une \
+fois détaché de ce contexte.</p>
+</div>
+</div>
+
+<div class="jc-theory-split">
+<div class="jc-theory-split-main">
+<span class="jc-theory-split-main-title">Identité réelle et image perçue</span>
+<p>Il faut toujours distinguer <strong>l'identité réelle</strong> d'une personne — qui \
+elle est réellement, aujourd'hui — de <strong>l'image qu'elle donne à voir à autrui</strong> \
+à travers ses traces, volontaires ou non. L'une n'efface jamais l'autre : une image \
+publique partielle, ancienne ou hors contexte ne devient pas l'identité réelle de la \
+personne, elle reste une perception construite par d'autres.</p>
+</div>
+<div class="jc-theory-split-aside">
+<span class="jc-theory-split-aside-label">Exemple concret</span>
+<p>Un recruteur qui découvre un commentaire vieux de cinq ans, sans connaître son \
+contexte, peut s'en faire une image différente de qui la personne est réellement \
+aujourd'hui.</p>
+</div>
 </div>
 
 <div class="jc-takeaway">
 <span class="jc-takeaway-label">📌 À retenir</span>
-<p>La réputation est une image perçue, pas l'identité réelle : elle peut être partielle, \
-ancienne ou hors contexte.</p>
+<p>La réputation est une image perçue : elle ne résume pas qui est réellement une \
+personne.</p>
 </div>
 
 <details class="jc-glossary">

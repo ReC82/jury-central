@@ -5098,12 +5098,18 @@ def seed() -> None:
             # fusionnant théorie+définitions, remplacé par trois cartes progressives
             # ("Qui suis-je ?", "Quelles traces je laisse ?", "Quelle image les autres
             # voient-ils ?") — voir `app.v1.fse03_course`.
+            # "FSE03 — Quelle image les autres voient-ils ?" (ticket #126) : même titre
+            # qu'au ticket #120, seul le contenu change (paragraphe des trois limites ->
+            # cartes + rangée à deux colonnes) — sans cet ajout, un site déjà seedé garde
+            # l'ancien contenu indéfiniment (même bug que trouvé pour FSE04 au ticket
+            # #126, corrigé ici avant tout déploiement cette fois).
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
                     "FSE03 — Exemples commentés",
                     "FSE03 — Exercices guidés",
                     "FSE03 — Théorie : notions et définitions",
+                    "FSE03 — Quelle image les autres voient-ils ?",
                 }
             ),
             reposition_titles=FSE03_REPOSITION_TITLES, repositioned=repositioned,
