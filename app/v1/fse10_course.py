@@ -11,7 +11,13 @@ Périmètre strict (ticket #99, programme p. 61-62) : niveaux pour lesquels on v
 périodicité, scrutin proportionnel, procuration, vote blanc/nul, témoin du dépouillement,
 pétition, distinction consultation/référendum. Toute condition d'âge/obligation/calendrier
 est vérifiée par scrutin et région (voir § 11) — jamais présentée comme universelle quand
-elle ne l'est pas."""
+elle ne l'est pas.
+
+Ajout ticket #131 (audit de couverture) : le cahier des charges demande explicitement
+d'« expliquer blanc/nul/procuration sans confondre abstention et vote blanc » — la notion
+d'abstention était jusqu'ici absente du cours (ni théorie, ni définition, ni banque),
+malgré cette exigence. Corrigé par l'ajout d'un paragraphe théorique, d'une définition,
+d'un piège dédié et d'une question de banque qui distingue explicitement les deux."""
 
 from app.v1.fse10_content import (
     FSE10_BALLOTS_TEXT,
@@ -30,7 +36,9 @@ Tu dois être capable d'identifier les niveaux de pouvoir pour lesquels on vote 
 de distinguer vote valable, vote blanc et vote nul, d'expliquer la procuration, le témoin \
 du dépouillement, la pétition et la distinction entre consultation et référendum — sans \
 jamais présenter une règle (âge, obligation, calendrier) comme universelle si elle diffère \
-selon le scrutin ou la région.
+selon le scrutin ou la région. Tu dois aussi distinguer l'**abstention** (ne pas se \
+présenter au bureau de vote) du **vote blanc** (se présenter et déposer un bulletin sans \
+aucune marque) : ce ne sont jamais la même chose.
 
 **Prérequis** : ce cours réutilise les niveaux de pouvoir vus en FSE08-FSE09 (fédéral, \
 Régions, Communautés).
@@ -57,6 +65,15 @@ empêche de connaître l'intention de l'électeur (plusieurs listes cochées, in
 personnelle...). Vote blanc et vote nul ne profitent à aucune liste et ne comptent pas dans \
 la répartition des sièges.
 
+Il ne faut jamais confondre le vote blanc avec l'**abstention** : s'abstenir, c'est ne pas \
+se présenter au bureau de vote — l'électeur n'exerce alors aucun acte de vote du tout. \
+Voter blanc, au contraire, suppose de se présenter et de déposer un bulletin dans l'urne, \
+sans y indiquer aucun choix : c'est un acte de vote à part entière, simplement sans \
+préférence exprimée. Là où le vote est obligatoire, une absence non justifiée au bureau de \
+vote reste légalement sanctionnable (voir § 11), même si cette sanction est rarement \
+appliquée en pratique ; voter blanc, au contraire, respecte pleinement l'obligation de se \
+présenter, quel que soit le contenu du bulletin déposé.
+
 Un **témoin du dépouillement** est une personne, désignée par un parti ou une liste, qui \
 assiste au comptage des voix pour en garantir la transparence. Une **pétition** est une \
 demande collective adressée à une autorité, sans effet contraignant automatique. Une \
@@ -72,8 +89,11 @@ voix, pas seulement à la liste arrivée en tête.
 - **Coalition** : accord entre plusieurs partis pour former ensemble un gouvernement, \
 nécessaire quand aucun parti n'a la majorité à lui seul.
 - **Procuration** : mandat donné à une autre personne pour voter à sa place.
+- **Abstention** : fait de ne pas se présenter au bureau de vote — aucun acte de vote n'est \
+posé, à distinguer du vote blanc.
 - **Vote valable** : vote exprimant un choix clair pour une seule liste.
-- **Vote blanc** : vote ne comportant aucune marque.
+- **Vote blanc** : vote ne comportant aucune marque — l'électeur s'est présenté et a déposé \
+un bulletin.
 - **Vote nul** : vote comportant une marque qui empêche de connaître l'intention de \
 l'électeur.
 - **Témoin du dépouillement** : personne désignée pour assister au comptage des voix.
@@ -91,7 +111,8 @@ provincial).
 2. Vérifie, pour ce scrutin ET cette région si nécessaire, les règles réellement en \
 vigueur (obligation, âge) — ne généralise jamais une règle d'un scrutin à un autre.
 3. Distingue vote valable, blanc et nul à partir de ce qui est réellement marqué sur le \
-bulletin.
+bulletin — et distingue le vote blanc (un bulletin déposé) de l'abstention (aucun bulletin \
+déposé, l'électeur ne s'étant pas présenté).
 4. Identifie les mécanismes de participation évoqués (procuration, témoin, pétition, \
 consultation) à partir de leur fonction précise, pas de leur nom seul.
 
@@ -135,6 +156,12 @@ choix. » → confond vote blanc (aucune marque) et vote nul (marque ambiguë).
 - ✅ **Bonne réponse** : « C'est un vote blanc : aucune marque n'est présente sur le \
 bulletin. »
 
+- ❌ **Mauvaise réponse** : « Une personne qui ne se présente pas au bureau de vote a voté \
+blanc. » → confond abstention (aucun acte de vote) et vote blanc (un bulletin déposé, sans \
+marque).
+- ✅ **Bonne réponse** : « Cette personne s'est abstenue : elle n'a posé aucun acte de vote. \
+Voter blanc suppose au contraire de se présenter et de déposer un bulletin dans l'urne. »
+
 ## 7. Pièges et erreurs fréquentes
 
 - **Généraliser une règle d'un scrutin à tous les autres** : l'obligation de vote, en \
@@ -142,6 +169,9 @@ particulier, diffère désormais entre scrutins et, pour le communal/provincial,
 régions.
 - **Confondre vote blanc et vote nul** : l'absence de marque (blanc) n'est pas la même \
 chose qu'une marque ambiguë (nul).
+- **Confondre vote blanc et abstention** : voter blanc suppose de se présenter et de \
+déposer un bulletin ; s'abstenir, c'est ne poser aucun acte de vote — ce ne sont jamais la \
+même chose, même si aucun des trois (blanc, nul, abstention) ne profite à une liste.
 - **Confondre pétition et consultation populaire** : la pétition est une demande, la \
 consultation recueille un avis sur une question précise — ni l'une ni l'autre ne lie \
 automatiquement l'autorité.
@@ -212,6 +242,9 @@ coalition.
 obligatoire en Wallonie/Bruxelles, plus obligatoire en Flandre depuis 2024.
 - Vote blanc = aucune marque ; vote nul = marque ambiguë ; aucun des deux ne compte dans la \
 répartition des sièges.
+- Abstention ≠ vote blanc : s'abstenir, c'est ne pas se présenter au bureau de vote (aucun \
+acte de vote) ; voter blanc, c'est se présenter et déposer un bulletin sans y indiquer de \
+choix.
 - Procuration = mandater une autre personne pour voter ; témoin du dépouillement = \
 surveille le comptage.
 - Pétition = demande collective ; consultation populaire = recueil d'avis sur une question \
@@ -231,6 +264,12 @@ https://www.vrt.be/vrtnws/fr/2024/09/11/suppression-du-vote-obligatoire-en-fland
 — consulté le 2026-10-01.
 - Élections locales Wallonie (portail officiel), lexique vote blanc/vote nul, \
 https://electionslocales.wallonie.be/home/lexique.default.html — consulté le 2026-10-01.
+- Portail citoyen « Bruxelles-J », « Es-tu obligé de voter ? », \
+https://www.bruxelles-j.be/exercer-ta-citoyennete/es-tu-oblige-de-voter/ — consulté le \
+2026-10-03 (source de vulgarisation citoyenne, recoupée avec le texte légal qu'elle \
+rapporte — même type de source déjà utilisé en FSE09, § 11). Confirme la distinction entre \
+abstention (absence non justifiée, sanctionnable mais non appliquée depuis 2003) et vote \
+blanc (acte de vote qui respecte l'obligation de se présenter).
 
 Ces règles peuvent évoluer : avant toute affirmation sur un scrutin réel, vérifie la date \
 et la région auprès d'une source officielle plutôt que de ce cours.
