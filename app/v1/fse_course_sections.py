@@ -250,21 +250,23 @@ def theory_and_definitions_to_cards(theory_raw: str, definitions_raw: str) -> st
     """Restructure la théorie progressive + la liste de définitions d'un cours FSE02-FSE16
     (ticket #120), sans perdre de matière : la prose devient du HTML littéral à largeur de
     lecture limitée (`theory_prose_to_html`), chaque définition devient une carte
-    `.jc-definition` (terme jamais découpé, voir `_definitions_bullets_to_items`).
+    `.jc-definition` (terme jamais découpé, voir `_definitions_bullets_to_items`) — toujours
+    visible, jamais repliée.
 
-    Si TOUS les termes définis apparaissent déjà (en gras) dans la prose ci-dessus, la
-    grille de définitions devient un lexique repliable (`.jc-glossary`, disponible à
-    l'impression même fermé) — cohérent avec FSE03 (même ticket) : une définition qui n'est
-    PAS déjà dite ailleurs dans les explications visibles n'est, elle, jamais cachée (reste
-    une grille visible), pour ne jamais retirer une information nécessaire à l'examen."""
+    Correctif ticket #126 : le ticket #120 repliait la grille en lexique `.jc-glossary`
+    quand tous les termes étaient déjà présents dans la prose, pour éviter une répétition.
+    Pour FSE05/FSE10/FSE13 — les cours dont la théorie est la plus dense (4 à 6
+    paragraphes consécutifs sans aucune liste ni schéma) — cela retirait justement le seul
+    élément qui structurait visuellement la carte : repliée, la grille disparaissait et il
+    ne restait qu'un mur de texte, le déséquilibre exact que ce ticket corrige. La grille
+    reste donc désormais toujours visible : une poignée de termes déjà mentionnés dans la
+    prose, repris en fin de carte sous forme de petites cartes, est un bien meilleur
+    compromis qu'un bloc de texte sans aucune respiration visuelle."""
     theory_html = theory_prose_to_html(theory_raw)
 
     items = _definitions_bullets_to_items(definitions_raw)
     if not items:
         return theory_html
-
-    prose_lower = theory_raw.lower()
-    all_redundant = all(term.split("(")[0].strip().lower() in prose_lower for term, _ in items)
 
     grid = (
         '<div class="jc-definitions">\n'
@@ -276,16 +278,7 @@ def theory_and_definitions_to_cards(theory_raw: str, definitions_raw: str) -> st
         + "\n</div>"
     )
 
-    if all_redundant:
-        definitions_html = (
-            '<details class="jc-glossary">\n'
-            "<summary>📖 Retrouver les définitions</summary>\n"
-            f"{grid}\n</details>"
-        )
-    else:
-        definitions_html = grid
-
-    return f"{theory_html}\n\n{definitions_html}"
+    return f"{theory_html}\n\n{grid}"
 
 
 _EXERCISE_BLOCK_RE = re.compile(

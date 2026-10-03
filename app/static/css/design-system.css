@@ -1622,6 +1622,13 @@ body.jc-zoom-open {
     margin: 1.25rem 0;
 }
 
+.jc-theory-split-main-title {
+    display: block;
+    font-weight: 700;
+    color: #1f2933;
+    margin-bottom: 0.4rem;
+}
+
 .jc-theory-split-main p {
     margin: 0 0 0.85rem;
 }
@@ -1680,6 +1687,16 @@ body.jc-zoom-open {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     margin: 1.25rem 0;
+}
+
+/* Variante à trois cartes (ticket #126, ex. FSE03 : partielle/ancienne/hors contexte) —
+   même technique à colonnes fixes que `.jc-compare--three`. */
+.jc-theory-cards--three {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+    .jc-theory-cards--three { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 576px) {

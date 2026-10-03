@@ -1,10 +1,13 @@
 """Ticket #120 — restructuration générique de la théorie des cours qui partagent
 `app.v1.fse_course_sections.build_course_sections` : la prose devient du HTML littéral à
 largeur de lecture limitée (`.jc-prose`), les définitions deviennent des cartes
-`.jc-definitions` (repliées en `.jc-glossary` seulement si elles répètent déjà la prose
-visible, jamais sinon). Vérifie l'absence de fuite Markdown (diagnostic ticket #112), la
-non-perte de matière (chaque terme défini reste présent quelque part dans le texte
-affiché) et le cas particulier d'un terme groupé (ex. FSE08 "Région (flamande, wallonne,
+`.jc-definitions`, toujours visibles (ticket #126 : repliées en `.jc-glossary` dans la
+version initiale du ticket #120 quand tous les termes étaient déjà présents dans la
+prose — pour FSE05/FSE10/FSE13, cela supprimait la seule respiration visuelle d'une
+théorie par ailleurs très dense, exactement le déséquilibre que le ticket #126 corrige).
+Vérifie l'absence de fuite Markdown (diagnostic ticket #112), la non-perte de matière
+(chaque terme défini reste présent quelque part dans le texte affiché) et le cas
+particulier d'un terme groupé (ex. FSE08 "Région (flamande, wallonne,
 Bruxelles-Capitale)") jamais découpé à l'intérieur.
 
 FSE04 est sorti de cette liste au ticket #124 : il a reçu, comme FSE03 (ticket #120), une
@@ -79,26 +82,19 @@ def test_definitions_bullets_never_split_a_grouped_term():
     ]
 
 
-def test_definitions_become_visible_grid_when_not_fully_redundant():
-    theory = "On explique la vente et l'abonnement ici."
-    definitions = (
-        "- **Vente** : paiement à l'unité.\n"
-        "- **Terme inédit** : jamais mentionné ailleurs."
-    )
-    html = theory_and_definitions_to_cards(theory, definitions)
-    assert '<div class="jc-definitions">' in html
-    assert "<details" not in html  # pas caché : un terme n'est pas redondant
-
-
-def test_definitions_become_glossary_when_fully_redundant():
-    theory = "On explique la vente ici, et l'abonnement aussi."
+def test_definitions_always_become_a_visible_grid_never_collapsed():
+    """Ticket #126 : même quand tous les termes sont déjà présents dans la prose, la
+    grille reste visible — ne jamais retirer la seule respiration visuelle d'une carte
+    par ailleurs dense (voir FSE05/FSE10/FSE13)."""
+    theory = "On explique la vente et l'abonnement ici, tous les deux."
     definitions = (
         "- **Vente** : paiement à l'unité.\n"
         "- **Abonnement** : paiement régulier."
     )
     html = theory_and_definitions_to_cards(theory, definitions)
-    assert '<details class="jc-glossary">' in html
-    assert "Retrouver les définitions" in html
+    assert '<div class="jc-definitions">' in html
+    assert "<details" not in html
+    assert "jc-glossary" not in html
 
 
 # =============================================================================================
