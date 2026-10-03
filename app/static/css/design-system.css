@@ -1586,14 +1586,99 @@ body.jc-zoom-open {
    explicative à environ 65-75 caractères par ligne sur grand écran (unité `ch`, calée sur
    la largeur d'un caractère), sans toucher aux tableaux, documents ou grilles de
    comparaison, qui restent sur toute la largeur disponible car ils ne portent pas cette
-   classe. --- */
+   classe.
+
+   Correctif ticket #124 : `margin: 0 auto` centre ce bloc dans une carte plus large
+   (`.jc-card` n'a pas de largeur maximale propre) — sans cela, le texte restait plaqué à
+   gauche avec toute la moitié droite de la carte vide, perçu comme une mise en page
+   cassée plutôt que voulue. Ne s'applique qu'à un bloc de prose autonome (une section qui
+   ne contient QUE du texte) : à l'intérieur d'un `.jc-theory-split` (ci-dessous), la
+   colonne de texte n'utilise pas cette classe, sa largeur étant déjà fixée par la piste de
+   la grille. --- */
 
 .jc-prose {
     max-width: 70ch;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .jc-prose > :last-child {
     margin-bottom: 0;
+}
+
+/* --- Théorie à deux colonnes (ticket #124) : explication à gauche, exemple ou repère
+   pédagogique à droite — pour une section dont le contenu s'y prête réellement (jamais une
+   simple carte généralisée partout : un bloc purement textuel reste un `.jc-prose` centré
+   ci-dessus). La colonne de texte n'a pas de largeur maximale propre : c'est la grille qui
+   la limite, pas `.jc-prose`, conformément à « la limite de largeur doit être adaptée au
+   composant, plutôt qu'appliquée uniformément ». --- */
+
+.jc-theory-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.9fr);
+    gap: 1.5rem;
+    align-items: start;
+    margin: 1.25rem 0;
+}
+
+.jc-theory-split-main p {
+    margin: 0 0 0.85rem;
+}
+
+.jc-theory-split-main > :last-child {
+    margin-bottom: 0;
+}
+
+.jc-theory-split-aside {
+    background: var(--jc-blue-bg);
+    border: 1px solid var(--jc-blue);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+}
+
+.jc-theory-split-aside-label {
+    display: block;
+    font-weight: 700;
+    color: var(--jc-blue);
+    margin-bottom: 0.35rem;
+    font-size: 0.88rem;
+}
+
+.jc-theory-split-aside p {
+    margin: 0;
+    font-size: 0.93rem;
+}
+
+.jc-theory-split-aside p + p {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .jc-theory-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    .jc-theory-split { break-inside: avoid; }
+}
+
+/* --- Comparaison à trois éléments (ticket #124, ex. valeur/norme/comportement) :
+   `repeat(auto-fit, minmax(...))` plutôt qu'un nombre de colonnes fixe, pour que la grille
+   se réorganise elle-même (3 colonnes en largeur confortable, moins si la carte est
+   étroite, 1 seule sur téléphone) sans media query dédiée. --- */
+
+.jc-compare--three {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.jc-compare-item--c {
+    background: var(--jc-purple-bg);
+    border-color: var(--jc-purple);
+}
+
+.jc-compare-item--c .jc-compare-label {
+    color: var(--jc-purple);
 }
 
 /* --- Phrase "À retenir" en fin de section théorique (ticket #120) : même couleur que la
