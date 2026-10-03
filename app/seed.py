@@ -5124,12 +5124,18 @@ def seed() -> None:
             # largeur de lecture limitée + définitions en grille/lexique repliable) —
             # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
             # piloté par le code, jamais édité depuis l'admin.
+            # "FSE04 — Peut-on agir autrement ?" (ticket #126) : même titre qu'au ticket
+            # #124, seul le contenu change (colonne de prose isolée -> deux cartes
+            # .jc-theory-cards) — sans cet ajout, un site déjà seedé au ticket #124 garde
+            # l'ancien contenu indéfiniment (bug trouvé en vérifiant l'installation réelle
+            # du ticket #126, corrigé avant la fin du déploiement).
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
                     "FSE04 — Théorie : notions et définitions",
                     "FSE04 — Exemples commentés",
                     "FSE04 — Exercices guidés",
+                    "FSE04 — Peut-on agir autrement ?",
                 }
             ),
             reposition_titles=FSE04_REPOSITION_TITLES, repositioned=repositioned,
