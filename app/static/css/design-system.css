@@ -1588,18 +1588,19 @@ body.jc-zoom-open {
    comparaison, qui restent sur toute la largeur disponible car ils ne portent pas cette
    classe.
 
-   Correctif ticket #124 : `margin: 0 auto` centre ce bloc dans une carte plus large
-   (`.jc-card` n'a pas de largeur maximale propre) — sans cela, le texte restait plaqué à
-   gauche avec toute la moitié droite de la carte vide, perçu comme une mise en page
-   cassée plutôt que voulue. Ne s'applique qu'à un bloc de prose autonome (une section qui
-   ne contient QUE du texte) : à l'intérieur d'un `.jc-theory-split` (ci-dessous), la
-   colonne de texte n'utilise pas cette classe, sa largeur étant déjà fixée par la piste de
-   la grille. --- */
+   Correctif ticket #124 (centrage `margin: 0 auto`) ANNULÉ au ticket #126 : centrer ce
+   bloc dans une carte plus large que lui créait une colonne flottante, désalignée du
+   titre de la carte et des autres blocs pleine largeur (grille, encadré) qui l'entourent
+   — un déséquilibre constaté sur le site réel, pas seulement résolu par un centrage.
+   Aligné à gauche (aucune marge automatique) : partage désormais le même repère gauche
+   que le titre de la carte et tout ce qui l'entoure. Pour une section dont le contenu se
+   prête à une vraie composition à plusieurs blocs plutôt qu'à un paragraphe isolé, voir
+   `.jc-theory-split` et `.jc-theory-cards` ci-dessous — c'est la réponse préférée chaque
+   fois que le contenu le permet, `.jc-prose` restant réservé à une explication
+   réellement continue, sans second volet. --- */
 
 .jc-prose {
     max-width: 70ch;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .jc-prose > :last-child {
@@ -1663,13 +1664,83 @@ body.jc-zoom-open {
     .jc-theory-split { break-inside: avoid; }
 }
 
-/* --- Comparaison à trois éléments (ticket #124, ex. valeur/norme/comportement) :
-   `repeat(auto-fit, minmax(...))` plutôt qu'un nombre de colonnes fixe, pour que la grille
-   se réorganise elle-même (3 colonnes en largeur confortable, moins si la carte est
-   étroite, 1 seule sur téléphone) sans media query dédiée. --- */
+/* --- Deux blocs pédagogiques courts, côte à côte, largeur égale (ticket #126) : icône +
+   titre + paragraphes courts, fond discret (`var(--jc-gray-bg)`), SANS bordure propre —
+   remplace une colonne de prose isolée quand le contenu se décompose naturellement en
+   deux idées de même poids (ex. FSE04 « Une tension peut créer de la frustration » / « Le
+   groupe influence, chacun peut réagir »), plutôt qu'une comparaison stricte
+   (`.jc-compare`, qui oppose deux notions) ou une paire explication/exemple asymétrique
+   (`.jc-theory-split`). Deux colonnes fixes (`repeat(2, 1fr)`) + media query explicite
+   pour l'empilement mobile, pas `repeat(auto-fit, minmax(...))` : voir la note sur
+   `.jc-compare--three` ci-dessous, cette technique ne s'est pas comportée de façon fiable
+   avec l'outil de prévisualisation locale utilisé pour ce projet. --- */
+
+.jc-theory-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 1.25rem 0;
+}
+
+@media (max-width: 576px) {
+    .jc-theory-cards { grid-template-columns: 1fr; }
+}
+
+.jc-theory-card {
+    background: var(--jc-gray-bg);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+}
+
+.jc-theory-card-icon {
+    display: block;
+    font-size: 1.3rem;
+    margin-bottom: 0.3rem;
+}
+
+.jc-theory-card-title {
+    display: block;
+    font-weight: 700;
+    color: #1f2933;
+    margin-bottom: 0.4rem;
+}
+
+.jc-theory-card p {
+    margin: 0 0 0.5rem;
+    font-size: 0.93rem;
+}
+
+.jc-theory-card > :last-child {
+    margin-bottom: 0;
+}
+
+@media print {
+    .jc-theory-cards { break-inside: avoid; }
+    .jc-theory-card { break-inside: avoid; }
+}
+
+/* --- Comparaison à trois éléments (ticket #124, ex. valeur/norme/comportement) : nombre
+   de colonnes fixe (`repeat(3, 1fr)`) + media query explicite pour l'empilement mobile —
+   même technique, vérifiée, que `.jc-compare`/`.jc-theory-split`.
+
+   `repeat(auto-fit, minmax(...))` essayé d'abord (ticket #124) puis abandonné au ticket
+   #126 : collapse systématiquement sur 1 colonne, quelle que soit la largeur disponible,
+   avec l'outil de prévisualisation locale utilisé pour ce projet (WeasyPrint) — reproduit
+   en isolation (conteneur de 700px, deux éléments de 240px chacun) avant d'écrire ce
+   correctif. Un navigateur réel gère normalement ce calcul correctement, mais faute de
+   pouvoir le vérifier dans cet environnement, la technique explicite et déjà éprouvée est
+   préférée ici. --- */
 
 .jc-compare--three {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+    .jc-compare--three { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 576px) {
+    .jc-compare--three { grid-template-columns: 1fr; }
 }
 
 .jc-compare-item--c {

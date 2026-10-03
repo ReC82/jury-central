@@ -45,7 +45,7 @@ dans les autres.
 
 # Structure
 
-## `.jc-prose` — largeur de lecture confortable, centrée
+## `.jc-prose` — largeur de lecture confortable, alignée à gauche
 
 ```html
 <div class="jc-prose">
@@ -55,17 +55,47 @@ dans les autres.
 
 Limite la prose à `70ch` (~65-75 caractères par ligne sur grand écran), sans toucher aux
 tableaux, `.jc-doc`, `.jc-compare` ou `.jc-flow`, qui restent sur toute la largeur
-disponible puisqu'ils ne portent pas cette classe.
+disponible puisqu'ils ne portent pas cette classe. Aligné à gauche (aucune marge
+automatique) : partage le même repère que le titre de la carte et tout ce qui l'entoure.
 
-**Correctif ticket #124** : `margin: 0 auto` centre ce bloc dans une carte (`.jc-card`)
-plus large que lui — sans ce correctif, le texte restait plaqué à gauche avec toute la
-moitié droite de la carte vide, perçu comme une mise en page cassée plutôt que voulue.
-`.jc-prose` ne convient qu'à une section qui ne contient QUE du texte continu ; une section
-dont le contenu se prête à une mise en page à deux colonnes doit utiliser
-`.jc-theory-split` ci-dessous plutôt que forcer tout dans `.jc-prose` — c'est le sens de
-« la limite de largeur doit être adaptée au composant, plutôt qu'appliquée uniformément ».
+**Historique** : le ticket #124 avait centré ce bloc (`margin: 0 auto`) pour éviter un
+texte plaqué à gauche avec la moitié droite de la carte vide. Après vérification visuelle
+réelle du site, ce centrage s'est révélé insuffisant : il créait une colonne flottante,
+toujours désalignée du titre et des blocs pleine largeur (grille, encadré) qui
+l'entourent — un déséquilibre différent, pas résolu. Le ticket #126 retire le centrage :
+`.jc-prose` reste réservé à une explication réellement continue, sans second volet
+possible ; dès que le contenu se décompose naturellement en plusieurs idées (deux
+explications de même poids, ou une explication + un exemple distinct), la bonne réponse
+est `.jc-theory-cards` ou `.jc-theory-split` ci-dessous, PAS un `.jc-prose` centré ou
+élargi — c'est le sens de « la limite de largeur doit être adaptée au composant, plutôt
+qu'appliquée uniformément ».
 
-## `.jc-theory-split` — théorie à deux colonnes (ticket #124)
+## `.jc-theory-cards` — deux blocs pédagogiques courts, côte à côte (ticket #126)
+
+```html
+<div class="jc-theory-cards">
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">😣</span>
+<span class="jc-theory-card-title">Titre clair</span>
+<p>Explication courte.</p>
+<p><strong>Exemple :</strong> ...</p>
+</div>
+<div class="jc-theory-card">...</div>
+</div>
+```
+
+Deux colonnes de largeur égale, icône + titre + paragraphes courts, fond discret
+(`var(--jc-gray-bg)`) et **sans bordure propre** (pour éviter l'accumulation de bordures
+dans une carte qui en a déjà une). Remplace une colonne de prose isolée quand le contenu
+se décompose naturellement en deux idées de même poids — ni une comparaison stricte
+(`.jc-compare`, qui oppose deux notions), ni une paire explication/exemple asymétrique
+(`.jc-theory-split`).
+
+**Quand l'utiliser** : deux idées de poids comparable, chacune avec son propre titre (voir
+FSE04 — « Peut-on agir autrement ? » : « Une tension peut créer de la frustration » / « Le
+groupe influence, chacun peut réagir »).
+
+## `.jc-theory-split` — théorie à deux colonnes asymétriques (ticket #124)
 
 ```html
 <div class="jc-theory-split">
@@ -86,16 +116,17 @@ grille qui la limite. S'effondre en une seule colonne sous 768px (empilée, dans
 explication puis exemple).
 
 **Quand l'utiliser** : une section qui associe naturellement une explication générale à un
-exemple concret ou une situation illustrative distincte (voir FSE04 — « Pourquoi suit-on
-parfois le groupe ? »).
+exemple concret ou une situation illustrative distincte, de poids différent de
+l'explication (voir FSE04 — « Pourquoi suit-on parfois le groupe ? »). Si les deux volets
+ont un poids comparable (deux idées, pas une idée + son exemple), préférer
+`.jc-theory-cards` ci-dessus.
 
-**Quand ne pas l'utiliser** : une section purement explicative sans exemple distinct
-(`.jc-prose` centré suffit) ; une comparaison entre deux ou trois notions elles-mêmes
+**Quand ne pas l'utiliser** : une section purement explicative sans second volet distinct
+(`.jc-prose` suffit) ; une comparaison entre deux ou trois notions elles-mêmes
 (`.jc-compare`/`.jc-compare--three`) ; jamais pour forcer artificiellement un contenu qui
-n'a pas de second volet naturel — un contenant vide à droite serait pire qu'une colonne
-centrée.
+n'a pas de second volet naturel.
 
-## `.jc-compare--three` — comparaison à trois éléments (ticket #124)
+## `.jc-compare--three` — comparaison à trois éléments (ticket #124, corrigé #126)
 
 ```html
 <div class="jc-compare jc-compare--three">
@@ -107,9 +138,18 @@ centrée.
 
 Variante de [DialogueComponents](DialogueComponents.md) `.jc-compare` pour trois notions
 (plutôt que deux) qui s'enchaînent ou se distinguent (ex. FSE04 : valeur/norme/
-comportement). Troisième couleur `--c` (violet, `var(--jc-purple)`). Grille
-`repeat(auto-fit, minmax(200px, 1fr))` : se réorganise d'elle-même (3 colonnes en largeur
-confortable, moins si la carte est étroite, 1 seule sur téléphone) sans media query dédiée.
+comportement). Troisième couleur `--c` (violet, `var(--jc-purple)`).
+
+**Colonnes fixes, pas `auto-fit`** : `grid-template-columns: repeat(3, 1fr)` + media
+queries explicites (2 colonnes sous 768px, 1 sous 576px) — même technique que
+`.jc-compare`/`.jc-theory-split`/`.jc-theory-cards`. La version originale du ticket #124
+utilisait `repeat(auto-fit, minmax(200px, 1fr))` pour que la grille se réorganise d'elle-
+même ; au ticket #126, cette technique s'est révélée ne PAS fonctionner de façon fiable
+avec l'outil de prévisualisation locale (WeasyPrint) — reproduit en isolation (grille à 2
+éléments de 240px dans un conteneur de 700px, qui aurait dû tenir sur une ligne,
+collapsée sur une seule colonne) avant d'écrire ce correctif. Un navigateur réel gère
+normalement ce calcul correctement, mais faute de pouvoir le vérifier dans cet
+environnement, la technique explicite et déjà éprouvée partout ailleurs est préférée.
 
 ## `.jc-takeaway` — phrase « À retenir » ponctuelle
 
