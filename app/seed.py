@@ -5102,15 +5102,17 @@ def seed() -> None:
             FSE04_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE04 — Théorie : notions et définitions",
                     "FSE04 — Exemples commentés",
                     "FSE04 — Exercices guidés",
                 }
@@ -5125,15 +5127,17 @@ def seed() -> None:
             FSE05_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE05 — Théorie : notions et définitions",
                     "FSE05 — Exemples commentés",
                     "FSE05 — Exercices guidés",
                 }
@@ -5148,15 +5152,17 @@ def seed() -> None:
             FSE06_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE06 — Théorie : notions et définitions",
                     "FSE06 — Exemples commentés",
                     "FSE06 — Exercices guidés",
                 }
@@ -5171,15 +5177,17 @@ def seed() -> None:
             FSE07_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE07 — Théorie : notions et définitions",
                     "FSE07 — Exemples commentés",
                     "FSE07 — Exercices guidés",
                 }
@@ -5194,15 +5202,17 @@ def seed() -> None:
             FSE08_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE08 — Théorie : notions et définitions",
                     "FSE08 — Exemples commentés",
                     "FSE08 — Exercices guidés",
                 }
@@ -5217,15 +5227,17 @@ def seed() -> None:
             FSE09_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE09 — Théorie : notions et définitions",
                     "FSE09 — Exemples commentés",
                     "FSE09 — Exercices guidés",
                 }
@@ -5240,15 +5252,17 @@ def seed() -> None:
             FSE10_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE10 — Théorie : notions et définitions",
                     "FSE10 — Exemples commentés",
                     "FSE10 — Exercices guidés",
                 }
@@ -5263,15 +5277,17 @@ def seed() -> None:
             FSE11_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE11 — Théorie : notions et définitions",
                     "FSE11 — Exemples commentés",
                     "FSE11 — Exercices guidés",
                 }
@@ -5286,15 +5302,17 @@ def seed() -> None:
             FSE12_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE12 — Théorie : notions et définitions",
                     "FSE12 — Exemples commentés",
                     "FSE12 — Exercices guidés",
                 }
@@ -5309,15 +5327,17 @@ def seed() -> None:
             FSE13_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE13 — Théorie : notions et définitions",
                     "FSE13 — Exemples commentés",
                     "FSE13 — Exercices guidés",
                 }
@@ -5332,15 +5352,17 @@ def seed() -> None:
             FSE14_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE14 — Théorie : notions et définitions",
                     "FSE14 — Exemples commentés",
                     "FSE14 — Exercices guidés",
                 }
@@ -5355,15 +5377,17 @@ def seed() -> None:
             FSE15_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE15 — Théorie : notions et définitions",
                     "FSE15 — Exemples commentés",
                     "FSE15 — Exercices guidés",
                 }
@@ -5378,15 +5402,17 @@ def seed() -> None:
             FSE16_BLOCKS,
             created,
             kept,
-            # "Cours complet" (ticket #105) : ancien bloc unique. Les deux titres
-            # suivants (ticket #115) forcent le remplacement du contenu déjà seedé
-            # par la version enrichie (titres d'exemple espacés, "Décryptons ce
-            # document", exercices en cartes HTML structurées) — même mécanisme
-            # que FSE01 (ticket #108/#112) : ce contenu est entièrement piloté par
-            # le code, jamais édité depuis l'admin.
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
+                    "FSE16 — Théorie : notions et définitions",
                     "FSE16 — Exemples commentés",
                     "FSE16 — Exercices guidés",
                 }

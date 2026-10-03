@@ -117,6 +117,50 @@ sécurité pour l'examen, jamais la seule source d'une définition).
 
 ---
 
+# Traitement générique FSE02/FSE04-FSE16 (`theory_and_definitions_to_cards`)
+
+FSE03 (ci-dessus) a reçu un traitement bespoke : trois cartes distinctes, titres propres au
+sujet. Les 14 autres cours qui partagent `app.v1.fse_course_sections.build_course_sections`
+(FSE02, FSE04-FSE16 — ni FSE01 ni FSE17, qui ont leur structure propre) gardent, eux, UN SEUL
+bloc théorique (même titre « {code} — Théorie : notions et définitions » qu'avant ce ticket,
+donc AUCUNE resynchronisation de position nécessaire dans `app.seed`, à la différence de
+FSE03) dont le CONTENU est restructuré mécaniquement par
+`theory_and_definitions_to_cards(theorie_brute, definitions_brutes)` :
+
+1. **`theory_prose_to_html`** : la prose (paragraphes séparés par une ligne vide, gras
+   `**...**`) devient des `<p>`/`<ul>` HTML littéraux, groupés en un ou plusieurs
+   `<div class="jc-prose">` — SAUF un bloc déjà en HTML brut (schéma SVG déjà existant pour
+   FSE08/FSE15, `FSE08_POWER_LEVELS_DIAGRAM_SVG`/`FSE15_CIRCUIT_DIAGRAM_SVG`), toujours laissé
+   tel quel et HORS de la contrainte de largeur (il en a besoin). `fix_list_blank_lines` est
+   appliqué d'abord : une liste introduite sur la même ligne qu'une phrase (ex. « ... sont
+   possibles :\n- la vente : ... ») doit être séparée en son propre bloc avant d'être
+   reconnue comme liste.
+2. **`_definitions_bullets_to_items`** : chaque puce « - **Terme** (qualificatif optionnel)
+   : explication. » devient (terme affiché, corps HTML) — SANS JAMAIS découper à l'intérieur
+   d'un terme groupé (ex. FSE08 « Région (flamande, wallonne, Bruxelles-Capitale) » reste un
+   seul terme avec son qualificatif, jamais trois cartes mal attribuées — risque explicitement
+   identifié dans la docstring du module avant l'écriture de cette fonction). Toute puce qui
+   ne correspond pas exactement à ce format est ignorée en toute sécurité plutôt que mal
+   découpée ; vérifié que ce format couvre 100 % des puces des 14 cours (aucune ignorée en
+   pratique).
+3. Si TOUS les termes définis apparaissent déjà (en gras) dans la prose ci-dessus, la grille
+   devient un lexique repliable `.jc-glossary` (même composant que FSE03) ; sinon elle reste
+   une grille `.jc-definitions` VISIBLE — jamais cachée quand elle contient une information
+   qui n'est pas déjà dite ailleurs. En pratique (vérifié sur les 14 cours), la comparaison
+   est volontairement stricte (le terme exact doit apparaître, pas une variante
+   grammaticale comme « interactifs » pour « interactivité ») : elle sous-estime parfois la
+   redondance réelle, ce qui est le sens de l'erreur à privilégier — au pire la grille reste
+   visible (déjà un net progrès sur une liste à tirets plate), jamais une information cachée
+   à tort.
+
+Entièrement mécanique et sûr (ni lecture ni réécriture de la matière), donc applicable aux 14
+cours en un seul passage — à la différence d'une restructuration bespoke en plusieurs cartes
+nommées par sujet (FSE03), qui suppose une vraie lecture éditoriale et n'a pas été jugée
+nécessaire ici : garder un seul bloc théorique mais mieux organisé à l'intérieur évite aussi
+une accumulation de cartes (cahier des charges du ticket #120, § 1).
+
+---
+
 # Composants liés
 
 - [DialogueComponents](DialogueComponents.md) — `.jc-compare` (variantes `--a`/`--b` et
