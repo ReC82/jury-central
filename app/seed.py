@@ -5287,12 +5287,17 @@ def seed() -> None:
             # largeur de lecture limitée + définitions en grille/lexique repliable) —
             # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
             # piloté par le code, jamais édité depuis l'admin.
+            # "Comparer pour ne pas confondre"/"Fiche mémo" (ticket #131, audit de
+            # couverture) : ajout de la distinction abstention/vote blanc, absente du
+            # cahier des charges jusqu'ici — mêmes titres qu'avant, seul le contenu change.
             obsolete_titles=frozenset(
                 {
                     "Cours complet",
                     "FSE10 — Théorie : notions et définitions",
                     "FSE10 — Exemples commentés",
                     "FSE10 — Exercices guidés",
+                    "FSE10 — Comparer pour ne pas confondre",
+                    "FSE10 — Fiche mémo",
                 }
             ),
         )

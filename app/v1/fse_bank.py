@@ -2672,13 +2672,13 @@ def import_fse10_to_bank(db: Session, module: Module, uaa: UAA) -> int:
             {
                 "prompt": "Un vote blanc se caractérise par...",
                 "options": [
-                    {"option_id": "a", "label": "L'absence de toute marque sur le bulletin"},
+                    {"option_id": "a", "label": "Le fait de se présenter au bureau de vote et de déposer un bulletin sans aucune marque"},
                     {"option_id": "b", "label": "Une marque sur deux listes différentes"},
                     {"option_id": "c", "label": "Une inscription personnelle ajoutée au bulletin"},
-                    {"option_id": "d", "label": "Un choix clair pour une seule liste"},
+                    {"option_id": "d", "label": "Le fait de ne pas se présenter au bureau de vote"},
                 ],
                 "correct_option_ids": ["a"],
-                "explanation": "Le vote blanc ne comporte aucune marque, contrairement au vote nul (marque ambiguë).",
+                "explanation": "Le vote blanc suppose de se présenter et de déposer un bulletin sans marque — à distinguer de l'abstention (option d, ne pas se présenter du tout) et du vote nul (une marque ambiguë).",
             },
             QuestionDifficulty.EASY,
         ),
