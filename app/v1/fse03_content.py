@@ -217,3 +217,30 @@ FSE03_HR_NOTE_CARD_HTML = """<div class="jc-doc jc-mail" id="document-note-rh">
 </div>
 </div>
 </div>"""
+
+# Ticket #133 (audit de couverture, issue #131) : 3e exemple commenté, exigé par le
+# contrat de rédaction (issues #96-#101, "3 exemples commentés") mais absent jusqu'ici
+# (seulement 2 — voir audit). Document original, texte brut inchangé une fois écrit (même
+# convention que les deux documents ci-dessus). Aucune nouvelle image : avatar générique
+# déjà utilisé ailleurs dans ce cours (`.jc-social-avatar--p1`, inutilisé jusqu'ici pour
+# Sophie elle-même).
+FSE03_RECENT_POST_TITLE = "Une publication professionnelle récente de Sophie Lambert"
+FSE03_RECENT_POST_TEXT = """[Publication récente et volontaire de Sophie Lambert elle-même sur son profil \
+professionnel, créée pour cet exercice]
+
+Fière d'avoir terminé ma formation en gestion des stocks cette semaine ! Un grand merci à \
+toute l'équipe logistique pour son soutien pendant ces trois mois."""
+
+FSE03_RECENT_POST_CARD_HTML = """<div class="jc-doc jc-social" id="document-publication-recente">
+<div class="jc-doc-header"><strong>📱 Publication — réseau social</strong><span class="jc-doc-fictive-badge">Fictif</span></div>
+<div class="jc-doc-body">
+<div class="jc-social-post-head">
+<span class="jc-social-avatar jc-social-avatar--p1" aria-hidden="true">?</span>
+<div class="jc-social-meta">
+<span class="jc-social-author">Sophie Lambert</span>
+<span class="jc-social-time">il y a trois semaines</span>
+</div>
+</div>
+<p class="jc-social-text">« Fière d'avoir terminé ma formation en gestion des stocks cette semaine ! Un grand merci à toute l'équipe logistique pour son soutien pendant ces trois mois. »</p>
+</div>
+</div>"""
