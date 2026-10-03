@@ -107,3 +107,68 @@ def test_full_fse03_page_still_contains_required_exam_notions(client, db_session
     ):
         assert notion in text
     assert "provisoire" not in text.lower()
+
+
+def test_reseed_on_pre_ticket120_state_fixes_block_order_without_duplication(db_session):
+    """Reproduit le bug trouvé en production lors de l'installation du ticket #120 : sur
+    un staging déjà seedé AVANT ce ticket, "Méthode"/"Comparer pour ne pas confondre"/
+    "Fiche mémo" existent déjà avec leur ANCIENNE position (jamais dans `obsolete_titles`,
+    donc jamais recréés) — sans `reposition_titles=FSE03_REPOSITION_TITLES`, un second
+    `seed()` les laisserait en collision de position avec les trois nouveaux blocs de
+    théorie, inversant l'ordre d'affichage (Fiche mémo avant Exercices guidés)."""
+    from app.models import UAA, BlockSpace, BlockType, LessonBlock, Module
+    from app.seed import seed
+    from app.v1.fse_plan import FSE_MODULE_CODE
+
+    seed()
+
+    uaa = db_session.query(UAA).join(Module).filter(
+        Module.code == FSE_MODULE_CODE, UAA.code == "FSE03"
+    ).first()
+    blocks = {b.title: b for b in db_session.query(LessonBlock).filter_by(uaa_id=uaa.id).all()}
+
+    # Simule l'état d'un staging seedé juste avant le ticket #120 : ancien bloc fusionné
+    # (position 2), et les trois blocs suivants remis à leurs anciennes positions.
+    for title in (
+        "FSE03 — Qui suis-je ?",
+        "FSE03 — Quelles traces je laisse ?",
+        "FSE03 — Quelle image les autres voient-ils ?",
+    ):
+        db_session.delete(blocks[title])
+    db_session.add(
+        LessonBlock(
+            uaa=uaa,
+            title="FSE03 — Théorie : notions et définitions",
+            type=BlockType.MARKDOWN,
+            content="Ancien contenu fusionné (pré-ticket #120).",
+            position=2,
+            is_published=True,
+            space=BlockSpace.COURSE,
+        )
+    )
+    blocks["FSE03 — Méthode"].position = 3
+    blocks["FSE03 — Comparer pour ne pas confondre"].position = 5
+    blocks["FSE03 — Fiche mémo"].position = 7
+    db_session.commit()
+
+    seed()
+
+    refreshed = db_session.query(LessonBlock).filter_by(uaa_id=uaa.id).all()
+    by_title = {b.title: b for b in refreshed}
+    assert "FSE03 — Théorie : notions et définitions" not in by_title
+
+    positions = {b.title: b.position for b in refreshed}
+    assert len(set(positions.values())) == len(positions), f"collision de position : {positions}"
+
+    ordered_titles = [b.title for b in sorted(refreshed, key=lambda b: b.position)]
+    assert ordered_titles == [
+        "FSE03 — Présentation et objectifs",
+        "FSE03 — Qui suis-je ?",
+        "FSE03 — Quelles traces je laisse ?",
+        "FSE03 — Quelle image les autres voient-ils ?",
+        "FSE03 — Méthode",
+        "FSE03 — Exemples commentés",
+        "FSE03 — Comparer pour ne pas confondre",
+        "FSE03 — Exercices guidés",
+        "FSE03 — Fiche mémo",
+    ]

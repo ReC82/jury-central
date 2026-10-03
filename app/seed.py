@@ -4674,6 +4674,25 @@ FSE03_TITLE = "Identités, traces numériques et appartenance"
 
 FSE03_BLOCKS = _fse_course_blocks(fse03_course_sections())
 
+# Ticket #120 : le bloc unique "Théorie : notions et définitions" (ancienne position 2)
+# est remplacé par trois cartes ("Qui suis-je ?", "Quelles traces je laisse ?", "Quelle
+# image les autres voient-ils ?"), décalant la position de tous les blocs qui suivaient
+# (Méthode 3→5, Comparer 5→7, Fiche mémo 7→9 ; "Exemples commentés" et "Exercices guidés"
+# n'ont pas besoin de resynchronisation : déjà dans `obsolete_titles` ci-dessous, ils sont
+# recréés à chaque seed avec une position toujours à jour). Sur tout staging seedé avant ce
+# ticket, "Méthode"/"Comparer"/"Fiche mémo" existent déjà (jamais dans `obsolete_titles`,
+# donc jamais recréés) : sans resynchronisation explicite de leur `position`, ils
+# garderaient leur ancienne valeur, entrant en collision avec celle des trois nouveaux
+# blocs et inversant l'ordre d'affichage (ex. Fiche mémo avant Exercices guidés) — même
+# mécanisme que `MC01_PRACTICE_REPOSITION_TITLES` (ticket #37).
+FSE03_REPOSITION_TITLES = frozenset(
+    {
+        "FSE03 — Méthode",
+        "FSE03 — Comparer pour ne pas confondre",
+        "FSE03 — Fiche mémo",
+    }
+)
+
 FSE04_CODE = "FSE04"
 FSE04_TITLE = "Normes, valeurs et influence sociale"
 
@@ -5072,6 +5091,7 @@ def seed() -> None:
                     "FSE03 — Théorie : notions et définitions",
                 }
             ),
+            reposition_titles=FSE03_REPOSITION_TITLES, repositioned=repositioned,
         )
         _seed_uaa(
             db,
