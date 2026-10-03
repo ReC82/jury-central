@@ -143,3 +143,43 @@ def test_full_fse04_page_still_contains_required_exam_notions(client, db_session
         assert notion in text
     assert "provisoire" not in text.lower()
     assert "jc-theory-cards" in text
+
+
+# =============================================================================================
+# 3. Régression : un site déjà seedé au ticket #124 doit recevoir le nouveau contenu
+#    (bug trouvé en vérifiant l'installation réelle du ticket #126 : le titre « Peut-on
+#    agir autrement ? » n'avait pas changé depuis le #124, donc son ANCIEN contenu
+#    .jc-prose restait servi malgré un seed() après la mise à jour du code tant que le
+#    titre n'était pas dans obsolete_titles — corrigé avant la fin du déploiement).
+# =============================================================================================
+
+
+def test_reseed_on_pre_ticket126_content_actually_refreshes_section3(db_session):
+    from app.models import UAA, BlockType, LessonBlock, Module
+    from app.seed import seed
+    from app.v1.fse_plan import FSE_MODULE_CODE
+
+    seed()
+
+    uaa = db_session.query(UAA).join(Module).filter(
+        Module.code == FSE_MODULE_CODE, UAA.code == "FSE04"
+    ).first()
+    block = db_session.query(LessonBlock).filter_by(
+        uaa_id=uaa.id, title="FSE04 — Peut-on agir autrement ?"
+    ).first()
+
+    # Simule l'état d'un site seedé au ticket #124 : même titre, ancien contenu .jc-prose.
+    block.content = (
+        '<div class="jc-prose">\n<p>Ancien contenu pré-ticket #126.</p>\n</div>'
+    )
+    block.type = BlockType.MARKDOWN
+    db_session.commit()
+
+    seed()
+
+    db_session.expire_all()
+    refreshed = db_session.query(LessonBlock).filter_by(
+        uaa_id=uaa.id, title="FSE04 — Peut-on agir autrement ?"
+    ).first()
+    assert "jc-theory-cards" in refreshed.content
+    assert "jc-prose" not in refreshed.content
