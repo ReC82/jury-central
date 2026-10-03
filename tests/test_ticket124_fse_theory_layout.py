@@ -22,12 +22,16 @@ def _css_text() -> str:
 # =============================================================================================
 
 
-def test_jc_prose_is_centered_not_just_width_limited():
+def test_jc_prose_is_width_limited():
+    """Le centrage (`margin: 0 auto`) introduit ici a été retiré au ticket #126 : il
+    créait une colonne flottante, désalignée du reste de la carte — voir
+    `tests/test_ticket126_fse_theory_composition.py`. `.jc-prose` reste limité en largeur,
+    simplement aligné à gauche comme le reste du contenu."""
     css = _css_text()
     prose_rule = css.split(".jc-prose {", 1)[1].split("}", 1)[0]
     assert "max-width: 70ch" in prose_rule
-    assert "margin-left: auto" in prose_rule
-    assert "margin-right: auto" in prose_rule
+    assert "margin-left: auto" not in prose_rule
+    assert "margin-right: auto" not in prose_rule
 
 
 def test_theory_split_and_three_way_compare_components_exist():

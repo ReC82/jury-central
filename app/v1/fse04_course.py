@@ -295,24 +295,35 @@ démarquer — même sans règle écrite ni obligation formelle.</p>
 
 
 def _section_can_one_act_differently() -> str:
-    """« Peut-on agir autrement ? » — prose centrée (`.jc-prose`) + encadré « À retenir »
-    sur la responsabilité individuelle, puis lexique repliable des 7 définitions d'origine
-    (ticket #124)."""
-    return """<div class="jc-prose">
+    """« Peut-on agir autrement ? » — ticket #126 : remplace la colonne de prose isolée
+    (ticket #124, jugée déséquilibrée après vérification visuelle réelle du site) par deux
+    cartes de largeur égale (`.jc-theory-cards`), un encadré « À retenir » compact, puis le
+    lexique repliable des 8 définitions d'origine, inchangé. Les nuances du cours
+    (tendance statistique ≠ fatalité individuelle) restent expliquées dans les cartes,
+    même si la phrase de synthèse de l'encadré est volontairement simplifiée."""
+    return """<div class="jc-theory-cards">
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">😣</span>
+<span class="jc-theory-card-title">Une tension peut créer de la frustration</span>
 <p>Quand une norme de groupe entre en tension avec un besoin ou une valeur personnelle, \
-cela peut créer de la <strong>frustration</strong> : par exemple, vouloir être accepté·e \
-par un groupe tout en étant mal à l'aise avec ce que ce groupe encourage.</p>
-<p>Cette influence a cependant des <strong>limites</strong> : elle explique une tendance \
-statistique (« beaucoup de membres d'un groupe agissent dans le même sens »), jamais une \
-fatalité individuelle. Face à une même pression de groupe, les personnes ne réagissent \
-pas toutes de la même façon — certaines suivent le mouvement, d'autres s'en écartent.</p>
+cela peut créer de la <strong>frustration</strong>.</p>
+<p><strong>Exemple :</strong> vouloir être accepté·e par un groupe tout en étant mal à \
+l'aise avec ce que ce groupe encourage.</p>
+</div>
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">🧭</span>
+<span class="jc-theory-card-title">Le groupe influence, chacun peut réagir</span>
+<p>Cette influence a des <strong>limites</strong> : elle explique une tendance \
+statistique dans un groupe (« beaucoup de membres agissent dans le même sens »), jamais \
+une fatalité individuelle.</p>
+<p>Face à une même pression, certaines personnes suivent le mouvement, d'autres s'en \
+écartent.</p>
+</div>
 </div>
 
 <div class="jc-takeaway">
 <span class="jc-takeaway-label">📌 À retenir</span>
-<p>L'influence sociale explique pourquoi un comportement est FRÉQUENT dans un groupe \
-donné ; elle n'efface jamais la responsabilité de la personne qui choisit, \
-individuellement, d'agir d'une façon ou d'une autre.</p>
+<p>Le groupe peut influencer nos comportements. Chacun reste responsable de ses actes.</p>
 </div>
 
 <details class="jc-glossary">
