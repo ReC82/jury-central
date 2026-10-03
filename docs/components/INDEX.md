@@ -74,6 +74,10 @@ quel par `app/content.py`) :
   + nom + fonction), image de scène intégrée à une publication, cartes de groupe
   d'appartenance — jamais de classification pédagogique révélée sur le document lui-même
   (ticket #118, FSE03 pour l'instant).
+- [TheoryProgression](TheoryProgression.md) — largeur de lecture confortable (`.jc-prose`),
+  phrase « À retenir » ponctuelle (`.jc-takeaway`), lexique repliable (`.jc-glossary`) :
+  réorganise un bloc théorique dense en petites cartes progressives (ticket #120, FSE03
+  d'abord, puis FSE01-17 selon les besoins de chaque cours).
 
 ---
 

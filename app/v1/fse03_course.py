@@ -1,11 +1,24 @@
 """Contenu de cours — FSE03 « Identités, traces numériques et appartenance » (ticket #97,
 cahier des charges détaillé).
 
-Même structure que FSE01/FSE02 : 1. Ce que tu dois savoir faire à l'examen —
+Même structure générale que FSE01/FSE02 : 1. Ce que tu dois savoir faire à l'examen —
 2. Théorie progressive — 3. Définitions importantes — 4. Méthode étape par étape —
 5. Exemples commentés — 6. Mauvaises réponses comparées aux bonnes — 7. Pièges et erreurs
 fréquentes — 8. Exercices guidés (corrigés masqués par défaut) — 9. Corrigés très
 expliqués — 10. Fiche mémo.
+
+Refonte ticket #120 : les sections 2 et 3 (« Théorie progressive » + « Définitions
+importantes »), auparavant fusionnées par `app.v1.fse_course_sections.build_course_sections`
+en un seul grand bloc « Théorie : notions et définitions », sont remplacées par TROIS
+cartes théoriques progressives, bespoke (comme FSE01, voir `app.v1.fse01_course`) : « Qui
+suis-je ? » (identité personnelle/collective, groupe d'appartenance, identité numérique),
+« Quelles traces je laisse ? » (trace volontaire/involontaire, nuance ancienne publication
+volontaire ≠ devenue involontaire), « Quelle image les autres voient-ils ? » (schéma
+traces → perception → réputation, identité réelle vs image perçue). La liste de
+définitions, désormais répétée par les explications visibles, devient un lexique repliable
+(`.jc-glossary`, disponible à l'impression même fermé) à la fin de la troisième carte —
+voir `docs/components/TheoryProgression.md`. Les sections 1, 4-10 ne sont pas modifiées
+dans leur matière : seule la section 2+3 change de forme, aucune notion n'est retirée.
 
 Périmètre strict (ticket #97, programme p. 44-45) : identité personnelle/collective,
 identité numérique, traces volontaires/involontaires, réputation, groupe d'appartenance,
@@ -24,7 +37,15 @@ from app.v1.fse03_content import (
     FSE03_RECOMMENDATION_CARD_HTML,
 )
 
-from app.v1.fse_course_sections import build_course_sections
+from app.v1.fse_course_sections import (
+    analyse_commentee_to_decrypt,
+    exemple_headers_to_titles,
+    exercises_to_cards,
+    fix_list_blank_lines,
+    mauvaises_bonnes_to_comparegrid,
+    parse_numbered_sections,
+    pieges_to_blockquotes,
+)
 
 
 def fse03_course_markdown() -> str:
@@ -40,49 +61,6 @@ publications sur une candidature ou une réputation.
 **Prérequis** : ce cours réutilise le canal et le message vus dans FSE01 — une \
 publication en ligne est un message transmis via un canal (réseau social, forum) qui \
 laisse une trace durable, contrairement à une conversation orale.
-
-## 2. Théorie progressive
-
-Chaque personne a une **identité personnelle** : ce qui la caractérise individuellement \
-(son parcours, ses goûts, ses compétences). Elle a aussi une ou plusieurs **identités \
-collectives** : son appartenance à un ou plusieurs groupes (une famille, un cercle \
-d'amis, une profession, une communauté de loisir).
-
-Lorsque cette identité s'exprime dans un contexte médiatique (réseaux sociaux, forums, \
-plateformes en ligne), on parle d'**identité numérique** : ce n'est pas une identité \
-différente, mais une application particulière de l'identité personnelle et collective à \
-ce contexte précis.
-
-Chaque activité en ligne laisse des **traces numériques**. Une trace est **volontaire** \
-quand la personne la publie elle-même en connaissance de cause (une photo, un commentaire, \
-un message). Une trace est **involontaire** quand elle est publiée par quelqu'un d'autre \
-(une photo où l'on est identifié par un ami, un commentaire d'un tiers nous concernant), \
-ou qu'elle résulte d'une action dont la personne ne maîtrise pas la visibilité future \
-(un message ancien qui redevient visible des années plus tard).
-
-L'ensemble des traces visibles par autrui construit progressivement une **réputation** : \
-l'image qu'une personne donne à voir, telle qu'elle est perçue par les autres. Cette \
-image ne correspond pas forcément à l'identité réelle de la personne : une trace ancienne, \
-sortie de son contexte d'origine, peut donner une impression très différente de ce que la \
-personne est réellement aujourd'hui. C'est pourquoi il faut toujours distinguer \
-**l'identité réelle** d'une personne et **l'image qu'elle donne à voir à autrui** à \
-travers ses traces numériques, volontaires ou non.
-
-## 3. Définitions importantes
-
-- **Identité personnelle** : ce qui caractérise une personne individuellement.
-- **Identité collective** : l'appartenance d'une personne à un ou plusieurs groupes.
-- **Identité numérique** : l'identité personnelle et collective telle qu'elle s'exprime \
-dans un contexte médiatique (réseaux sociaux, forums, plateformes en ligne).
-- **Trace numérique volontaire** : contenu publié par la personne elle-même, en \
-connaissance de cause.
-- **Trace numérique involontaire** : contenu publié par quelqu'un d'autre concernant la \
-personne, ou contenu ancien redevenu visible sans que la personne en maîtrise la \
-visibilité.
-- **Réputation** : l'image qu'une personne donne à voir à autrui, construite à partir de \
-l'ensemble de ses traces visibles.
-- **Groupe d'appartenance** : groupe auquel une personne est identifiée comme membre \
-(professionnel, familial, de loisir...).
 
 ## 4. Méthode étape par étape
 
@@ -251,7 +229,198 @@ une candidature), même sans lien avec le sujet concerné.
 """
 
 
+def _section_identity() -> str:
+    """« Qui suis-je ? » — identité personnelle/collective, groupe d'appartenance,
+    identité numérique (ticket #120). Tout le contenu à l'intérieur d'un `<div>`/`<details>`
+    est écrit en HTML littéral (`<strong>`, jamais `**gras**`) : `app.content.render_markdown`
+    ne retraite jamais le Markdown situé à l'intérieur d'un bloc HTML brut (diagnostic
+    ticket #112)."""
+    return """<div class="jc-prose">
+<p>Chaque personne peut se décrire de deux manières complémentaires : par ce qui la rend \
+unique, et par les groupes auxquels elle appartient.</p>
+</div>
+
+<div class="jc-compare">
+<div class="jc-compare-item jc-compare-item--a">
+<span class="jc-compare-label">Identité personnelle</span>
+<p>Ce qui caractérise une personne individuellement : son parcours, ses goûts, ses \
+compétences.</p>
+<p><strong>Exemple :</strong> Sophie Lambert aime la randonnée et travaille comme \
+gestionnaire de stock.</p>
+</div>
+<div class="jc-compare-item jc-compare-item--b">
+<span class="jc-compare-label">Identité collective</span>
+<p>L'appartenance d'une personne à un ou plusieurs groupes : une famille, un cercle \
+d'amis, une profession, une communauté de loisir.</p>
+<p><strong>Exemple :</strong> Sophie appartient à un groupe de randonneurs et à un groupe \
+de gestionnaires de stock — deux <strong>groupes d'appartenance</strong> différents, sans \
+aucune contradiction entre eux.</p>
+</div>
+</div>
+
+<div class="jc-prose">
+<p>Une personne peut appartenir à plusieurs groupes à la fois (professionnel, familial, de \
+loisir...) : ce n'est jamais contradictoire.</p>
+<p>Lorsque cette double identité — personnelle et collective — s'exprime dans un contexte \
+médiatique (réseaux sociaux, forums, plateformes en ligne), on parle d'<strong>identité \
+numérique</strong>. Ce n'est pas une identité différente : c'est l'application de \
+l'identité personnelle et collective à ce contexte précis.</p>
+</div>
+
+<div class="jc-takeaway">
+<span class="jc-takeaway-label">📌 À retenir</span>
+<p>L'identité numérique n'ajoute rien de nouveau à une personne : c'est la manière dont \
+son identité personnelle et collective s'exprime en ligne.</p>
+</div>"""
+
+
+def _section_traces() -> str:
+    """« Quelles traces je laisse ? » — trace volontaire/involontaire, nuance ancienne
+    publication volontaire ≠ devenue involontaire (ticket #120)."""
+    return """<div class="jc-prose">
+<p>Chaque activité en ligne laisse une trace numérique. Toutes les traces ne se \
+ressemblent pas : certaines sont publiées par la personne elle-même, d'autres par \
+quelqu'un d'autre à son sujet.</p>
+</div>
+
+<div class="jc-compare">
+<div class="jc-compare-item jc-compare-item--a">
+<span class="jc-compare-label">Trace volontaire</span>
+<p>Publiée par la personne elle-même, en connaissance de cause.</p>
+<p><strong>Exemple :</strong> Sophie publie elle-même une photo sur son profil \
+professionnel.</p>
+</div>
+<div class="jc-compare-item jc-compare-item--b">
+<span class="jc-compare-label">Trace involontaire</span>
+<p>Publiée par quelqu'un d'autre, ou résultant d'une action dont la personne ne maîtrise \
+plus la visibilité.</p>
+<p><strong>Exemple :</strong> une amie publie une photo où Sophie est identifiée, sans que \
+Sophie l'ait décidé.</p>
+</div>
+</div>
+
+<blockquote>
+<p>Une ancienne publication volontaire ne devient pas automatiquement une trace \
+involontaire. Si Sophie a bien écrit elle-même un commentaire il y a cinq ans, cela reste \
+un acte volontaire au moment où elle l'a publié. Ce qui échappe à son contrôle aujourd'hui, \
+c'est sa <strong>visibilité ultérieure</strong> : un message ancien peut redevenir visible \
+des années plus tard, sans qu'elle l'ait recherché — ce n'est pas la même chose que si \
+quelqu'un d'autre l'avait publié à sa place.</p>
+</blockquote>
+
+<div class="jc-takeaway">
+<span class="jc-takeaway-label">📌 À retenir</span>
+<p>Pour classer une trace, demande-toi toujours QUI l'a publiée — jamais seulement si la \
+personne y apparaît.</p>
+</div>"""
+
+
+def _section_image() -> str:
+    """« Quelle image les autres voient-ils ? » — schéma traces → perception → réputation,
+    identité réelle vs image perçue, puis lexique repliable reprenant les 7 définitions
+    (désormais déjà présentes dans les explications visibles ci-dessus) pour l'examen
+    (ticket #120)."""
+    return """<div class="jc-prose">
+<p>L'ensemble des traces visibles par autrui construit progressivement une image de la \
+personne, telle qu'elle est perçue par les autres.</p>
+</div>
+
+<div class="jc-flow">
+<div class="jc-flow-step">Traces visibles<small>ce que l'on peut voir en ligne</small></div>
+<div class="jc-flow-arrow" aria-hidden="true">→</div>
+<div class="jc-flow-step">Perception des autres<small>l'interprétation qu'on en fait</small></div>
+<div class="jc-flow-arrow" aria-hidden="true">→</div>
+<div class="jc-flow-step">Réputation<small>l'image qui en résulte</small></div>
+</div>
+
+<div class="jc-prose">
+<p>Cette perception peut être <strong>partielle</strong> (elle ne montre qu'une partie des \
+traces, jamais la personne tout entière), <strong>ancienne</strong> (une trace vieille de \
+plusieurs années ne dit rien de certain sur la personne aujourd'hui), ou <strong>sortie de \
+son contexte</strong> (un message écrit dans une situation précise peut être lu très \
+différemment une fois détaché de cette situation).</p>
+<p>C'est pourquoi il faut toujours distinguer <strong>l'identité réelle</strong> d'une \
+personne — qui elle est réellement, aujourd'hui — de <strong>l'image qu'elle donne à voir \
+à autrui</strong> à travers ses traces, volontaires ou non.</p>
+<p><strong>Exemple :</strong> un recruteur qui découvre un commentaire vieux de cinq ans, \
+sans connaître son contexte, peut s'en faire une image différente de qui la personne est \
+réellement aujourd'hui.</p>
+</div>
+
+<div class="jc-takeaway">
+<span class="jc-takeaway-label">📌 À retenir</span>
+<p>La réputation est une image perçue, pas l'identité réelle : elle peut être partielle, \
+ancienne ou hors contexte.</p>
+</div>
+
+<details class="jc-glossary">
+<summary>📖 Retrouver les définitions</summary>
+<div class="jc-definitions">
+<div class="jc-definition">
+<span class="jc-definition-term">Identité personnelle</span>
+<p class="jc-definition-body">Ce qui caractérise une personne individuellement.</p>
+</div>
+<div class="jc-definition">
+<span class="jc-definition-term">Identité collective</span>
+<p class="jc-definition-body">L'appartenance d'une personne à un ou plusieurs groupes.</p>
+</div>
+<div class="jc-definition">
+<span class="jc-definition-term">Groupe d'appartenance</span>
+<p class="jc-definition-body">Groupe auquel une personne est identifiée comme membre \
+(professionnel, familial, de loisir...).</p>
+</div>
+<div class="jc-definition">
+<span class="jc-definition-term">Identité numérique</span>
+<p class="jc-definition-body">L'identité personnelle et collective telle qu'elle \
+s'exprime dans un contexte médiatique.</p>
+</div>
+<div class="jc-definition">
+<span class="jc-definition-term">Trace numérique volontaire</span>
+<p class="jc-definition-body">Contenu publié par la personne elle-même, en connaissance de \
+cause.</p>
+</div>
+<div class="jc-definition">
+<span class="jc-definition-term">Trace numérique involontaire</span>
+<p class="jc-definition-body">Contenu publié par quelqu'un d'autre, ou contenu ancien \
+redevenu visible sans que la personne en maîtrise la visibilité.</p>
+</div>
+<div class="jc-definition">
+<span class="jc-definition-term">Réputation</span>
+<p class="jc-definition-body">L'image qu'une personne donne à voir à autrui, construite à \
+partir de l'ensemble de ses traces visibles.</p>
+</div>
+</div>
+</details>"""
+
+
 def fse03_course_sections() -> list[tuple[str, str]]:
-    """Sections (titre, Markdown) du cours FSE03 — refonte pédagogique et visuelle
-    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
-    return build_course_sections("FSE03", fse03_course_markdown())
+    """Sections (titre, Markdown/HTML) du cours FSE03 — refonte pédagogique et visuelle
+    (ticket #105), théorie restructurée en trois cartes progressives (ticket #120, voir
+    docstring du module). Les sections 1, 4-10 réutilisent les mêmes transformations
+    mécaniques que `app.v1.fse_course_sections.build_course_sections` (FSE02-FSE16),
+    seule la théorie (sections 2+3 d'origine) devient bespoke, comme FSE01."""
+    sections = parse_numbered_sections(fse03_course_markdown())
+    return [
+        ("FSE03 — Présentation et objectifs", fix_list_blank_lines(sections[1])),
+        ("FSE03 — Qui suis-je ?", _section_identity()),
+        ("FSE03 — Quelles traces je laisse ?", _section_traces()),
+        ("FSE03 — Quelle image les autres voient-ils ?", _section_image()),
+        ("FSE03 — Méthode", fix_list_blank_lines(sections[4])),
+        (
+            "FSE03 — Exemples commentés",
+            analyse_commentee_to_decrypt(
+                exemple_headers_to_titles(fix_list_blank_lines(sections[5]))
+            ),
+        ),
+        (
+            "FSE03 — Comparer pour ne pas confondre",
+            mauvaises_bonnes_to_comparegrid(sections[6])
+            + "\n\n"
+            + pieges_to_blockquotes(sections[7]),
+        ),
+        (
+            "FSE03 — Exercices guidés",
+            exercises_to_cards(sections[8] + "\n\n" + sections[9]),
+        ),
+        ("FSE03 — Fiche mémo", fix_list_blank_lines(sections[10])),
+    ]

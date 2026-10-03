@@ -283,6 +283,7 @@ table.value-table tbody th {
 .jc-flow-step {
     flex: 1 1 140px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     background: var(--jc-blue-bg);
@@ -1579,4 +1580,81 @@ body.jc-zoom-open {
 
 @media print {
     .jc-doc-scene-image { max-width: 220px; }
+}
+
+/* --- Confort de lecture d'une explication théorique (ticket #120) : limite la prose
+   explicative à environ 65-75 caractères par ligne sur grand écran (unité `ch`, calée sur
+   la largeur d'un caractère), sans toucher aux tableaux, documents ou grilles de
+   comparaison, qui restent sur toute la largeur disponible car ils ne portent pas cette
+   classe. --- */
+
+.jc-prose {
+    max-width: 70ch;
+}
+
+.jc-prose > :last-child {
+    margin-bottom: 0;
+}
+
+/* --- Phrase "À retenir" en fin de section théorique (ticket #120) : même couleur que la
+   Fiche mémo (icône 📌, var(--jc-gold)) — une seule phrase courte, jamais un résumé complet
+   (qui reste le rôle de SummaryCard/Fiche mémo). --- */
+
+.jc-takeaway {
+    margin: 1rem 0;
+    padding: 0.7rem 0.9rem;
+    background: var(--jc-gold-bg);
+    border: 1px solid var(--jc-gold);
+    border-radius: 8px;
+}
+
+.jc-takeaway-label {
+    display: block;
+    font-weight: 700;
+    color: var(--jc-gold);
+    margin-bottom: 0.25rem;
+    font-size: 0.88rem;
+}
+
+.jc-takeaway p {
+    margin: 0;
+}
+
+@media print {
+    .jc-takeaway { break-inside: avoid; }
+}
+
+/* --- Lexique repliable (ticket #120) : évite de répéter une liste de définitions qui dit
+   exactement la même chose que les explications déjà visibles au-dessus. Fermé à l'écran
+   par défaut ; rendu disponible à l'impression même fermé, car il reste une matière utile
+   hors ligne (contrairement aux corrigés d'exercice, qui restent volontairement masqués à
+   l'impression). --- */
+
+details.jc-glossary {
+    margin: 1.25rem 0;
+    border: 1px solid #e3e6ea;
+    border-radius: 8px;
+    padding: 0.2rem 1rem;
+}
+
+details.jc-glossary > summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.65rem 0;
+    list-style: none;
+}
+
+details.jc-glossary > summary::-webkit-details-marker {
+    display: none;
+}
+
+details.jc-glossary > .jc-definitions {
+    margin-top: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+@media print {
+    details.jc-glossary:not([open]) > *:not(summary) {
+        display: block !important;
+    }
 }
