@@ -155,10 +155,23 @@ ces vérifications ne sont pas faites.
   explicite.
 - Une fois les tests exécutés et la documentation mise à jour, Claude Code commit et push
   la branche du ticket sur `origin`.
-- **Aucun merge vers `develop` ou `main` sans validation explicite.**
-- **Aucun déploiement sans demande explicite.**
+- **Aucun merge vers `main` sans validation explicite.**
+- **Aucun déploiement ni merge au-delà du périmètre explicitement demandé.**
 - Convention de commit : `type: description`, avec les types `feat`, `fix`, `docs`,
   `refactor`, `style`, `test`, `chore`.
+
+**Mise à jour du 2 octobre 2026 (consigne explicite de l'utilisateur, remplace la règle
+« aucun merge vers `develop`... sans validation explicite » ci-dessus pour `develop`
+spécifiquement) :** pour un travail que l'utilisateur a explicitement demandé (un ticket,
+une correction, une suite de tâches données dans une même instruction), la demande
+elle-même vaut autorisation pour en mener à bien la livraison complète — commit, push,
+fusion vers `develop` et installation sur le site de test personnel de l'utilisateur
+(§ 18) — sans nouvelle confirmation intermédiaire à chaque étape. Cette autorisation reste
+strictement scopée au travail réellement demandé : elle ne s'étend jamais automatiquement
+à une action hors de ce périmètre (nouvelle matière non demandée, autre dépôt, `main`,
+modification de nginx/Certbot/systemd — § 16), qui continue à exiger une instruction
+explicite propre. En cas de doute sur ce qui a été réellement demandé, demander avant
+d'agir plutôt que supposer une autorisation plus large.
 
 ---
 
@@ -296,8 +309,10 @@ continuer.
   développement, jamais à la génération de contenu ou de réponses en production).
 - Modifier nginx, Certbot ou la définition active du service systemd sans ticket dédié et
   instruction explicite (voir `docs/deployment_staging.md`).
-- Déployer sur staging, ou redémarrer le service en production, sans instruction
-  explicite (§ 8) — un push de branche n'implique jamais un déploiement.
+- Déployer sur staging, ou redémarrer le service en production, pour un ticket ou une
+  plateforme non concernés par la demande en cours (voir § 8 pour le périmètre exact
+  couvert par une demande) — un push de branche n'implique jamais, à lui seul, ce
+  déploiement.
 
 ---
 
@@ -345,8 +360,13 @@ respecter quand cette autorisation est donnée :
 
 Cette dérogation est strictement scopée à cette plateforme et vaut pour la demande qui l'a
 autorisée — elle ne s'étend pas automatiquement à un autre site ni à un ticket futur sans
-nouvelle instruction explicite. **Hors de ce cas précis**, la règle générale ci-dessous
-reste la référence par défaut :
+nouvelle instruction explicite.
+
+**Mise à jour du 2 octobre 2026** : § 8 généralise désormais ce principe pour tout travail
+explicitement demandé sur `jury-central.lodylands.com` (la demande vaut autorisation pour
+en mener la livraison complète, sans nouvelle confirmation à chaque étape) — les étapes
+1-6 ci-dessus restent la procédure technique de référence à suivre dans ce cas. **Hors de
+ce cas précis**, la règle générale ci-dessous reste la référence par défaut :
 
 Consigne explicite de l'utilisateur du 1 octobre 2026, applicable à tout changement visible
 (page, parcours, formulaire) avant la suite de tests complète et la finalisation d'un
