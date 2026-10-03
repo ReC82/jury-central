@@ -168,6 +168,126 @@ def _paragraphs_to_html(text: str) -> str:
     return "\n".join(html_blocks)
 
 
+def _is_raw_html_block(block: str) -> bool:
+    """Un bloc déjà en HTML brut (ex. schéma SVG inséré par substitution f-string dans la
+    théorie de FSE08/FSE15, voir `FSE08_POWER_LEVELS_DIAGRAM_SVG`/
+    `FSE15_CIRCUIT_DIAGRAM_SVG`) — à laisser tel quel, jamais enveloppé dans un `<p>`."""
+    return block.lstrip().startswith("<")
+
+
+def theory_prose_to_html(text: str) -> str:
+    """Convertit la prose théorique (ticket #120) en HTML littéral, groupée en un ou
+    plusieurs `<div class="jc-prose">` qui limitent la largeur de lecture à ~70 caractères
+    par ligne — SAUF un bloc déjà en HTML brut (schéma SVG déjà existant dans certains
+    cours), laissé tel quel et hors de cette contrainte de largeur, puisqu'il peut avoir
+    besoin de toute la largeur disponible (« sans rétrécir... les documents qui ont besoin
+    de largeur », cahier des charges du ticket #120).
+
+    `fix_list_blank_lines()` est appliqué d'abord : une liste introduite par une phrase sur
+    la même ligne de bloc (ex. « ... sont possibles :\\n- la vente : ... ») doit être
+    séparée en son propre bloc avant d'être reconnue comme liste par `_paragraphs_to_html`
+    — sans cette étape, elle resterait fondue en texte brut à tirets littéraux dans le
+    paragraphe précédent (même bug que diagnostiqué au ticket #112)."""
+    blocks = [b.strip() for b in fix_list_blank_lines(text).split("\n\n") if b.strip()]
+    out: list[str] = []
+    prose_buffer: list[str] = []
+
+    def flush() -> None:
+        if prose_buffer:
+            out.append('<div class="jc-prose">\n' + "\n\n".join(prose_buffer) + "\n</div>")
+            prose_buffer.clear()
+
+    for block in blocks:
+        if _is_raw_html_block(block):
+            flush()
+            out.append(block)
+            continue
+        lines = [line.strip() for line in block.split("\n") if line.strip()]
+        if lines and all(_LIST_LINE_RE.match(line) for line in lines):
+            ordered = bool(re.match(r"^\d+\.\s", lines[0]))
+            tag = "ol" if ordered else "ul"
+            items = "\n".join(
+                f"<li>{_inline_md_to_html(_LIST_LINE_RE.sub('', line))}</li>" for line in lines
+            )
+            prose_buffer.append(f"<{tag}>\n{items}\n</{tag}>")
+        else:
+            paragraph = " ".join(lines)
+            prose_buffer.append(f"<p>{_inline_md_to_html(paragraph)}</p>")
+    flush()
+    return "\n\n".join(out)
+
+
+_DEFINITION_BULLET_RE = re.compile(
+    r"^-\s+\*\*(?P<term>.+?)\*\*\s*(?P<qualifier>\([^)]*\))?\s*:\s*(?P<body>.+)$"
+)
+
+
+def _definitions_bullets_to_items(text: str) -> list[tuple[str, str]]:
+    """Découpe chaque puce « - **Terme** (qualificatif optionnel) : explication. » en
+    (terme affiché, corps HTML) — SANS JAMAIS découper à l'intérieur d'un terme groupé (ex.
+    « Région (flamande, wallonne, Bruxelles-Capitale) » reste un seul terme avec son
+    qualificatif, jamais trois cartes distinctes mal attribuées — risque identifié dans la
+    docstring du module avant l'écriture de cette fonction). Toute puce qui ne correspond
+    pas exactement à ce format (terme en gras suivi de « : ») est ignorée en toute sécurité
+    plutôt que mal découpée : vérifié à l'écriture de ce module qu'elle couvre 100 % des
+    puces de FSE02/FSE04-FSE16 (aucune puce ignorée en pratique)."""
+    items: list[tuple[str, str]] = []
+    for line in text.split("\n"):
+        line = line.strip()
+        if not line.startswith("-"):
+            continue
+        m = _DEFINITION_BULLET_RE.match(line)
+        if not m:
+            continue
+        term = m.group("term").strip()
+        if m.group("qualifier"):
+            term = f"{term} {m.group('qualifier').strip()}"
+        items.append((term, _inline_md_to_html(m.group("body").strip())))
+    return items
+
+
+def theory_and_definitions_to_cards(theory_raw: str, definitions_raw: str) -> str:
+    """Restructure la théorie progressive + la liste de définitions d'un cours FSE02-FSE16
+    (ticket #120), sans perdre de matière : la prose devient du HTML littéral à largeur de
+    lecture limitée (`theory_prose_to_html`), chaque définition devient une carte
+    `.jc-definition` (terme jamais découpé, voir `_definitions_bullets_to_items`).
+
+    Si TOUS les termes définis apparaissent déjà (en gras) dans la prose ci-dessus, la
+    grille de définitions devient un lexique repliable (`.jc-glossary`, disponible à
+    l'impression même fermé) — cohérent avec FSE03 (même ticket) : une définition qui n'est
+    PAS déjà dite ailleurs dans les explications visibles n'est, elle, jamais cachée (reste
+    une grille visible), pour ne jamais retirer une information nécessaire à l'examen."""
+    theory_html = theory_prose_to_html(theory_raw)
+
+    items = _definitions_bullets_to_items(definitions_raw)
+    if not items:
+        return theory_html
+
+    prose_lower = theory_raw.lower()
+    all_redundant = all(term.split("(")[0].strip().lower() in prose_lower for term, _ in items)
+
+    grid = (
+        '<div class="jc-definitions">\n'
+        + "\n".join(
+            f'<div class="jc-definition">\n<span class="jc-definition-term">{term}</span>\n'
+            f'<p class="jc-definition-body">{body}</p>\n</div>'
+            for term, body in items
+        )
+        + "\n</div>"
+    )
+
+    if all_redundant:
+        definitions_html = (
+            '<details class="jc-glossary">\n'
+            "<summary>📖 Retrouver les définitions</summary>\n"
+            f"{grid}\n</details>"
+        )
+    else:
+        definitions_html = grid
+
+    return f"{theory_html}\n\n{definitions_html}"
+
+
 _EXERCISE_BLOCK_RE = re.compile(
     r"<details>\s*"
     r"<summary>Exercice \d+ — (?P<title>.+?) \(essaie avant de regarder la correction\)</summary>\s*"
@@ -289,7 +409,7 @@ def build_course_sections(code: str, markdown: str) -> list[tuple[str, str]]:
         (f"{code} — Présentation et objectifs", fix_list_blank_lines(sections[1])),
         (
             f"{code} — Théorie : notions et définitions",
-            fix_list_blank_lines(sections[2] + "\n\n" + sections[3]),
+            theory_and_definitions_to_cards(sections[2], sections[3]),
         ),
         (f"{code} — Méthode", fix_list_blank_lines(sections[4])),
         (
