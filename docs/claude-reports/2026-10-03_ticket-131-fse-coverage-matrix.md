@@ -2,7 +2,7 @@
 
 Ticket #131. Installé sur `jury-central.lodylands.com`.
 
-**SHA installé : voir § 8 (rapport d'installation séparé après fusion).**
+**SHA installé : `10b02f0`** (merge de la PR #132).
 
 ---
 
@@ -262,5 +262,24 @@ page, déjà traitée et validée par les tickets #120/#124/#126. Suite de tests
 dépôt (plusieurs centaines de tests) — contrôles ciblés uniquement, conformément à
 l'instruction explicite de ce ticket.
 
-**Comptes et données** : vérifiés intacts avant/après chaque étape du déploiement (voir
-rapport d'installation, section suivante).
+**Comptes et données** : vérifiés intacts avant/après chaque étape du déploiement.
+
+---
+
+## 9. Installation
+
+- Fusionné via PR #132, fast-forward sur `jury-central.lodylands.com`.
+- Sauvegarde préalable : `jury_central.db.bak-pre-ticket131-<horodatage>`.
+- Comptes/sessions/réponses avant et après le seed : 18 utilisateurs, 68 sessions, 546
+  réponses — strictement identiques (seed purement additif, aucune suppression).
+- `seed-db` : 51 blocs créés (rafraîchissement forcé des 3 blocs FSE10 modifiés +
+  rafraîchissements habituels déjà en place pour les autres cours), 264 conservés
+  inchangés.
+- Vérifié en base de données que les 3 blocs FSE10 modifiés contiennent bien
+  « abstention » après le seed.
+- Vérifié sur la page réelle en production (`https://jury-central.lodylands.com/uaa/fse-fse10`)
+  : présence du mot « abstention », présence de la phrase de distinction (« ne pas se
+  présenter »), aucune fuite Markdown, aucune mention « provisoire ».
+
+**Lien à vérifier** : https://jury-central.lodylands.com/uaa/fse-fse10 (section théorie,
+« Comparer pour ne pas confondre » et « Fiche mémo »).
