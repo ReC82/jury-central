@@ -45,7 +45,7 @@ dans les autres.
 
 # Structure
 
-## `.jc-prose` — largeur de lecture confortable
+## `.jc-prose` — largeur de lecture confortable, centrée
 
 ```html
 <div class="jc-prose">
@@ -56,6 +56,60 @@ dans les autres.
 Limite la prose à `70ch` (~65-75 caractères par ligne sur grand écran), sans toucher aux
 tableaux, `.jc-doc`, `.jc-compare` ou `.jc-flow`, qui restent sur toute la largeur
 disponible puisqu'ils ne portent pas cette classe.
+
+**Correctif ticket #124** : `margin: 0 auto` centre ce bloc dans une carte (`.jc-card`)
+plus large que lui — sans ce correctif, le texte restait plaqué à gauche avec toute la
+moitié droite de la carte vide, perçu comme une mise en page cassée plutôt que voulue.
+`.jc-prose` ne convient qu'à une section qui ne contient QUE du texte continu ; une section
+dont le contenu se prête à une mise en page à deux colonnes doit utiliser
+`.jc-theory-split` ci-dessous plutôt que forcer tout dans `.jc-prose` — c'est le sens de
+« la limite de largeur doit être adaptée au composant, plutôt qu'appliquée uniformément ».
+
+## `.jc-theory-split` — théorie à deux colonnes (ticket #124)
+
+```html
+<div class="jc-theory-split">
+<div class="jc-theory-split-main">
+<p>Explication...</p>
+</div>
+<div class="jc-theory-split-aside">
+<span class="jc-theory-split-aside-label">Situation concrète</span>
+<p>Exemple ou repère pédagogique...</p>
+</div>
+</div>
+```
+
+Pour une section dont le contenu s'y prête réellement : explication à gauche (~60 % de la
+largeur), exemple ou repère pédagogique à droite (~40 %, encadré bleu). La colonne de
+texte n'a **pas** de largeur maximale propre (pas de `.jc-prose` à l'intérieur) : c'est la
+grille qui la limite. S'effondre en une seule colonne sous 768px (empilée, dans l'ordre
+explication puis exemple).
+
+**Quand l'utiliser** : une section qui associe naturellement une explication générale à un
+exemple concret ou une situation illustrative distincte (voir FSE04 — « Pourquoi suit-on
+parfois le groupe ? »).
+
+**Quand ne pas l'utiliser** : une section purement explicative sans exemple distinct
+(`.jc-prose` centré suffit) ; une comparaison entre deux ou trois notions elles-mêmes
+(`.jc-compare`/`.jc-compare--three`) ; jamais pour forcer artificiellement un contenu qui
+n'a pas de second volet naturel — un contenant vide à droite serait pire qu'une colonne
+centrée.
+
+## `.jc-compare--three` — comparaison à trois éléments (ticket #124)
+
+```html
+<div class="jc-compare jc-compare--three">
+<div class="jc-compare-item jc-compare-item--a">...</div>
+<div class="jc-compare-item jc-compare-item--b">...</div>
+<div class="jc-compare-item jc-compare-item--c">...</div>
+</div>
+```
+
+Variante de [DialogueComponents](DialogueComponents.md) `.jc-compare` pour trois notions
+(plutôt que deux) qui s'enchaînent ou se distinguent (ex. FSE04 : valeur/norme/
+comportement). Troisième couleur `--c` (violet, `var(--jc-purple)`). Grille
+`repeat(auto-fit, minmax(200px, 1fr))` : se réorganise d'elle-même (3 colonnes en largeur
+confortable, moins si la carte est étroite, 1 seule sur téléphone) sans media query dédiée.
 
 ## `.jc-takeaway` — phrase « À retenir » ponctuelle
 
@@ -158,6 +212,13 @@ cours en un seul passage — à la différence d'une restructuration bespoke en 
 nommées par sujet (FSE03), qui suppose une vraie lecture éditoriale et n'a pas été jugée
 nécessaire ici : garder un seul bloc théorique mais mieux organisé à l'intérieur évite aussi
 une accumulation de cartes (cahier des charges du ticket #120, § 1).
+
+**Mise à jour ticket #124** : le correctif de centrage de `.jc-prose` (ci-dessus)
+s'applique automatiquement à ces 14 cours sans aucun changement de contenu — c'est la
+réponse apportée à « applique la correction aux autres pages FSE présentant le même
+problème » pour ce lot, sans leur forcer la structure bespoke en trois cartes de FSE04.
+FSE04 est sorti de ce traitement générique (il a désormais sa propre théorie bespoke, voir
+plus haut) : la liste à jour est FSE02, FSE05-FSE16.
 
 ---
 

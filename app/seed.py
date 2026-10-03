@@ -4698,6 +4698,21 @@ FSE04_TITLE = "Normes, valeurs et influence sociale"
 
 FSE04_BLOCKS = _fse_course_blocks(fse04_course_sections())
 
+# Ticket #124 : le bloc unique "Théorie : notions et définitions" (ancienne position 2)
+# est remplacé par trois cartes ("Valeur, norme, comportement : quelle différence ?",
+# "Pourquoi suit-on parfois le groupe ?", "Peut-on agir autrement ?"), décalant la position
+# des blocs qui suivaient (Méthode 3→5, Comparer 5→7, Fiche mémo 7→9 ; "Exemples commentés"
+# et "Exercices guidés" n'ont pas besoin de resynchronisation : déjà dans
+# `obsolete_titles`, recréés à chaque seed avec une position à jour) — même mécanisme que
+# `FSE03_REPOSITION_TITLES` (ticket #120) et `MC01_PRACTICE_REPOSITION_TITLES` (ticket #37).
+FSE04_REPOSITION_TITLES = frozenset(
+    {
+        "FSE04 — Méthode",
+        "FSE04 — Comparer pour ne pas confondre",
+        "FSE04 — Fiche mémo",
+    }
+)
+
 FSE05_CODE = "FSE05"
 FSE05_TITLE = "Image, vie privée et données personnelles"
 
@@ -5117,6 +5132,7 @@ def seed() -> None:
                     "FSE04 — Exercices guidés",
                 }
             ),
+            reposition_titles=FSE04_REPOSITION_TITLES, repositioned=repositioned,
         )
         _seed_uaa(
             db,

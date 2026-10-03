@@ -1,11 +1,15 @@
-"""Ticket #120 — restructuration générique de la théorie des cours FSE02/FSE04-FSE16 (ceux
-qui partagent `app.v1.fse_course_sections.build_course_sections`) : la prose devient du
-HTML littéral à largeur de lecture limitée (`.jc-prose`), les définitions deviennent des
-cartes `.jc-definitions` (repliées en `.jc-glossary` seulement si elles répètent déjà la
-prose visible, jamais sinon). Vérifie l'absence de fuite Markdown (diagnostic ticket #112),
-la non-perte de matière (chaque terme défini reste présent quelque part dans le texte
+"""Ticket #120 — restructuration générique de la théorie des cours qui partagent
+`app.v1.fse_course_sections.build_course_sections` : la prose devient du HTML littéral à
+largeur de lecture limitée (`.jc-prose`), les définitions deviennent des cartes
+`.jc-definitions` (repliées en `.jc-glossary` seulement si elles répètent déjà la prose
+visible, jamais sinon). Vérifie l'absence de fuite Markdown (diagnostic ticket #112), la
+non-perte de matière (chaque terme défini reste présent quelque part dans le texte
 affiché) et le cas particulier d'un terme groupé (ex. FSE08 "Région (flamande, wallonne,
-Bruxelles-Capitale)") jamais découpé à l'intérieur."""
+Bruxelles-Capitale)") jamais découpé à l'intérieur.
+
+FSE04 est sorti de cette liste au ticket #124 : il a reçu, comme FSE03 (ticket #120), une
+théorie bespoke en plusieurs cartes avec mise en page à deux colonnes — voir
+`tests/test_ticket124_fse_theory_layout.py`."""
 
 import re
 
@@ -20,7 +24,7 @@ from app.v1.fse_course_sections import (
 )
 
 GENERIC_COURSES = [
-    "fse02", "fse04", "fse05", "fse06", "fse07", "fse08", "fse09", "fse10",
+    "fse02", "fse05", "fse06", "fse07", "fse08", "fse09", "fse10",
     "fse11", "fse12", "fse13", "fse14", "fse15", "fse16",
 ]
 
