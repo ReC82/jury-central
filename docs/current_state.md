@@ -78,6 +78,16 @@ Les mentions entre crochets deviennent une note discrète, les renvois de cours 
 annotations-réponses listés dans `omitted` ne sont plus affichés (ils restent dans le texte
 transmis à la correction). Voir `docs/claude-reports/2026-10-21_ticket-149-supports-visuels.md`.
 
+Références documentaires résolvables (ticket #151) : `short_answer`, `long_answer`,
+`classification` et `document_analysis` acceptent `source_document_version_ids` (tous les
+documents du dossier à montrer, document principal inclus) — l'élève et le correcteur
+voient la même liste. Résultats et export reprennent le libellé de session (« Document 3 :
+Réactions des groupes concernés ») ; le correcteur reçoit le numéro réel dans le titre.
+`app/v1/document_references.py` : liste des questions de dossier corrigées
+(`dossier_repairs`), mise à niveau idempotente d'une banque déjà importée par nouvelle
+version (`repair_dossier_references`, appelée par `app.seed`) et audit
+(`audit_document_references`). Voir `docs/claude-reports/2026-10-22_ticket-151-references-documentaires.md`.
+
 ---
 
 ## Administration
