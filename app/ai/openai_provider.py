@@ -58,6 +58,31 @@ class OpenAIProvider:
         self._api_key = api_key
         self._model = model
         self._timeout_seconds = timeout_seconds
+        # Ticket #46 : jetons consommés depuis le dernier `consume_usage()` (compteurs
+        # seulement, jamais le contenu des échanges).
+        self._usage = {"input_tokens": 0, "output_tokens": 0}
+
+    @property
+    def provider_name(self) -> str:
+        return "openai"
+
+    @property
+    def model_name(self) -> str:
+        return self._model
+
+    def consume_usage(self) -> dict[str, int]:
+        """Renvoie puis remet à zéro les jetons accumulés (voir `app.v1.ai_usage`)."""
+        usage, self._usage = self._usage, {"input_tokens": 0, "output_tokens": 0}
+        return usage
+
+    def _record_usage(self, data: dict) -> None:
+        usage = data.get("usage") if isinstance(data, dict) else None
+        if not isinstance(usage, dict):
+            return
+        for key in ("input_tokens", "output_tokens"):
+            value = usage.get(key)
+            if isinstance(value, int) and value > 0:
+                self._usage[key] += value
 
     def _headers(self) -> dict[str, str]:
         # Ne jamais journaliser le résultat de cette méthode : il contient la clé API.
@@ -174,6 +199,7 @@ class OpenAIProvider:
         except (json.JSONDecodeError, ValueError) as exc:
             raise AIResponseError("Réponse du service IA illisible ou incomplète.") from exc
 
+        self._record_usage(data)
         output_text = self._extract_output_text(data)
         try:
             parsed = json.loads(output_text)

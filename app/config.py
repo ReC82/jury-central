@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     openai_image_model: str = "gpt-image-2.5-flare"
     ai_image_request_timeout_seconds: float = 120.0
 
+    # Coût IA ESTIMÉ affiché dans l'admin (ticket #46), en USD par million de jetons —
+    # simple estimation indicative (aucun paiement réel), à ajuster si le tarif du modèle
+    # change. Jamais lu ailleurs que dans `app/v1/ai_usage.py`.
+    ai_cost_input_per_million: float = 1.25
+    ai_cost_output_per_million: float = 10.0
+
     model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".env"), extra="ignore")
 
 

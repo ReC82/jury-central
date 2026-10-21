@@ -72,6 +72,11 @@ Permet notamment :
 - gérer les UAA
 - gérer les blocs de contenu
 - importer des quiz
+- administrer la banque de questions V1 (`/admin/bank`, ticket #46) : statistiques par
+  module, recherche/filtres, versions, modification (= nouvelle version), statuts
+  (archiver/réactiver, invalide, obsolète, à revoir), variante IA, génération
+  ACTIVE/PAUSED par module, signalements des élèves et usage IA estimé — voir
+  `docs/admin.md`, § Banque de questions V1.
 
 La création complète d'un cours ne passe plus par l'administration.
 

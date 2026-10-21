@@ -24,9 +24,11 @@ from app.ai.provider import AINotConfiguredError, AIProviderError
 from app.database import get_db
 from app.models import UAA, Module
 from app.templating import templates
+from app.v1.ai_usage import KIND_CORRECTION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_MODULE_CODE, get_plan_by_slug
-from app.v1.auth import require_user, require_user_api
+from app.v1.auth import require_user, require_user_api, validate_csrf_token
 from app.v1.bank import get_uaa_by_slug, import_mc01_legacy_to_bank
+from app.v1.feedback import FEEDBACK_LABELS, create_question_feedback, parse_feedback_type
 from app.v1.francais_bank import import_francais_c01_to_bank
 from app.v1.francais_fr01_05_bank import (
     import_francais_fr01_to_bank,
@@ -625,6 +627,7 @@ async def view_session(
     session_id: int,
     request: Request,
     q: int = 1,
+    signaled: int | None = None,
     db=Depends(get_db),  # noqa: B008
     user: User = Depends(require_user),  # noqa: B008
 ) -> HTMLResponse:
@@ -666,6 +669,8 @@ async def view_session(
                 "comparison": None,
                 "comparison_error": None,
                 "courses_to_review": _courses_to_review(results),
+                "feedback_labels": FEEDBACK_LABELS,
+                "signaled_position": signaled,
             },
         )
 
@@ -947,15 +952,23 @@ async def compare_severity_route(
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
     comparison = None
     comparison_error = None
+    tracker = UsageTrackingProvider(_get_provider_or_unconfigured())
     try:
         comparison = simulate_severity_comparison(
-            db, session=session, provider=_get_provider_or_unconfigured(), severity_ui=severity_ui
+            db, session=session, provider=tracker, severity_ui=severity_ui
         )
     except AIProviderError:
         comparison_error = (
             "La comparaison de sévérité n'a pas pu être calculée pour le moment "
             "(service de correction indisponible). Réessaie plus tard."
         )
+    # Ticket #46 : seul enregistrement de cette simulation = son compteur d'usage IA
+    # (le résultat de la session reste intact).
+    if record_ai_usage(
+        db, tracker, kind=KIND_CORRECTION, module_id=session.module_id, user_id=user.id,
+        session_id=session.id, failed=comparison is None,
+    ) is not None:
+        db.commit()
 
     results = _build_results_rows(db, session_questions)
     original_severity_ui = (session.parameters_json or {}).get("severity")
@@ -973,11 +986,48 @@ async def compare_severity_route(
             "comparison": comparison,
             "comparison_error": comparison_error,
             "courses_to_review": _courses_to_review(results),
+            "feedback_labels": FEEDBACK_LABELS,
+            "signaled_position": None,
         },
     )
 
 
 # --- API autosave JSON (ticket #55 § AUTOSAVE) --------------------------------------------------
+
+
+@router.post("/sessions/{session_id}/questions/{position}/feedback")
+async def question_feedback_route(
+    session_id: int,
+    position: int,
+    request: Request,
+    feedback_type: str = Form(...),
+    comment: str = Form(""),
+    csrf_token: str = Form(""),
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+):
+    """Signalement d'une question depuis les résultats (ticket #46) : vise la version
+    exactement servie dans CETTE session de l'utilisateur, jamais une autre."""
+    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session introuvable")
+    if session.status == SessionStatus.IN_PROGRESS:
+        raise HTTPException(status_code=409, detail="Signalement possible après la soumission.")
+    if not validate_csrf_token(request, csrf_token):
+        raise HTTPException(status_code=400, detail="Session expirée, recharge la page.")
+    parsed_type = parse_feedback_type(feedback_type)
+    if parsed_type is None:
+        raise HTTPException(status_code=400, detail="Type de signalement inconnu.")
+    session_question = next((sq for sq in session.session_questions if sq.position == position), None)
+    if session_question is None:
+        raise HTTPException(status_code=404, detail="Question introuvable")
+    create_question_feedback(
+        db, user_id=user.id, session_question=session_question, feedback_type=parsed_type, comment=comment
+    )
+    db.commit()
+    return RedirectResponse(
+        url=f"/sessions/{session_id}?signaled={position}#result-item-{position}", status_code=303
+    )
 
 
 @router.post("/api/v1/sessions/{session_id}/answers/{session_question_id}")

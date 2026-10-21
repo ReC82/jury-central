@@ -136,6 +136,65 @@ continuent d'utiliser l'ancien affichage (énoncé + réponse).
 
 ---
 
+# Banque de questions V1 (ticket #46)
+
+Accès : `/admin/bank` (lien « Banque de questions » du tableau de bord). Code :
+`app/v1/bank_admin.py` (logique), `app/v1/routes_admin_bank.py` (routes),
+`app/v1/feedback.py` (signalements), `app/v1/ai_usage.py` (usage IA),
+`app/v1/generation_control.py` (pause de génération). Tests :
+`tests/test_ticket46_admin_bank.py`.
+
+Principe : **aucune suppression physique**. Une question retirée change de statut ;
+seules les questions **actives** sont proposées aux élèves.
+
+## Par module (`/admin/bank`)
+
+- questions par statut (active, archivée, signalée, invalide, obsolète, à revoir),
+  questions signalées et « à contrôler » ;
+- rating empirique min / médian / max (questions déjà mesurées, ticket #45) ;
+- tentatives (`times_served`) et réussite moyenne (`times_correct / times_served`) ;
+- génération IA ACTIVE / PAUSED, avec bouton pour basculer ;
+- questions générées par IA / importées, questions réutilisées (servies dans au moins
+  2 sessions) et nombre de passages en session ;
+- usage IA du mois et total : appels, questions générées, questions corrigées, jetons,
+  coût **estimé** (tarifs `AI_COST_INPUT_PER_MILLION` / `AI_COST_OUTPUT_PER_MILLION`,
+  USD par million de jetons, défauts 1,25 / 10 — une estimation, pas une facture).
+  L'usage est compté depuis l'installation du ticket #46 (pas de reprise de l'historique).
+
+« À contrôler » = statut « signalée » ou « à revoir », ou au moins un signalement élève
+non traité.
+
+## Questions (`/admin/bank/questions`)
+
+Filtres : module, mini-cours, type, statut, rating min/max, texte de l'énoncé ou numéro,
+« à contrôler ». Pagination par 50.
+
+Détail d'une question :
+
+- **versions** (contenu JSON de chacune, nombre de passages en session) ;
+- **modifier** : le JSON de la version courante est éditable ; l'enregistrement crée une
+  **nouvelle version** (jamais de modification en place), vérifiée par le registre des
+  types (#40). Le type de question ne change pas. Les sessions passées gardent la version
+  qu'elles ont servie ;
+- **statut** : activer/réactiver, archiver, marquer signalée / invalide / obsolète / à
+  revoir ;
+- **régénérer une variante** : un appel IA crée une nouvelle question du même type et du
+  même mini-cours (mêmes validations que toute génération), au statut « à revoir » —
+  jamais servie avant activation. Indisponible pour FSE (banque rédigée à la main), MC38,
+  les questions liées à un document source, les types non générables, et quand la
+  génération du module est en pause ;
+- **signalements** de la question, à marquer traités (ou rouvrir).
+
+## Signalements (`/admin/bank/feedback`)
+
+Les élèves signalent une question depuis la page de résultats d'une session (« Signaler
+un problème sur cette question ») : trop facile, trop difficile, ambiguë, question ou
+correction incorrecte, image incorrecte, réponse contestable, autre — avec un commentaire
+facultatif. Le signalement vise la version exactement servie. Il ne change jamais le
+statut de la question automatiquement : l'admin décide.
+
+---
+
 # Import des cours
 
 Les cours ne sont plus créés depuis l'administration.

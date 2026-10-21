@@ -176,9 +176,10 @@
 
         <div class="accordion" id="results-accordion">
             {% for item in results %}
-            <div class="accordion-item">
+            {% set is_signaled = signaled_position == item.position %}
+            <div class="accordion-item" id="result-item-{{ item.position }}">
                 <h2 class="accordion-header">
-                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
+                    <button class="accordion-button {% if not loop.first and not is_signaled %}collapsed{% endif %}" type="button"
                             data-bs-toggle="collapse" data-bs-target="#result-{{ item.position }}">
                         {% if item.correction_status != "corrected" %}
                         Question {{ item.position }} — en attente de correction
@@ -187,7 +188,7 @@
                         {% endif %}
                     </button>
                 </h2>
-                <div id="result-{{ item.position }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}">
+                <div id="result-{{ item.position }}" class="accordion-collapse collapse {% if loop.first or is_signaled %}show{% endif %}">
                     <div class="accordion-body">
                         <p class="fw-semibold">{{ item.prompt }}</p>
 
@@ -268,6 +269,29 @@
                             </a>
                         </div>
                         {% endif %}
+
+                        {# Ticket #46 : signalement d'un problème sur cette question. #}
+                        {% if is_signaled %}
+                        <div class="alert alert-success small mt-3 mb-0 d-print-none" role="status">
+                            Merci, ton signalement a été transmis. Il sera vérifié.
+                        </div>
+                        {% endif %}
+                        <details class="mt-3 d-print-none">
+                            <summary class="small text-muted">Signaler un problème sur cette question</summary>
+                            <form method="post" action="/sessions/{{ session.id }}/questions/{{ item.position }}/feedback" class="mt-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <label class="form-label small" for="feedback-type-{{ item.position }}">Problème</label>
+                                <select class="form-select form-select-sm mb-2" name="feedback_type" id="feedback-type-{{ item.position }}" required>
+                                    {% for value, label in feedback_labels.items() %}
+                                    <option value="{{ value.value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <label class="form-label small" for="feedback-comment-{{ item.position }}">Commentaire (facultatif)</label>
+                                <textarea class="form-control form-control-sm mb-2" name="comment" id="feedback-comment-{{ item.position }}"
+                                          rows="2" maxlength="1000" placeholder="Explique ce qui ne va pas"></textarea>
+                                <button type="submit" class="btn btn-outline-dark btn-sm">Envoyer le signalement</button>
+                            </form>
+                        </details>
                     </div>
                 </div>
             </div>
