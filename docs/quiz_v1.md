@@ -35,6 +35,12 @@ après la validation de chaque réponse. Code : `app/v1/quiz_service.py` (logiqu
 - **Validation** : `POST /quiz/parties/{id}/valider` ; réponse incomplète refusée (422, rien
   enregistré) ; réponse validée verrouillée, double validation sans effet ; solution et
   explication envoyées au navigateur **seulement après** validation serveur.
+- **Ordre des réponses** (#150) : permutation tirée à la création de la partie pour chaque QCM
+  et remise en ordre (`app/v1/display_order.py`), persistée dans
+  `SessionQuestion.content_snapshot_json["display_order"]` et réappliquée à l'affichage et à la
+  correction affichée ; la banque n'est jamais modifiée, la correction se fait par identifiant
+  sur le contenu privé. Options « toutes les réponses ci-dessus »/« A et B » gardées à leur
+  place ; `shuffle: false` respecté.
 - **Erreur technique** : réponse gardée en `FAILED`, exclue du score (ni juste ni fausse).
 - **Reprise exacte** : `/quiz/parties/{id}` affiche la première question non validée.
 - **Résultat** : score sur les questions corrigées, par matière, points forts (cours sans
