@@ -88,21 +88,9 @@ confortable des supports composés) ; la zone de réponse garde une largeur de l
                     {% endfor %}
 
                 {% elif qtype == "ordering" %}
-                    {% set saved_order = display.answer_json.get('order', []) %}
-                    {% set partial_positions = display.answer_json.get('positions', {}) %}
-                    <p class="form-text">Attribue une position différente (1 = premier) à chaque élément. Tant que chaque position n'est pas utilisée une seule fois, la question reste sans réponse.</p>
-                    {% for item in payload["items"] %}
-                    {% set saved_position = (saved_order.index(item.id) + 1) if item.id in saved_order else partial_positions.get(item.id, 0) %}
-                    <div class="mb-3 d-flex align-items-center gap-2">
-                        <select class="form-select" style="max-width: 13rem;" name="position__{{ item.id }}" aria-label="Position de « {{ item.label }} »">
-                            <option value="0" {% if saved_position == 0 %}selected{% endif %}>Choisir une position</option>
-                            {% for pos in range(1, payload["items"]|length + 1) %}
-                            <option value="{{ pos }}" {% if pos == saved_position %}selected{% endif %}>{{ pos }}</option>
-                            {% endfor %}
-                        </select>
-                        <span>{{ item.label }}</span>
-                    </div>
-                    {% endfor %}
+                    {# Ticket #153 : cartes réordonnables, sauvegarde automatique par IDs. #}
+                    {% set ordering_autosave_url = "/api/v1/sessions/" ~ session.id ~ "/answers/" ~ display.session_question.id %}
+                    {% include "_ordering_cards.html" %}
 
                 {% else %}
                     {# Ticket #73 : le plafond vient TOUJOURS de payload.max_length (chaque
@@ -180,5 +168,12 @@ confortable des supports composés) ; la zone de réponse garde une largeur de l
         update();
     })();
 </script>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if display.question_type == "ordering" %}
+<script src="{{ url_for('static', path='vendor/sortablejs/Sortable.min.js') }}"></script>
+<script src="{{ url_for('static', path='js/ordering_cards.js') }}"></script>
 {% endif %}
 {% endblock %}

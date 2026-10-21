@@ -194,6 +194,16 @@ et persisté dans la session (`SessionQuestion.content_snapshot_json["display_or
 `app/v1/display_order.py`) : stable à la reprise, banque inchangée, correction toujours
 par identifiant. Les sessions antérieures gardent l'ordre de la banque.
 
+Depuis le ticket #153, une remise en ordre (entraînement, examen blanc, quiz) s'affiche en
+cartes réordonnables : glisser-déposer souris/tactile par la poignée (SortableJS 1.15.7,
+MIT, vendorisé dans `app/static/vendor/sortablejs/`), boutons Monter/Descendre et
+Alt + ↑/↓, annonce accessible. Gabarit partagé `app/templates/_ordering_cards.html`,
+script `app/static/js/ordering_cards.js`. Contrat serveur inchangé (champs
+`position__<id>`) ; l'ordre affiché n'est enregistré qu'après un déplacement ou
+« Conserver cet ordre ». En entraînement/examen, sauvegarde automatique par identifiants
+via `/api/v1/sessions/{id}/answers/{sq}` (permutation complète validée côté serveur) ; en
+quiz, validation volontaire. Sans JavaScript, les listes de positions restent utilisables.
+
 ---
 
 ## Renderer de contenu riche (VS003.1)

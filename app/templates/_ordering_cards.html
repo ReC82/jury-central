@@ -1,0 +1,71 @@
+{# Ticket #153 : remise en ordre par cartes (glisser-déposer souris/tactile + boutons
+Monter/Descendre + clavier). Composant partagé entraînement / examen blanc / quiz.
+
+Contrat avec le serveur inchangé : un champ caché `position__<id>` par élément (1 à n,
+0 = pas de position). Tant que l'élève n'a ni déplacé une carte ni cliqué « Conserver cet
+ordre », les champs gardent leur valeur enregistrée (0 par défaut) : l'ordre affiché au
+chargement n'est jamais enregistré silencieusement comme réponse.
+
+Variables attendues : `payload` (public, déjà mélangé par la session), `display`
+(answer_json), `ordering_autosave_url` (facultatif : sauvegarde automatique JSON, absente
+en quiz où la validation reste volontaire). Sans JavaScript, les listes de positions
+d'origine restent utilisables (repli). #}
+{% set saved_order = display.answer_json.get('order', []) %}
+{% set partial_positions = display.answer_json.get('positions', {}) %}
+{% set item_ids = payload["items"] | map(attribute="id") | list %}
+{% set is_answered = saved_order and (saved_order | sort) == (item_ids | sort) %}
+{% set ns = namespace(items=payload["items"]) %}
+{% if is_answered %}
+    {% set ns.items = [] %}
+    {% for saved_id in saved_order %}{% for item in payload["items"] if item.id == saved_id %}{% set ns.items = ns.items + [item] %}{% endfor %}{% endfor %}
+{% endif %}
+{% set ordered_items = ns.items %}
+<div class="jc-order" data-jc-ordering
+     data-answered="{{ 'true' if is_answered else 'false' }}"
+     {% if ordering_autosave_url %}data-autosave-url="{{ ordering_autosave_url }}"{% endif %}>
+
+    <div class="jc-order-fallback" data-jc-order-fallback>
+        <p class="form-text">Attribue une position différente (1 = premier) à chaque élément. Tant que chaque position n'est pas utilisée une seule fois, la question reste sans réponse.</p>
+        {% for item in payload["items"] %}
+        {% set saved_position = (saved_order.index(item.id) + 1) if item.id in saved_order else partial_positions.get(item.id, 0) %}
+        <div class="mb-3 d-flex align-items-center gap-2">
+            <select class="form-select" style="max-width: 13rem;" name="position__{{ item.id }}" aria-label="Position de « {{ item.label }} »">
+                <option value="0" {% if saved_position == 0 %}selected{% endif %}>Choisir une position</option>
+                {% for pos in range(1, payload["items"]|length + 1) %}
+                <option value="{{ pos }}" {% if pos == saved_position %}selected{% endif %}>{{ pos }}</option>
+                {% endfor %}
+            </select>
+            <span>{{ item.label }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="jc-order-enhanced" data-jc-order-enhanced hidden>
+        <p class="jc-order-hint" id="jc-order-hint-{{ display.position }}">
+            <i class="bi bi-arrows-move" aria-hidden="true"></i>
+            <strong>Fais glisser les étapes pour les mettre dans l'ordre</strong> (la première en haut).
+            <span class="d-block small text-muted">Sans glisser : boutons <i class="bi bi-arrow-up" aria-hidden="true"></i> Monter et <i class="bi bi-arrow-down" aria-hidden="true"></i> Descendre<span class="d-none d-md-inline">, ou touches Alt + ↑ / Alt + ↓ sur une carte</span>.</span>
+        </p>
+        <ol class="jc-order-list" data-jc-order-list aria-describedby="jc-order-hint-{{ display.position }}">
+            {% for item in ordered_items %}
+            <li class="jc-order-card" data-id="{{ item.id }}" tabindex="0"
+                aria-label="{{ item.label }}">
+                <span class="jc-order-handle" aria-hidden="true" title="Glisser pour déplacer"><i class="bi bi-grip-vertical"></i></span>
+                <span class="jc-order-pos" aria-hidden="true">{{ loop.index }}</span>
+                <span class="jc-order-label">{{ item.label }}</span>
+                <span class="jc-order-moves">
+                    <button type="button" class="jc-order-btn" data-move="-1" aria-label="Monter « {{ item.label }} »" title="Monter"><i class="bi bi-arrow-up" aria-hidden="true"></i></button>
+                    <button type="button" class="jc-order-btn" data-move="1" aria-label="Descendre « {{ item.label }} »" title="Descendre"><i class="bi bi-arrow-down" aria-hidden="true"></i></button>
+                </span>
+            </li>
+            {% endfor %}
+        </ol>
+        <div class="jc-order-footer">
+            <p class="jc-order-status mb-0" data-jc-order-status></p>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-jc-order-keep>
+                <i class="bi bi-check2" aria-hidden="true"></i> Conserver cet ordre
+            </button>
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-jc-order-live></p>
+    </div>
+</div>
