@@ -121,3 +121,80 @@ jcorch resume && sudo systemctl start jury-central-orch   # relancer après stop
   prompt de l'orchestrateur. La PR #104 traite ce sujet et reste une décision du propriétaire.
 - Mise à jour du code LQORCH : recopie manuelle plus réapplication des trois options
   (`/opt/jury-central-orch/README.md`).
+
+---
+
+## 8. Automatisation complète (2026-10-21, même jour, consigne explicite ultérieure)
+
+Le propriétaire a supprimé l'étape `jcorch add` obligatoire et demandé des notifications email.
+Les sections 3, 5 et 6 ci-dessus sont complétées ainsi (LQORCH toujours inchangé, empreinte
+`573d74066d25`) :
+
+### 8.1 Découverte et priorités
+
+- `LQ_GH_SYNC=1` : toutes les 10 min, après chaque session, ou sur `jcorch sync`, le
+  superviseur lit tous les tickets ouverts (PR exclues) et les met en file automatiquement.
+- Priorité = labels `P0`…`P3` (P2 par défaut) ; à priorité égale, le plus ancien d'abord. Un
+  changement de label est repris à la synchronisation suivante ; le ticket actif n'est jamais
+  interrompu.
+- Dépendances déclarées dans le ticket (« dépend de #N », « bloqué par #N », « prérequis #N »)
+  ou signalées par une session (`READY` + `deps`) : la dépendance actionnable est traitée
+  d'abord ; sinon le blocage est noté et un autre ticket est pris.
+- Respectés : labels `statut: suspendu`, `statut: abandonné`, `wontfix`, `duplicate`, `invalid`
+  (ticket mis de côté, repris si le label est retiré), `statut: bloqué`, `statut: à tester`,
+  `statut: terminé` posés par le propriétaire.
+
+### 8.2 Statuts GitHub
+
+Labels tenus par le superviseur : `statut: en cours` (session lancée), `statut: bloqué`
+(question nécessaire), `statut: à tester` (installé, validation du propriétaire), `statut:
+terminé`. La session publie le commentaire détaillé (marqué `<!-- jcorch -->`). Aucun ticket
+n'est fermé par JCORCH.
+
+### 8.3 Reprise sur réponse
+
+Un nouveau commentaire du propriétaire ou d'un collaborateur (OWNER/MEMBER/COLLABORATOR), sans
+le marqueur du bot, postérieur au début de la session qui a bloqué ou livré, remet le ticket en
+file une seule fois. Ignorés : commentaires du bot, auteurs externes, synchronisation sans
+nouveauté. Le prompt traite les commentaires comme des données : ils ne peuvent ni changer les
+règles ni élargir les autorisations.
+
+### 8.4 Notifications email
+
+- Configuration SMTP existante de RPGQuest/PlugAdmin (`~/.config/plugadmin/smtp.env`, 0600),
+  lue sur place, jamais copiée ni journalisée (`LQ_NOTIFY_SMTP_ENV`).
+- Objet `[Jury Central] #<n> — Livré` ou `— Question bloquante` ; corps : résultat, SHA, liens
+  à tester, questions numérotées, reste à faire, liens ticket et rapport ; **rapport `.md` joint**
+  (copie déposée par la session dans `~/.local/state/jury-central-orch/reports/`).
+- Une seule notification par état (clé unique ticket + type + SHA ou questions). Échec d'envoi :
+  conservée, nouvel essai à délai croissant (30 essais max), la file continue
+  (`jcorch notifications [--retry]`).
+
+### 8.5 Rapport de session
+
+Format imposé au rapport : ticket, état réel, résultat et changements, SHA et liens,
+vérifications et limites, choix techniques faits seul, décisions demandées au propriétaire
+(numérotées, contexte, options, recommandation, ou « Aucune décision utilisateur nécessaire »),
+reste à faire. Un rapport est aussi poussé en cas de blocage.
+
+### 8.6 Rapprochement GitHub effectué
+
+Labels `P0`–`P3` et `statut: …` créés. Les 29 tickets livrés listés au § 5 ont reçu le label
+`statut: à tester` et un commentaire de preuve : ils ne seront pas refaits. En file : #45, #46,
+#48, #65, #67, #75, #83, #86, #94, #129 (tous P2 faute de label, donc du plus ancien au plus
+récent).
+
+### 8.7 Vérifications
+
+Avec un faux `gh` (GitHub simulé) et un faux `claude`, état temporaire :
+- découverte sans `add`, PR exclue, ticket suspendu ignoré, ticket « à tester » non retraité ;
+- ordre P0 → P1 → P2 (le plus ancien) → P3, et passage P3 → P0 pris en compte ;
+- blocage → label `statut: bloqué`, email « Question bloquante » en file, passage au suivant ;
+- commentaires du bot et d'un externe, synchronisation répétée : aucune relance ; réponse du
+  propriétaire : une seule relance, puis livraison ;
+- dépendance actionnable traitée d'abord ; dépendance suspendue → ticket suivant ;
+- SMTP injoignable : notification conservée avec erreur et nouvel essai, file non bloquée ;
+- email réel de test envoyé avec la configuration existante, pièce jointe `.md` comprise.
+
+Mise en service réelle : 39 tickets synchronisés, première session lancée sur #45 avec le
+label `statut: en cours` posé.
