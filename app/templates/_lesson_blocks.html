@@ -21,7 +21,7 @@ Attend `rendered_blocks` et `empty_message` dans le contexte du template qui l'i
     {% endcall %}
 
     {% elif item.block.type.value == "markdown" %}
-    {% call cards.card(item.card, title=item.block.title) %}
+    {% call cards.card(item.card, title=item.block.title, extra_class="jc-card--reading" if item.reading and not item.memo else "") %}
     <div class="content-markdown">{{ item.html | safe }}
     {%- if item.memo %}
     <h2 id="a-retenir" class="jc-memo-heading">À retenir</h2>

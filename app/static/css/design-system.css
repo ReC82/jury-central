@@ -1582,29 +1582,186 @@ body.jc-zoom-open {
     .jc-doc-scene-image { max-width: 220px; }
 }
 
-/* --- Confort de lecture d'une explication théorique (ticket #120) : limite la prose
-   explicative à environ 65-75 caractères par ligne sur grand écran (unité `ch`, calée sur
-   la largeur d'un caractère), sans toucher aux tableaux, documents ou grilles de
-   comparaison, qui restent sur toute la largeur disponible car ils ne portent pas cette
-   classe.
+/* --- Texte suivi d'une explication théorique (tickets #120 → #148).
 
-   Correctif ticket #124 (centrage `margin: 0 auto`) ANNULÉ au ticket #126 : centrer ce
-   bloc dans une carte plus large que lui créait une colonne flottante, désalignée du
-   titre de la carte et des autres blocs pleine largeur (grille, encadré) qui l'entourent
-   — un déséquilibre constaté sur le site réel, pas seulement résolu par un centrage.
-   Aligné à gauche (aucune marge automatique) : partage désormais le même repère gauche
-   que le titre de la carte et tout ce qui l'entoure. Pour une section dont le contenu se
-   prête à une vraie composition à plusieurs blocs plutôt qu'à un paragraphe isolé, voir
-   `.jc-theory-split` et `.jc-theory-cards` ci-dessous — c'est la réponse préférée chaque
-   fois que le contenu le permet, `.jc-prose` restant réservé à une explication
-   réellement continue, sans second volet. --- */
+   Ticket #148 — cause du « petit bloc de prose dans une carte géante » : `.jc-prose`
+   portait sa propre largeur maximale (70ch, ~710 px) alors que sa carte en mesure ~1060 px
+   sur ordinateur ; le reste de la carte restait vide à droite (FSE02, FSE05-16). La
+   largeur de lecture n'est plus portée par le texte mais par la composition qui le
+   contient :
+   - dans une cellule (`.jc-theory-layout`, `.jc-theory-split`, cartes), la prose prend la
+     largeur de sa cellule ;
+   - une carte purement textuelle se rétrécit elle-même, titre compris
+     (`.jc-card--reading`, voir plus bas) : contenant, titre et texte restent alignés.
+   Plus aucune marge automatique ni plafond propre au paragraphe. --- */
 
 .jc-prose {
-    max-width: 70ch;
+    max-width: none;
 }
 
 .jc-prose > :last-child {
     margin-bottom: 0;
+}
+
+/* --- Théorie + mots clés (ticket #148, FSE05-FSE16 et FSE02) : l'explication occupe la
+   colonne principale, les définitions forment une colonne « Les mots clés » à droite —
+   au lieu d'une prose étroite suivie d'une grille pleine largeur. Empilé sous 992 px et à
+   l'impression (explication puis mots clés). --- */
+
+.jc-theory-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(250px, 1fr);
+    gap: 1.75rem;
+    align-items: start;
+}
+
+.jc-theory-layout + * {
+    margin-top: 1.5rem;
+}
+
+.jc-theory-layout-main > :first-child {
+    margin-top: 0;
+}
+
+.jc-theory-layout-main > :last-child,
+.jc-theory-layout-main .jc-prose > :last-child {
+    margin-bottom: 0;
+}
+
+.jc-theory-layout-aside {
+    border-left: 3px solid var(--jc-blue);
+    padding-left: 1rem;
+}
+
+.jc-theory-layout-aside-label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--jc-blue);
+    margin-bottom: 0.6rem;
+}
+
+.jc-theory-layout-aside .jc-definitions {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    margin: 0;
+}
+
+.jc-theory-layout-aside .jc-definition {
+    padding: 0.6rem 0.85rem;
+}
+
+.jc-theory-layout--wide-aside {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.jc-theory-layout--wide-aside .jc-theory-layout-aside .jc-definitions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 991.98px) {
+    .jc-theory-layout {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    .jc-theory-layout-aside .jc-definitions,
+    .jc-theory-layout--wide-aside .jc-theory-layout-aside .jc-definitions {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}
+
+@media print {
+    .jc-theory-layout { display: block; }
+    .jc-theory-layout-aside { margin-top: 1rem; }
+}
+
+/* --- Groupes pédagogiques d'une théorie composée (ticket #148, FSE02) : un intertitre
+   par groupe, des cartes de financement côte à côte. --- */
+
+.jc-theory-group-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f2933;
+    margin: 2rem 0 0.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e3e6ea;
+}
+
+.jc-card-body > .jc-theory-group-title:first-child,
+.content-markdown > .jc-theory-group-title:first-child {
+    margin-top: 0.25rem;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.jc-definitions.jc-fund-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 1rem 0 0;
+}
+
+.jc-fund-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.jc-fund-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+}
+
+.jc-fund-card .jc-definition-term small {
+    font-weight: 600;
+    font-size: 0.78em;
+}
+
+.jc-fund-card p {
+    margin: 0 0 0.45rem;
+}
+
+.jc-fund-card > :last-child {
+    margin-bottom: 0;
+}
+
+.jc-fund-payer {
+    padding-top: 0.45rem;
+    border-top: 1px dashed rgba(21, 101, 192, 0.35);
+    font-size: 0.9rem;
+}
+
+.jc-fund-detail {
+    font-size: 0.88rem;
+    color: #4a5561;
+}
+
+@media (max-width: 991.98px) {
+    .jc-definitions.jc-fund-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 576px) {
+    .jc-definitions.jc-fund-cards { grid-template-columns: 1fr; }
+}
+
+@media print {
+    .jc-fund-card { break-inside: avoid; }
+}
+
+/* --- Carte purement textuelle (ticket #148) : sans tableau, grille, schéma ni image, une
+   carte de texte seul (présentation, méthode, sources...) ne s'étire plus sur ~1060 px. La
+   carte entière — bandeau, titre et texte — prend une largeur de lecture confortable et
+   reste centrée dans la colonne du cours. Détection côté serveur
+   (`app.content.is_text_only_html`). --- */
+
+#jc-lesson .jc-card--reading {
+    max-width: 50rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media print {
+    #jc-lesson .jc-card--reading { max-width: none; }
 }
 
 /* --- Théorie à deux colonnes (ticket #124) : explication à gauche, exemple ou repère

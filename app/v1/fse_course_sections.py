@@ -262,11 +262,19 @@ def theory_and_definitions_to_cards(theory_raw: str, definitions_raw: str) -> st
     reste donc désormais toujours visible : une poignée de termes déjà mentionnés dans la
     prose, repris en fin de carte sous forme de petites cartes, est un bien meilleur
     compromis qu'un bloc de texte sans aucune respiration visuelle."""
-    theory_html = theory_prose_to_html(theory_raw)
-
     items = _definitions_bullets_to_items(definitions_raw)
     if not items:
-        return theory_html
+        return theory_prose_to_html(theory_raw)
+
+    # Ticket #148 : la prose n'est plus une colonne de ~70 caractères isolée dans une carte
+    # de ~1060 px (grand vide à droite, constaté sur le site réel). Explication et mots
+    # clés sont composés côte à côte : la prose prend la largeur de sa cellule, les
+    # définitions forment la colonne de droite. Un schéma (bloc HTML brut, FSE08/FSE15)
+    # garde toute la largeur, sous cette composition.
+    blocks = [b.strip() for b in fix_list_blank_lines(theory_raw).split("\n\n") if b.strip()]
+    first_raw = next((i for i, b in enumerate(blocks) if _is_raw_html_block(b)), len(blocks))
+    main_html = theory_prose_to_html("\n\n".join(blocks[:first_raw]))
+    rest_html = theory_prose_to_html("\n\n".join(blocks[first_raw:])) if first_raw < len(blocks) else ""
 
     grid = (
         '<div class="jc-definitions">\n'
@@ -277,8 +285,21 @@ def theory_and_definitions_to_cards(theory_raw: str, definitions_raw: str) -> st
         )
         + "\n</div>"
     )
-
-    return f"{theory_html}\n\n{grid}"
+    # Beaucoup de définitions face à une prose courte (ex. FSE12 : 9 définitions, 4
+    # paragraphes) : la colonne des mots clés deviendrait 2 à 3 fois plus haute que
+    # l'explication. Elle s'élargit alors et range ses cartes sur deux colonnes.
+    # Estimation : longueur des définitions + ~120 caractères de « coût » fixe par carte.
+    prose_len = sum(len(b) for b in blocks[:first_raw]) or 1
+    defs_weight = (len(definitions_raw) + 120 * len(items)) / prose_len
+    variant = " jc-theory-layout--wide-aside" if defs_weight > 1.0 else ""
+    layout = (
+        f'<div class="jc-theory-layout{variant}">\n'
+        f'<div class="jc-theory-layout-main">\n{main_html}\n</div>\n'
+        '<aside class="jc-theory-layout-aside" aria-label="Mots clés">\n'
+        '<span class="jc-theory-layout-aside-label">🔑 Les mots clés</span>\n'
+        f"{grid}\n</aside>\n</div>"
+    )
+    return f"{layout}\n\n{rest_html}" if rest_html else layout
 
 
 _EXERCISE_BLOCK_RE = re.compile(
