@@ -1037,6 +1037,230 @@ a.jc-quiz-row:hover { border-color: var(--jc-primary); color: var(--jc-ink); }
     border-top: 1px solid var(--jc-line);
 }
 
+/* --- Séquence finale « À retenir » (ticket #136) ---
+   Composant à pleine largeur de sa carte : deux panneaux côte à côte (l'essentiel / ce que
+   je dois savoir faire), puis une grille de fiches de vocabulaire. Les panneaux et les
+   fiches occupent leur cellule de grille ; aucune largeur de lecture imposée à l'intérieur
+   (jamais un petit bloc dans un grand contenant). Pas de carte imbriquée dans une carte :
+   les panneaux sont de simples surfaces teintées, sans ombre. */
+
+.jc-memo-heading { margin-top: 2rem; }
+
+.jc-memo {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0.5rem 0 0.25rem;
+}
+
+.jc-memo-lead {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--jc-primary);
+    background: var(--jc-primary-soft);
+    border-radius: 0 var(--jc-radius-sm) var(--jc-radius-sm) 0;
+    color: var(--jc-ink-soft);
+    font-size: 0.95rem;
+}
+
+.jc-memo-lead .bi { color: var(--jc-primary); font-size: 1.15rem; line-height: 1.3; }
+
+/* Panneaux empilés à pleine largeur ; ce sont leurs listes internes qui passent en
+   grille, pour qu'aucune colonne courte ne laisse un vide à côté d'une colonne longue. */
+.jc-memo-top {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.jc-memo-panel {
+    background: var(--jc-canvas);
+    border: 1px solid var(--jc-line);
+    border-radius: var(--jc-radius-sm);
+    padding: 1rem 1.15rem;
+    min-width: 0;
+}
+
+.jc-memo-panel > :last-child { margin-bottom: 0; }
+
+.jc-memo .jc-memo-panel-title {
+    font-family: var(--jc-font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.jc-memo-panel-title .bi { color: var(--jc-primary); }
+
+.jc-memo h4 {
+    font-size: 0.98rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+}
+
+.jc-memo-essentials ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    /* Colonnes (et non grille) : des items de hauteurs différentes s'empilent sans trou. */
+    columns: 300px;
+    column-gap: 0.6rem;
+}
+
+.jc-memo-essentials ul > li {
+    break-inside: avoid;
+    margin-bottom: 0.6rem;
+    position: relative;
+    padding: 0.55rem 0.75rem 0.55rem 2rem;
+    background: var(--jc-surface);
+    border: 1px solid var(--jc-line);
+    border-radius: 10px;
+}
+
+.jc-memo-essentials ul > li::before {
+    content: "★";
+    position: absolute;
+    left: 0.7rem;
+    top: 0.6rem;
+    font-size: 0.8rem;
+    color: var(--jc-warn);
+}
+
+.jc-memo-essentials table { background: var(--jc-surface); }
+
+.jc-memo-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.75rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0.5rem 1.25rem;
+}
+
+.jc-memo-checklist li {
+    display: flex;
+    gap: 0.55rem;
+    align-items: flex-start;
+}
+
+.jc-memo-checklist .bi { color: var(--jc-success); margin-top: 0.15rem; }
+
+.jc-memo-objective { font-size: 0.93rem; color: var(--jc-ink-soft); }
+
+.jc-memo-method-title {
+    font-weight: 600;
+    margin: 0.75rem 0 0.4rem;
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+}
+
+.jc-memo-method { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.3rem; }
+
+.jc-memo-terms {
+    columns: 260px;
+    column-gap: 0.85rem;
+}
+
+.jc-memo-term {
+    break-inside: avoid;
+    margin-bottom: 0.85rem;
+    background: var(--jc-surface);
+    border: 1px solid var(--jc-line);
+    border-top: 4px solid var(--jc-primary);
+    border-radius: var(--jc-radius-sm);
+    padding: 0.8rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.jc-memo-term p { margin: 0; overflow-wrap: anywhere; }
+
+.jc-memo-term-name {
+    font-family: var(--jc-font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--jc-primary-strong);
+}
+
+.jc-memo-term-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    font-size: 0.86rem;
+    color: var(--jc-ink-soft);
+}
+
+.jc-memo-lang {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0 0.35rem;
+    border-radius: 4px;
+    background: var(--jc-primary-soft);
+    color: var(--jc-primary-strong);
+}
+
+.jc-memo-term-def { font-size: 0.95rem; }
+
+.jc-memo-term-extra {
+    display: flex;
+    gap: 0.45rem;
+    align-items: flex-start;
+    font-size: 0.88rem;
+    color: var(--jc-ink-soft);
+    padding-top: 0.4rem;
+    border-top: 1px dashed var(--jc-line);
+}
+
+.jc-memo-term-extra .bi { margin-top: 0.15rem; color: var(--jc-primary); }
+.jc-memo-term-trap .bi { color: var(--jc-warn); }
+
+.jc-memo-pairs-title {
+    font-weight: 600;
+    margin: 1.1rem 0 0.5rem;
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+}
+
+.jc-memo-pairs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.jc-memo-pairs > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.45rem 0.75rem;
+    background: var(--jc-canvas);
+    border: 1px solid var(--jc-line);
+    border-radius: 8px;
+}
+
+.jc-memo-pairs dt { font-weight: 600; }
+.jc-memo-pairs dd { margin: 0; text-align: right; color: var(--jc-ink-soft); }
+
+@media (max-width: 767.98px) {
+    .jc-memo-panel { padding: 0.85rem; }
+    .jc-memo-checklist { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media print {
+    .jc-memo-term, .jc-memo-panel, .jc-memo-pairs > div { break-inside: avoid; }
+    .jc-memo-lead, .jc-memo-panel { background: #fff; }
+}
+
 /* --- Impression : contenu complet, sans décor --- */
 
 @media print {
