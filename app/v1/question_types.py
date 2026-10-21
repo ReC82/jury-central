@@ -1059,7 +1059,8 @@ QUESTION_TYPE_REGISTRY.register(
         schema_versions=frozenset({1}),
         correction_mode=CorrectionMode.HYBRID,
         capabilities=frozenset({Capability.IMAGE, Capability.TEXT_INPUT, Capability.MULTI_SELECT, Capability.LOCAL_GRADING, Capability.SEMANTIC_GRADING}),
-        asset_contract=AssetContract(allowed_kinds=frozenset({AssetKind.IMAGE}), min_assets=1, max_assets=1),
+        # Ticket #48 : SVG accepté (schéma technique : « que désigne le repère B ? »).
+        asset_contract=AssetContract(allowed_kinds=frozenset({AssetKind.IMAGE, AssetKind.SVG}), min_assets=1, max_assets=1),
         source_document_requirement=SourceDocumentRequirement.NONE,
         content_model=ImageIdentificationContent,
         answer_model=ImageIdentificationAnswer,

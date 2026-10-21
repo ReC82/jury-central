@@ -185,6 +185,28 @@ Détail d'une question :
   génération du module est en pause ;
 - **signalements** de la question, à marquer traités (ou rouvrir).
 
+## Visuels (`/admin/bank/assets`, ticket #48)
+
+Liste de tous les visuels (assets) de la banque : aperçu, nature (photo réelle,
+illustration générée, schéma technique), origine, auteur, licence, lien source, statut, et
+les questions qui l'utilisent. La fiche d'une question montre aussi les visuels de sa
+version courante.
+
+- **Marquer incorrect** (motif facultatif, case « demander une régénération / un
+  remplacement ») : le visuel passe « invalide » et **toutes les questions qui
+  l'utilisent ne sont plus proposées** dans les nouvelles sessions. Les sessions passées
+  ne changent pas.
+- **Réactiver** : remet le visuel en service (et ses questions dans le tirage).
+- **Régénération** : seulement pour un visuel généré par IA dont la consigne est
+  conservée, et jamais automatiquement : commande manuelle sur le serveur,
+  `python -m app.v1.assets list-pending` puis `python -m app.v1.assets regenerate`
+  (appel IA réel). Le nouveau fichier devient un nouveau visuel ; chaque question
+  concernée reçoit une nouvelle version qui l'utilise. Une photo ou un schéma signalé se
+  remplace manuellement (nouveau fichier livré par un ticket).
+- Modifier une question visuelle (nouvelle version) conserve son image.
+
+Les élèves peuvent signaler « image incorrecte » depuis les résultats (voir ci-dessous).
+
 ## Signalements (`/admin/bank/feedback`)
 
 Les élèves signalent une question depuis la page de résultats d'une session (« Signaler

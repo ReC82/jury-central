@@ -12,7 +12,7 @@ import random
 import time
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import update
@@ -38,6 +38,7 @@ from app.v1.ai_bridge import (
 )
 from app.v1.ai_usage import KIND_CORRECTION, KIND_GENERATION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
+from app.v1.assets import asset_display, assets_for_version
 from app.v1.bank import (
     persist_generated_questions,
     recent_seen_prompts,
@@ -158,6 +159,9 @@ class QuestionDisplay:
     answer_json: dict
     source_documents: list[SourceDocumentVersion]
     source_document_labels: list[str]
+    # Ticket #48 : visuels de la question (`app.v1.assets.asset_display`), dans l'ordre
+    # de rattachement à la QuestionVersion figée de la session.
+    assets: list[dict] = field(default_factory=list)
 
 
 def _generate_with_domain_retry(
@@ -1005,6 +1009,7 @@ def build_question_display(db: DBSession, session_question: SessionQuestion) -> 
         answer_json=(answer.answer_json if answer else {}) or {},
         source_documents=source_documents,
         source_document_labels=source_document_labels,
+        assets=[asset_display(asset) for asset in assets_for_version(db, version.id)],
     )
 
 

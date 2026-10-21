@@ -190,6 +190,7 @@
                 </h2>
                 <div id="result-{{ item.position }}" class="accordion-collapse collapse {% if loop.first or is_signaled %}show{% endif %}">
                     <div class="accordion-body">
+                        {% if item.assets %}{% set assets = item.assets %}{% include "_question_assets.html" %}{% endif %}
                         <p class="fw-semibold">{{ item.prompt }}</p>
 
                         {% if item.source_documents %}

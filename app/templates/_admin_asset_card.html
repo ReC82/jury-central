@@ -1,0 +1,50 @@
+{# Ticket #48 : un visuel dans l'admin banque. Attend `row` (voir `_asset_row`) et
+   `next_question` (id de question pour revenir à sa fiche, vide = liste des visuels). #}
+{% set a = row.asset %}
+<div class="border rounded p-2 mb-2 {% if a.status.value != 'active' %}border-danger{% endif %}">
+    <div class="d-flex flex-wrap gap-3">
+        <a href="{{ row.display.url }}" target="_blank" rel="noopener">
+            <img src="{{ row.display.url }}" alt="{{ row.display.alt }}" loading="lazy"
+                 class="rounded border bg-white" style="width: 140px; height: 105px; object-fit: contain;">
+        </a>
+        <div class="small flex-grow-1" style="min-width: 12rem;">
+            <p class="mb-1"><strong>Visuel #{{ a.id }}</strong> — {{ row.visual_type_label }} — <code>{{ a.kind.value }}</code>
+                — statut : <strong class="{% if a.status.value != 'active' %}text-danger{% endif %}">{{ status_labels[a.status] }}</strong></p>
+            <p class="mb-1">Origine : {{ a.source_type.value }}{% if row.metadata.author %} — {{ row.metadata.author }}{% endif %}{% if a.license %} — {{ a.license }}{% endif %}
+                {% if a.source_url %} — <a href="{{ a.source_url }}" target="_blank" rel="noopener">source</a>{% endif %}</p>
+            {% if a.provenance %}<p class="mb-1 text-muted">{{ a.provenance }}</p>{% endif %}
+            <p class="mb-1">Utilisé par {{ row.version_count }} version(s) de question —
+                questions actuelles :
+                {% for q in row.questions %}<a href="/admin/bank/questions/{{ q.id }}">#{{ q.id }}</a>{% if not loop.last %}, {% endif %}{% else %}aucune{% endfor %}</p>
+            {% if row.metadata.flag_reason %}<p class="mb-1 text-danger">Motif : {{ row.metadata.flag_reason }}</p>{% endif %}
+            {% if row.metadata.regeneration_requested %}
+            <p class="mb-1"><span class="badge text-bg-warning">Régénération demandée</span>
+                {% if not row.can_regenerate %}<span class="text-muted">— photo/schéma : remplacement manuel du fichier nécessaire.</span>{% endif %}</p>
+            {% endif %}
+            {% if row.metadata.replaced_by_asset_id %}<p class="mb-1">Remplacé par le visuel #{{ row.metadata.replaced_by_asset_id }}.</p>{% endif %}
+        </div>
+    </div>
+    {% if a.status.value == 'active' %}
+    <details class="mt-2">
+        <summary class="small">Marquer ce visuel incorrect</summary>
+        <form method="post" action="/admin/bank/assets/{{ a.id }}/flag" class="mt-2 small">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="next_question" value="{{ next_question }}">
+            <textarea class="form-control form-control-sm mb-2" name="reason" rows="2" maxlength="500"
+                      placeholder="Ce qui ne va pas (facultatif)"></textarea>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="request_regeneration" value="1" id="regen-{{ a.id }}-{{ next_question }}" checked>
+                <label class="form-check-label" for="regen-{{ a.id }}-{{ next_question }}">Demander une régénération / un remplacement</label>
+            </div>
+            <button type="submit" class="btn btn-outline-danger btn-sm">Marquer incorrect</button>
+            <span class="text-muted">Les questions qui l'utilisent ne seront plus proposées.</span>
+        </form>
+    </details>
+    {% else %}
+    <form method="post" action="/admin/bank/assets/{{ a.id }}/reactivate" class="mt-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="next_question" value="{{ next_question }}">
+        <button type="submit" class="btn btn-success btn-sm">Réactiver ce visuel</button>
+    </form>
+    {% endif %}
+</div>

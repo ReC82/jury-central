@@ -30,6 +30,18 @@
             </div>
         </div>
 
+        {% if assets %}
+        <div class="card shadow-sm mb-3">
+            <div class="card-header small fw-semibold">Visuels de la version courante ({{ assets|length }})</div>
+            <div class="card-body">
+                {% set next_question = question.id %}
+                {% for row in assets %}
+                {% include "_admin_asset_card.html" %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <div class="card shadow-sm mb-3">
             <div class="card-header small fw-semibold">Modifier (crée une nouvelle version)</div>
             <div class="card-body">

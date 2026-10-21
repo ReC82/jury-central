@@ -27,6 +27,7 @@ from app.models import UAA, Module
 from app.v1.ai_bridge import BRIDGE_TYPES
 from app.v1.ai_usage import KIND_ADMIN_VARIANT, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
+from app.v1.assets import copy_asset_links
 from app.v1.bank import persist_generated_questions
 from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE
 from app.v1.generation_control import get_generation_status, is_generation_paused
@@ -343,6 +344,7 @@ def edit_question_content(db: Session, question: Question, raw_content: str) -> 
         source_program_version=current.source_program_version,
         source_document_version_id=current.source_document_version_id,
     )
+    copy_asset_links(db, current.id, version)
     question.updated_at = datetime.now(UTC)
     db.flush()
     return version

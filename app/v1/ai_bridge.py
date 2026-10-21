@@ -44,9 +44,19 @@ BRIDGE_TYPES = frozenset(
 # (référence, jamais le texte).
 DOCUMENT_TYPES = frozenset({"document_analysis", "source_comparison"})
 
+# image_identification / diagram_labeling (ticket #48, Informatique) : CORRECTION
+# uniquement, jamais génération — comme les types documentaires, une question visuelle
+# n'a de sens qu'avec un asset réel déjà enregistré (banque rédigée, voir
+# `app.v1.ampcr_visual_bank`). Mappés sur des types du contrat #23 déjà corrigés
+# localement : image_identification → multiple_choice (mode « choice ») ou short_answer
+# (mode « text ») ; diagram_labeling → classification (chaque repère = un élément, chaque
+# étiquette = une catégorie, crédit partiel #70 inclus). L'image elle-même n'est jamais
+# envoyée au correcteur : la bonne réponse est entièrement portée par le contenu privé.
+VISUAL_TYPES = frozenset({"image_identification", "diagram_labeling"})
+
 # Types que ce pont sait décrire pour l'écran de résultats et parser depuis un formulaire
 # de réponse — plus large que `BRIDGE_TYPES` (qui ne couvre que ce qui peut être généré).
-CORRECTABLE_TYPES = BRIDGE_TYPES | DOCUMENT_TYPES
+CORRECTABLE_TYPES = BRIDGE_TYPES | DOCUMENT_TYPES | VISUAL_TYPES
 
 _SEMANTIC_RUBRIC_TYPES = frozenset({"diagnostic", "long_answer"})
 _FREE_TEXT_ANSWER_TYPES = frozenset({"short_answer", "vocabulary", "diagnostic", "long_answer"}) | DOCUMENT_TYPES
@@ -134,7 +144,40 @@ def content_to_questionnaire_question(
             points_max=points_max,
             rubric=rubric or "Grille de correction non renseignée.",
         )
+    if question_type == "image_identification":
+        if content.get("response_mode", "choice") == "choice":
+            return content_to_questionnaire_question(
+                question_id=question_id, question_type="multiple_choice", content=content,
+                points_max=points_max,
+            )
+        return QuestionnaireQuestion(
+            question_id=question_id,
+            type="short_answer",
+            prompt=content["prompt"],
+            points_max=points_max,
+            accepted_answers=list(content.get("accepted_answers", [])),
+            rubric=content.get("rubric", ""),
+        )
+    if question_type == "diagram_labeling":
+        zones = content["zones"]
+        label_ids = [label["id"] for label in content["label_options"]]
+        return QuestionnaireQuestion(
+            question_id=question_id,
+            type="classification",
+            prompt=content["prompt"],
+            points_max=points_max,
+            categories=[label["label"] for label in content["label_options"]],
+            elements=[_zone_label(zone) for zone in zones],
+            correct_categories=[
+                label_ids.index(content["correct_mapping"][zone["zone_id"]]) for zone in zones
+            ],
+        )
     raise BridgeError(f"Type non pris en charge par le pont IA : {question_type!r}.")
+
+
+def _zone_label(zone: dict[str, Any]) -> str:
+    """Libellé affiché d'un repère de schéma (diagram_labeling) : « Repère A »."""
+    return f"Repère {zone.get('marker') or zone['zone_id']}"
 
 
 def shuffle_ordering_items(items: list[dict[str, Any]], correct_order: list[str]) -> list[dict[str, Any]]:
@@ -256,6 +299,17 @@ def answer_json_to_submitted(question_type: str, content: dict[str, Any], answer
         return [item_ids.index(iid) for iid in order if iid in item_ids]
     if question_type in _FREE_TEXT_ANSWER_TYPES:
         return answer_json.get("text", "") or ""
+    if question_type == "image_identification":
+        if content.get("response_mode", "choice") == "choice":
+            return answer_json_to_submitted("multiple_choice", content, answer_json)
+        return answer_json.get("text", "") or ""
+    if question_type == "diagram_labeling":
+        label_ids = [label["id"] for label in content["label_options"]]
+        mapping = answer_json.get("mapping", {}) or {}
+        return [
+            label_ids.index(mapping[zone["zone_id"]]) if mapping.get(zone["zone_id"]) in label_ids else -1
+            for zone in content["zones"]
+        ]
     raise BridgeError(f"Type non pris en charge par le pont IA : {question_type!r}.")
 
 
@@ -291,6 +345,19 @@ def describe_submitted_answer(question_type: str, content: dict[str, Any], answe
         if question_type in _FREE_TEXT_ANSWER_TYPES:
             text = (answer_json.get("text") or "").strip()
             return text if text else "(sans réponse)"
+        if question_type == "image_identification":
+            if content.get("response_mode", "choice") == "choice":
+                return describe_submitted_answer("multiple_choice", content, answer_json)
+            return describe_submitted_answer("short_answer", content, answer_json)
+        if question_type == "diagram_labeling":
+            labels = {label["id"]: label["label"] for label in content["label_options"]}
+            mapping = answer_json.get("mapping", {}) or {}
+            chosen = [
+                f"{_zone_label(zone)} → {labels[mapping[zone['zone_id']]]}"
+                for zone in content["zones"]
+                if mapping.get(zone["zone_id"]) in labels
+            ]
+            return " ; ".join(chosen) if chosen else "(sans réponse)"
     except (KeyError, IndexError, TypeError):
         return "(sans réponse)"
     return "(sans réponse)"

@@ -13,6 +13,18 @@ from app.auth import require_admin
 from app.database import get_db
 from app.models import UAA, Module
 from app.templating import templates
+from app.v1.assets import (
+    VISUAL_TYPE_LABELS,
+    asset_display,
+    asset_metadata,
+    asset_visual_type,
+    assets_for_version,
+    can_regenerate,
+    mark_asset_incorrect,
+    questions_using_asset,
+    reactivate_asset,
+    version_usage_count,
+)
 from app.v1.auth import validate_csrf_token
 from app.v1.bank_admin import (
     SOURCE_LABELS,
@@ -34,7 +46,7 @@ from app.v1.bank_admin import (
 )
 from app.v1.feedback import FEEDBACK_LABELS, resolve_feedback
 from app.v1.generation_control import get_generation_status, set_generation_status
-from app.v1.models import ContentStatus, ModuleGenerationStatus, Question, QuestionFeedback
+from app.v1.models import Asset, ContentStatus, ModuleGenerationStatus, Question, QuestionFeedback
 
 router = APIRouter(prefix="/admin/bank", tags=["admin-bank"], dependencies=[Depends(require_admin)])
 
@@ -43,6 +55,8 @@ _DONE_MESSAGES = {
     "status": "Statut mis à jour.",
     "variant": "Variante créée au statut « À revoir » : vérifie-la puis active-la.",
     "feedback": "Signalement mis à jour.",
+    "asset_flagged": "Visuel marqué incorrect : les questions qui l'utilisent ne sont plus proposées.",
+    "asset_reactivated": "Visuel réactivé : les questions qui l'utilisent sont de nouveau proposées.",
 }
 
 
@@ -184,9 +198,24 @@ def _render_question(request: Request, db, question: Question, *, error: str | N
             "error": error,
             "message": _DONE_MESSAGES.get(done) if done else None,
             "variant_id": _optional_int(request.query_params.get("variant")),
+            "assets": [_asset_row(db, asset) for asset in assets_for_version(db, current.id)] if current else [],
         },
         status_code=status_code,
     )
+
+
+def _asset_row(db, asset: Asset) -> dict:
+    """Ticket #48 : vue admin d'un visuel (statut, provenance, réutilisation)."""
+    metadata = asset_metadata(asset)
+    return {
+        "asset": asset,
+        "display": asset_display(asset),
+        "metadata": metadata,
+        "visual_type_label": VISUAL_TYPE_LABELS.get(asset_visual_type(asset), "—"),
+        "version_count": version_usage_count(db, asset),
+        "questions": questions_using_asset(db, asset),
+        "can_regenerate": can_regenerate(asset),
+    }
 
 
 def _get_question(db, question_id: int) -> Question:
@@ -308,3 +337,66 @@ async def bank_feedback_resolve(
         else "/admin/bank/feedback"
     )
     return RedirectResponse(url=target, status_code=303)
+
+
+# --- Visuels (ticket #48) -------------------------------------------------------------------------
+
+
+@router.get("/assets", response_class=HTMLResponse)
+async def bank_assets(request: Request, db=Depends(get_db)) -> HTMLResponse:  # noqa: B008
+    assets = db.query(Asset).order_by(Asset.id).all()
+    done = request.query_params.get("done")
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_bank_assets.html",
+        context={
+            "rows": [_asset_row(db, asset) for asset in assets],
+            "status_labels": STATUS_LABELS,
+            "message": _DONE_MESSAGES.get(done) if done else None,
+        },
+    )
+
+
+def _get_asset(db, asset_id: int) -> Asset:
+    asset = db.get(Asset, asset_id)
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Visuel introuvable")
+    return asset
+
+
+def _asset_redirect(next_question: str, done: str) -> RedirectResponse:
+    question_id = _optional_int(next_question)
+    target = f"/admin/bank/questions/{question_id}" if question_id else "/admin/bank/assets"
+    return RedirectResponse(url=f"{target}?done={done}", status_code=303)
+
+
+@router.post("/assets/{asset_id}/flag")
+async def bank_asset_flag(
+    asset_id: int,
+    request: Request,
+    reason: str = Form(""),
+    request_regeneration: str = Form(""),
+    next_question: str = Form(""),
+    csrf_token: str = Form(""),
+    db=Depends(get_db),  # noqa: B008
+) -> RedirectResponse:
+    _check_csrf(request, csrf_token)
+    asset = _get_asset(db, asset_id)
+    mark_asset_incorrect(db, asset, reason=reason, request_regeneration=request_regeneration == "1")
+    db.commit()
+    return _asset_redirect(next_question, "asset_flagged")
+
+
+@router.post("/assets/{asset_id}/reactivate")
+async def bank_asset_reactivate(
+    asset_id: int,
+    request: Request,
+    next_question: str = Form(""),
+    csrf_token: str = Form(""),
+    db=Depends(get_db),  # noqa: B008
+) -> RedirectResponse:
+    _check_csrf(request, csrf_token)
+    asset = _get_asset(db, asset_id)
+    reactivate_asset(db, asset)
+    db.commit()
+    return _asset_redirect(next_question, "asset_reactivated")
