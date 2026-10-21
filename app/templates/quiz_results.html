@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Résultat du quiz — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-12 col-lg-9">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/quiz">Quiz</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Résultat</li>
+        </ol>
+    </nav>
+
+    <span class="jc-eyebrow"><i class="bi bi-flag-fill" aria-hidden="true"></i> {{ params.label }}</span>
+    <h1 class="h2 mt-3 mb-1">{{ title }}</h1>
+    <p class="text-muted mb-3">
+        {% if results.counted_total %}
+        {{ "%g" | format(results.score) }} / {{ results.counted_total }} point{{ 's' if results.counted_total > 1 }} — {{ results.pct }}&nbsp;% de réussite
+        {% endif %}
+        — niveau&nbsp;: {{ difficulty_label }} — {{ session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else '' }}
+    </p>
+
+    <div class="jc-celebrate mb-4{% if results.pct is none or results.pct < 50 %} is-soft{% endif %}" id="jc-celebrate"
+         data-confetti="{{ '1' if results.pct is not none and results.pct >= 80 else '0' }}">
+        <i class="bi {{ 'bi-trophy-fill' if results.pct is not none and results.pct >= 50 else 'bi-arrow-repeat' }}" aria-hidden="true"></i>
+        <div>{{ message }}</div>
+    </div>
+
+    {% if request.query_params.get("epuise") %}
+    <div class="alert alert-info" role="status">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        Il n'y a plus de nouvelles questions pour ces cours pour l'instant. Relis les cours ci-dessous&nbsp;: d'autres questions arriveront avec les prochains contenus.
+    </div>
+    {% endif %}
+    {% if results.not_counted %}
+    <p class="jc-honest mb-4"><i class="bi bi-tools" aria-hidden="true"></i>
+        {{ results.not_counted }} question{{ 's' if results.not_counted > 1 }} n'{{ 'ont' if results.not_counted > 1 else 'a' }} pas pu être corrigée{{ 's' if results.not_counted > 1 }} (erreur technique)&nbsp;:
+        elle{{ 's' if results.not_counted > 1 }} ne compte{{ 'nt' if results.not_counted > 1 }} ni juste ni fausse.
+    </p>
+    {% endif %}
+
+    {% if results.subjects | length > 1 %}
+    <h2 class="h5 mb-2">Par matière</h2>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        {% for subject in results.subjects %}
+        <span class="jc-pill jc-pill-primary">{{ subject.name }} : {{ "%g" | format(subject.points | round(2)) }}/{{ subject.asked }} ({{ subject.pct }}&nbsp;%)</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <section class="jc-quiz-card h-100" aria-labelledby="strengths">
+                <h2 id="strengths" class="h5"><i class="bi bi-star-fill text-success" aria-hidden="true"></i> Tes points forts</h2>
+                {% if results.strengths %}
+                <ul class="mb-0">
+                    {% for entry in results.strengths %}
+                    <li>{{ entry.uaa.code }} — {{ entry.uaa.title }} <span class="text-muted small">({{ entry.correct }}/{{ entry.asked }})</span></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">Pas encore de cours sans erreur dans cette partie — ça viendra&nbsp;!</p>
+                {% endif %}
+            </section>
+        </div>
+        <div class="col-12 col-md-6">
+            <section class="jc-quiz-card h-100" aria-labelledby="to-review">
+                <h2 id="to-review" class="h5"><i class="bi bi-book text-primary" aria-hidden="true"></i> Cours à relire</h2>
+                {% if results.to_review %}
+                <ul class="mb-0">
+                    {% for entry in results.to_review %}
+                    <li>
+                        <a href="/uaa/{{ entry.uaa.slug }}">{{ entry.uaa.code }} — {{ entry.uaa.title }}</a>
+                        <span class="text-muted small">({{ entry.asked - entry.correct }} erreur{{ 's' if entry.asked - entry.correct > 1 }} sur {{ entry.asked }})</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">Aucune erreur&nbsp;: rien à relire en priorité.</p>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        {% if results.missed_question_ids %}
+        <form method="post" action="/quiz/parties/{{ session.id }}/erreurs" data-quiz-once>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="jc-btn jc-btn-primary">
+                <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Reprendre mes erreurs (nouveaux cas)
+            </button>
+        </form>
+        {% endif %}
+        <form method="post" action="/quiz/parties/{{ session.id }}/rejouer" data-quiz-once>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="jc-btn {{ 'jc-btn-ghost' if results.missed_question_ids else 'jc-btn-primary' }}">
+                <i class="bi bi-shuffle" aria-hidden="true"></i> Rejouer ({{ params.requested_count }} questions)
+            </button>
+        </form>
+        <a class="jc-btn jc-btn-ghost" href="/quiz"><i class="bi bi-grid" aria-hidden="true"></i> Autre quiz</a>
+    </div>
+
+    <details class="mb-4">
+        <summary class="fw-semibold">Revoir toutes les questions</summary>
+        <ol class="mt-3 d-flex flex-column gap-2">
+            {% for row in results.rows %}
+            {% set sq = row.session_question %}
+            <li>
+                <a href="/quiz/parties/{{ session.id }}?vu={{ sq.position }}">{{ sq.question_version.content_json.prompt | truncate(110) }}</a>
+                {% if not row.counted %}<span class="jc-pill">non comptée</span>
+                {% elif row.correct %}<span class="jc-pill jc-pill-success"><i class="bi bi-check-lg" aria-hidden="true"></i> juste</span>
+                {% else %}<span class="jc-pill jc-pill-warn"><i class="bi bi-x-lg" aria-hidden="true"></i> à revoir</span>{% endif %}
+                {% if row.uaa %}<span class="text-muted small">{{ row.uaa.code }}</span>{% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+    </details>
+
+    <p class="text-muted small">Le quiz est un jeu de révision&nbsp;: il ne compte ni comme entraînement ni comme examen blanc, et ce n'est pas une note officielle.</p>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelectorAll("form[data-quiz-once]").forEach(function (form) {
+        form.addEventListener("submit", function () {
+            form.querySelectorAll("button[type=submit]").forEach(function (b) { b.disabled = true; });
+        });
+    });
+    (function () {
+        var box = document.getElementById("jc-celebrate");
+        if (!box || box.dataset.confetti !== "1") return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js";
+        s.integrity = "sha384-sPwMflxqfAN+Q5mvlkLmHiX3PORGbZSXHiSGPTXT9VHCD/AB+b+r+vJWsqprv+7k";
+        s.crossOrigin = "anonymous";
+        s.onload = function () {
+            window.confetti({ particleCount: 90, spread: 70, origin: { y: 0.25 }, disableForReducedMotion: true });
+        };
+        document.head.appendChild(s);
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz — question {{ position }}/{{ total }} — Jury Central{% endblock %}
+
+{% block content %}
+{% set payload = display.public_payload %}
+{% set qtype = display.question_type %}
+{% set theme = {"AMPCR": "info", "FRANCAIS": "fr", "FSE": "fse"}.get(uaa.module.code if uaa else "", "neutral") %}
+<div class="row justify-content-center">
+<div class="col-12 col-md-10 col-lg-8 jc-theme-{{ theme }}">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <span class="jc-eyebrow"><i class="bi bi-controller" aria-hidden="true"></i> {{ params.label }}</span>
+        <a class="small text-muted" href="/quiz"><i class="bi bi-pause-circle" aria-hidden="true"></i> Faire une pause (ta partie est enregistrée)</a>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-1 mt-3">
+        <h1 class="h4 mb-0">Question {{ position }} / {{ total }}</h1>
+        <span class="text-muted small">{{ done }} validée{{ 's' if done > 1 }}</span>
+    </div>
+    <div class="jc-meter mb-3" role="progressbar" aria-label="Progression de la partie"
+         aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ done }}">
+        <span style="width: {{ (done / total * 100) | round }}%"></span>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        {% if uaa %}
+        <span class="jc-pill"><i class="bi bi-journal-text" aria-hidden="true"></i> {{ uaa.module.subject.name }} · {{ uaa.code }}</span>
+        {% endif %}
+        {% if type_label %}<span class="jc-pill">{{ type_label }}</span>{% endif %}
+        {% if qtype == "multiple_choice" and payload.max_selections > 1 %}
+        <span class="jc-pill jc-pill-warn"><i class="bi bi-check2-all" aria-hidden="true"></i>
+            Plusieurs réponses attendues{% if payload.min_selections == payload.max_selections %} ({{ payload.max_selections }}){% else %} ({{ payload.min_selections }} à {{ payload.max_selections }}){% endif %}
+        </span>
+        {% endif %}
+    </div>
+
+    {% include "_source_documents.html" %}
+
+    <div class="jc-quiz-card mb-3">
+        <p class="jc-quiz-prompt">{{ payload.prompt }}</p>
+
+        {% if not validated %}
+        {% if error %}
+        <div class="alert alert-warning py-2" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ error }}</div>
+        {% endif %}
+        <form method="post" action="/quiz/parties/{{ session.id }}/valider" data-quiz-once>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="position" value="{{ position }}">
+
+            {% if qtype == "multiple_choice" %}
+            {% set is_multi = payload.max_selections > 1 %}
+            {% set chosen = display.answer_json.get('selected_option_ids', []) %}
+            <fieldset class="d-flex flex-column gap-2">
+                <legend class="visually-hidden">Réponses possibles</legend>
+                {% for option in payload.options %}
+                <div>
+                    <input class="jc-answer-input" type="{{ 'checkbox' if is_multi else 'radio' }}" name="option_id"
+                           id="option-{{ loop.index }}" value="{{ option.option_id }}" {% if option.option_id in chosen %}checked{% endif %}>
+                    <label class="jc-answer" for="option-{{ loop.index }}">
+                        <span class="jc-answer-letter" aria-hidden="true">{{ "ABCDEFGHIJ"[loop.index0] }}</span>
+                        <span>{{ option.label }}</span>
+                    </label>
+                </div>
+                {% endfor %}
+            </fieldset>
+
+            {% elif qtype == "classification" %}
+            {% set saved = display.answer_json.get('assignments', []) %}
+            <p class="text-muted small">Pour chaque élément, touche la bonne catégorie.</p>
+            {% for element in payload.elements %}
+            {% set ei = loop.index0 %}
+            <fieldset class="jc-quiz-classify mb-3">
+                <legend class="fw-semibold fs-6 mb-2">{{ element }}</legend>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for category in payload.categories %}
+                    <div>
+                        <input class="jc-answer-input" type="radio" name="category__{{ ei }}" value="{{ loop.index0 }}"
+                               id="cat-{{ ei }}-{{ loop.index0 }}" {% if saved|length > ei and saved[ei] == loop.index0 %}checked{% endif %}>
+                        <label class="jc-answer jc-answer-pill" for="cat-{{ ei }}-{{ loop.index0 }}">{{ category }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            {% endfor %}
+
+            {% elif qtype == "ordering" %}
+            {% set positions = display.answer_json.get('positions', {}) %}
+            {% set saved_order = display.answer_json.get('order', []) %}
+            <p class="text-muted small">Donne une position à chaque élément (1 = en premier).</p>
+            {% for item in payload["items"] %}
+            {% set saved_position = positions.get(item.id) or ((saved_order.index(item.id) + 1) if item.id in saved_order else 0) %}
+            <div class="jc-quiz-order mb-2">
+                <label class="visually-hidden" for="pos-{{ loop.index }}">Position de « {{ item.label }} »</label>
+                <select class="form-select form-select-lg" id="pos-{{ loop.index }}" name="position__{{ item.id }}">
+                    <option value="0" {% if not saved_position %}selected{% endif %}>—</option>
+                    {% for pos in range(1, payload["items"]|length + 1) %}
+                    <option value="{{ pos }}" {% if pos == saved_position %}selected{% endif %}>{{ pos }}</option>
+                    {% endfor %}
+                </select>
+                <span>{{ item.label }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="jc-btn jc-btn-primary">
+                    <i class="bi bi-check2-circle" aria-hidden="true"></i> Valider ma réponse
+                </button>
+            </div>
+        </form>
+
+        {% else %}
+        {# Après validation serveur uniquement : solution et explication de CETTE question. #}
+        {% if feedback.technical_error %}
+        <div class="jc-verdict is-neutral" role="status">
+            <i class="bi bi-tools" aria-hidden="true"></i>
+            <div><strong>Cette question n'a pas pu être corrigée (erreur technique).</strong>
+                Ta réponse est gardée mais <strong>ne compte pas</strong>&nbsp;: ni juste, ni fausse.</div>
+        </div>
+        {% elif feedback.correct %}
+        <div class="jc-verdict is-good" role="status">
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            <div><strong>Bonne réponse&nbsp;!</strong></div>
+        </div>
+        {% elif feedback.partial %}
+        <div class="jc-verdict is-partial" role="status">
+            <i class="bi bi-circle-half" aria-hidden="true"></i>
+            <div><strong>Presque&nbsp;!</strong> {{ feedback.errors | join(" ") }}</div>
+        </div>
+        {% else %}
+        <div class="jc-verdict is-bad" role="status">
+            <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+            <div><strong>Pas tout à fait.</strong> Regarde la bonne réponse ci-dessous.</div>
+        </div>
+        {% endif %}
+
+        {% if feedback.options %}
+        <ul class="list-unstyled d-flex flex-column gap-2 mt-3">
+            {% for option in feedback.options %}
+            <li class="jc-answer is-static{% if option.correct %} is-correct{% elif option.chosen %} is-wrong{% endif %}">
+                <span class="jc-answer-letter" aria-hidden="true">{{ "ABCDEFGHIJ"[loop.index0] }}</span>
+                <span class="flex-grow-1">{{ option.label }}</span>
+                {% if option.correct %}<span class="small fw-semibold"><i class="bi bi-check-lg" aria-hidden="true"></i> bonne réponse{% if option.chosen %} — ton choix{% endif %}</span>
+                {% elif option.chosen %}<span class="small fw-semibold"><i class="bi bi-x-lg" aria-hidden="true"></i> ton choix</span>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% elif feedback.rows %}
+        <div class="table-responsive mt-3">
+            <table class="table align-middle mb-0">
+                <thead><tr><th scope="col">Élément</th><th scope="col">Ta réponse</th><th scope="col">Bonne catégorie</th></tr></thead>
+                <tbody>
+                {% for row in feedback.rows %}
+                <tr>
+                    <td>{{ row.element }}</td>
+                    <td>{% if row.ok %}<i class="bi bi-check-lg text-success" aria-hidden="true"></i>{% else %}<i class="bi bi-x-lg text-danger" aria-hidden="true"></i>{% endif %}
+                        {{ row.given }}<span class="visually-hidden">{{ ' (juste)' if row.ok else ' (faux)' }}</span></td>
+                    <td><strong>{{ row.expected }}</strong></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% elif feedback.order %}
+        <p class="fw-semibold mt-3 mb-2">Le bon ordre&nbsp;:</p>
+        <ol class="d-flex flex-column gap-2 ps-0" style="list-style: none;">
+            {% for step in feedback.order %}
+            <li class="jc-answer is-static{% if step.ok %} is-correct{% else %} is-wrong{% endif %}">
+                <span class="jc-answer-letter" aria-hidden="true">{{ loop.index }}</span>
+                <span class="flex-grow-1">{{ step.label }}</span>
+                {% if not step.ok %}<span class="small">tu avais mis&nbsp;: {{ step.given }}</span>{% else %}<span class="small fw-semibold"><i class="bi bi-check-lg" aria-hidden="true"></i> juste</span>{% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+        {% endif %}
+
+        {% if feedback.explanation %}
+        <div class="jc-quiz-why mt-3">
+            <p class="fw-semibold mb-1"><i class="bi bi-lightbulb" aria-hidden="true"></i> Pourquoi&nbsp;?</p>
+            <p class="mb-0">{{ feedback.explanation }}</p>
+        </div>
+        {% endif %}
+        {% if uaa %}
+        <p class="mt-3 mb-0 small">
+            <i class="bi bi-book" aria-hidden="true"></i>
+            {% if feedback.explanation %}Pour aller plus loin{% else %}Pour comprendre la réponse{% endif %}&nbsp;:
+            <a href="/uaa/{{ uaa.slug }}" target="_blank" rel="noopener">relis le cours {{ uaa.code }} — {{ uaa.title }}</a>
+            <span class="text-muted">(nouvel onglet)</span>
+        </p>
+        {% endif %}
+
+        <div class="d-flex justify-content-end mt-4">
+            <a class="jc-btn jc-btn-primary" href="/quiz/parties/{{ session.id }}" autofocus>
+                {% if is_last %}<i class="bi bi-flag-fill" aria-hidden="true"></i> Voir mon résultat
+                {% else %}Question suivante <i class="bi bi-arrow-right" aria-hidden="true"></i>{% endif %}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <p class="text-muted small text-center">Pas de chronomètre&nbsp;: prends le temps de lire. Chaque réponse validée est enregistrée.</p>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelectorAll("form[data-quiz-once]").forEach(function (form) {
+        form.addEventListener("submit", function () {
+            form.querySelectorAll("button[type=submit]").forEach(function (b) { b.disabled = true; });
+        });
+    });
+</script>
+{% endblock %}

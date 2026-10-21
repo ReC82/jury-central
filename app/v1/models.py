@@ -507,6 +507,12 @@ class SessionMode(str, enum.Enum):
 
     PRACTICE = "practice"
     EXAM = "exam"
+    # Ticket #137 : partie de quiz ludique (une question à la fois, validée et corrigée
+    # côté serveur question par question — `app.v1.quiz_service`). Activité distincte :
+    # jamais comptée comme entraînement ni examen blanc (`app.v1.parcours`), absente de
+    # l'historique « Mes entraînements » et sans effet sur le rating de module. Stockée
+    # comme les autres valeurs (VARCHAR, aucune contrainte CHECK) : aucune migration.
+    QUIZ = "quiz"
 
 
 class SessionStatus(str, enum.Enum):

@@ -33,11 +33,18 @@ déblocage artificiel) ; les jalons ne reflètent que des actions enregistrées.
             sur {{ track.planned_count }} prévus — les suivants arrivent, ils ne sont pas affichés tant qu'ils n'existent pas.
             {% endif %}
         </p>
-        {% if module.code == "AMPCR" %}
-        <a href="/modules/ampcr/lexicon" class="jc-btn jc-btn-ghost jc-btn-sm mt-3 d-print-none">
-            <i class="bi bi-translate" aria-hidden="true"></i> Lexique / Acronymes FR-EN
-        </a>
-        {% endif %}
+        <div class="d-flex flex-wrap gap-2 mt-3 d-print-none">
+            {% if track and quiz_total %}
+            <a href="/quiz/apercu?matiere={{ module.code }}" class="jc-btn jc-btn-primary jc-btn-sm">
+                <i class="bi bi-controller" aria-hidden="true"></i> Quiz sur toute la matière
+            </a>
+            {% endif %}
+            {% if module.code == "AMPCR" %}
+            <a href="/modules/ampcr/lexicon" class="jc-btn jc-btn-ghost jc-btn-sm">
+                <i class="bi bi-translate" aria-hidden="true"></i> Lexique / Acronymes FR-EN
+            </a>
+            {% endif %}
+        </div>
     </div>
     {% if has_art %}
     <img src="{{ url_for('static', path=track.illustration) }}" alt="" width="960" height="540">
@@ -87,6 +94,9 @@ déblocage artificiel) ; les jalons ne reflètent que des actions enregistrées.
                 {% endif %}
                 {% if course.has_exam %}
                 <a href="/uaa/{{ uaa.slug }}/exam"><i class="bi bi-mortarboard" aria-hidden="true"></i> Examen blanc</a>
+                {% endif %}
+                {% if track and course.quiz_count %}
+                <a href="/quiz/apercu?uaa={{ uaa.slug }}"><i class="bi bi-controller" aria-hidden="true"></i> Quiz</a>
                 {% endif %}
             </div>
         </div>

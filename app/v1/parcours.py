@@ -286,6 +286,8 @@ def user_uaa_progress(db: DBSession, user: User | None) -> dict[int, dict]:
     sessions = (
         db.query(QuestionnaireSession)
         .filter_by(user_id=user.id)
+        # Ticket #137 : une partie de quiz n'est ni un entraînement ni un examen blanc.
+        .filter(QuestionnaireSession.mode != SessionMode.QUIZ)
         .order_by(QuestionnaireSession.created_at.desc())
         .all()
     )

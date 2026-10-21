@@ -628,9 +628,11 @@ async def view_session(
     db=Depends(get_db),  # noqa: B008
     user: User = Depends(require_user),  # noqa: B008
 ) -> HTMLResponse:
-    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    session = get_owned_session(db, session_id=session_id, user_id=user.id, include_quiz=True)
     if session is None:
         raise HTTPException(status_code=404, detail="Session introuvable")
+    if session.mode == SessionMode.QUIZ:
+        return RedirectResponse(url=f"/quiz/parties/{session.id}", status_code=303)
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
 

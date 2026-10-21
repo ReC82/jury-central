@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Récapitulatif du quiz — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-12 col-lg-9">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/quiz">Quiz</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Récapitulatif</li>
+        </ol>
+    </nav>
+
+    {% if nothing_selected %}
+    <h1 class="h3 mb-3">Choisis d'abord sur quoi jouer</h1>
+    <p>Coche « Tout mon parcours », une matière ou au moins un cours.</p>
+    <a class="jc-btn jc-btn-primary" href="/quiz"><i class="bi bi-arrow-left" aria-hidden="true"></i> Revenir au choix</a>
+    {% elif not scope.subjects %}
+    <h1 class="h3 mb-3">Pas de quiz possible pour ce choix</h1>
+    <p>
+        {% if scope.ignored %}Pas encore de questions de quiz pour&nbsp;: {{ scope.ignored | join(", ") }}.{% endif %}
+        Choisis une autre matière ou d'autres cours.
+    </p>
+    <a class="jc-btn jc-btn-primary" href="/quiz"><i class="bi bi-arrow-left" aria-hidden="true"></i> Revenir au choix</a>
+    {% else %}
+    <span class="jc-eyebrow"><i class="bi bi-controller" aria-hidden="true"></i> Prêt·e à jouer&nbsp;?</span>
+    <h1 class="h2 mt-3 mb-1">{{ scope.label }}</h1>
+    <p class="text-muted mb-4">
+        {{ plan.total }} question{{ 's' if plan.total > 1 }} — niveau&nbsp;: {{ difficulty_label }}.
+        Une question à la fois, sans chronomètre&nbsp;: tu valides, tu lis la correction, puis tu passes à la suivante.
+    </p>
+
+    <h2 class="h5 mb-3">Répartition prévue</h2>
+    <ul class="list-unstyled d-flex flex-column gap-2 mb-4">
+        {% for subject in plan.per_subject %}
+        <li class="jc-quiz-row jc-theme-{{ subject.theme }}">
+            <span><i class="bi bi-{{ subject.icon }}" aria-hidden="true"></i>
+                <strong>{{ subject.title }}</strong>
+                <span class="text-muted small">— {{ subject.chapters }} cours, {{ subject.available }} question{{ 's' if subject.available > 1 }} disponible{{ 's' if subject.available > 1 }}</span>
+            </span>
+            <span class="jc-pill {{ 'jc-pill-primary' if subject.planned else 'jc-pill-warn' }}">
+                {{ subject.planned }} question{{ 's' if subject.planned > 1 }} dans cette partie
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% if plan.notes %}
+    <div class="jc-honest mb-4" role="note">
+        <p class="fw-semibold mb-2"><i class="bi bi-info-circle" aria-hidden="true"></i> Bon à savoir avant de commencer</p>
+        <ul class="mb-0">
+            {% for note in plan.notes %}<li>{{ note }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" action="/quiz/demarrer" class="d-flex flex-wrap gap-2" data-quiz-once>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        {% if selection.whole_pathway %}<input type="hidden" name="parcours" value="1">{% endif %}
+        {% for code in selection.module_codes %}<input type="hidden" name="matiere" value="{{ code }}">{% endfor %}
+        {% for slug in selection.uaa_slugs %}<input type="hidden" name="uaa" value="{{ slug }}">{% endfor %}
+        <input type="hidden" name="questions" value="{{ count }}">
+        <input type="hidden" name="difficulte" value="{{ difficulty.value }}">
+        <button type="submit" class="jc-btn jc-btn-primary">
+            <i class="bi bi-play-fill" aria-hidden="true"></i> Lancer la partie
+        </button>
+        <a class="jc-btn jc-btn-ghost" href="/quiz"><i class="bi bi-pencil" aria-hidden="true"></i> Modifier mon choix</a>
+    </form>
+    {% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Anti double-clic : le bouton est désactivé après le premier envoi (le serveur
+    // retombe de toute façon sur la même partie si la demande est répétée).
+    document.querySelectorAll("form[data-quiz-once]").forEach(function (form) {
+        form.addEventListener("submit", function () {
+            form.querySelectorAll("button[type=submit]").forEach(function (b) { b.disabled = true; });
+        });
+    });
+</script>
+{% endblock %}

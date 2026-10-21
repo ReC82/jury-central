@@ -35,9 +35,11 @@ from app.v1.parcours import (
     uaa_state,
     user_uaa_progress,
 )
+from app.v1.quiz_service import quiz_question_counts
 from app.v1.routes import router as v1_auth_router
 from app.v1.routes_lexicon import router as v1_lexicon_router
 from app.v1.routes_parcours import router as v1_parcours_router
+from app.v1.routes_quiz import router as v1_quiz_router
 from app.v1.routes_sessions import render_exam_landing, render_practice_landing
 from app.v1.routes_sessions import router as v1_sessions_router
 from app.value_table import value_table_public_dict
@@ -65,6 +67,7 @@ app.include_router(v1_auth_router)
 app.include_router(v1_sessions_router)
 app.include_router(v1_lexicon_router)
 app.include_router(v1_parcours_router)
+app.include_router(v1_quiz_router)
 
 
 @app.get("/health")
@@ -135,8 +138,11 @@ async def module_detail(
     # Entraînement/Examen blanc proposés seulement s'ils existent réellement pour ce cours.
     user = get_current_user(request, db)
     progress = user_uaa_progress(db, user)
+    uaas = listed_uaas(module)
+    # Ticket #137 : quiz proposé seulement pour les cours qui ont des questions de quiz.
+    quiz_counts = quiz_question_counts(db, [u.id for u in uaas])
     courses = []
-    for uaa in listed_uaas(module):
+    for uaa in uaas:
         spaces = {block.space for block in uaa.lesson_blocks}
         v1 = has_v1_sessions(uaa)
         courses.append(
@@ -145,6 +151,7 @@ async def module_detail(
                 "state": uaa_state(progress.get(uaa.id)),
                 "has_practice": v1 or models.BlockSpace.PRACTICE in spaces,
                 "has_exam": v1 or models.BlockSpace.EXAM in spaces,
+                "quiz_count": quiz_counts.get(uaa.id, 0),
             }
         )
     return templates.TemplateResponse(
@@ -154,6 +161,7 @@ async def module_detail(
             "module": module,
             "courses": courses,
             "track": track_for_module(module.code),
+            "quiz_total": sum(quiz_counts.values()),
         },
     )
 
