@@ -320,3 +320,14 @@ def test_quota_error_stops_generation_without_partial_file(tmp_path, monkeypatch
     assert parcours_images.generate(tmp_path) == 1
     assert fake.calls == 1  # arrêt immédiat, pas de boucle
     assert not list(tmp_path.glob("*.webp"))
+
+
+def test_rejected_api_key_stops_generation_immediately(tmp_path, monkeypatch):
+    pytest.importorskip("PIL.Image")
+    from app.ai.provider import AIResponseError
+    from app.v1 import parcours_images
+
+    fake = _FakeImageProvider(AIResponseError("statut 401 (code=invalid_api_key)"))
+    monkeypatch.setattr(parcours_images, "get_image_provider", lambda: fake)
+    assert parcours_images.generate(tmp_path) == 1
+    assert fake.calls == 1
