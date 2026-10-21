@@ -291,6 +291,15 @@ def _prioritize_by_difficulty(
     return matching + other
 
 
+def _exclude_unusable_assets(db: Session, query):
+    """Ticket #48 : une question dont l'image courante a été marquée incorrecte par
+    l'admin n'est plus servie (voir `app.v1.assets.unusable_asset_question_ids`)."""
+    from app.v1.assets import unusable_asset_question_ids
+
+    excluded = unusable_asset_question_ids(db)
+    return query.filter(Question.id.notin_(excluded)) if excluded else query
+
+
 def select_bank_questions(
     db: Session,
     *,
@@ -336,6 +345,7 @@ def select_bank_questions(
 
     query = db.query(Question).filter_by(module_id=module_id, status=ContentStatus.ACTIVE)
     query = query.filter_by(uaa_id=uaa_id) if uaa_id is not None else query.filter(Question.uaa_id.is_not(None))
+    query = _exclude_unusable_assets(db, query)
     all_active = query.order_by(func.random()).all()
     all_active = _prioritize_by_difficulty(all_active, difficulty)
     if difficulty == SessionDifficultyRequest.ADAPTIVE and target_rating is not None:
@@ -426,6 +436,7 @@ def select_transversal_bank_questions(
         Question.status == ContentStatus.ACTIVE,
         Question.uaa_id.in_(uaa_ids),
     )
+    query = _exclude_unusable_assets(db, query)
     all_active = [q for q in query.order_by(func.random()).all() if not is_meta_revision_question(_question_full_text(q))]
     unseen, seen = _split_unseen_and_seen(
         all_active, seen_question_ids=seen_question_ids, seen_signatures=seen_signatures

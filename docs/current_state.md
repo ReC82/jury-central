@@ -77,6 +77,8 @@ Permet notamment :
   (archiver/réactiver, invalide, obsolète, à revoir), variante IA, génération
   ACTIVE/PAUSED par module, signalements des élèves et usage IA estimé — voir
   `docs/admin.md`, § Banque de questions V1.
+- gérer les visuels de la banque (`/admin/bank/assets`, ticket #48) : marquer un visuel
+  incorrect (ses questions sortent du tirage), demander une régénération, réactiver.
 
 La création complète d'un cours ne passe plus par l'administration.
 
@@ -222,6 +224,13 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
 # Contenu pédagogique
 
 ## Intégré
+
+- **Questions visuelles Informatique (ticket #48)** : premières questions d'identification
+  de composants dans la banque MC01 (RAM, CPU, alimentation, HDD, SSD, carte mère, carte
+  graphique ; schéma de carte mère à repères A–F). Types `image_identification` et
+  `diagram_labeling` désormais servis en entraînement/examen et corrigés localement. Assets
+  réutilisables (photo réelle / illustration générée / schéma technique) avec source,
+  licence et provenance — voir [docs/assets_visuels_v1.md](assets_visuels_v1.md).
 
 - MB32 UAA1
 - MB32 UAA2 (Géométrie — 6 leçons : Solides, Perspective cavalière, Patrons, Vues

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 400" role="img" aria-labelledby="gpu-title">
+  <title id="gpu-title">Illustration d'un composant d'ordinateur vu de face</title>
+  <rect width="680" height="400" fill="#f1f3f5"/>
+  <ellipse cx="350" cy="352" rx="290" ry="18" fill="#dee2e6"/>
+
+  <!-- Équerre métallique avec sorties -->
+  <path d="M40 40 H90 V330 H70 V350 H55 V330 H40 Z" fill="#ced4da" stroke="#868e96" stroke-width="3"/>
+  <rect x="50" y="70" width="30" height="22" rx="3" fill="#343a40"/>
+  <rect x="50" y="110" width="30" height="22" rx="3" fill="#343a40"/>
+  <path d="M50 150 h30 v16 l-5 6 h-20 l-5 -6 z" fill="#343a40"/>
+  <rect x="50" y="195" width="30" height="50" rx="4" fill="#f8f9fa" stroke="#343a40" stroke-width="3"/>
+  <g fill="#343a40">
+    <circle cx="60" cy="210" r="2.5"/><circle cx="70" cy="210" r="2.5"/>
+    <circle cx="60" cy="222" r="2.5"/><circle cx="70" cy="222" r="2.5"/>
+    <circle cx="60" cy="234" r="2.5"/><circle cx="70" cy="234" r="2.5"/>
+  </g>
+
+  <!-- Circuit imprimé -->
+  <rect x="90" y="60" width="540" height="240" rx="8" fill="#1864ab"/>
+  <g fill="#ffd43b">
+    <rect x="150" y="300" width="18" height="30"/><rect x="172" y="300" width="18" height="30"/>
+    <rect x="194" y="300" width="18" height="30"/><rect x="216" y="300" width="18" height="30"/>
+    <rect x="260" y="300" width="18" height="30"/><rect x="282" y="300" width="18" height="30"/>
+    <rect x="304" y="300" width="18" height="30"/><rect x="326" y="300" width="18" height="30"/>
+    <rect x="348" y="300" width="18" height="30"/><rect x="370" y="300" width="18" height="30"/>
+    <rect x="392" y="300" width="18" height="30"/><rect x="414" y="300" width="18" height="30"/>
+    <rect x="436" y="300" width="18" height="30"/><rect x="458" y="300" width="18" height="30"/>
+  </g>
+  <rect x="566" y="40" width="44" height="24" rx="3" fill="#212529"/>
+  <g fill="#495057"><rect x="572" y="46" width="8" height="12"/><rect x="584" y="46" width="8" height="12"/><rect x="596" y="46" width="8" height="12"/></g>
+
+  <!-- Carénage et ventilateurs -->
+  <rect x="110" y="70" width="505" height="215" rx="22" fill="#343a40"/>
+  <path d="M110 120 H615" stroke="#fa5252" stroke-width="6"/>
+  <g>
+    <circle cx="245" cy="185" r="88" fill="#212529" stroke="#868e96" stroke-width="4"/>
+    <g fill="#495057">
+      <path d="M245 185 C 255 140, 290 120, 300 140 C 290 160, 265 175, 245 185 Z"/>
+      <path d="M245 185 C 290 195, 310 230, 290 240 C 270 230, 255 205, 245 185 Z"/>
+      <path d="M245 185 C 235 230, 200 250, 190 230 C 200 210, 225 195, 245 185 Z"/>
+      <path d="M245 185 C 200 175, 180 140, 200 130 C 220 140, 235 165, 245 185 Z"/>
+    </g>
+    <circle cx="245" cy="185" r="22" fill="#868e96"/>
+  </g>
+  <g>
+    <circle cx="480" cy="185" r="88" fill="#212529" stroke="#868e96" stroke-width="4"/>
+    <g fill="#495057">
+      <path d="M480 185 C 490 140, 525 120, 535 140 C 525 160, 500 175, 480 185 Z"/>
+      <path d="M480 185 C 525 195, 545 230, 525 240 C 505 230, 490 205, 480 185 Z"/>
+      <path d="M480 185 C 470 230, 435 250, 425 230 C 435 210, 460 195, 480 185 Z"/>
+      <path d="M480 185 C 435 175, 415 140, 435 130 C 455 140, 470 165, 480 185 Z"/>
+    </g>
+    <circle cx="480" cy="185" r="22" fill="#868e96"/>
+  </g>
+</svg>

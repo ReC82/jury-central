@@ -26,6 +26,7 @@ from app.models import UAA, Module
 from app.templating import templates
 from app.v1.ai_usage import KIND_CORRECTION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_MODULE_CODE, get_plan_by_slug
+from app.v1.ampcr_visual_bank import import_mc01_visual_questions
 from app.v1.auth import require_user, require_user_api, validate_csrf_token
 from app.v1.bank import get_uaa_by_slug, import_mc01_legacy_to_bank
 from app.v1.feedback import FEEDBACK_LABELS, create_question_feedback, parse_feedback_type
@@ -190,6 +191,8 @@ def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
     cours à mesure que de nouveaux mini-cours sont ajoutés."""
     if uaa.slug == "ampcr-mc01":
         import_mc01_legacy_to_bank(db, module, uaa)
+        # Ticket #48 : questions d'identification visuelle (idempotent, assets sans doublon).
+        import_mc01_visual_questions(db, module, uaa)
         db.commit()
     elif uaa.slug == "francais-c01":
         import_francais_c01_to_bank(db, module, uaa)
@@ -594,7 +597,17 @@ def _parse_answer_form(question_type: str, content: dict[str, Any], form) -> dic
             positions.append((int(raw) if raw.isdigit() else 0, item["id"]))
         ordered = [item_id for _, item_id in sorted(positions)]
         return {"order": ordered}
-    # short_answer / vocabulary / diagnostic / long_answer
+    if question_type == "image_identification" and content.get("response_mode", "choice") == "choice":
+        return {"selected_option_ids": form.getlist("option_id")}
+    if question_type == "diagram_labeling":
+        label_ids = {label["id"] for label in content["label_options"]}
+        mapping = {}
+        for zone in content["zones"]:
+            raw = form.get(f"zone__{zone['zone_id']}", "")
+            if raw in label_ids:
+                mapping[zone["zone_id"]] = raw
+        return {"mapping": mapping}
+    # short_answer / vocabulary / diagnostic / long_answer / image_identification (texte)
     return {"text": form.get("text", "")}
 
 
@@ -717,6 +730,7 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     `course_title`/`course_slug` (ticket #79 § 13) : rattachement de la question à son
     UAA/cours, exposé pour qu'un futur ticket (#74) puisse ajouter un bouton « Relire le
     cours » sans nouvelle architecture — aucun bouton ajouté ici."""
+    from app.v1.assets import asset_display, assets_by_version
     from app.v1.question_engine import public_payload
     from app.v1.session_service import document_label, resolve_documents_in_order
 
@@ -732,6 +746,9 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     documents_by_id = {
         document.id: document for document in resolve_documents_in_order(db, sorted(all_doc_ids))
     }
+
+    # Ticket #48 : visuels de chaque question, une seule requête pour toute la session.
+    assets_by_version_id = assets_by_version(db, [sq.question_version_id for sq in session_questions])
 
     rows = []
     for sq in session_questions:
@@ -763,6 +780,7 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
                 "points_awarded": sq.answer.points_awarded if sq.answer else None,
                 "correction_status": correction_status,
                 "source_documents": source_documents,
+                "assets": [asset_display(asset) for asset in assets_by_version_id.get(sq.question_version_id, [])],
                 "course_title": uaa.title if uaa else None,
                 "course_slug": uaa.slug if uaa else None,
                 "course_code": uaa.code if uaa else None,
