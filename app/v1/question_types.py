@@ -85,6 +85,32 @@ def _unique(values: list[str], label: str) -> None:
         raise ValueError(f"{label} doit contenir des identifiants uniques.")
 
 
+def _check_dossier_documents(primary: int | None, documents: list[int] | None) -> None:
+    """Ticket #151 : `source_document_version_ids` (optionnel) = TOUS les documents
+    nécessaires pour répondre, dans l'ordre d'affichage, quand une question extraite d'un
+    dossier en cite ou en compare plusieurs (ex. « le forum affirme… la note de direction
+    mentionne… »). Le document principal (`source_document_version_id`) en fait partie :
+    jamais un renvoi vers un document que l'élève ne verrait pas."""
+    if documents is None:
+        return
+    if not documents or any(v <= 0 for v in documents):
+        raise ValueError("source_document_version_ids doit contenir des identifiants positifs.")
+    _unique([str(v) for v in documents], "source_document_version_ids")
+    if primary is not None and primary not in documents:
+        raise ValueError("source_document_version_ids doit contenir source_document_version_id.")
+
+
+def _public_documents(c: Any) -> dict:
+    """Documents exposés à l'élève — et donc au correcteur, qui lit le même payload public
+    (`app.v1.session_service._referenced_document_ids`, ticket #77)."""
+    out: dict = {}
+    if c.source_document_version_id:
+        out["source_document_version_id"] = c.source_document_version_id
+    if getattr(c, "source_document_version_ids", None):
+        out["source_document_version_ids"] = list(c.source_document_version_ids)
+    return out
+
+
 # =========================================================================================
 # 1. multiple_choice — remplace single_choice (voir docstring de app/v1/question_engine.py)
 # =========================================================================================
@@ -208,9 +234,12 @@ class ShortAnswerContent(BaseModel):
     # rattachement structuré — le texte n'était jamais montré à l'élève. S'il est
     # présent, il DOIT être montré (`to_public` ci-dessous) — jamais une source cachée.
     source_document_version_id: int | None = Field(default=None, gt=0)
+    # Ticket #151 : tous les documents du dossier nécessaires (voir `_check_dossier_documents`).
+    source_document_version_ids: list[int] | None = None
 
     @model_validator(mode="after")
     def _check(self) -> "ShortAnswerContent":
+        _check_dossier_documents(self.source_document_version_id, self.source_document_version_ids)
         if not self.accepted_answers and not self.rubric.strip():
             raise ValueError("accepted_answers (correction locale) ou rubric (IA) requis.")
         return self
@@ -236,11 +265,7 @@ QUESTION_TYPE_REGISTRY.register(
         to_public=lambda c: {
             "prompt": c.prompt,
             "max_length": c.max_length,
-            **(
-                {"source_document_version_id": c.source_document_version_id}
-                if c.source_document_version_id
-                else {}
-            ),
+            **_public_documents(c),
         },
         check_answer=lambda c, a: text_answer_matches(c.accepted_answers, a.text),
     )
@@ -273,6 +298,13 @@ class LongAnswerContent(BaseModel):
     # présent, il DOIT être montré à l'élève (`to_public` ci-dessous) — jamais une source
     # cachée.
     source_document_version_id: int | None = Field(default=None, gt=0)
+    # Ticket #151 : tous les documents du dossier nécessaires (voir `_check_dossier_documents`).
+    source_document_version_ids: list[int] | None = None
+
+    @model_validator(mode="after")
+    def _check(self) -> "LongAnswerContent":
+        _check_dossier_documents(self.source_document_version_id, self.source_document_version_ids)
+        return self
 
 
 class LongAnswerAnswer(BaseModel):
@@ -292,11 +324,7 @@ QUESTION_TYPE_REGISTRY.register(
         to_public=lambda c: {
             "prompt": c.prompt,
             "max_length": c.max_length,
-            **(
-                {"source_document_version_id": c.source_document_version_id}
-                if c.source_document_version_id
-                else {}
-            ),
+            **_public_documents(c),
         },
         check_answer=None,
         description=(
@@ -432,9 +460,12 @@ class ClassificationContent(BaseModel):
     # Fait/Opinion « rapportées par le texte » — un problème de visibilité côté élève
     # indépendant du mode de correction.
     source_document_version_id: int | None = Field(default=None, gt=0)
+    # Ticket #151 : tous les documents du dossier nécessaires (voir `_check_dossier_documents`).
+    source_document_version_ids: list[int] | None = None
 
     @model_validator(mode="after")
     def _check(self) -> "ClassificationContent":
+        _check_dossier_documents(self.source_document_version_id, self.source_document_version_ids)
         if len(self.correct_categories) != len(self.elements):
             raise ValueError("correct_categories doit avoir la même longueur que elements.")
         if any(not (0 <= c < len(self.categories)) for c in self.correct_categories):
@@ -460,11 +491,7 @@ QUESTION_TYPE_REGISTRY.register(
             "prompt": c.prompt,
             "categories": c.categories,
             "elements": c.elements,
-            **(
-                {"source_document_version_id": c.source_document_version_id}
-                if c.source_document_version_id
-                else {}
-            ),
+            **_public_documents(c),
         },
         check_answer=lambda c, a: a.assignments == c.correct_categories,
         description="Catégories et éléments en nombre variable (pas limité à 2/3 catégories).",
@@ -678,11 +705,7 @@ QUESTION_TYPE_REGISTRY.register(
         to_public=lambda c: {
             "prompt": c.prompt,
             "direction": c.direction,
-            **(
-                {"source_document_version_id": c.source_document_version_id}
-                if c.source_document_version_id
-                else {}
-            ),
+            **_public_documents(c),
         },
         check_answer=lambda c, a: text_answer_matches(c.accepted_answers, a.text),
         description="Pas spécifique à l'Informatique — terme↔définition, toute matière.",
@@ -1236,12 +1259,19 @@ QUESTION_TYPE_REGISTRY.register(
 class DocumentAnalysisContent(BaseModel):
     prompt: str = Field(min_length=1)
     source_document_version_id: int = Field(gt=0)
+    # Ticket #151 : tous les documents du dossier nécessaires (voir `_check_dossier_documents`).
+    source_document_version_ids: list[int] | None = None
     rubric: str = Field(min_length=1)
     expected_points: list[str] = Field(default_factory=list)
     # Ticket #73 : voir DiagnosticContent.max_length, même correctif — prioritaire pour
     # Français (analyse de document en réponse rédigée).
     max_length: int = Field(default=20000, gt=0)
     max_score: float = Field(default=1.0, gt=0)
+
+    @model_validator(mode="after")
+    def _check(self) -> "DocumentAnalysisContent":
+        _check_dossier_documents(self.source_document_version_id, self.source_document_version_ids)
+        return self
 
 
 class DocumentAnalysisAnswer(BaseModel):
@@ -1260,7 +1290,7 @@ QUESTION_TYPE_REGISTRY.register(
         answer_model=DocumentAnalysisAnswer,
         to_public=lambda c: {
             "prompt": c.prompt,
-            "source_document_version_id": c.source_document_version_id,
+            **_public_documents(c),
             "max_length": c.max_length,
         },
         check_answer=None,

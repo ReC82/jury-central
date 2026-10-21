@@ -1066,7 +1066,7 @@ def _document_contexts_for(db: DBSession, session_questions: list[SessionQuestio
     return tuple(
         PedagogicalContext(
             course_key=f"source-document-{document.id}",
-            course_title=document.title or "Document source",
+            course_title=_numbered_title(document),
             level="Texte de référence pour les questions de cette session qui le citent",
             allowed_notions=[],
             competencies=[],
@@ -1079,6 +1079,19 @@ def _document_contexts_for(db: DBSession, session_questions: list[SessionQuestio
         )
         for document in documents
     )
+
+
+def _numbered_title(document: SourceDocumentVersion) -> str:
+    """Titre transmis au correcteur, avec le numéro réel affiché à l'élève quand le document
+    en porte un (ticket #151 : un barème « s'appuie sur le document 3 » doit pouvoir être
+    relié au bon texte) — jamais une numérotation inventée."""
+    from app.v1.document_layouts import display_heading, resolve_layout
+
+    title = document.title or "Document source"
+    heading = display_heading(document, resolve_layout(document), "")
+    if heading["label"] and not title.startswith(heading["label"]):
+        return f"{heading['label']} — {title}"
+    return title
 
 
 def _build_questionnaire_inputs(

@@ -732,6 +732,7 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     cours » sans nouvelle architecture — aucun bouton ajouté ici."""
     from app.v1.assets import asset_display, assets_by_version
     from app.v1.display_order import apply_display_order
+    from app.v1.document_layouts import display_heading, resolve_layout
     from app.v1.question_engine import public_payload
     from app.v1.session_service import document_label, resolve_documents_in_order
 
@@ -759,19 +760,26 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     for sq in session_questions:
         question_type = sq.question_version.question_type
         doc_ids = _referenced_document_ids(payloads[sq.position])
-        source_documents = [
-            {
-                "id": doc_id,
-                "label": document_label(question_type, index),
-                "title": documents_by_id[doc_id].title or "Document source",
-                "content_text": documents_by_id[doc_id].content_text or "",
-                # Ticket #149 : la version exacte, rendue par les mêmes composants que
-                # pendant la session (`_document_layouts.html`).
-                "document": documents_by_id[doc_id],
-            }
-            for index, doc_id in enumerate(doc_ids)
-            if doc_id in documents_by_id
-        ]
+        source_documents = []
+        for index, doc_id in enumerate(doc_ids):
+            if doc_id not in documents_by_id:
+                continue
+            document = documents_by_id[doc_id]
+            # Ticket #151 : même libellé que pendant la session (« Document 3 — Réactions
+            # des groupes concernés »), jamais « Document de référence » ici et un numéro
+            # là — résultats, export et impression citent le document comme la consigne.
+            heading = display_heading(document, resolve_layout(document), document_label(question_type, index))
+            source_documents.append(
+                {
+                    "id": doc_id,
+                    "label": heading["label"],
+                    "title": heading["title"],
+                    "content_text": document.content_text or "",
+                    # Ticket #149 : la version exacte, rendue par les mêmes composants que
+                    # pendant la session (`_document_layouts.html`).
+                    "document": document,
+                }
+            )
         uaa = sq.question_version.question.uaa if sq.question_version.question else None
         # Ticket #90 : `correction_status` distingue une question RÉELLEMENT corrigée
         # (CORRECTED) d'une question encore en attente d'une vraie correction IA (FAILED/

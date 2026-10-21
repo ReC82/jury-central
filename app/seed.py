@@ -9,6 +9,7 @@ from app.quiz import QuizConfig
 from app.slugify import slugify
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.v1.ampcr_plan import AMPCR_PLAN
+from app.v1.document_references import repair_dossier_references
 from app.v1.francais_fr01_05_courses import (
     fr01_course_markdown,
     fr02_course_markdown,
@@ -5468,6 +5469,11 @@ def seed() -> None:
             obsolete_titles=frozenset({"Cours complet"}),
         )
 
+        # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
+        # n'était pas résolvable → nouvelle version (idempotent, sessions existantes
+        # intactes, voir `app.v1.document_references`).
+        references = repair_dossier_references(db)
+
         db.commit()
 
         all_subjects = (
@@ -5491,6 +5497,11 @@ def seed() -> None:
             print(
                 f"  Reclassé (espace pédagogique COURSE/PRACTICE/EXAM mis à jour, "
                 f"contenu inchangé) : {reclassified['blocks']} bloc(s)"
+            )
+        if references["repaired"] or references["unresolved"]:
+            print(
+                f"  Renvois documentaires réparés (nouvelle version de question) : "
+                f"{references['repaired']} ; non résolus : {references['unresolved']}"
             )
         if repositioned["blocks"]:
             print(

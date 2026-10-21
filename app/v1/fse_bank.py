@@ -18,6 +18,12 @@ from sqlalchemy.orm import Session
 
 from app.models import UAA, Module
 from app.v1 import question_types  # noqa: F401 — enregistre les 26 types (#40) au chargement
+from app.v1.document_references import (
+    FSE07_RELIABILITY_ORDER_PROMPT,
+    FSE16_ASSOCIATION_LIMIT_PROMPT,
+    FSE16_CONCLUSION_PROMPT,
+    FSE16_TRANSPORT_COMPANY_PROMPT,
+)
 from app.v1.fse01_content import (
     FSE01_AFFICHE_TEXT,
     FSE01_AFFICHE_TITLE,
@@ -563,6 +569,9 @@ def import_fse02_to_bank(db: Session, module: Module, uaa: UAA) -> int:
             "classification",
             {
                 "prompt": "Classe chacun de ces trois médias selon son mode de financement principal.",
+                # Ticket #151 : les trois médias à classer sont montrés (pages du dossier).
+                "source_document_version_id": paid_id,
+                "source_document_version_ids": [paid_id, free_ad_id, public_id],
                 "categories": ["Vente/abonnement", "Publicité", "Fonds publics"],
                 "elements": ["L'Hebdo du Littoral", "Le Flash Infos", "Radio Communauté Wallonie (RCW)"],
                 "correct_categories": [0, 1, 2],
@@ -704,6 +713,7 @@ def import_fse02_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "ta réponse."
                 ),
                 "source_document_version_id": paid_id,
+                "source_document_version_ids": [paid_id, free_ad_id],
                 "rubric": (
                     "3 points : identifie que Le Flash Infos dépend le plus de son "
                     "audience (financement publicitaire lié aux vues) (1 point) ; "
@@ -1324,6 +1334,7 @@ def import_fse04_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "tout le monde à se moquer », en t'appuyant sur les deux documents."
                 ),
                 "source_document_version_id": group_id,
+                "source_document_version_ids": [group_id, testimony_id],
                 "rubric": (
                     "3 points : identifie le membre D comme preuve qu'un comportement "
                     "différent est possible au sein même du groupe (1 point) ; s'appuie "
@@ -1988,6 +1999,7 @@ def import_fse07_to_bank(db: Session, module: Module, uaa: UAA) -> int:
             {
                 "prompt": "Pourquoi le document du forum est-il moins fiable que la note de direction ? Cite un indice précis.",
                 "source_document_version_id": forum_id,
+                "source_document_version_ids": [school_id, forum_id],
                 "rubric": (
                     "Bonne réponse si elle cite l'anonymat de l'auteur (« parent_inquiet93 ») "
                     "et/ou l'absence de date, par opposition à la note de direction signée et "
@@ -2031,7 +2043,7 @@ def import_fse07_to_bank(db: Session, module: Module, uaa: UAA) -> int:
         (
             "ordering",
             {
-                "prompt": "Classe ces trois documents du plus fiable au moins fiable, selon les critères auteur/date/contexte/preuves.",
+                "prompt": FSE07_RELIABILITY_ORDER_PROMPT,
                 "items": [
                     {"id": "school", "label": "Note de la direction (signée, datée, faits précis)"},
                     {"id": "chat", "label": "Messages du groupe-classe (prénoms connus, mélange faits/opinions/interprétations)"},
@@ -2051,6 +2063,7 @@ def import_fse07_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "pourquoi ?"
                 ),
                 "source_document_version_id": forum_id,
+                "source_document_version_ids": [school_id, forum_id],
                 "rubric": (
                     "Bonne réponse si elle retient le fait de la note de direction (groupe de 24 "
                     "élèves, document signé et daté) plutôt que l'affirmation anonyme et non "
@@ -2111,6 +2124,7 @@ def import_fse07_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "forum et explique ta démarche."
                 ),
                 "source_document_version_id": forum_id,
+                "source_document_version_ids": [school_id, forum_id],
                 "rubric": (
                     "3 points : identifie la contradiction entre les deux documents (1 point) ; "
                     "explique que le forum, anonyme et non daté, est moins fiable que la note de "
@@ -2135,6 +2149,7 @@ def import_fse07_to_bank(db: Session, module: Module, uaa: UAA) -> int:
                     "d'un document fiable pour chacun."
                 ),
                 "source_document_version_id": school_id,
+                "source_document_version_ids": [school_id, chat_id, forum_id],
                 "rubric": (
                     "3 points : identifie l'enjeu juridique (droit à l'image, filmer/diffuser "
                     "sans consentement) en s'appuyant sur la note de direction (1 point) ; "
@@ -4148,7 +4163,7 @@ def import_fse16_to_bank(db: Session, module: Module, uaa: UAA) -> int:
         (
             "short_answer",
             {
-                "prompt": "D'après le document 3, quelle limite l'association environnementale met-elle en évidence concernant l'effet de réduction de la voiture individuelle ?",
+                "prompt": FSE16_ASSOCIATION_LIMIT_PROMPT,
                 "source_document_version_id": reactions_id,
                 "rubric": "Bonne réponse si elle cite la capacité réelle du réseau à absorber la demande supplémentaire.",
                 "max_length": 300,
@@ -4173,7 +4188,7 @@ def import_fse16_to_bank(db: Session, module: Module, uaa: UAA) -> int:
         (
             "document_analysis",
             {
-                "prompt": "Analyse la réaction de l'entreprise de transport (document 3) : quel effet attendu et quelle limite/coût y identifies-tu ?",
+                "prompt": FSE16_TRANSPORT_COMPANY_PROMPT,
                 "source_document_version_id": reactions_id,
                 "rubric": (
                     "3 points : identifie l'effet attendu (hausse de la fréquentation) (1 point) ; "
@@ -4214,8 +4229,9 @@ def import_fse16_to_bank(db: Session, module: Module, uaa: UAA) -> int:
         (
             "long_answer",
             {
-                "prompt": "Rédige une conclusion argumentée sur la proposition d'aide aux transports, fondée sur les trois documents fournis.",
+                "prompt": FSE16_CONCLUSION_PROMPT,
                 "source_document_version_id": proposal_id,
+                "source_document_version_ids": [proposal_id, budget_note_id, reactions_id],
                 "rubric": (
                     "4 points : s'appuie sur le document 1 (objectifs et niveau compétent) "
                     "(1 point) ; s'appuie sur le document 2 (dépense immédiate vs compensation "
