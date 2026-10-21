@@ -156,19 +156,21 @@ def dossier_repairs() -> tuple[DossierRepair, ...]:
             "pour chacun.",
             (school, chat, forum),
         ),
+        # Ticket #152 : le document 3 commence par « Cette aide… » ; la proposition
+        # (document 1) l'accompagne pour que l'aide soit décrite.
         DossierRepair(
             "FSE16",
             "D'après le document 3, quelle limite l'association environnementale met-elle en "
             "évidence concernant l'effet de réduction de la voiture individuelle ?",
             FSE16_ASSOCIATION_LIMIT_PROMPT,
-            (reactions,),
+            (proposal, reactions),
         ),
         DossierRepair(
             "FSE16",
             "Analyse la réaction de l'entreprise de transport (document 3) : quel effet attendu "
             "et quelle limite/coût y identifies-tu ?",
             FSE16_TRANSPORT_COMPANY_PROMPT,
-            (reactions,),
+            (proposal, reactions),
         ),
         DossierRepair(
             "FSE16",

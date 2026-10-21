@@ -797,6 +797,47 @@ _register(
     },
 )
 
+# Ticket #152 : version d'examen (le niveau qui décide n'est plus nommé dans la situation).
+_register(
+    "Dix situations — qui décide de quoi ?",
+    "288cacd0111fb3e4",
+    {
+        "kind": "cards",
+        "notice": "Dix situations fictives, rédigées pour cet exercice — aucun organisme réel. "
+        "Le niveau de pouvoir qui décide n'est volontairement pas nommé : c'est à toi de le "
+        "déterminer.",
+        "item_label": "Situation",
+        "items": _numbered(
+            "Situation",
+            [
+                ("De nouvelles règles de procédure pénale s'appliqueront de la même façon dans "
+                "tout le pays."),
+                ("Les aides financières destinées aux entreprises qui s'installent en Wallonie "
+                "sont modifiées."),
+                "Les programmes de cours des écoles francophones sont adaptés.",
+                ("De nouveaux bancs publics sont installés dans un quartier et les trottoirs de "
+                "la localité sont entretenus."),
+                ("Des militaires belges sont envoyés à l'étranger dans le cadre d'une mission "
+                "internationale."),
+                ("De nouvelles normes environnementales sont adoptées pour les entreprises "
+                "situées en Wallonie."),
+                ("Une campagne culturelle est organisée dans des bibliothèques publiques "
+                "francophones subventionnées."),
+                ("Une personne malade est soignée à l'hôpital. Une partie des soins est "
+                "remboursée par sa mutualité, dans le cadre de l'assurance maladie-invalidité ; "
+                "d'autres aspects de sa prise en charge, comme la prévention, relèvent des "
+                "matières personnalisables."),
+                ("Les communes d'un même territoire reçoivent une aide technique pour un projet "
+                "d'intérêt local, organisée par le niveau de pouvoir situé entre la commune et "
+                "la Région."),
+                ("Une même politique combine une réforme de la fiscalité générale et de "
+                "nouvelles règles sur le logement : elle ne peut être mise en œuvre qu'avec "
+                "l'accord de deux gouvernements différents."),
+            ],
+        ),
+    },
+)
+
 # --- FSE10 / FSE11 ------------------------------------------------------------------------
 
 _register(

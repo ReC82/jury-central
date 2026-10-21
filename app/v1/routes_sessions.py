@@ -590,13 +590,19 @@ def _parse_answer_form(question_type: str, content: dict[str, Any], form) -> dic
             assignments.append(int(raw) if raw.isdigit() else -1)
         return {"assignments": assignments}
     if question_type == "ordering":
+        # Ticket #152 : un ordre n'est enregistré que si chaque élément a une position
+        # distincte de 1 à n. Avant, les positions vides ou en double étaient départagées
+        # par l'ordre des identifiants de la banque (e1, e2…) — souvent l'ordre correct :
+        # naviguer sans rien choisir donnait tous les points. Une saisie incomplète reste
+        # « sans réponse » (navigation libre, pas de note) et ses choix sont conservés.
         items = content["items"]
-        positions = []
+        positions = {}
         for item in items:
             raw = form.get(f"position__{item['id']}", "0")
-            positions.append((int(raw) if raw.isdigit() else 0, item["id"]))
-        ordered = [item_id for _, item_id in sorted(positions)]
-        return {"order": ordered}
+            positions[item["id"]] = int(raw) if raw.isdigit() else 0
+        if sorted(positions.values()) == list(range(1, len(items) + 1)):
+            return {"order": sorted(positions, key=positions.get)}
+        return {"order": [], "positions": {item_id: pos for item_id, pos in positions.items() if pos}}
     if question_type == "image_identification" and content.get("response_mode", "choice") == "choice":
         return {"selected_option_ids": form.getlist("option_id")}
     if question_type == "diagram_labeling":

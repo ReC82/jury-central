@@ -63,7 +63,7 @@ from app.v1.fse07_content import (
     FSE07_SCHOOL_TITLE,
 )
 from app.v1.fse08_content import FSE08_MAP_TEXT, FSE08_MAP_TITLE
-from app.v1.fse09_content import FSE09_SITUATIONS_TEXT, FSE09_SITUATIONS_TITLE
+from app.v1.fse09_content import FSE09_SITUATIONS_EXAM_TEXT, FSE09_SITUATIONS_TITLE
 from app.v1.fse10_content import (
     FSE10_BALLOTS_TEXT,
     FSE10_BALLOTS_TITLE,
@@ -105,6 +105,7 @@ from app.v1.models import (
     create_question,
     create_source_document,
 )
+from app.v1.prompt_clarity import apply_clarity
 from app.v1.question_engine import validate_content
 
 
@@ -435,6 +436,7 @@ def import_fse01_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -734,6 +736,7 @@ def import_fse02_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -1052,6 +1055,7 @@ def import_fse03_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -1356,6 +1360,7 @@ def import_fse04_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -1642,6 +1647,7 @@ def import_fse05_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -1899,6 +1905,7 @@ def import_fse06_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -2170,6 +2177,7 @@ def import_fse07_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -2401,6 +2409,7 @@ def import_fse08_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -2426,7 +2435,7 @@ def import_fse09_to_bank(db: Session, module: Module, uaa: UAA) -> int:
         return 0
 
     situations = create_source_document(
-        db, title=FSE09_SITUATIONS_TITLE, content_text=FSE09_SITUATIONS_TEXT, module_id=module.id
+        db, title=FSE09_SITUATIONS_TITLE, content_text=FSE09_SITUATIONS_EXAM_TEXT, module_id=module.id
     )
     db.flush()
     situations_id = situations.current_version_id
@@ -2637,6 +2646,7 @@ def import_fse09_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -2864,6 +2874,7 @@ def import_fse10_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -3097,6 +3108,7 @@ def import_fse11_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -3323,6 +3335,7 @@ def import_fse12_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -3557,6 +3570,7 @@ def import_fse13_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -3785,6 +3799,7 @@ def import_fse14_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -4013,6 +4028,7 @@ def import_fse15_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(
@@ -4165,6 +4181,7 @@ def import_fse16_to_bank(db: Session, module: Module, uaa: UAA) -> int:
             {
                 "prompt": FSE16_ASSOCIATION_LIMIT_PROMPT,
                 "source_document_version_id": reactions_id,
+                "source_document_version_ids": [proposal_id, reactions_id],
                 "rubric": "Bonne réponse si elle cite la capacité réelle du réseau à absorber la demande supplémentaire.",
                 "max_length": 300,
             },
@@ -4190,6 +4207,7 @@ def import_fse16_to_bank(db: Session, module: Module, uaa: UAA) -> int:
             {
                 "prompt": FSE16_TRANSPORT_COMPANY_PROMPT,
                 "source_document_version_id": reactions_id,
+                "source_document_version_ids": [proposal_id, reactions_id],
                 "rubric": (
                     "3 points : identifie l'effet attendu (hausse de la fréquentation) (1 point) ; "
                     "identifie la limite/le coût (coûts supplémentaires pour augmenter la "
@@ -4253,6 +4271,7 @@ def import_fse16_to_bank(db: Session, module: Module, uaa: UAA) -> int:
 
     imported = 0
     for question_type, content, difficulty in questions:
+        content = apply_clarity(db, uaa, question_type, content)
         validate_content(question_type, 1, content)
         source_doc_id = content.get("source_document_version_id")
         create_question(

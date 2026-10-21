@@ -43,3 +43,43 @@ Situation 10 — Un gouvernement fédéral et un gouvernement régional doivent 
 pour une politique qui touche à la fois une compétence fédérale (ex. fiscalité générale) et une \
 compétence régionale (ex. logement) : exemple volontairement présenté comme nécessitant une \
 coordination entre niveaux, sans réponse unique trompeuse."""
+
+# Ticket #152 : version d'examen du même document (entraînement, examen blanc FSE17, quiz).
+# Le texte du cours ci-dessus nomme l'acteur de chaque situation (« Une région modifie… »,
+# « Une commune décide… ») : servi tel quel à côté d'une question « quel niveau de pouvoir
+# est compétent ? », il donnait la réponse. Ici, chaque situation décrit la MATIÈRE et son
+# étendue, sans nommer le niveau qui décide ; les situations 8 et 10 (partage,
+# coordination) gardent leurs indices sans commentaire éditorial sur la réponse attendue.
+# Le cours FSE09 garde le texte d'origine (exemples commentés).
+FSE09_SITUATIONS_EXAM_TEXT = """[Dix situations fictives, rédigées pour cet exercice — aucun organisme réel. \
+Le niveau de pouvoir qui décide n'est volontairement pas nommé : c'est à toi de le déterminer.]
+
+Situation 1 — De nouvelles règles de procédure pénale s'appliqueront de la même façon dans tout le pays.
+
+Situation 2 — Les aides financières destinées aux entreprises qui s'installent en Wallonie sont \
+modifiées.
+
+Situation 3 — Les programmes de cours des écoles francophones sont adaptés.
+
+Situation 4 — De nouveaux bancs publics sont installés dans un quartier et les trottoirs de la \
+localité sont entretenus.
+
+Situation 5 — Des militaires belges sont envoyés à l'étranger dans le cadre d'une mission \
+internationale.
+
+Situation 6 — De nouvelles normes environnementales sont adoptées pour les entreprises situées \
+en Wallonie.
+
+Situation 7 — Une campagne culturelle est organisée dans des bibliothèques publiques \
+francophones subventionnées.
+
+Situation 8 — Une personne malade est soignée à l'hôpital. Une partie des soins est remboursée \
+par sa mutualité, dans le cadre de l'assurance maladie-invalidité ; d'autres aspects de sa prise \
+en charge, comme la prévention, relèvent des matières personnalisables.
+
+Situation 9 — Les communes d'un même territoire reçoivent une aide technique pour un projet \
+d'intérêt local, organisée par le niveau de pouvoir situé entre la commune et la Région.
+
+Situation 10 — Une même politique combine une réforme de la fiscalité générale et de nouvelles \
+règles sur le logement : elle ne peut être mise en œuvre qu'avec l'accord de deux gouvernements \
+différents."""

@@ -110,7 +110,10 @@ def test_capture_cases_show_document_3_and_both_forum_and_note(db_session):
     _import_fse_banks(db_session)
     limit = _question(db_session, "FSE16", "D'après le document 3")
     assert "(réactions des groupes concernés)" in limit.current_version.content_json["prompt"]
-    assert _shown_titles(db_session, limit.current_version.content_json) == [fse_bank.FSE16_REACTIONS_TITLE]
+    # Ticket #152 : la proposition (document 1) accompagne le document 3 (« Cette aide… »).
+    assert _shown_titles(db_session, limit.current_version.content_json) == [
+        fse_bank.FSE16_PROPOSAL_TITLE, fse_bank.FSE16_REACTIONS_TITLE,
+    ]
     fact = _question(db_session, "FSE07", "Le forum affirme que Lucas")
     assert _shown_titles(db_session, fact.current_version.content_json) == [
         fse_bank.FSE07_SCHOOL_TITLE, fse_bank.FSE07_FORUM_TITLE,
@@ -153,7 +156,10 @@ def test_the_corrector_receives_every_document_shown_with_its_number(db_session)
     limit = _question(db_session, "FSE16", "D'après le document 3")
     session = _session(db_session, limit.current_version_id, limit.module_id)
     titles = [context.course_title for context in _document_contexts_for(db_session, session.session_questions)]
-    assert titles == [f"Document 3 — {fse_bank.FSE16_REACTIONS_TITLE}"]
+    assert titles == [
+        f"Document 1 — {fse_bank.FSE16_PROPOSAL_TITLE}",
+        f"Document 3 — {fse_bank.FSE16_REACTIONS_TITLE}",
+    ]
 
 
 def test_session_page_shows_the_note_and_the_forum(authenticated_client, db_session):
