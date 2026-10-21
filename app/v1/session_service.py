@@ -73,6 +73,12 @@ from app.v1.models import (
     User,
     record_question_seen,
 )
+from app.v1.rating import (
+    apply_session_rating_safely,
+    generation_difficulty_fr,
+    in_adaptive_band,
+    user_rating_value,
+)
 
 DEFAULT_QUESTION_COUNT = 10
 GLOBAL_EXAM_QUESTION_COUNT = 20
@@ -114,6 +120,22 @@ _SEVERITY_UI_TO_INTERNAL = {
     4: "strict",
     5: "very_strict",
 }
+
+
+def _adaptive_target(
+    db: DBSession, *, user_id: int, module_id: int, difficulty: SessionDifficultyRequest
+) -> float | None:
+    """Niveau visé pour une session `ADAPTIVE` (ticket #45) : le rating de l'utilisateur
+    dans CE module (jamais un rating global) ; `None` pour toute autre difficulté."""
+    if difficulty != SessionDifficultyRequest.ADAPTIVE:
+        return None
+    return user_rating_value(db, user_id=user_id, module_id=module_id)
+
+
+def _generation_difficulty_fr(difficulty: SessionDifficultyRequest, target_rating: float | None) -> str:
+    if target_rating is not None:
+        return generation_difficulty_fr(target_rating)
+    return _DIFFICULTY_TO_FRENCH[difficulty]
 
 
 class SessionCreationError(Exception):
@@ -213,8 +235,26 @@ def _round_robin_fill(
     return selected, long_count
 
 
+def _difficulty_predicate(
+    difficulty: SessionDifficultyRequest | None, target_rating: float | None
+) -> Callable[[Question], bool] | None:
+    """Critère « question de la difficulté demandée » : difficulté déclarée identique
+    (facile/moyen/difficile, ticket #96) ou, en `ADAPTIVE` avec un niveau connu (ticket
+    #45), rating dans la bande autour du niveau de l'utilisateur dans le module. `None` =
+    aucune préférence."""
+    if difficulty is not None and difficulty != SessionDifficultyRequest.ADAPTIVE:
+        target = QuestionDifficulty(difficulty.value)
+        return lambda q: q.difficulty_declared == target
+    if difficulty == SessionDifficultyRequest.ADAPTIVE and target_rating is not None:
+        return lambda q: in_adaptive_band(q, target_rating)
+    return None
+
+
 def compose_selection(
-    pool: list[Question], count: int, difficulty: SessionDifficultyRequest | None = None
+    pool: list[Question],
+    count: int,
+    difficulty: SessionDifficultyRequest | None = None,
+    target_rating: float | None = None,
 ) -> list[Question]:
     """Répartit la sélection entre types disponibles (round-robin, diversité maximale) en
     plafonnant STRICTEMENT les types sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION`
@@ -244,16 +284,18 @@ def compose_selection(
     identique à avant ce ticket) quand `difficulty` est `None`/`ADAPTIVE`, ou qu'aucune
     question du pool ne porte de difficulté déclarée — jamais de changement pour les
     matières qui n'en déclarent pas encore (Informatique AMPCR, Français ; vérifié par
-    `tests/test_ticket96_fse01.py::test_other_subjects_selection_is_byte_for_byte_unaffected_by_difficulty_priority`)."""
-    target = None
-    if difficulty is not None and difficulty != SessionDifficultyRequest.ADAPTIVE:
-        target = QuestionDifficulty(difficulty.value)
-    if target is None or not any(q.difficulty_declared == target for q in pool):
+    `tests/test_ticket96_fse01.py::test_other_subjects_selection_is_byte_for_byte_unaffected_by_difficulty_priority`).
+
+    `ADAPTIVE` + `target_rating` (ticket #45, `app.v1.rating`) : la première passe porte
+    sur les questions dont le rating est dans la bande autour de `target_rating` (niveau
+    de l'utilisateur dans le module) ; sans `target_rating`, no-op comme avant."""
+    matches = _difficulty_predicate(difficulty, target_rating)
+    if matches is None or not any(matches(q) for q in pool):
         selected, _ = _round_robin_fill(pool, count, [], 0)
         return selected
 
-    matching = [q for q in pool if q.difficulty_declared == target]
-    other = [q for q in pool if q.difficulty_declared != target]
+    matching = [q for q in pool if matches(q)]
+    other = [q for q in pool if not matches(q)]
     selected, long_count = _round_robin_fill(matching, count, [], 0)
     if len(selected) < count:
         selected, long_count = _round_robin_fill(other, count, selected, long_count)
@@ -573,6 +615,7 @@ def _start_mc38_transversal_session(
     Anti-répétition (ticket #64 § 1) : la sélection banque initiale n'interroge QUE des
     questions jamais vues (`only_unseen=True`) — une question déjà vue n'est reprise qu'en
     tout dernier recours, ci-dessous, après tentative de génération."""
+    target_rating = _adaptive_target(db, user_id=user.id, module_id=module_id, difficulty=difficulty)
     oversample = select_transversal_bank_questions(
         db, user_id=user.id, module_id=module_id, limit=question_count * 3, only_unseen=True
     )
@@ -581,7 +624,9 @@ def _start_mc38_transversal_session(
     # Ticket #96 (review) : `difficulty` transmis pour cohérence avec `start_session` —
     # no-op ici en pratique tant qu'aucune question MC01-38 ne déclare de difficulté (voir
     # `compose_selection`, docstring).
-    selected = compose_selection(oversample, question_count, difficulty=difficulty)
+    selected = compose_selection(
+        oversample, question_count, difficulty=difficulty, target_rating=target_rating
+    )
 
     if len(selected) < question_count:
         missing = question_count - len(selected)
@@ -594,7 +639,7 @@ def _start_mc38_transversal_session(
             else BRIDGE_TYPES
         )
         contexts = pick_transversal_contexts()
-        difficulty_fr = _DIFFICULTY_TO_FRENCH[difficulty]
+        difficulty_fr = _generation_difficulty_fr(difficulty, target_rating)
         avoid_prompts = tuple(recent_seen_prompts(db, user_id=user.id, module_id=module_id))
 
         def _persist_non_meta(questionnaire: Questionnaire) -> tuple[list[Question], int]:
@@ -679,12 +724,11 @@ def _start_fse_transversal_session(
     raw_pool = select_fse_transversal_bank_questions(
         db, user_id=user.id, module_id=module_id, limit=question_count * 12, only_unseen=True
     )
-    target = None
-    if difficulty is not None and difficulty != SessionDifficultyRequest.ADAPTIVE:
-        target = QuestionDifficulty(difficulty.value)
-    if target is not None and any(q.difficulty_declared == target for q in raw_pool):
-        matching = [q for q in raw_pool if q.difficulty_declared == target]
-        other = [q for q in raw_pool if q.difficulty_declared != target]
+    target_rating = _adaptive_target(db, user_id=user.id, module_id=module_id, difficulty=difficulty)
+    matches = _difficulty_predicate(difficulty, target_rating)
+    if matches is not None and any(matches(q) for q in raw_pool):
+        matching = [q for q in raw_pool if matches(q)]
+        other = [q for q in raw_pool if not matches(q)]
         oversample = (
             _uaa_balanced_oversample(matching, question_count)
             + _uaa_balanced_oversample(other, question_count)
@@ -692,7 +736,9 @@ def _start_fse_transversal_session(
     else:
         oversample = _uaa_balanced_oversample(raw_pool, question_count)
     oversample = _limit_near_duplicate_clusters(oversample)
-    selected = compose_selection(oversample, question_count, difficulty=difficulty)
+    selected = compose_selection(
+        oversample, question_count, difficulty=difficulty, target_rating=target_rating
+    )
 
     if len(selected) < question_count:
         # Jamais de génération IA pour FSE (voir docstring) : passe directement au dernier
@@ -749,16 +795,19 @@ def start_session(
     # Anti-répétition (ticket #64 § 1) : la sélection banque initiale n'interroge QUE des
     # questions jamais vues — une question déjà vue n'est reprise qu'en tout dernier
     # recours, plus bas, après tentative de génération.
+    target_rating = _adaptive_target(db, user_id=user.id, module_id=module_id, difficulty=difficulty)
     oversample = select_bank_questions(
         db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 3,
-        only_unseen=True, difficulty=difficulty,
+        only_unseen=True, difficulty=difficulty, target_rating=target_rating,
     )
     if uaa_id is None:
         # Parcours global/examen blanc AMPCR (§ 8 du ticket #64) : plusieurs mini-cours
         # obligatoires — jamais pertinent pour une session scopée à un seul UAA.
         oversample = _uaa_balanced_oversample(oversample, question_count)
     oversample = _limit_near_duplicate_clusters(oversample)
-    selected = compose_selection(oversample, question_count, difficulty=difficulty)
+    selected = compose_selection(
+        oversample, question_count, difficulty=difficulty, target_rating=target_rating
+    )
 
     if len(selected) < question_count:
         missing = question_count - len(selected)
@@ -774,7 +823,7 @@ def start_session(
             else BRIDGE_TYPES
         )
         context = _pedagogical_context_for(uaa_code)
-        difficulty_fr = _DIFFICULTY_TO_FRENCH[difficulty]
+        difficulty_fr = _generation_difficulty_fr(difficulty, target_rating)
         avoid_prompts = tuple(
             recent_seen_prompts(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id)
         )
@@ -810,7 +859,7 @@ def start_session(
         # acceptable, un doublon intra-session ne l'est jamais).
         fallback_pool = select_bank_questions(
             db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5,
-            difficulty=difficulty,
+            difficulty=difficulty, target_rating=target_rating,
         )
         if not fallback_pool and not selected:
             raise SessionCreationError(
@@ -1183,6 +1232,8 @@ def _correct_and_finalize_claimed_session(
     updated_parameters = dict(session.parameters_json or {})
     updated_parameters["severity"] = severity_ui
     session.parameters_json = updated_parameters
+    # Ticket #45 : rating adaptatif mis à jour UNE fois, au questionnaire terminé.
+    apply_session_rating_safely(db, session)
     db.commit()
     return session
 
@@ -1380,6 +1431,8 @@ def _resolve_correction_job(
     updated_parameters = dict(session.parameters_json or {})
     updated_parameters["severity"] = severity_ui
     session.parameters_json = updated_parameters
+    # Ticket #45 : rating adaptatif mis à jour UNE fois, au questionnaire terminé.
+    apply_session_rating_safely(db, session)
     db.commit()
     return session
 

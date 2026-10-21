@@ -156,6 +156,10 @@ Disponible.
 Progression locale de l'étudiant, complétée par une barre de progression de lecture par
 leçon.
 
+Rating adaptatif V1 (ticket #45) : niveau de l'utilisateur par module et difficulté
+empirique des questions, recalculés après chaque questionnaire corrigé ; option
+« Adaptatif » au démarrage d'un entraînement/évaluation. Voir `docs/rating_adaptatif_v1.md`.
+
 ---
 
 ## Design System

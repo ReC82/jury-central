@@ -57,6 +57,7 @@ from app.v1.fse_bank import (
 from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, get_fse_plan_by_slug
 from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
 from app.v1.models import (
+    DEFAULT_MODULE_RATING,
     QuestionnaireSession,
     SessionBuildJob,
     SessionBuildJobStatus,
@@ -66,6 +67,7 @@ from app.v1.models import (
     SourceDocumentVersion,
     User,
 )
+from app.v1.rating import get_user_module_rating
 from app.v1.session_service import (
     DEFAULT_QUESTION_COUNT,
     GLOBAL_EXAM_QUESTION_COUNT,
@@ -124,7 +126,18 @@ _DIFFICULTY_LABELS = {
     SessionDifficultyRequest.EASY: "Facile",
     SessionDifficultyRequest.MEDIUM: "Moyen",
     SessionDifficultyRequest.HARD: "Difficile",
+    # Ticket #45 : sélection autour du niveau de l'utilisateur dans le module.
+    SessionDifficultyRequest.ADAPTIVE: "Adaptatif (selon ton niveau dans ce module)",
 }
+
+
+def _module_rating_context(db, *, user: User, module: Module) -> dict:
+    """Niveau de l'utilisateur dans CE module (ticket #45), affiché sur la page de
+    démarrage — jamais un niveau global toutes matières confondues."""
+    row = get_user_module_rating(db, user_id=user.id, module_id=module.id)
+    if row is None:
+        return {"rating": round(DEFAULT_MODULE_RATING), "sessions_count": 0, "module_code": module.code}
+    return {"rating": round(row.rating), "sessions_count": row.sessions_count, "module_code": module.code}
 
 
 def _ampcr_module(db) -> Module:
@@ -235,6 +248,7 @@ def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLR
             "start_url": f"/uaa/{uaa.slug}/practice/start",
             "resumable": resumable,
             "difficulties": list(_DIFFICULTY_LABELS.items()),
+            "module_rating": _module_rating_context(db, user=user, module=module),
             "allow_new_while_in_progress": True,
             "active_space": "practice",
         },
@@ -257,6 +271,7 @@ def render_exam_landing(request: Request, db, uaa: UAA, user: User) -> HTMLRespo
             "start_url": f"/uaa/{uaa.slug}/exam/start",
             "resumable": resumable,
             "difficulties": list(_DIFFICULTY_LABELS.items()),
+            "module_rating": _module_rating_context(db, user=user, module=module),
             # Évite plusieurs examens IN_PROGRESS identiques (choix documenté, ticket #55
             # § 12/§ RESUME) : si un examen est déjà en cours, seule la reprise est proposée.
             "allow_new_while_in_progress": False,
@@ -407,6 +422,7 @@ async def ampcr_global_practice_landing(
             "start_url": "/modules/ampcr/practice/start",
             "resumable": resumable,
             "difficulties": list(_DIFFICULTY_LABELS.items()),
+            "module_rating": _module_rating_context(db, user=user, module=module),
             "allow_new_while_in_progress": True,
         },
     )
@@ -431,6 +447,7 @@ async def ampcr_global_exam_landing(
             "start_url": "/modules/ampcr/exam/start",
             "resumable": resumable,
             "difficulties": list(_DIFFICULTY_LABELS.items()),
+            "module_rating": _module_rating_context(db, user=user, module=module),
             "allow_new_while_in_progress": False,
         },
     )

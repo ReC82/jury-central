@@ -198,13 +198,14 @@ class Question(Base):
     difficulty_declared: Mapped[QuestionDifficulty | None] = mapped_column(
         Enum(QuestionDifficulty), nullable=True
     )
-    # Difficulté empirique (§ K) : calculée plus tard par l'algorithme du ticket #45.
-    # Valeur/contraintes seulement ici — aucun calcul.
+    # Difficulté empirique (§ K) : calculée par l'algorithme du ticket #45
+    # (`app.v1.rating`), après chaque questionnaire terminé — aucun calcul ici.
     difficulty_rating: Mapped[float | None] = mapped_column(Float, nullable=True)
     rating_sample_size: Mapped[int] = mapped_column(Integer, default=0)
     generation_source: Mapped[GenerationSource] = mapped_column(Enum(GenerationSource))
     # Statistiques de base (§ B) : évitent de ré-agréger SessionAnswer à chaque affichage
-    # de la banque. Mises à jour par les tickets consommateurs (#41/#44), pas ici.
+    # de la banque. Mises à jour à la fin de chaque questionnaire par `app.v1.rating`
+    # (ticket #45), pas ici.
     times_served: Mapped[int] = mapped_column(Integer, default=0)
     times_correct: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
