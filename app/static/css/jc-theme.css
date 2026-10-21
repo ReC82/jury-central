@@ -1275,3 +1275,125 @@ a.jc-quiz-row:hover { border-color: var(--jc-primary); color: var(--jc-ink); }
     .jc-next { background: #fff; color: #000; box-shadow: none; border: 1px solid #ccc; }
     .jc-next h2, .jc-next .h4 { color: #000; }
 }
+
+/* --- Remise en ordre par cartes (ticket #153) ------------------------------------------ */
+.jc-order-hint {
+    background: var(--jc-primary-soft);
+    border-radius: var(--jc-radius-sm);
+    padding: .65rem .9rem;
+    margin-bottom: .9rem;
+}
+.jc-order-hint .bi-arrows-move { color: var(--jc-primary); margin-right: .25rem; }
+
+.jc-order-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 .75rem;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+}
+
+.jc-order-card {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    min-height: 60px;
+    padding: .55rem .6rem .55rem .35rem;
+    background: var(--jc-surface);
+    border: 2px solid var(--jc-line);
+    border-radius: var(--jc-radius-sm);
+    box-shadow: 0 1px 2px rgba(29, 35, 64, .05);
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.jc-order-card:hover { border-color: #c9cdf3; }
+.jc-order-card:focus-visible,
+.jc-order-card:focus-within {
+    outline: 3px solid #f59e0b;
+    outline-offset: 2px;
+}
+.jc-order.is-answered .jc-order-card { border-color: #c9cdf3; }
+
+.jc-order-handle {
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.75rem;
+    font-size: 1.35rem;
+    color: var(--jc-ink-soft);
+    border-radius: 10px;
+    cursor: grab;
+    /* Seule la poignée capture le geste : le reste de la carte laisse défiler la page. */
+    touch-action: none;
+    user-select: none;
+}
+.jc-order-handle:hover { background: var(--jc-canvas); color: var(--jc-primary); }
+.jc-order.no-drag .jc-order-handle { display: none; }
+
+.jc-order-pos {
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    background: var(--jc-canvas);
+    border: 1px solid var(--jc-line);
+    font-weight: 700;
+}
+.jc-order.is-answered .jc-order-pos {
+    background: var(--jc-primary);
+    border-color: var(--jc-primary);
+    color: #fff;
+}
+
+.jc-order-label { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+
+.jc-order-moves { flex: 0 0 auto; display: inline-flex; gap: .3rem; }
+.jc-order-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--jc-line);
+    border-radius: 10px;
+    background: var(--jc-surface);
+    color: var(--jc-ink);
+}
+.jc-order-btn:hover:not(:disabled) { border-color: var(--jc-primary); color: var(--jc-primary); }
+.jc-order-btn:disabled { opacity: .35; }
+
+.jc-order-card.is-chosen { border-color: var(--jc-primary); box-shadow: var(--jc-shadow-hover); }
+.jc-order-card.is-ghost { opacity: .45; border-style: dashed; background: var(--jc-primary-soft); }
+.jc-order-card.is-dragging { transform: rotate(1deg); }
+.jc-order.is-sorting .jc-order-handle { cursor: grabbing; }
+.jc-order-card.is-moved { animation: jc-order-pulse .5s ease; }
+@keyframes jc-order-pulse {
+    from { background: var(--jc-primary-soft); }
+    to { background: var(--jc-surface); }
+}
+
+.jc-order-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+}
+.jc-order-status { font-size: .9rem; color: var(--jc-ink-soft); }
+.jc-order-status[data-tone="ok"] { color: var(--jc-success); font-weight: 600; }
+.jc-order-status[data-tone="warn"] { color: var(--jc-warn); font-weight: 600; }
+
+@media (max-width: 575.98px) {
+    /* Téléphone : une seule ligne par carte, flèches empilées pour laisser la place au texte. */
+    .jc-order-card { gap: .45rem; padding-right: .4rem; }
+    .jc-order-handle { width: 2rem; }
+    .jc-order-pos { width: 1.75rem; height: 1.75rem; font-size: .9rem; }
+    .jc-order-moves { flex-direction: column; gap: .25rem; }
+    .jc-order-btn { width: 2.4rem; height: 2.1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .jc-order-card.is-moved { animation: none; }
+    .jc-order-card.is-dragging { transform: none; }
+}

@@ -1070,6 +1070,20 @@ async def question_feedback_route(
     )
 
 
+def _validated_ordering_autosave(content: dict[str, Any], answer_json: dict[str, Any]) -> dict[str, Any]:
+    """Ticket #153 : l'autosave des cartes de remise en ordre n'enregistre qu'une
+    permutation complète des identifiants de la question (ou un ordre vide = sans
+    réponse). Tout autre contenu (doublon, élément inconnu ou manquant) est refusé — rien
+    n'est enregistré, l'ancienne réponse reste intacte."""
+    item_ids = [item["id"] for item in content.get("items") or []]
+    order = answer_json.get("order")
+    if order == []:
+        return {"order": []}
+    if not isinstance(order, list) or not all(isinstance(i, str) for i in order) or sorted(order) != sorted(item_ids):
+        raise HTTPException(status_code=422, detail="Ordre invalide : chaque élément doit apparaître une seule fois.")
+    return {"order": list(order)}
+
+
 @router.post("/api/v1/sessions/{session_id}/answers/{session_question_id}")
 async def api_autosave_answer(
     session_id: int,
@@ -1094,6 +1108,9 @@ async def api_autosave_answer(
     answer_json = payload.get("answer_json")
     if not isinstance(answer_json, dict):
         raise HTTPException(status_code=422, detail="answer_json (objet) est requis.")
+    version = session_question.question_version
+    if version.question_type == "ordering":
+        answer_json = _validated_ordering_autosave(version.content_json, answer_json)
 
     # Jamais de correct/incorrect/solution/score ici (voir docstring du module) : l'API
     # ne retourne QUE la confirmation d'enregistrement.

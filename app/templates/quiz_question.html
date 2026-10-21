@@ -84,22 +84,10 @@
             {% endfor %}
 
             {% elif qtype == "ordering" %}
-            {% set positions = display.answer_json.get('positions', {}) %}
-            {% set saved_order = display.answer_json.get('order', []) %}
-            <p class="text-muted small">Donne une position à chaque élément (1 = en premier).</p>
-            {% for item in payload["items"] %}
-            {% set saved_position = positions.get(item.id) or ((saved_order.index(item.id) + 1) if item.id in saved_order else 0) %}
-            <div class="jc-quiz-order mb-2">
-                <label class="visually-hidden" for="pos-{{ loop.index }}">Position de « {{ item.label }} »</label>
-                <select class="form-select form-select-lg" id="pos-{{ loop.index }}" name="position__{{ item.id }}">
-                    <option value="0" {% if not saved_position %}selected{% endif %}>Choisir une position</option>
-                    {% for pos in range(1, payload["items"]|length + 1) %}
-                    <option value="{{ pos }}" {% if pos == saved_position %}selected{% endif %}>{{ pos }}</option>
-                    {% endfor %}
-                </select>
-                <span>{{ item.label }}</span>
-            </div>
-            {% endfor %}
+            {# Ticket #153 : cartes réordonnables ; en quiz, pas d'autosave — la validation
+               reste volontaire (« Valider ma réponse »). #}
+            {% set ordering_autosave_url = "" %}
+            {% include "_ordering_cards.html" %}
             {% endif %}
 
             <div class="d-flex justify-content-end mt-4">
@@ -204,6 +192,10 @@
 {% endblock %}
 
 {% block scripts %}
+{% if display.question_type == "ordering" and not feedback %}
+<script src="{{ url_for('static', path='vendor/sortablejs/Sortable.min.js') }}"></script>
+<script src="{{ url_for('static', path='js/ordering_cards.js') }}"></script>
+{% endif %}
 <script>
     document.querySelectorAll("form[data-quiz-once]").forEach(function (form) {
         form.addEventListener("submit", function () {
