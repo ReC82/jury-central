@@ -325,7 +325,7 @@ migration de données SQLite → PostgreSQL, choix d'un outil de migration de sc
 - Génération IA en batch : #43.
 - Correction (locale + un seul appel IA batch pour les réponses sémantiques) : #44.
 - Algorithme de rating (mise à jour de `UserModuleRating.rating`/
-  `Question.difficulty_rating`) : #45.
+  `Question.difficulty_rating`) : #45 — livré, voir `docs/rating_adaptatif_v1.md`.
 - Interface d'administration V1 : #46.
 - UX Français (découpage d'un texte en questions liées) : #47.
 - Reconnaissance d'image : #48.

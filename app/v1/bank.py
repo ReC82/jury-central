@@ -46,6 +46,7 @@ from app.v1.models import (
 )
 from app.v1.quality_validation import validate_question_quality
 from app.v1.question_engine import ContentValidationError, QuestionEngineError, validate_content
+from app.v1.rating import order_by_proximity
 from app.v1.short_answer_limits import compute_short_answer_max_length, is_max_length_incoherent
 
 logger = logging.getLogger(__name__)
@@ -277,8 +278,8 @@ def _prioritize_by_difficulty(
     (Informatique AMPCR, Français — vérifié par `tests/test_ticket96_fse01.py::
     test_other_subjects_selection_is_byte_for_byte_unaffected_by_difficulty_priority`) :
     `difficulty` est `None`, vaut `ADAPTIVE` (aucune préférence par construction — une
-    sélection adaptative n'a de sens qu'au niveau d'un futur algorithme dédié, jamais comme
-    un simple repli silencieux ici), ou aucune question du lot ne porte de difficulté
+    sélection adaptative relève du rating, ticket #45, voir `select_bank_questions`, jamais
+    d'un simple repli silencieux ici), ou aucune question du lot ne porte de difficulté
     déclarée."""
     if difficulty is None or difficulty == SessionDifficultyRequest.ADAPTIVE:
         return questions
@@ -299,6 +300,7 @@ def select_bank_questions(
     limit: int,
     only_unseen: bool = False,
     difficulty: SessionDifficultyRequest | None = None,
+    target_rating: float | None = None,
 ) -> list[Question]:
     """Sélectionne jusqu'à `limit` questions ACTIVE, en excluant celles déjà vues par
     l'utilisateur — par identité exacte ET par quasi-doublon structurel (voir
@@ -321,7 +323,11 @@ def select_bank_questions(
     l'intérieur du groupe jamais-vu COMME du groupe déjà-vu, les questions de la difficulté
     demandée — sans jamais en exclure d'autres. Laisse `compose_selection`
     (`app.v1.session_service`) faire respecter la diversité de types par-dessus cette
-    priorité."""
+    priorité.
+
+    `target_rating` (ticket #45, uniquement avec `ADAPTIVE`) : trie les questions par
+    proximité de leur rating avec le niveau de l'utilisateur dans le module (tri stable
+    par tranches, `app.v1.rating.order_by_proximity`) — là encore sans rien exclure."""
     seen_question_ids = {
         row[0]
         for row in db.query(UserQuestionHistory.question_id).filter_by(user_id=user_id).distinct()
@@ -332,6 +338,8 @@ def select_bank_questions(
     query = query.filter_by(uaa_id=uaa_id) if uaa_id is not None else query.filter(Question.uaa_id.is_not(None))
     all_active = query.order_by(func.random()).all()
     all_active = _prioritize_by_difficulty(all_active, difficulty)
+    if difficulty == SessionDifficultyRequest.ADAPTIVE and target_rating is not None:
+        all_active = order_by_proximity(all_active, target_rating)
     unseen, seen = _split_unseen_and_seen(
         all_active, seen_question_ids=seen_question_ids, seen_signatures=seen_signatures
     )

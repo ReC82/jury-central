@@ -64,10 +64,18 @@
                         <label class="form-check-label" for="difficulty-{{ value.value }}">{{ label }}</label>
                     </div>
                     {% endfor %}
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" disabled>
-                        <label class="form-check-label text-muted">Adaptatif (bientôt disponible)</label>
-                    </div>
+                    {% if module_rating %}
+                    <p class="text-muted small mb-0 mt-2" id="module-rating">
+                        Ton niveau actuel dans le module {{ module_rating.module_code }} :
+                        <strong>{{ module_rating.rating }}</strong>
+                        {% if module_rating.sessions_count %}
+                        ({{ module_rating.sessions_count }} questionnaire{{ "s" if module_rating.sessions_count > 1 }} terminé{{ "s" if module_rating.sessions_count > 1 }})
+                        {% else %}
+                        (niveau de départ, aucun questionnaire terminé)
+                        {% endif %}
+                        — recalculé après chaque questionnaire corrigé.
+                    </p>
+                    {% endif %}
                 </fieldset>
                 <button type="submit" class="btn btn-dark w-100" id="start-session-button">
                     <span id="start-session-button-label">

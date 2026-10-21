@@ -47,6 +47,13 @@
             Session terminée le {{ session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else '' }} — définitive, non modifiable.
         </p>
         {% endif %}
+        {% set rating_info = (session.parameters_json or {}).get("rating") %}
+        {% if rating_info %}
+        <p class="text-muted mb-1" id="module-rating-change">
+            Niveau dans le module : {{ rating_info.user_before|round|int }} → <strong>{{ rating_info.user_after|round|int }}</strong>
+            ({{ "%+d"|format(rating_info.user_delta|round|int) }})
+        </p>
+        {% endif %}
         {% if severity_label %}
         <p class="text-muted mb-4">Sévérité de correction : {{ severity_label }}</p>
         {% else %}
