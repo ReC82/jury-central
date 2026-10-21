@@ -162,6 +162,12 @@ explication après chaque réponse validée, reprise exacte, résultat (points f
 relire), rejouer et reprise des erreurs. Activité distincte des entraînements et examens
 blancs. Voir `docs/quiz_v1.md`.
 
+Depuis le ticket #150, l'ordre des réponses d'un QCM (et des éléments d'une remise en
+ordre) est tiré au sort pour chaque question servie — quiz, entraînement et examen blanc —
+et persisté dans la session (`SessionQuestion.content_snapshot_json["display_order"]`,
+`app/v1/display_order.py`) : stable à la reprise, banque inchangée, correction toujours
+par identifiant. Les sessions antérieures gardent l'ordre de la banque.
+
 ---
 
 ## Renderer de contenu riche (VS003.1)

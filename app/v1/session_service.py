@@ -47,6 +47,8 @@ from app.v1.bank import (
     select_transversal_bank_questions,
 )
 from app.v1.dedup import is_near_duplicate, question_signature
+from app.v1.display_order import SNAPSHOT_KEY as DISPLAY_ORDER_KEY
+from app.v1.display_order import apply_display_order, build_display_order
 from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE, get_francais_context
 from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, FSE_PLAN_BY_CODE, get_fse_context
 from app.v1.generation_control import is_generation_paused
@@ -588,6 +590,11 @@ def _finalize_session(
             points_max=1.0,
             source_document_version_id=source_document_version_id,
         )
+        # Ticket #150 : ordre d'affichage des réponses propre à cette question servie,
+        # persisté (stable à la reprise) — la banque n'est jamais modifiée.
+        display_order = build_display_order(question.current_version.question_type, content)
+        if display_order:
+            session_question.content_snapshot_json = {DISPLAY_ORDER_KEY: display_order}
         db.add(session_question)
         record_question_seen(
             db, user_id=user.id, question_version=question.current_version, session_id=session.id
@@ -990,6 +997,7 @@ def build_question_display(db: DBSession, session_question: SessionQuestion) -> 
 
     version = session_question.question_version
     payload = public_payload(version.question_type, version.schema_version, version.content_json)
+    payload = apply_display_order(version.question_type, payload, session_question.content_snapshot_json)
     answer = session_question.answer
 
     # Français (ticket #47) : une question document_analysis/source_comparison/

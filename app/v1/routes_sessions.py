@@ -731,12 +731,17 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     UAA/cours, exposé pour qu'un futur ticket (#74) puisse ajouter un bouton « Relire le
     cours » sans nouvelle architecture — aucun bouton ajouté ici."""
     from app.v1.assets import asset_display, assets_by_version
+    from app.v1.display_order import apply_display_order
     from app.v1.question_engine import public_payload
     from app.v1.session_service import document_label, resolve_documents_in_order
 
     payloads = {
-        sq.position: public_payload(
-            sq.question_version.question_type, sq.question_version.schema_version, sq.question_version.content_json
+        sq.position: apply_display_order(
+            sq.question_version.question_type,
+            public_payload(
+                sq.question_version.question_type, sq.question_version.schema_version, sq.question_version.content_json
+            ),
+            sq.content_snapshot_json,
         )
         for sq in session_questions
     }

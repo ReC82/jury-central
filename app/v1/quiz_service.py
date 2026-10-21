@@ -45,6 +45,7 @@ from app.v1.ai_bridge import (
 )
 from app.v1.bank import _seen_signatures, _split_unseen_and_seen
 from app.v1.dedup import find_near_duplicate, question_signature
+from app.v1.display_order import apply_display_order
 from app.v1.models import (
     AnswerCorrectionStatus,
     ContentStatus,
@@ -688,7 +689,8 @@ def feedback_view(session_question: SessionQuestion) -> dict:
     """Ce qui est montré APRÈS validation : la réponse donnée, la solution et
     l'explication — construit seulement pour une question validée."""
     version = session_question.question_version
-    content = version.content_json
+    # Ticket #150 : la correction affichée suit l'ordre vu par l'élève pendant la question.
+    content = apply_display_order(version.question_type, version.content_json, session_question.content_snapshot_json)
     answer = session_question.answer
     answer_json = (answer.answer_json if answer else {}) or {}
     feedback = (answer.feedback_json if answer else {}) or {}
