@@ -92,7 +92,7 @@
             <div class="jc-quiz-order mb-2">
                 <label class="visually-hidden" for="pos-{{ loop.index }}">Position de « {{ item.label }} »</label>
                 <select class="form-select form-select-lg" id="pos-{{ loop.index }}" name="position__{{ item.id }}">
-                    <option value="0" {% if not saved_position %}selected{% endif %}>—</option>
+                    <option value="0" {% if not saved_position %}selected{% endif %}>Choisir une position</option>
                     {% for pos in range(1, payload["items"]|length + 1) %}
                     <option value="{{ pos }}" {% if pos == saved_position %}selected{% endif %}>{{ pos }}</option>
                     {% endfor %}

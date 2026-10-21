@@ -36,6 +36,7 @@ from app.v1.fse15_course import fse15_course_sections
 from app.v1.fse16_course import fse16_course_sections
 from app.v1.fse17_course import fse17_course_sections
 from app.v1.fse_plan import FSE_MODULE_CODE, FSE_SUBJECT_NAME
+from app.v1.prompt_clarity import repair_prompt_clarity
 
 SUBJECT_NAME = "Mathématiques"
 MODULE_CODES = ["MB32", "MQ32", "MQ34"]
@@ -5473,6 +5474,11 @@ def seed() -> None:
         # n'était pas résolvable → nouvelle version (idempotent, sessions existantes
         # intactes, voir `app.v1.document_references`).
         references = repair_dossier_references(db)
+        # Ticket #152 : consignes FSE autonomes (méthodes nommées, contexte « cette aide »,
+        # plus de « maintenant… ces trois autres ») et document FSE09 d'examen sans le niveau
+        # de pouvoir écrit → nouvelles versions (idempotent, sessions existantes intactes,
+        # voir `app.v1.prompt_clarity`).
+        clarity = repair_prompt_clarity(db)
 
         db.commit()
 
@@ -5502,6 +5508,12 @@ def seed() -> None:
             print(
                 f"  Renvois documentaires réparés (nouvelle version de question) : "
                 f"{references['repaired']} ; non résolus : {references['unresolved']}"
+            )
+        if clarity["repaired"] or clarity["unresolved"] or clarity["documents"]:
+            print(
+                f"  Consignes clarifiées (nouvelle version de question) : "
+                f"{clarity['repaired']} ; documents d'examen : {clarity['documents']} ; "
+                f"non résolues : {clarity['unresolved']}"
             )
         if repositioned["blocks"]:
             print(

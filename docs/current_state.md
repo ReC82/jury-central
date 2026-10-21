@@ -88,6 +88,22 @@ Réactions des groupes concernés ») ; le correcteur reçoit le numéro réel d
 version (`repair_dossier_references`, appelée par `app.seed`) et audit
 (`audit_document_references`). Voir `docs/claude-reports/2026-10-22_ticket-151-references-documentaires.md`.
 
+Consignes FSE autonomes (ticket #152) : `app/v1/prompt_clarity.py` est la seule liste des
+consignes corrigées (`clarity_repairs`). Les 15 remises en ordre de méthode FSE02–FSE16
+sont annoncées comme « Rappel de méthode (cours FSEnn « … », sans document à analyser) »
+et ne gardent que des étapes à ordre réellement contraint. FSE16 « réactions » classe effet
+attendu / limite ou coût, avec la proposition (document 1) affichée à côté du document 3.
+FSE15 « aide au média » sépare deux actions (a)/(b). FSE09, FSE06 et FSE12 n'ont plus de
+consigne « maintenant / ces trois autres / à présent ». Le document FSE09 servi en
+entraînement/examen/quiz est une version d'examen qui décrit la matière sans nommer le
+niveau de pouvoir (`FSE09_SITUATIONS_EXAM_TEXT`, mise en page dédiée) ; le cours garde le
+texte d'origine. Banque neuve : `apply_clarity` dans chaque import FSE ; banque déjà
+importée : `repair_prompt_clarity` (appelée par `app.seed`, nouvelles versions, idempotent).
+Audit : `audit_prompt_clarity`. Remise en ordre (entraînement/examen) : un ordre n'est
+enregistré que si chaque position 1..n est utilisée une fois ; sinon la question reste sans
+réponse et les choix partiels sont conservés (`positions`). Voir
+`docs/claude-reports/2026-10-22_ticket-152-consignes-fse-contexte.md`.
+
 ---
 
 ## Administration

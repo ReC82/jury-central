@@ -23,6 +23,7 @@ from app.seed import seed
 from app.templating import templates
 from app.v1 import document_layouts as dl
 from app.v1 import fse_bank
+from app.v1.fse09_content import FSE09_SITUATIONS_TEXT
 from app.v1.models import (
     Question,
     QuestionnaireSession,
@@ -61,7 +62,10 @@ def _render(doc, label="Document de référence", question_text=""):
 def test_every_fse_document_has_a_layout_bound_to_its_exact_text():
     assert len(FSE_DOCUMENTS) == 30
     registered = dl.registered_layouts()
-    assert len(registered) == 30
+    # Ticket #152 : + la version d'examen FSE09 ; la version d'origine reste mise en page
+    # pour les sessions qui l'ont servie.
+    assert len(registered) == 31
+    assert (fse_bank.FSE09_SITUATIONS_TITLE, dl.text_fingerprint(FSE09_SITUATIONS_TEXT)) in registered
     for title, text in FSE_DOCUMENTS:
         assert (title, dl.text_fingerprint(text)) in registered, title
 
@@ -214,7 +218,8 @@ def test_exam_question_page_shows_composed_document_and_distinct_finish(authenti
     assert 'class="jc-q-prompt"' in html
     assert "Terminer l&#39;évaluation" in html or "Terminer l'évaluation" in html
     assert 'jc-q-finish' in html
-    assert html.count("Ouvrir en grand</a>") == 1
+    # Ticket #152 : la proposition (document 1) accompagne le document 3.
+    assert html.count("Ouvrir en grand</a>") == 2
 
 
 def test_document_page_and_results_use_the_same_component(authenticated_client, db_session, monkeypatch):
