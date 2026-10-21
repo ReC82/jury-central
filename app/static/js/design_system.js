@@ -251,6 +251,16 @@ function initLessonProgress() {
 
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".content-markdown").forEach(enhanceRichContent);
+    // Ticket #149 : agrandissement des visuels des documents sources (affiche, vignettes).
+    document.querySelectorAll(".jc-sd").forEach(enableZoomableImages);
     splitExerciseCorrections();
     initLessonProgress();
+});
+
+/* Ticket #149 : à l'impression, les documents repliés (« Voir tout le document »,
+   documents des résultats) sont dépliés — rien n'est caché sur papier. */
+window.addEventListener("beforeprint", () => {
+    document.querySelectorAll("details.jc-sd-more, details.jc-sd-details").forEach((details) => {
+        details.open = true;
+    });
 });

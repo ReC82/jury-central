@@ -1,18 +1,17 @@
 {% extends "base.html" %}
+{% import "_document_layouts.html" as sd %}
 
 {% block title %}{{ document.title or "Document" }} — Jury Central{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-12 col-md-8 col-lg-7">
+    <div class="col-12 col-lg-10 col-xl-9">
 
-        <p class="text-uppercase text-muted small fw-semibold mb-1">Document de référence</p>
-        <h1 class="h4 mb-3">📄 {{ document.title or "Document source" }}</h1>
+        {{ sd.render(document, "Document de référence", uid="v", show_open=False) }}
 
-        <div class="p-3 bg-white rounded shadow-sm mb-3" style="white-space: pre-line;">{{ document.content_text }}</div>
-
-        <div class="text-center d-print-none">
-            <a href="/" class="btn btn-outline-dark">Retour à l'accueil</a>
+        <div class="d-flex justify-content-center gap-2 mt-3 d-print-none">
+            <button type="button" class="btn btn-outline-dark" onclick="window.print()"><i class="bi bi-printer" aria-hidden="true"></i> Imprimer</button>
+            <a href="/" class="btn btn-outline-secondary">Retour à l'accueil</a>
         </div>
     </div>
 </div>

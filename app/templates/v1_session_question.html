@@ -3,8 +3,10 @@
 {% block title %}Question {{ position }}/{{ total }} — Jury Central{% endblock %}
 
 {% block content %}
+{# Ticket #149 : colonne élargie quand la question s'appuie sur un document (lecture
+confortable des supports composés) ; la zone de réponse garde une largeur de lecture. #}
 <div class="row justify-content-center">
-    <div class="col-12 col-md-8 col-lg-7">
+    <div class="col-12 {% if display.source_documents %}col-lg-10 col-xl-9{% else %}col-md-8 col-lg-7{% endif %}">
 
         <p class="text-uppercase text-muted small fw-semibold mb-1">
             {% if session.mode.value == "exam" %}Examen blanc{% else %}S'entraîner{% endif %}
@@ -19,10 +21,13 @@
 
         {% include "_source_documents.html" %}
 
-        <div class="p-4 bg-white rounded shadow-sm mb-3">
+        <div class="jc-q-card p-4 bg-white rounded shadow-sm mb-3">
             {% set assets = display.assets %}
             {% include "_question_assets.html" %}
-            <p class="mb-4">{{ display.public_payload.prompt }}</p>
+            <div class="jc-q-prompt">
+                <span class="jc-q-prompt-label"><i class="bi bi-pencil-square" aria-hidden="true"></i> Consigne</span>
+                <p>{{ display.public_payload.prompt }}</p>
+            </div>
 
             <form method="post" action="/sessions/{{ session.id }}/answer">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -108,23 +113,25 @@
                         class="form-control"
                         name="text"
                         id="answer-textarea"
-                        rows="{{ 8 if qtype in ('long_answer', 'diagnostic', 'procedure', 'document_analysis', 'source_comparison', 'troubleshooting') else 3 }}"
+                        rows="{{ 8 if qtype in ('long_answer', 'diagnostic', 'procedure', 'document_analysis', 'source_comparison', 'troubleshooting') else 4 }}"
                         maxlength="{{ text_max_length }}"
+                        aria-describedby="answer-char-counter"
                         placeholder="Ta réponse…">{{ display.answer_json.get('text', '') }}</textarea>
-                    <p class="form-text text-end mb-0" id="answer-char-counter" data-max-length="{{ text_max_length }}"></p>
+                    <p class="form-text text-end mb-0 jc-q-counter" id="answer-char-counter" data-max-length="{{ text_max_length }}" aria-live="polite"></p>
                 {% endif %}
 
-                <div class="d-flex justify-content-between mt-4">
+                <div class="jc-q-nav mt-4">
                     <button type="submit" name="direction" value="previous" class="btn btn-outline-secondary"
                             {% if not has_previous %}disabled{% endif %}>
-                        ← Précédent
+                        <i class="bi bi-arrow-left" aria-hidden="true"></i> Précédent
                     </button>
                     {% if is_last %}
-                    <button type="submit" name="direction" value="submit" class="btn btn-dark">
+                    <button type="submit" name="direction" value="submit" class="btn btn-success jc-q-finish">
+                        <i class="bi bi-flag" aria-hidden="true"></i>
                         {% if session.mode.value == "exam" %}Terminer l'évaluation{% else %}Terminer et corriger{% endif %}
                     </button>
                     {% else %}
-                    <button type="submit" name="direction" value="next" class="btn btn-dark">Suivant →</button>
+                    <button type="submit" name="direction" value="next" class="btn btn-dark">Suivant <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
                     {% endif %}
                 </div>
             </form>
@@ -134,9 +141,12 @@
         <form method="post" action="/sessions/{{ session.id }}/answer" class="text-center">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="position" value="{{ position }}">
-            <button type="submit" name="direction" value="submit" class="btn btn-link btn-sm text-muted">
+            {# Distinct de « Suivant » ; passe par la page de confirmation existante. #}
+            <button type="submit" name="direction" value="submit" class="btn btn-outline-success btn-sm jc-q-finish-early">
+                <i class="bi bi-flag" aria-hidden="true"></i>
                 {% if session.mode.value == "exam" %}Terminer l'évaluation maintenant{% else %}Terminer et corriger maintenant{% endif %}
             </button>
+            <p class="small text-muted mt-1 mb-0">Une page de confirmation s'affiche avant l'envoi.</p>
         </form>
         {% endif %}
 

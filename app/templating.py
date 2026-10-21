@@ -46,3 +46,17 @@ def static_exists(path: str) -> bool:
 
 
 templates.env.globals["static_exists"] = static_exists
+
+
+def _register_document_layouts() -> None:
+    """Ticket #149 : composants des documents sources (`_document_layouts.html`)."""
+    from app.v1 import document_layouts
+
+    templates.env.globals["doc_layout"] = document_layouts.resolve_layout
+    templates.env.globals["doc_heading"] = document_layouts.display_heading
+    templates.env.globals["doc_focus"] = document_layouts.focus_numbers
+    templates.env.globals["doc_generic"] = document_layouts.generic_parts
+    templates.env.globals["course_card_html"] = document_layouts.course_card_html
+
+
+_register_document_layouts()

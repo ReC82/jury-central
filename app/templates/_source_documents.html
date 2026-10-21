@@ -1,31 +1,15 @@
 {# Documents source d'une question (ticket #79), partagé entre la session
 d'entraînement/examen et le quiz (ticket #137) : l'élève voit exactement les documents
-utilisés pour la correction. Attend `display` (QuestionDisplay). #}
+utilisés pour la correction. Ticket #149 : chaque document est affiché d'emblée dans sa vraie
+forme (`_document_layouts.html`), sans ascenseur interne ; « Ouvrir en grand » reste
+optionnel. Attend `display` (QuestionDisplay). #}
+{% import "_document_layouts.html" as sd %}
         {% if display.source_documents %}
-        <div class="mb-3">
+        {% set question = display.public_payload %}
+        {% set question_text = (question.prompt or "") ~ " " ~ ((question.elements or []) | join(" ")) %}
+        <div class="jc-sd-stack mb-3">
             {% for doc in display.source_documents %}
-            {% set doc_label = display.source_document_labels[loop.index0] %}
-            <div class="source-document-panel border rounded p-2 mb-2">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    <span class="fw-semibold">📄 {{ doc_label }} : {{ doc.title or "Document source" }}</span>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-outline-dark btn-sm" type="button"
-                                data-bs-toggle="collapse" data-bs-target="#source-doc-{{ doc.id }}"
-                                aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="source-doc-{{ doc.id }}">
-                            Voir le document
-                        </button>
-                        <a class="btn btn-outline-secondary btn-sm" href="/documents/{{ doc.id }}"
-                           target="_blank" rel="noopener">
-                            Ouvrir dans un nouvel onglet
-                        </a>
-                    </div>
-                </div>
-                <div id="source-doc-{{ doc.id }}" class="collapse {% if loop.first %}show{% endif %} mt-2">
-                    <div class="border rounded p-2 bg-light" style="white-space: pre-line; max-height: 50vh; overflow-y: auto;">{{ doc.content_text }}</div>
-                </div>
-            </div>
+            {{ sd.render(doc, display.source_document_labels[loop.index0], question_text=question_text, uid="q") }}
             {% endfor %}
         </div>
-        <p class="text-muted small mb-3">Le texte reste consultable ici pendant que tu réponds — inutile de revenir en arrière.</p>
         {% endif %}
-
