@@ -129,6 +129,13 @@ Les quiz sont intégrés au contenu pédagogique. Question et explication passen
 renderer de contenu riche (voir plus bas) : un tableau ou une formule dans une question de
 quiz s'affiche correctement plutôt qu'en texte brut.
 
+Depuis le ticket #137, un espace **Quiz du parcours** (`/quiz`) propose des parties de 5, 10
+ou 20 questions objectives (QCM, classement, remise en ordre) sur un cours, une matière,
+plusieurs matières ou tout le parcours, avec récapitulatif avant départ, correction et
+explication après chaque réponse validée, reprise exacte, résultat (points forts, cours à
+relire), rejouer et reprise des erreurs. Activité distincte des entraînements et examens
+blancs. Voir `docs/quiz_v1.md`.
+
 ---
 
 ## Renderer de contenu riche (VS003.1)

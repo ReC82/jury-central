@@ -76,6 +76,11 @@
                             <i class="bi bi-grid" aria-hidden="true"></i> Matières
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link{% if nav_path.startswith('/quiz') %} active{% endif %}" href="/quiz">
+                            <i class="bi bi-controller" aria-hidden="true"></i> Quiz
+                        </a>
+                    </li>
                     {% if current_user %}
                     <li class="nav-item">
                         <a class="nav-link{% if nav_path.startswith('/mes-sessions') %} active{% endif %}" href="/mes-sessions">

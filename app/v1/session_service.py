@@ -873,9 +873,17 @@ def start_session(
     )
 
 
-def get_owned_session(db: DBSession, *, session_id: int, user_id: int) -> QuestionnaireSession | None:
+def get_owned_session(
+    db: DBSession, *, session_id: int, user_id: int, include_quiz: bool = False
+) -> QuestionnaireSession | None:
+    """`include_quiz` (ticket #137) : une partie de quiz (`SessionMode.QUIZ`) a son propre
+    cycle (validation question par question, `app.v1.quiz_service`) — par défaut elle est
+    invisible des routes d'entraînement/examen (réponse, soumission, correction, export),
+    qui ne peuvent donc jamais la modifier."""
     session = db.get(QuestionnaireSession, session_id)
     if session is None or session.user_id != user_id:
+        return None
+    if session.mode == SessionMode.QUIZ and not include_quiz:
         return None
     return session
 
@@ -912,6 +920,8 @@ def list_user_sessions(db: DBSession, *, user_id: int) -> list[QuestionnaireSess
     return (
         db.query(QuestionnaireSession)
         .filter_by(user_id=user_id)
+        # Ticket #137 : les parties de quiz ont leur propre historique (`/quiz`).
+        .filter(QuestionnaireSession.mode != SessionMode.QUIZ)
         .order_by(QuestionnaireSession.created_at.desc())
         .all()
     )

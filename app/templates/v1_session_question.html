@@ -17,33 +17,7 @@
             </div>
         </div>
 
-        {% if display.source_documents %}
-        <div class="mb-3">
-            {% for doc in display.source_documents %}
-            {% set doc_label = display.source_document_labels[loop.index0] %}
-            <div class="source-document-panel border rounded p-2 mb-2">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    <span class="fw-semibold">📄 {{ doc_label }} : {{ doc.title or "Document source" }}</span>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-outline-dark btn-sm" type="button"
-                                data-bs-toggle="collapse" data-bs-target="#source-doc-{{ doc.id }}"
-                                aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="source-doc-{{ doc.id }}">
-                            Voir le document
-                        </button>
-                        <a class="btn btn-outline-secondary btn-sm" href="/documents/{{ doc.id }}"
-                           target="_blank" rel="noopener">
-                            Ouvrir dans un nouvel onglet
-                        </a>
-                    </div>
-                </div>
-                <div id="source-doc-{{ doc.id }}" class="collapse {% if loop.first %}show{% endif %} mt-2">
-                    <div class="border rounded p-2 bg-light" style="white-space: pre-line; max-height: 50vh; overflow-y: auto;">{{ doc.content_text }}</div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        <p class="text-muted small mb-3">Le texte reste consultable ici pendant que tu réponds — inutile de revenir en arrière.</p>
-        {% endif %}
+        {% include "_source_documents.html" %}
 
         <div class="p-4 bg-white rounded shadow-sm mb-3">
             <p class="mb-4">{{ display.public_payload.prompt }}</p>
