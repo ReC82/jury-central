@@ -1,9 +1,120 @@
 # Ticket #136 — Refonte ludique et visuelle : Jury Central comme un parcours de jeu accessible
 
 - Ticket : https://github.com/ReC82/jury-central/issues/136 (P0)
-- Branche : `feature/136-parcours-ludique` — PR #140 (fusionnée dans `develop`)
-- **État réel : Partiel — installé, reste à faire** (tranche 1 livrée, à tester)
-- **SHA installé** : `f93c3d7ab7df0132e3d3de49c871552e8b38ba85` (+ commit de rapport/doc, sans redémarrage)
+- Branches : `feature/136-parcours-ludique` (tranche 1, PR #140/#141) ; `feature/136-a-retenir` (séquence « À retenir », PR #154)
+- **État réel : Partiel — installé, reste à faire** (à tester)
+- **SHA installé** : `4bdc21b7bd1595fc280537e5384c7f0f6ec58b15` (séquence « À retenir », 21/10 soir)
+
+> **Mise à jour du 21/10 au soir — séquence finale « À retenir »** : voir la section
+> « Reprise du 21/10 (soir) » ci-dessous. Le défaut de largeur desktop signalé sur FSE02
+> (prose étroite, grand vide) est **traité dans #148**, comme le propriétaire l'a indiqué :
+> il n'est pas corrigé ici, pour éviter deux correctifs en parallèle.
+
+## Reprise du 21/10 (soir) — séquence « À retenir » et vocabulaire essentiel
+
+### Ce qui a été demandé
+Commentaires du propriétaire du 21/10 : (1) le retour visuel FSE02 (largeur desktop),
+ensuite confié à **#148** (et #149 pour les supports d'examen) ; (2) une vraie séquence
+finale « À retenir » par cours : synthèse, « Ce que je dois savoir faire », « Le
+vocabulaire à retenir » (terme, définition, acronyme, exemple, confusion), repères si
+pertinents, en réutilisant les mémos existants sans doublon.
+
+### Ce qui change à l'écran
+La dernière séquence de chaque cours couvert s'appelle **« À retenir »** (étape Retenir,
+pastille finale ; aussi en fin de « Afficher tout le cours » et à l'impression) :
+- un bandeau rappelle que la fiche complète le cours et **ne suffit pas seule** à réussir ;
+- **L'essentiel** : la synthèse déjà rédigée du cours, en petites fiches sur 2-3 colonnes
+  (texte repris tel quel) ;
+- **Ce que je dois savoir faire** : compétences du plan validé (FSE, Français), objectifs
+  du mini-cours (AMPCR MC01-03), ou objectif du programme + **méthode courte** numérotée
+  reprise du cours (AMPCR MC04-37) ;
+- **Le vocabulaire à retenir** : une fiche par terme avec la définition du cours, l'acronyme
+  développé, l'équivalent anglais, un **repère** (lexique AMPCR #84) et **« À ne pas
+  confondre »** quand le cours le dit explicitement (« Confondre X et Y ») ; les mots sans
+  définition dans le cours apparaissent en liste compacte **« Équivalents français /
+  anglais »** (aucune définition inventée) ;
+- **Repères et méthode** : le texte qui accompagnait les tableaux de vocabulaire (MC01-03).
+
+Les anciennes sections mémo (« À retenir pour l'examen », « Vocabulaire FR / EN »,
+« Fiche mémo ») ne sont **plus affichées en double** : leur contenu complet est dans la
+fiche (lignes de tableau → fiches/équivalents, texte → L'essentiel ou Repères). Les autres
+séquences (définitions, pièges, exemples, exercices…) sont inchangées.
+
+### Couverture réelle (vérifiée sur le site)
+| Matière | Cours avec la fiche | Non concernés |
+|---|---|---|
+| Informatique AMPCR | MC01 → MC37 (37) | MC38 (révision finale transversale) |
+| Français | FR01 → FR05 (5) | C01 (texte pilote technique) |
+| FSE | FSE01 → FSE16 (16) | FSE17 (révision transversale, a déjà son lexique et ses confusions) |
+| Mathématiques | — | hors parcours CESS P refondu (fiches mémo existantes inchangées) |
+
+Limites honnêtes : AMPCR MC04-37 n'ont qu'un objectif de programme (pas de liste de
+compétences validée) ; plusieurs termes AMPCR n'ont qu'un équivalent anglais, sans
+définition dans le cours ; peu de fiches ont un « exemple » propre (seulement là où le
+cours en fournit) ; les confusions ne sont rattachées qu'aux termes explicitement nommés.
+Pas d'interaction de mémorisation (facultative) dans cette tranche.
+
+### Liens pour tester
+- https://jury-central.lodylands.com/uaa/fse-fse02#a-retenir
+- https://jury-central.lodylands.com/uaa/ampcr-mc05#a-retenir
+- https://jury-central.lodylands.com/uaa/ampcr-mc01#a-retenir (fiche plus riche : tableaux, objectifs, équivalents)
+- https://jury-central.lodylands.com/uaa/francais-fr02#a-retenir
+- https://jury-central.lodylands.com/uaa/fse-fse04#a-retenir
+
+Procédure : ouvrir un lien (le lien ouvre directement la dernière séquence), vérifier
+la fiche, puis « Afficher tout le cours sur une page » (la fiche est en fin de cours),
+puis l'aperçu avant impression, et sur téléphone.
+
+### Vérifications
+- `tests/test_ticket136_a_retenir.py` (6 tests) : construction AMPCR/FSE, sections reprises
+  sans doublon ni perte, fiche en dernière séquence (cours en un bloc) ou dernière carte
+  (cours en cartes), cours hors périmètre inchangés.
+- Tous les fichiers de tests qui chargent une page `/uaa/…` : 726 + 191 passed ; un test #94
+  adapté (« Fiche mémo » est désormais dans « À retenir », vérifié via l'ancre
+  `#a-retenir`). Suite complète non relancée (moteur partagé non touché : une route
+  d'affichage et un gabarit).
+- Ruff : aucune erreur sur les nouveaux fichiers ; `app/main.py` 4 erreurs avant/après
+  (préexistantes).
+- Inventaire en lecture seule du contenu réel des 63 cours publiés avant d'écrire le code.
+- **Captures dans un vrai navigateur** (Chromium headless) ordinateur 1366 px et téléphone
+  390 px de FSE02, MC01, MC05, FR02 (rendu local sur une copie des seuls cours), puis sur
+  le site installé (FSE02 ordinateur, MC05 téléphone). Trois défauts corrigés grâce à ces
+  captures avant livraison : vide sous un panneau court (panneaux désormais empilés, listes
+  en colonnes), trous entre fiches de hauteurs différentes (disposition en colonnes), mot
+  long qui débordait d'une fiche. Repère du lexique qui répétait la définition : retiré.
+- Installation : sauvegarde de la base, fast-forward `f66cf15` → `4bdc21b`, 2 services
+  redémarrés et actifs, `/health` local + public OK, 10 pages en 200, compteurs
+  utilisateurs/sessions/réponses 18/71/584 avant et après.
+- Non vérifié visuellement : rendu imprimé réel (règles CSS d'impression en place : tout
+  visible, fiches non coupées), pages connectées.
+- Aucune donnée seedée modifiée : la fiche est calculée à l'affichage, donc aucune
+  actualisation des blocs en base n'était nécessaire.
+
+### Choix techniques faits seul
+1. **Fiche calculée à l'affichage** (`app/v1/course_memo.py`) à partir du contenu publié,
+   sans écrire en base : les 58 cours sont couverts d'un coup, sans risque de divergence
+   entre seed et base, et aucune définition n'est rédigée par Claude (règle du projet).
+2. **Reprise plutôt que doublon** : les sections mémo existantes deviennent la fiche ; un
+   « À retenir » interne à une carte de leçon (MC02, MC03) reste à sa place.
+3. **Révisions transversales exclues** (MC38, FSE17) : ce sont déjà des fiches multi-cours.
+4. **Termes sans définition dans le cours** : affichés en équivalents FR/EN, jamais
+   complétés au hasard ; pour AMPCR, la définition du lexique #84 (déjà validé) est
+   utilisée quand elle existe.
+5. Disposition à pleine largeur de la carte avec listes en colonnes : jamais un petit bloc
+   dans un grand contenant ; pas de carte dans une carte (panneaux simples).
+
+### Décisions demandées au propriétaire
+Aucune nouvelle décision nécessaire pour cette reprise. Les deux questions précédentes
+(clé OpenAI refusée pour les illustrations, composition officielle de la formation
+commune CESS P) restent ouvertes, voir la section 6.
+
+### Reste à faire
+- **#148** : largeur de la prose desktop (FSE02 et autres), prochain ticket de la file.
+- Liste de compétences validée pour AMPCR MC04-37 (actuellement l'objectif du programme),
+  exemples par terme lorsque le contenu les fournira, interactions facultatives de
+  mémorisation.
+- Hors périmètre, à signaler : sur téléphone, la barre d'onglets Cours / S'entraîner /
+  Examen blanc déborde légèrement à droite (« Examen blanc » coupé, 390 px).
 
 ## 1. Synthèse
 
