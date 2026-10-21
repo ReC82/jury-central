@@ -263,12 +263,16 @@ def test_source_comparison_documents_labeled_a_and_b_in_authored_order(
 
     response = authenticated_client.get(f"/sessions/{session_id}?q=1")
     assert response.status_code == 200
-    assert "Document A : " + MAIN_DOCUMENT_TITLE in response.text
-    assert "Document B : " + SECOND_DOCUMENT_TITLE in response.text
-    # Étiquettes indépendantes : chaque document a son propre bouton "Voir le document"
-    # et son propre lien nouvel onglet (jamais un seul bouton partagé).
-    assert response.text.count("Voir le document") == 2
-    assert response.text.count("Ouvrir dans un nouvel onglet") == 2
+    # Ticket #149 : étiquette et titre sont deux éléments distincts du cadre du document ;
+    # l'ordre A puis B reste celui de la question.
+    label_a = response.text.index('<span class="jc-sd-label">Document A</span>')
+    label_b = response.text.index('<span class="jc-sd-label">Document B</span>')
+    assert label_a < response.text.index(str(escape(MAIN_DOCUMENT_TITLE))) < label_b
+    assert label_b < response.text.index(str(escape(SECOND_DOCUMENT_TITLE)), label_b)
+    # Chaque document est affiché d'emblée et a son propre lien d'ouverture (jamais un seul
+    # lien partagé) ; plus de bouton « Voir le document » redondant.
+    assert response.text.count("Ouvrir en grand</a>") == 2
+    assert "Voir le document" not in response.text
 
 
 # =============================================================================================

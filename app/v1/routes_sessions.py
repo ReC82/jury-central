@@ -760,6 +760,9 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
                 "label": document_label(question_type, index),
                 "title": documents_by_id[doc_id].title or "Document source",
                 "content_text": documents_by_id[doc_id].content_text or "",
+                # Ticket #149 : la version exacte, rendue par les mêmes composants que
+                # pendant la session (`_document_layouts.html`).
+                "document": documents_by_id[doc_id],
             }
             for index, doc_id in enumerate(doc_ids)
             if doc_id in documents_by_id

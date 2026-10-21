@@ -66,6 +66,18 @@ groupes pédagogiques, et carte de texte seul réduite à une largeur de lecture
 (`.jc-card--reading`, détection `app.content.is_text_only_html`). Voir
 `docs/claude-reports/2026-10-21_ticket-148-composition-desktop.md`.
 
+Documents sources composés (ticket #149) : entraînement, examen blanc, quiz, résultats et
+page `/documents/{id}` rendent chaque document selon sa nature (mail, affiche, publication
+de réseau social/groupe, page de média, forum, conversation, note sur papier à en-tête,
+fiches numérotées, tableau, budget, circuit, chaîne de flux, bulletins) via un composant
+unique `app/templates/_document_layouts.html`, alimenté par `app/v1/document_layouts.py`.
+Une mise en page est liée au titre ET à l'empreinte du texte exact de la version (texte
+modifié → rendu générique lisible) ; les 30 documents FSE installés sont couverts. Un
+nouveau document peut être créé directement structuré (`content_json={"layout": {...}}`).
+Les mentions entre crochets deviennent une note discrète, les renvois de cours et les
+annotations-réponses listés dans `omitted` ne sont plus affichés (ils restent dans le texte
+transmis à la correction). Voir `docs/claude-reports/2026-10-21_ticket-149-supports-visuels.md`.
+
 ---
 
 ## Administration
