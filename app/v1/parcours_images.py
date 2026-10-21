@@ -7,7 +7,7 @@ Mêmes principes que `app.v1.fse01_image` (ticket #108) :
 - **génération manuelle uniquement** (`generate-parcours-images`), jamais au seed ni au
   démarrage ; une image existante n'est jamais régénérée sans `--force` ;
 - **au maximum 2 tentatives par image**, puis abandon propre ; un solde/quota insuffisant
-  est signalé explicitement et arrête la série (pas de boucle de génération) ;
+  ou une clé refusée est signalé explicitement et arrête la série (pas de boucle) ;
 - **prompt, modèle et date conservés** dans un fichier `.json` à côté de chaque image ;
 - **poids maîtrisé** : la sortie PNG de l'API est recadrée au ratio d'affichage puis
   convertie en WebP (Pillow) à une largeur raisonnable — pas d'image géante.
@@ -86,9 +86,14 @@ API_SIZE = "1536x1024"
 API_QUALITY = "medium"
 
 
-def _is_quota_error(error: Exception) -> bool:
+def _fatal_reason(error: Exception) -> str | None:
+    """Erreurs qui touchent toute la série (inutile de réessayer ni de continuer)."""
     text = str(error).lower()
-    return any(k in text for k in ("insufficient_quota", "billing", "quota", "statut 402"))
+    if any(k in text for k in ("insufficient_quota", "billing", "quota", "statut 402")):
+        return "Solde ou quota OpenAI insuffisant"
+    if "invalid_api_key" in text or "statut 401" in text:
+        return "Clé API OpenAI absente ou refusée"
+    return None
 
 
 def _to_webp(png_bytes: bytes, ratio: tuple[int, int], width: int) -> bytes:
@@ -128,10 +133,10 @@ def generate(output_dir: Path, *, force: bool = False, only: set[str] | None = N
                 png = provider.generate_image(prompt=prompt, size=API_SIZE, quality=API_QUALITY)
                 break
             except AIProviderError as exc:
-                if _is_quota_error(exc):
+                reason = _fatal_reason(exc)
+                if reason:
                     print(
-                        "Solde ou quota OpenAI insuffisant — génération arrêtée, aucune "
-                        f"image partielle écrite. Détail : {exc}",
+                        f"{reason} — génération arrêtée, aucune image partielle écrite.",
                         file=sys.stderr,
                     )
                     return failures + 1
