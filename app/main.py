@@ -24,6 +24,7 @@ from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V
 from app.v1 import question_types as v1_question_types  # noqa: F401 — enregistre les 26 types (#40)
 from app.v1.ampcr_plan import get_plan_by_slug
 from app.v1.auth import get_current_user, require_user
+from app.v1.course_memo import apply_course_memo
 from app.v1.francais_plan import get_francais_plan_by_slug
 from app.v1.fse_plan import get_fse_plan_by_slug
 from app.v1.parcours import (
@@ -311,8 +312,12 @@ async def uaa_detail(
     uaa_slug: str, request: Request, db: Session = Depends(get_db)
 ) -> HTMLResponse:
     uaa = _get_published_uaa(uaa_slug, db)
-    rendered_blocks, needs_plotly = _render_lesson_blocks(
-        _space_blocks(uaa, models.BlockSpace.COURSE)
+    course_blocks = _space_blocks(uaa, models.BlockSpace.COURSE)
+    rendered_blocks, needs_plotly = _render_lesson_blocks(course_blocks)
+    # Ticket #136 (21/10) : séquence finale « À retenir » (synthèse, savoir-faire,
+    # vocabulaire) qui reprend les sections mémo existantes au lieu de les dupliquer.
+    apply_course_memo(
+        uaa.module.code, uaa.code, uaa.slug, uaa.title, course_blocks, rendered_blocks
     )
 
     # Ticket #136 : cours précédent/suivant du même module (navigation libre, jamais un
