@@ -5110,6 +5110,8 @@ def seed() -> None:
                     "FSE03 — Exercices guidés",
                     "FSE03 — Théorie : notions et définitions",
                     "FSE03 — Quelle image les autres voient-ils ?",
+                    # Ticket #148 : prose étroite → explication + repère côte à côte.
+                    "FSE03 — Qui suis-je ?",
                 }
             ),
             reposition_titles=FSE03_REPOSITION_TITLES, repositioned=repositioned,

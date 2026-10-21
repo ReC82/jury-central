@@ -13,7 +13,7 @@ from app.ai import context as ai_context
 from app.ai_exercise_blocks import AIExerciseBlockConfig
 from app.card_kind import card_meta, classify_block_title
 from app.config import settings
-from app.content import extract_youtube_id, render_markdown
+from app.content import extract_youtube_id, is_text_only_html, render_markdown
 from app.database import Base, engine, ensure_schema_migrations, get_db
 from app.editorial_exercise import EditorialExerciseBlockConfig
 from app.exercise_blocks import ExerciseBlockConfig, exercise_to_public_dict, generate_exercises
@@ -183,6 +183,7 @@ def _render_lesson_blocks(blocks: list[models.LessonBlock]) -> tuple[list[dict],
         return {
             "block": block,
             "html": None,
+            "reading": False,
             "youtube_id": None,
             "config": None,
             "exercises": None,
@@ -239,6 +240,7 @@ def _render_lesson_blocks(blocks: list[models.LessonBlock]) -> tuple[list[dict],
 
         if block.type == models.BlockType.MARKDOWN:
             item["html"] = render_markdown(block.content)
+            item["reading"] = is_text_only_html(item["html"])
         elif block.type == models.BlockType.YOUTUBE:
             item["youtube_id"] = extract_youtube_id(block.content)
         elif block.type == models.BlockType.GENERATED_EXERCISE:

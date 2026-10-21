@@ -285,7 +285,210 @@ comme interactivité.
 """
 
 
+def _definition(term: str, body: str) -> str:
+    """Carte de définition (même balisage que la grille générique : la séquence « À
+    retenir » la relit, voir `app.v1.course_memo.parse_html_definitions`)."""
+    return (
+        f'<div class="jc-definition">\n<span class="jc-definition-term">{term}</span>\n'
+        f'<p class="jc-definition-body">{body}</p>\n</div>'
+    )
+
+
+def _keywords_aside(*definitions: str) -> str:
+    return (
+        '<aside class="jc-theory-layout-aside" aria-label="Mots clés">\n'
+        '<span class="jc-theory-layout-aside-label">🔑 Les mots clés</span>\n'
+        '<div class="jc-definitions">\n' + "\n".join(definitions) + "\n</div>\n</aside>"
+    )
+
+
+_MIXED_FINANCING_WARNING = """<div class="jc-takeaway">
+<span class="jc-takeaway-label">⚠️ Attention : le financement mixte</span>
+<p>Beaucoup de médias financés par des fonds publics dans la réalité combinent cette dotation \
+avec d'autres sources (un peu de publicité, par exemple) — un financement MIXTE. \
+L'indépendance totale vis-à-vis de l'audience et de la publicité ne vaut que pour un \
+financement exclusivement public, comme celui de RCW dans l'exemple étudié plus loin ; un média \
+public qui diffuse aussi de la publicité reste, lui, partiellement concerné par la recherche \
+d'audience.</p>
+</div>"""
+
+
+def _financing_card(icon: str, term: str, definition: str, payer: str, detail: str) -> str:
+    """Carte d'un mode de financement : la définition (relue par « À retenir ») + qui paie
+    + l'exemple ou la précision de la théorie progressive."""
+    return (
+        f'<div class="jc-definition jc-fund-card">\n'
+        f'<span class="jc-fund-icon" aria-hidden="true">{icon}</span>\n'
+        f'<span class="jc-definition-term">{term}</span>\n'
+        f'<p class="jc-definition-body">{definition}</p>\n'
+        f'<p class="jc-fund-payer"><strong>Qui paie ?</strong> {payer}</p>\n'
+        f'<p class="jc-fund-detail">{detail}</p>\n'
+        f"</div>"
+    )
+
+
+def fse02_theory_html() -> str:
+    """Théorie FSE02 composée en groupes pédagogiques (ticket #148) — remplace la colonne
+    de prose étroite + grille de définitions séparée (grand vide à droite sur ordinateur).
+    Même matière que les sections 2 et 3 du Markdown ci-dessus (aucune notion ajoutée) :
+    1. média / offre médiatique, 2. interactivité (directe / différée ou absente), 3. les
+    quatre financements en cartes (définition + qui paie + exemple), 4. financement et
+    audience avec la nuance du financement mixte, 5. le flux économique entre agents.
+    HTML littéral (`<strong>`, jamais `**gras**`) : diagnostic ticket #112."""
+    media = f"""<h3 class="jc-theory-group-title"><span aria-hidden="true">📰</span> Média et offre médiatique</h3>
+<div class="jc-theory-layout">
+<div class="jc-theory-layout-main">
+<p>Un <strong>média</strong> est un support qui transmet de l'information à un large public : la \
+presse (journaux, magazines), la radio, la télévision, les sites d'information et les réseaux \
+sociaux. L'ensemble de ces supports disponibles constitue l'<strong>offre médiatique</strong>.</p>
+<div class="jc-theory-split-aside">
+<span class="jc-theory-split-aside-label">Exemple</span>
+<p>Un journal papier, une radio, une chaîne de télévision, un site d'information, un réseau \
+social : chacun est un média. Tous ceux qui sont disponibles pour s'informer forment, \
+ensemble, l'offre médiatique.</p>
+</div>
+</div>
+{_keywords_aside(
+    _definition("Média", "support qui transmet de l'information à un large public (presse, radio, "
+                "télévision, sites d'information, réseaux sociaux)."),
+    _definition("Offre médiatique", "l'ensemble des médias disponibles pour s'informer."),
+)}
+</div>"""
+
+    interactivity = f"""<h3 class="jc-theory-group-title"><span aria-hidden="true">💬</span> L'interactivité</h3>
+<div class="jc-theory-layout">
+<div class="jc-theory-layout-main">
+<p>Certains médias sont <strong>interactifs</strong> : ils permettent au récepteur de réagir \
+directement. D'autres médias, plus anciens, ne le permettent pas, ou seulement de façon \
+différée.</p>
+</div>
+{_keywords_aside(
+    _definition("Interactivité", "possibilité, pour le récepteur, de réagir au message (commenter, "
+                "appeler, partager), immédiatement ou en différé."),
+)}
+</div>
+<div class="jc-theory-cards">
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">⚡</span>
+<span class="jc-theory-card-title">Réagir directement</span>
+<p>Commenter un article, appeler une émission en direct, partager une publication.</p>
+</div>
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">⏳</span>
+<span class="jc-theory-card-title">En différé, ou pas du tout</span>
+<p>Un courrier des lecteurs publié la semaine suivante : la réaction existe, mais elle est \
+différée.</p>
+<p>Un journal papier, une émission de radio sans ligne ouverte : pas de réaction \
+possible.</p>
+</div>
+</div>"""
+
+    financing = "\n".join(
+        [
+            (
+                '<h3 class="jc-theory-group-title"><span aria-hidden="true">💶</span> '
+                "Quatre modes de financement</h3>"
+            ),
+            (
+                "<p>Un média a besoin de revenus pour fonctionner : rémunérer les journalistes, "
+                "produire des contenus, maintenir un site ou une antenne. Quatre modes de "
+                "financement sont possibles, <strong>souvent combinés</strong> :</p>"
+            ),
+            '<div class="jc-definitions jc-fund-cards">',
+            _financing_card(
+                "🛒", "Vente",
+                "paiement pour accéder à un contenu précis et ponctuel.",
+                "le récepteur.",
+                "Exemple : un numéro de journal à l'unité, un article en ligne.",
+            ),
+            _financing_card(
+                "📅", "Abonnement",
+                "paiement régulier pour accéder à l'ensemble des contenus pendant une période.",
+                "le récepteur, une somme régulière.",
+                "Exemple : un abonnement mensuel donnant accès à tous les articles.",
+            ),
+            _financing_card(
+                "📢", "Publicité <small>(comme mode de financement)</small>",
+                "des annonceurs paient le média pour diffuser leurs messages ; le contenu reste "
+                "gratuit pour le récepteur.",
+                "les annonceurs.",
+                "Le contenu est gratuit pour le récepteur.",
+            ),
+            _financing_card(
+                "🏛️", "Fonds publics",
+                "financement par une dotation collective (impôts), sans paiement direct du "
+                "récepteur ni dépendance à la publicité.",
+                "la collectivité, par une dotation financée par les impôts.",
+                "Le média fonctionne sans faire payer le récepteur ni dépendre de la publicité.",
+            ),
+            "</div>",
+        ]
+    )
+
+    audience = f"""<h3 class="jc-theory-group-title"><span aria-hidden="true">📊</span> Le financement influence le média</h3>
+<p>Le mode de financement influence directement le comportement du média.</p>
+<div class="jc-theory-cards jc-theory-cards--three">
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">📢</span>
+<span class="jc-theory-card-title">Financé par la publicité</span>
+<p>Il cherche à maximiser son <strong>audience</strong> (le nombre de personnes qui le \
+consultent), car plus l'audience est grande, plus les annonceurs sont prêts à payer — ce qui \
+peut pousser à privilégier des sujets qui attirent beaucoup de clics plutôt que des sujets \
+moins populaires mais utiles.</p>
+</div>
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">🏛️</span>
+<span class="jc-theory-card-title">Financé EXCLUSIVEMENT par des fonds publics</span>
+<p>Il n'a pas cette contrainte : il peut traiter des sujets qui intéressent peu de monde, sans \
+perdre de revenus.</p>
+</div>
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">🛒</span>
+<span class="jc-theory-card-title">Payant (vente/abonnement)</span>
+<p>Il dépend, lui, de la fidélité de ses lecteurs/lectrices : il doit leur apporter une \
+valeur suffisante pour qu'ils continuent à payer.</p>
+</div>
+</div>
+<div class="jc-theory-layout">
+<div class="jc-theory-layout-main">
+{_MIXED_FINANCING_WARNING}
+</div>
+{_keywords_aside(
+    _definition("Audience", "le nombre de personnes qui consultent un média — un enjeu central "
+                "pour un média financé par la publicité."),
+)}
+</div>"""
+
+    flows = """<h3 class="jc-theory-group-title"><span aria-hidden="true">🔁</span> Un flux économique entre agents</h3>
+<div class="jc-theory-split">
+<div class="jc-theory-split-main">
+<p>Chacun de ces quatre modes de financement correspond à un <strong>flux économique réel \
+entre agents</strong>. Observer le financement d'un média, c'est donc déjà observer un petit \
+morceau du circuit économique complet, qui sera détaillé plus loin dans ce module (FSE15).</p>
+<p>Même sans le connaître encore, retiens que chaque mode de financement relie toujours au \
+moins deux agents économiques par un flux monétaire précis.</p>
+</div>
+<div class="jc-theory-split-aside">
+<span class="jc-theory-split-aside-label">Qui verse à qui ?</span>
+<p><strong>Vente, abonnement</strong> : un récepteur (un <strong>ménage</strong>) verse un flux \
+monétaire directement au média (une <strong>entreprise</strong>).</p>
+<p><strong>Publicité</strong> : un annonceur (une <strong>entreprise</strong>) verse lui aussi \
+un flux monétaire au média.</p>
+<p><strong>Fonds publics</strong> : un flux monétaire part de l'<strong>État</strong> vers le \
+média, financé par les impôts que les ménages et les entreprises lui versent par ailleurs.</p>
+</div>
+</div>"""
+
+    return f"{media}\n\n{interactivity}\n\n{financing}\n\n{audience}\n\n{flows}"
+
+
 def fse02_course_sections() -> list[tuple[str, str]]:
     """Sections (titre, Markdown) du cours FSE02 — refonte pédagogique et visuelle
-    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`."""
-    return build_course_sections("FSE02", fse02_course_markdown())
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`. Ticket #148 :
+    la théorie est composée en groupes pédagogiques (`fse02_theory_html`)."""
+    sections = build_course_sections("FSE02", fse02_course_markdown())
+    return [
+        (title, fse02_theory_html()) if title == "FSE02 — Théorie : notions et définitions"
+        else (title, content)
+        for title, content in sections
+    ]

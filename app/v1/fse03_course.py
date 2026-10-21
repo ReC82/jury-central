@@ -274,13 +274,18 @@ aucune contradiction entre eux.</p>
 </div>
 </div>
 
-<div class="jc-prose">
-<p>Une personne peut appartenir à plusieurs groupes à la fois (professionnel, familial, de \
-loisir...) : ce n'est jamais contradictoire.</p>
+<div class="jc-theory-split">
+<div class="jc-theory-split-main">
 <p>Lorsque cette double identité — personnelle et collective — s'exprime dans un contexte \
 médiatique (réseaux sociaux, forums, plateformes en ligne), on parle d'<strong>identité \
 numérique</strong>. Ce n'est pas une identité différente : c'est l'application de \
 l'identité personnelle et collective à ce contexte précis.</p>
+</div>
+<div class="jc-theory-split-aside">
+<span class="jc-theory-split-aside-label">Repère</span>
+<p>Une personne peut appartenir à plusieurs groupes à la fois (professionnel, familial, de \
+loisir...) : ce n'est jamais contradictoire.</p>
+</div>
 </div>
 
 <div class="jc-takeaway">

@@ -59,6 +59,13 @@ bord `/mon-parcours` (prochaine étape, reprise, tuiles de matières, progressio
 chemin de cours sur `/modules/{slug}` et cours en séquences courtes. Les routes historiques
 restent servies. Voir `docs/parcours_v1.md`.
 
+Composition des cours sur ordinateur (ticket #148) : la largeur de lecture n'est plus
+portée par la prose (`.jc-prose` sans plafond) mais par la composition — théorie FSE
+« explication + Les mots clés » côte à côte (`.jc-theory-layout`), théorie FSE02 en
+groupes pédagogiques, et carte de texte seul réduite à une largeur de lecture
+(`.jc-card--reading`, détection `app.content.is_text_only_html`). Voir
+`docs/claude-reports/2026-10-21_ticket-148-composition-desktop.md`.
+
 ---
 
 ## Administration

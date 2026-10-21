@@ -142,5 +142,6 @@ def test_course_page_loads_with_restructured_theory(client, db_session, code):
     assert response.status_code == 200
     text = response.text
     assert "provisoire" not in text.lower()
-    assert "jc-prose" in text
+    # Ticket #148 : théorie + mots clés côte à côte (FSE02 : groupes pédagogiques).
+    assert "jc-theory-layout" in text
     assert "jc-definitions" in text
