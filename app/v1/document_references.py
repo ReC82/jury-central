@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from sqlalchemy.orm import Session
 
 from app.models import UAA
+from app.v1 import question_types  # noqa: F401 — enregistre les types (seed hors banque)
 from app.v1.models import (
     ContentStatus,
     Question,
