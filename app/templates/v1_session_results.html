@@ -30,7 +30,7 @@
     <div class="col-12 col-md-9 col-lg-8">
 
         <p class="text-uppercase text-muted small fw-semibold mb-1">
-            {% if session.mode.value == "exam" %}S'évaluer — résultat{% else %}S'entraîner — résultat{% endif %}
+            {% if session.mode.value == "exam" %}Examen blanc — résultat{% else %}S'entraîner — résultat{% endif %}
         </p>
         {% if session.status.value == "correction_incomplete" %}
         <h1 class="h3 mb-1">Correction en cours/incomplète</h1>
@@ -46,6 +46,29 @@
         <p class="text-muted mb-1">
             Session terminée le {{ session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else '' }} — définitive, non modifiable.
         </p>
+        {% endif %}
+        {# Ticket #136 : encouragement lié à un résultat réellement corrigé (jamais sur
+        une correction incomplète) ; animation discrète, coupée si l'utilisateur réduit les
+        animations. Repère personnel, pas une note officielle. #}
+        {% if session.status.value == "completed" and session.score is not none and session.question_count %}
+        {% set ratio = session.score / session.question_count %}
+        {% if ratio >= 0.5 %}
+        <div class="jc-celebrate mt-3" id="jc-celebrate" data-confetti="{{ '1' if ratio >= 0.7 else '0' }}">
+            <i class="bi bi-trophy-fill" aria-hidden="true"></i>
+            <div>
+                <strong>{% if session.mode.value == "exam" %}Examen blanc réussi&nbsp;!{% else %}Bel entraînement&nbsp;!{% endif %}</strong>
+                {{ (ratio * 100) | round | int }}&nbsp;% — ce jalon est enregistré dans ton parcours.
+            </div>
+        </div>
+        {% else %}
+        <div class="jc-celebrate mt-3" style="background: var(--jc-warn-soft); border-color: #f6d9b0; color: #6b3a06;">
+            <i class="bi bi-arrow-repeat" aria-hidden="true" style="color: var(--jc-warn);"></i>
+            <div>
+                <strong>Pas encore la moyenne — c'est normal en cours d'apprentissage.</strong>
+                Relis les corrections ci-dessous, puis retente&nbsp;: chaque essai est enregistré.
+            </div>
+        </div>
+        {% endif %}
         {% endif %}
         {% set rating_info = (session.parameters_json or {}).get("rating") %}
         {% if rating_info %}
@@ -274,6 +297,24 @@
         var collapseBtn = document.getElementById("collapse-all");
         if (expandBtn) { expandBtn.addEventListener("click", function () { setAll(true); }); }
         if (collapseBtn) { collapseBtn.addEventListener("click", function () { setAll(false); }); }
+    })();
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var box = document.getElementById("jc-celebrate");
+        if (!box || box.dataset.confetti !== "1") return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js";
+        s.integrity = "sha384-sPwMflxqfAN+Q5mvlkLmHiX3PORGbZSXHiSGPTXT9VHCD/AB+b+r+vJWsqprv+7k";
+        s.crossOrigin = "anonymous";
+        s.onload = function () {
+            window.confetti({ particleCount: 90, spread: 70, origin: { y: 0.25 }, disableForReducedMotion: true });
+        };
+        document.head.appendChild(s);
     })();
 </script>
 {% endblock %}

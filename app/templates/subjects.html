@@ -1,21 +1,38 @@
 {% extends "base.html" %}
 
 {% block title %}Matières — Jury Central{% endblock %}
+{% block main_class %}jc-wide{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-4">Matières</h1>
-<div class="list-group">
-    {% for subject in subjects %}
-    <a
-        href="/subjects/{{ subject.slug }}"
-        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-        {{ subject.name }}
-        <span
-            class="badge progress-badge text-bg-secondary"
-            data-uaa-slugs="{% for module in subject.modules %}{% for uaa in module.uaas %}{{ uaa.slug }},{% endfor %}{% endfor %}">
-            À faire
-        </span>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+        <span class="jc-eyebrow"><i class="bi bi-grid" aria-hidden="true"></i> Toutes les matières</span>
+        <h1 class="h2 mt-3 mb-0">Matières</h1>
+    </div>
+    <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/mon-parcours">
+        <i class="bi bi-map" aria-hidden="true"></i> Mon parcours
     </a>
+</div>
+<div class="row g-3">
+    {% for tile in tiles %}
+    {% set track = tile.track %}
+    <div class="col-12 col-sm-6 col-lg-3">
+        <article class="jc-tile jc-theme-{{ track.theme if track else 'neutral' }}">
+            <div class="jc-tile-art" aria-hidden="true">{% include "_parcours_art.html" %}</div>
+            <div class="jc-tile-body">
+                <h2 class="jc-tile-title"><a href="/subjects/{{ tile.subject.slug }}">{{ tile.subject.name }}</a></h2>
+                <p class="jc-stat mb-0">
+                    <i class="bi bi-journal-check" aria-hidden="true"></i>
+                    {{ tile.course_count }} cours publié{{ 's' if tile.course_count > 1 }}
+                </p>
+                <span
+                    class="badge progress-badge text-bg-secondary align-self-start"
+                    data-uaa-slugs="{% for module in tile.subject.modules %}{% for uaa in module.uaas %}{{ uaa.slug }},{% endfor %}{% endfor %}">
+                    Pas encore ouvert
+                </span>
+            </div>
+        </article>
+    </div>
     {% else %}
     <p class="text-muted">Aucune matière disponible pour le moment.</p>
     {% endfor %}

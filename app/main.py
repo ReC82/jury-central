@@ -23,11 +23,21 @@ from app.templating import templates
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.v1 import question_types as v1_question_types  # noqa: F401 — enregistre les 26 types (#40)
 from app.v1.ampcr_plan import get_plan_by_slug
-from app.v1.auth import require_user
+from app.v1.auth import get_current_user, require_user
 from app.v1.francais_plan import get_francais_plan_by_slug
 from app.v1.fse_plan import get_fse_plan_by_slug
+from app.v1.parcours import (
+    build_dashboard,
+    get_saved_pathway,
+    has_v1_sessions,
+    listed_uaas,
+    track_for_module,
+    uaa_state,
+    user_uaa_progress,
+)
 from app.v1.routes import router as v1_auth_router
 from app.v1.routes_lexicon import router as v1_lexicon_router
+from app.v1.routes_parcours import router as v1_parcours_router
 from app.v1.routes_sessions import render_exam_landing, render_practice_landing
 from app.v1.routes_sessions import router as v1_sessions_router
 from app.value_table import value_table_public_dict
@@ -54,6 +64,7 @@ app.include_router(practice_router)
 app.include_router(v1_auth_router)
 app.include_router(v1_sessions_router)
 app.include_router(v1_lexicon_router)
+app.include_router(v1_parcours_router)
 
 
 @app.get("/health")
@@ -62,11 +73,31 @@ async def health() -> dict[str, str]:
 
 
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request) -> HTMLResponse:
+async def index(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:  # noqa: B008
+    # Ticket #136 : accueil = point d'entrée du parcours. Parcours déjà mémorisé →
+    # « Continuer » + aperçu réel (prochaine étape) ; sinon « Choisir mon parcours ».
+    user = get_current_user(request, db)
+    pathway = get_saved_pathway(request, db, user)
+    dashboard = build_dashboard(db, pathway, user) if pathway else None
+    subjects = db.query(models.Subject).order_by(models.Subject.name).all()
     return templates.TemplateResponse(
         request=request,
         name="home.html",
+        context={"pathway": pathway, "dashboard": dashboard, "subjects": subjects},
     )
+
+
+def _subject_tile(subject: models.Subject) -> dict:
+    """Tuile de matière (ticket #136) : habillage repris du registre de parcours quand la
+    matière y figure, repli neutre sinon (ex. Mathématiques) — jamais de contenu inventé."""
+    modules = [m for m in subject.modules if listed_uaas(m)]
+    track = next((t for t in (track_for_module(m.code) for m in subject.modules) if t), None)
+    return {
+        "subject": subject,
+        "modules": modules,
+        "track": track,
+        "course_count": sum(len(listed_uaas(m)) for m in modules),
+    }
 
 
 @app.get("/subjects", response_class=HTMLResponse)
@@ -75,7 +106,7 @@ async def list_subjects(request: Request, db: Session = Depends(get_db)) -> HTML
     return templates.TemplateResponse(
         request=request,
         name="subjects.html",
-        context={"subjects": subjects},
+        context={"subjects": subjects, "tiles": [_subject_tile(s) for s in subjects]},
     )
 
 
@@ -89,7 +120,7 @@ async def subject_detail(
     return templates.TemplateResponse(
         request=request,
         name="subject_detail.html",
-        context={"subject": subject},
+        context={"subject": subject, "tile": _subject_tile(subject)},
     )
 
 
@@ -100,10 +131,30 @@ async def module_detail(
     module = db.query(models.Module).filter_by(slug=module_slug).first()
     if module is None:
         raise HTTPException(status_code=404, detail="Module introuvable")
+    # Ticket #136 : chemin de cours (missions) — chaque cours garde son accès direct ;
+    # Entraînement/Examen blanc proposés seulement s'ils existent réellement pour ce cours.
+    user = get_current_user(request, db)
+    progress = user_uaa_progress(db, user)
+    courses = []
+    for uaa in listed_uaas(module):
+        spaces = {block.space for block in uaa.lesson_blocks}
+        v1 = has_v1_sessions(uaa)
+        courses.append(
+            {
+                "uaa": uaa,
+                "state": uaa_state(progress.get(uaa.id)),
+                "has_practice": v1 or models.BlockSpace.PRACTICE in spaces,
+                "has_exam": v1 or models.BlockSpace.EXAM in spaces,
+            }
+        )
     return templates.TemplateResponse(
         request=request,
         name="module_detail.html",
-        context={"module": module},
+        context={
+            "module": module,
+            "courses": courses,
+            "track": track_for_module(module.code),
+        },
     )
 
 
@@ -254,6 +305,12 @@ async def uaa_detail(
         _space_blocks(uaa, models.BlockSpace.COURSE)
     )
 
+    # Ticket #136 : cours précédent/suivant du même module (navigation libre, jamais un
+    # verrou) et habillage de la matière.
+    siblings = listed_uaas(uaa.module)
+    index = next((i for i, u in enumerate(siblings) if u.id == uaa.id), None)
+    prev_uaa = siblings[index - 1] if index else None
+    next_uaa = siblings[index + 1] if index is not None and index + 1 < len(siblings) else None
     return templates.TemplateResponse(
         request=request,
         name="uaa_detail.html",
@@ -262,6 +319,9 @@ async def uaa_detail(
             "rendered_blocks": rendered_blocks,
             "needs_plotly": needs_plotly,
             "active_space": "course",
+            "track": track_for_module(uaa.module.code),
+            "prev_uaa": prev_uaa,
+            "next_uaa": next_uaa,
         },
     )
 

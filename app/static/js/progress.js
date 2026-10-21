@@ -1,9 +1,11 @@
 const PROGRESS_STORAGE_KEY = "jury-central-progress";
 
+// Ticket #136 : libellés de LECTURE uniquement (stockés sur cet appareil) — jamais
+// confondus avec « entraîné » ou « examen blanc réussi », calculés côté serveur.
 const PROGRESS_LABELS = {
-    todo: "À faire",
-    in_progress: "En cours",
-    done: "Terminé",
+    todo: "Pas encore ouvert",
+    in_progress: "Consulté",
+    done: "Lu jusqu'au bout",
 };
 
 const PROGRESS_CLASSES = {
@@ -84,11 +86,11 @@ function initCompleteButton() {
     function updateButton() {
         const status = getUaaStatus(slug);
         if (status === "done") {
-            button.textContent = "Terminé ✓ (annuler)";
+            button.textContent = "Lu jusqu'au bout ✓ (annuler)";
             button.classList.remove("btn-dark");
             button.classList.add("btn-outline-success");
         } else {
-            button.textContent = "Marquer comme terminé";
+            button.textContent = "J'ai lu ce cours jusqu'au bout";
             button.classList.remove("btn-outline-success");
             button.classList.add("btn-dark");
         }

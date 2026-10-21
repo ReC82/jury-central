@@ -36,3 +36,13 @@ def _inject_current_user(request: Request) -> dict:
 templates = Jinja2Templates(
     directory=str(BASE_DIR / "templates"), context_processors=[_inject_current_user]
 )
+
+
+def static_exists(path: str) -> bool:
+    """Ticket #136 : une illustration générée n'est affichée que si son fichier existe
+    réellement — sinon le template retombe sur un rendu de secours (icône), jamais une
+    image cassée."""
+    return (BASE_DIR / "static" / path).is_file()
+
+
+templates.env.globals["static_exists"] = static_exists

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Mon parcours — Jury Central{% endblock %}
+{% block main_class %}jc-wide{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+        <span class="jc-eyebrow"><i class="bi bi-map" aria-hidden="true"></i> Mon parcours</span>
+        <h1 class="h2 mt-3 mb-1">{{ pathway.option.label }}</h1>
+        <p class="text-muted mb-0">
+            {{ pathway.diploma.label }} <i class="bi bi-chevron-right small" aria-hidden="true"></i>
+            {{ pathway.form.label }} ({{ pathway.form.long_label | lower }})
+            <i class="bi bi-chevron-right small" aria-hidden="true"></i> option {{ pathway.option.short }}
+        </p>
+    </div>
+    <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/parcours">
+        <i class="bi bi-arrow-left-right" aria-hidden="true"></i> Changer de parcours
+    </a>
+</div>
+
+<section class="jc-next mb-4 jc-animate-in" aria-labelledby="next-step">
+    {% if resume %}
+    <div class="jc-next-kicker mb-1"><i class="bi bi-bookmark-star" aria-hidden="true"></i> À reprendre</div>
+    <h2 id="next-step" class="h4 mb-2">{{ resume.course.uaa.code }} — {{ resume.course.uaa.title }}</h2>
+    <p class="mb-3">Une session est en cours dans {{ resume.view.track.title }}. Tes réponses sont enregistrées&nbsp;: reprends exactement où tu t'étais arrêté·e.</p>
+    <a class="jc-btn jc-btn-primary" href="/sessions/{{ resume.session_id }}">
+        <i class="bi bi-play-fill" aria-hidden="true"></i> Reprendre la session
+    </a>
+    {% elif next_step %}
+    <div class="jc-next-kicker mb-1"><i class="bi bi-flag" aria-hidden="true"></i> Prochaine étape</div>
+    <h2 id="next-step" class="h4 mb-2">{{ next_step.course.uaa.code }} — {{ next_step.course.uaa.title }}</h2>
+    <p class="mb-3">
+        {{ next_step.view.track.title }}.
+        {% if current_user %}Lis le cours, puis fais un entraînement pour le valider.{% else %}Commence par le cours&nbsp;; connecte-toi pour enregistrer tes entraînements.{% endif %}
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="jc-btn jc-btn-primary" href="/uaa/{{ next_step.course.uaa.slug }}">
+            <i class="bi bi-book" aria-hidden="true"></i> Ouvrir le cours
+        </a>
+        {% if not current_user %}
+        <a class="jc-btn jc-btn-ghost" href="/login?next=/mon-parcours">
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Me connecter
+        </a>
+        {% endif %}
+    </div>
+    {% else %}
+    <h2 id="next-step" class="h4 mb-0">Aucun cours n'est encore publié pour ce parcours.</h2>
+    {% endif %}
+</section>
+
+<section aria-labelledby="tracks-title" class="mb-4">
+    <h2 id="tracks-title" class="h4 mb-3">Mes matières</h2>
+    <div class="row g-3">
+        {% for view in tracks %}
+        <div class="col-12 col-md-6 col-lg-4">
+            {% include "_parcours_tile.html" %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div class="jc-honest mb-3">
+    <p class="mb-2"><i class="bi bi-info-circle" aria-hidden="true"></i>
+        <strong>Ce que mesure la progression.</strong>
+        « Entraîné » = au moins un entraînement corrigé sur ce cours&nbsp;; « examen blanc réussi » =
+        au moins 50&nbsp;% à un examen blanc corrigé. « Consulté » reste propre à cet appareil.
+        C'est un repère personnel&nbsp;: ni une note officielle, ni une certification du Jury.
+    </p>
+    <p class="mb-0"><i class="bi bi-hourglass-split" aria-hidden="true"></i>
+        <strong>Contenus encore manquants.</strong>
+        {% for view in tracks if view.planned_count > view.available_count %}
+        {{ view.track.title }}&nbsp;: {{ view.available_count }} cours publiés sur {{ view.planned_count }} prévus{{ ';' if not loop.last else '.' }}
+        {% else %}tous les cours prévus pour ces matières sont publiés.{% endfor %}
+        D'autres matières de la formation commune pourront s'ajouter lorsque leur contenu sera prêt.
+    </p>
+</div>
+
+{% if other_modules %}
+<section aria-labelledby="others-title" class="mt-4">
+    <h2 id="others-title" class="h6 text-uppercase text-muted mb-2">Autres contenus disponibles (hors de ce parcours)</h2>
+    <div class="d-flex flex-wrap gap-2">
+        {% for module in other_modules %}
+        <a class="jc-pill" href="/modules/{{ module.slug }}">
+            <i class="bi bi-journal-text" aria-hidden="true"></i> {{ module.subject.name }} — {{ module.code }}
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

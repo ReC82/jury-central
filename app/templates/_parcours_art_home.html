@@ -1,0 +1,7 @@
+{# Illustration d'accueil (ticket #136) — image générée et conservée (voir
+app/v1/parcours_images.py), repli icône si le fichier est absent. #}
+{% if static_exists("img/parcours/accueil.webp") %}
+<img src="{{ url_for('static', path='img/parcours/accueil.webp') }}" alt="" width="1200" height="800" loading="eager">
+{% else %}
+<div class="jc-art-fallback"><i class="bi bi-signpost-split"></i></div>
+{% endif %}
