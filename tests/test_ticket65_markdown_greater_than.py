@@ -17,6 +17,12 @@ dans app/seed.py) doivent continuer à fonctionner à l'identique.
 import re
 
 from app.content import render_markdown
+from app.models import UAA, LessonBlock, Module, Subject
+from app.seed import (
+    MC08_GREATER_THAN_FIXED_FRAGMENT,
+    MC08_GREATER_THAN_STALE_FRAGMENT,
+    repair_mc08_greater_than_line,
+)
 from app.v1.ampcr_courses import AMPCR_COURSE_MARKDOWN
 
 
@@ -117,3 +123,67 @@ def test_no_accidental_blockquote_triggers_in_seed_content():
             offenders.append(block)
 
     assert offenders == []
+
+
+# --- Base déjà seedée avec l'ancien repli de ligne (contenu réellement servi) ---
+
+def _make_block(db_session, code: str, content: str) -> LessonBlock:
+    subject = Subject(name=f"Info test {code}", slug=f"info-test-{code.lower()}")
+    db_session.add(subject)
+    db_session.flush()
+    module = Module(subject_id=subject.id, code="AMPCR", slug=f"ampcr-test-{code.lower()}")
+    db_session.add(module)
+    db_session.flush()
+    uaa = UAA(code=code, title="t", slug=f"{code.lower()}-test", position=1,
+              is_published=True, module_id=module.id)
+    db_session.add(uaa)
+    db_session.flush()
+    block = LessonBlock(uaa=uaa, title="Cours de révision express", type="markdown",
+                        content=content, position=1)
+    db_session.add(block)
+    db_session.commit()
+    return block
+
+
+def test_stale_fragment_reproduces_the_bug():
+    html = render_markdown("Avant de partitionner : " + MC08_GREATER_THAN_STALE_FRAGMENT)
+    assert "<blockquote>" in html
+
+
+def test_fixed_fragment_is_the_one_in_current_course():
+    assert MC08_GREATER_THAN_FIXED_FRAGMENT in AMPCR_COURSE_MARKDOWN["MC08"]
+    assert MC08_GREATER_THAN_STALE_FRAGMENT not in AMPCR_COURSE_MARKDOWN["MC08"]
+
+
+def test_repair_replaces_only_the_stale_fragment_and_is_idempotent(db_session):
+    content = (
+        "# MC08 (édité depuis l'admin)\n\n## 4. Procédure\nAvant de partitionner : "
+        + MC08_GREATER_THAN_STALE_FRAGMENT
+        + "\n\n> **Piège fréquent** : vrai encadré conservé.\n"
+    )
+    block = _make_block(db_session, "MC08", content)
+
+    assert repair_mc08_greater_than_line(db_session) == 1
+    db_session.commit()
+    db_session.refresh(block)
+
+    assert block.content.startswith("# MC08 (édité depuis l'admin)")
+    assert MC08_GREATER_THAN_FIXED_FRAGMENT in block.content
+    html = render_markdown(block.content)
+    assert "disque &gt; 2 To" in html
+    # Seul le vrai encadré reste une citation.
+    assert html.count("<blockquote>") == 1
+    assert "Piège fréquent" in html.split("<blockquote>")[1]
+
+    assert repair_mc08_greater_than_line(db_session) == 0
+
+
+def test_repair_ignores_other_uaas_and_modified_text(db_session):
+    other = _make_block(db_session, "MC09", MC08_GREATER_THAN_STALE_FRAGMENT)
+    edited = _make_block(db_session, "MC08", "Texte réécrit depuis l'admin\n> 2 To ici.")
+
+    assert repair_mc08_greater_than_line(db_session) == 0
+    db_session.refresh(other)
+    db_session.refresh(edited)
+    assert other.content == MC08_GREATER_THAN_STALE_FRAGMENT
+    assert edited.content == "Texte réécrit depuis l'admin\n> 2 To ici."
