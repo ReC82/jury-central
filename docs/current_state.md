@@ -53,6 +53,12 @@ classification est un champ explicite `LessonBlock.space` (COURSE/PRACTICE/EXAM,
 déduit du titre ou du type à l'exécution) — voir
 `docs/claude-reports/2026-09-16_ticket-22_separation-cours-practice-exam.md`.
 
+Depuis le ticket #136, la navigation part d'un **parcours** : accueil (« Choisir mon
+parcours » / « Continuer »), assistant Diplôme → Forme → Option (`/parcours`), tableau de
+bord `/mon-parcours` (prochaine étape, reprise, tuiles de matières, progression réelle),
+chemin de cours sur `/modules/{slug}` et cours en séquences courtes. Les routes historiques
+restent servies. Voir `docs/parcours_v1.md`.
+
 ---
 
 ## Administration

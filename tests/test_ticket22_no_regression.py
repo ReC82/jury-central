@@ -226,7 +226,7 @@ def test_space_nav_links_and_active_state(authenticated_client, db_session):
         assert "/uaa/uaa-test-22/exam" in page
         assert "Cours" in page
         assert "S&#39;entraîner" in page or "S'entraîner" in page
-        assert "S&#39;évaluer" in page or "S'évaluer" in page
+        assert "Examen blanc" in page  # ticket #136 : libellé de l'espace S'évaluer
 
     # Chaque page ne marque actif que son propre onglet DANS le nav d'espace (le
     # breadcrumb porte aussi un `aria-current="page"` distinct, sur son propre élément —

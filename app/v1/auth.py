@@ -132,9 +132,16 @@ def login_user(request: Request, user: User) -> None:
     """Régénère la session (purge toute donnée précédente, y compris un éventuel jeton
     CSRF émis avant authentification) avant d'y placer l'identifiant utilisateur — limite
     la fixation de session : un jeton de session obtenu avant connexion ne doit pas rester
-    valide avec les mêmes clés après authentification."""
+    valide avec les mêmes clés après authentification.
+
+    Seule exception (ticket #136) : le parcours choisi avant connexion (`jc_pathway`,
+    simple préférence de navigation, aucune donnée d'authentification) est reporté dans
+    la nouvelle session pour être enregistré sur le compte (voir `/mon-parcours`)."""
+    pathway = request.session.get("jc_pathway")
     request.session.clear()
     request.session[SESSION_USER_ID_KEY] = user.id
+    if isinstance(pathway, dict):
+        request.session["jc_pathway"] = pathway
 
 
 def logout_user(request: Request) -> None:

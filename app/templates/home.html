@@ -1,12 +1,92 @@
 {% extends "base.html" %}
 
 {% block title %}Accueil — Jury Central{% endblock %}
+{% block main_class %}jc-wide{% endblock %}
 
 {% block content %}
-<div class="p-4 p-md-5 bg-white rounded shadow-sm">
-    <h1 class="h3 mb-3">Jury Central</h1>
-    <p class="text-muted mb-0">
-        Bienvenue sur Jury Central. L'application est en cours de construction.
-    </p>
-</div>
+<section class="jc-hero mb-4 jc-animate-in" aria-labelledby="hero-title">
+    <div class="jc-hero-text">
+        <span class="jc-eyebrow mb-3"><i class="bi bi-mortarboard" aria-hidden="true"></i> Jury de la FWB</span>
+        {% if pathway %}
+        <h1 id="hero-title" class="mt-3 mb-3">Bon retour&nbsp;! On reprend là où tu t'es arrêté·e&nbsp;?</h1>
+        <p class="jc-hero-lead mb-4">
+            Ton parcours&nbsp;: <strong>{{ pathway.form.label }} — {{ pathway.option.label }}</strong>.
+            Cours, entraînements et examens blancs t'attendent, à ton rythme.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="jc-btn jc-btn-primary" href="/mon-parcours">
+                <i class="bi bi-play-fill" aria-hidden="true"></i> Continuer mon parcours
+            </a>
+            <a class="jc-btn jc-btn-ghost" href="/parcours">
+                <i class="bi bi-arrow-left-right" aria-hidden="true"></i> Changer de parcours
+            </a>
+        </div>
+        {% else %}
+        <h1 id="hero-title" class="mt-3 mb-3">Prépare ton Jury pas à pas, sans te perdre.</h1>
+        <p class="jc-hero-lead mb-4">
+            Choisis ton diplôme et ton option&nbsp;: Jury Central rassemble tes matières, des
+            cours découpés en petites étapes, des entraînements corrigés et des examens blancs.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="jc-btn jc-btn-primary" href="/parcours">
+                <i class="bi bi-signpost-split" aria-hidden="true"></i> Choisir mon parcours
+            </a>
+            <a class="jc-btn jc-btn-ghost" href="/subjects">
+                <i class="bi bi-grid" aria-hidden="true"></i> Voir toutes les matières
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="jc-hero-art" aria-hidden="true">
+        {% include "_parcours_art_home.html" %}
+    </div>
+</section>
+
+{% if dashboard and dashboard.tracks %}
+<section class="mb-4" aria-labelledby="home-tracks">
+    <h2 id="home-tracks" class="h4 mb-3">Tes matières</h2>
+    <div class="row g-3">
+        {% for view in dashboard.tracks %}
+        <div class="col-12 col-md-4">
+            {% include "_parcours_tile.html" %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% else %}
+<section class="row g-3 mb-4" aria-label="Comment ça marche">
+    <div class="col-12 col-md-4">
+        <div class="jc-feature">
+            <span class="jc-feature-icon"><i class="bi bi-map" aria-hidden="true"></i></span>
+            <h2 class="h5">Un parcours clair</h2>
+            <p class="mb-0 text-muted">Diplôme, forme, option&nbsp;: tu vois toutes tes matières et ce qui est déjà disponible.</p>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="jc-feature">
+            <span class="jc-feature-icon"><i class="bi bi-layers" aria-hidden="true"></i></span>
+            <h2 class="h5">Des étapes courtes</h2>
+            <p class="mb-0 text-muted">Comprendre, observer un exemple, essayer, retenir&nbsp;: un cours se suit séquence par séquence.</p>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="jc-feature">
+            <span class="jc-feature-icon"><i class="bi bi-patch-check" aria-hidden="true"></i></span>
+            <h2 class="h5">Des progrès réels</h2>
+            <p class="mb-0 text-muted">Entraînements corrigés et examens blancs enregistrés&nbsp;: tu sais où tu en es, sans pression.</p>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section aria-labelledby="home-public" class="mb-2">
+    <h2 id="home-public" class="h6 text-uppercase text-muted mb-2">Accès direct aux cours (publics)</h2>
+    <div class="d-flex flex-wrap gap-2">
+        {% for subject in subjects %}
+        <a class="jc-pill" href="/subjects/{{ subject.slug }}">
+            <i class="bi bi-journal-text" aria-hidden="true"></i> {{ subject.name }}
+        </a>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Choisir mon parcours — Jury Central{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <span class="jc-eyebrow"><i class="bi bi-signpost-split" aria-hidden="true"></i> Mon parcours</span>
+    <h1 class="h2 mt-3 mb-2">
+        {% if step == 1 %}Quel diplôme prépares-tu&nbsp;?
+        {% elif step == 2 %}Quelle forme de {{ diploma.label }}&nbsp;?
+        {% else %}Quelle option&nbsp;?{% endif %}
+    </h1>
+    <p class="text-muted mb-0">Trois choix, une seule fois&nbsp;: ensuite, « Mon parcours » s'ouvre directement. Tu pourras en changer sans perdre tes acquis.</p>
+</div>
+
+<ol class="jc-stepper mt-3" aria-label="Étapes du choix">
+    <li class="{{ 'is-current' if step == 1 else 'is-done' }}"{% if step == 1 %} aria-current="step"{% endif %}>
+        {% if step > 1 %}<a href="/parcours" class="text-reset text-decoration-none">Diplôme&nbsp;: {{ diploma.label }}</a>{% else %}Diplôme{% endif %}
+    </li>
+    <li class="{{ 'is-current' if step == 2 else ('is-done' if step > 2 else '') }}"{% if step == 2 %} aria-current="step"{% endif %}>
+        {% if step > 2 %}<a href="/parcours?diplome={{ diploma.key }}" class="text-reset text-decoration-none">Forme&nbsp;: {{ form.label }}</a>{% else %}Forme{% endif %}
+    </li>
+    <li class="{{ 'is-current' if step == 3 else '' }}"{% if step == 3 %} aria-current="step"{% endif %}>Option</li>
+</ol>
+
+{% if step == 1 %}
+<div class="row g-3">
+    {% for d in registry %}
+    <div class="col-12 col-md-6">
+        {% if d.available %}
+        <a class="jc-choice jc-animate-in" href="/parcours?diplome={{ d.key }}">
+            <span class="jc-choice-title">{{ d.label }}</span>
+            <span class="fw-semibold">{{ d.long_label }}</span>
+            <span class="jc-choice-sub">{{ d.description }}</span>
+        </a>
+        {% endif %}
+    </div>
+    {% endfor %}
+    <div class="col-12 col-md-6">
+        <div class="jc-choice is-unavailable" aria-disabled="true">
+            <span class="jc-choice-title">CE1D, CE2D…</span>
+            <span class="jc-choice-sub"><i class="bi bi-hourglass" aria-hidden="true"></i> Pas encore proposés sur Jury Central.</span>
+        </div>
+    </div>
+</div>
+
+{% elif step == 2 %}
+<div class="row g-3">
+    {% for f in diploma.forms %}
+    <div class="col-12 col-md-4">
+        {% if f.available %}
+        <a class="jc-choice jc-animate-in" href="/parcours?diplome={{ diploma.key }}&amp;forme={{ f.key }}">
+            <span class="jc-choice-title">{{ f.label }}</span>
+            <span class="fw-semibold">{{ f.long_label }}</span>
+            <span class="jc-choice-sub">{{ f.description }}</span>
+        </a>
+        {% else %}
+        <div class="jc-choice is-unavailable" aria-disabled="true">
+            <span class="jc-choice-title">{{ f.label }}</span>
+            <span class="fw-semibold">{{ f.long_label }}</span>
+            <span class="jc-choice-sub"><i class="bi bi-hourglass" aria-hidden="true"></i> {{ f.description }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="row g-3">
+    {% for o in form.options %}
+    <div class="col-12 col-md-8">
+        <form method="post" action="/parcours/choisir" class="h-100">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="diploma" value="{{ diploma.key }}">
+            <input type="hidden" name="form" value="{{ form.key }}">
+            <input type="hidden" name="option" value="{{ o.key }}">
+            <button type="submit" class="jc-choice jc-animate-in">
+                <span class="jc-choice-title">{{ o.label }}</span>
+                <span class="fw-semibold">{{ form.label }} · option {{ o.short }}</span>
+                <span class="jc-choice-sub">{{ o.description }}</span>
+                <span class="d-flex flex-wrap gap-2 mt-2">
+                    {% for t in o.tracks %}
+                    <span class="jc-pill"><i class="bi bi-{{ t.icon }}" aria-hidden="true"></i> {{ t.title }}</span>
+                    {% endfor %}
+                </span>
+                <span class="jc-btn jc-btn-primary jc-btn-sm align-self-start mt-3">
+                    <i class="bi bi-check2" aria-hidden="true"></i>
+                    {% if saved and saved.option.key == o.key %}Garder ce parcours{% else %}Choisir ce parcours{% endif %}
+                </span>
+            </button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+<p class="jc-honest mt-4 mb-0">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    Seule l'option « Assistant/Assistante de maintenance PC-réseaux » est disponible pour l'instant.
+    Les autres options du {{ form.label }} seront ajoutées quand leurs contenus existeront réellement.
+</p>
+{% endif %}
+
+{% if not current_user %}
+<p class="small text-muted mt-4 mb-0">
+    <i class="bi bi-lightbulb" aria-hidden="true"></i>
+    Sans compte, ton choix est retenu sur cet appareil. <a href="/register">Crée un compte</a> pour suivre ta progression partout.
+</p>
+{% endif %}
+{% endblock %}

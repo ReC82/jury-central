@@ -1,0 +1,6 @@
+{# Illustration d'une matière (ticket #136). Attend `track` (SubjectTrack ou None). #}
+{% if track and static_exists(track.illustration) %}
+<img src="{{ url_for('static', path=track.illustration) }}" alt="" width="960" height="540" loading="lazy">
+{% else %}
+<div class="jc-art-fallback"><i class="bi bi-{{ track.icon if track else 'journal-text' }}"></i></div>
+{% endif %}

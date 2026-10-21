@@ -853,10 +853,10 @@ def test_francais_space_nav_present_on_course_practice_and_exam_pages(authentica
         response = authenticated_client.get(url)
         assert response.status_code == 200, url
         assert 'class="jc-space-nav' in response.text
-        assert '📘 Cours' in response.text
-        assert "📝 S'entraîner" in response.text
-        assert "📝 S'évaluer" not in response.text  # jamais le mauvais emoji collé
-        assert "🎓 S'évaluer" in response.text
+        # Ticket #136 : icônes Bootstrap Icons, « S'évaluer » libellé « Examen blanc ».
+        assert '<i class="bi bi-book" aria-hidden="true"></i> Cours' in response.text
+        assert "<i class=\"bi bi-pencil-square\" aria-hidden=\"true\"></i> S'entraîner" in response.text
+        assert '<i class="bi bi-mortarboard" aria-hidden="true"></i> Examen blanc' in response.text
         assert 'href="/uaa/francais-c01"' in response.text
         assert 'href="/uaa/francais-c01/practice"' in response.text
         assert 'href="/uaa/francais-c01/exam"' in response.text

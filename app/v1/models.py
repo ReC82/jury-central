@@ -875,6 +875,26 @@ class UserModuleRating(Base):
     )
 
 
+class UserPathway(Base):
+    """Parcours choisi par l'utilisateur (ticket #136) : diplôme → forme → option, chaque
+    clé renvoyant au registre `app.v1.parcours` (jamais un libellé libre). Une seule ligne
+    par utilisateur : changer de parcours met cette ligne à jour sans jamais toucher aux
+    sessions, réponses ni ratings — les acquis restent attachés aux UAA/modules, pas au
+    parcours. Nouvelle table : créée par `Base.metadata.create_all`, aucune migration."""
+
+    __tablename__ = "v1_user_pathways"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("v1_users.id"), unique=True, index=True)
+    diploma_key: Mapped[str] = mapped_column(String(40))
+    form_key: Mapped[str] = mapped_column(String(40))
+    option_key: Mapped[str] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
+    )
+
+
 # =========================================================================================
 # L. Feedback utilisateur
 # =========================================================================================
