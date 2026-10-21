@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Banque de questions — Admin Jury Central{% endblock %}
+
+{% block content %}
+{% set page_title = "Banque de questions — par module" %}
+{% set active = "overview" %}
+{% include "_admin_bank_nav.html" %}
+
+<p class="text-muted small">
+    Aucune question n'est supprimée : une question retirée est archivée, invalidée ou marquée obsolète.
+    Seules les questions <strong>actives</strong> sont proposées aux élèves.
+    Coût IA : estimation à partir des jetons consommés et du tarif configuré (pas un montant facturé).
+</p>
+
+{% if not stats %}
+<p class="text-muted">Aucune question en banque pour l'instant.</p>
+{% endif %}
+
+{% for s in stats %}
+<div class="card mb-3 shadow-sm">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <strong>{{ s.module.code }}</strong>
+            <span class="text-muted">— {{ s.module.subject.name if s.module.subject else "" }}</span>
+        </div>
+        <form method="post" action="/admin/bank/modules/{{ s.module.id }}/generation" class="d-flex align-items-center gap-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            {% if s.generation_status.value == "active" %}
+            <span class="badge text-bg-success">Génération ACTIVE</span>
+            <input type="hidden" name="generation_status" value="paused">
+            <button type="submit" class="btn btn-outline-dark btn-sm">Mettre en pause</button>
+            {% else %}
+            <span class="badge text-bg-warning">Génération PAUSED</span>
+            <input type="hidden" name="generation_status" value="active">
+            <button type="submit" class="btn btn-outline-dark btn-sm">Réactiver</button>
+            {% endif %}
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="row g-3 small">
+            <div class="col-12 col-md-4">
+                <div class="fw-semibold mb-1">Questions ({{ s.total }})</div>
+                <ul class="list-unstyled mb-0">
+                    {% for st in statuses %}
+                    {% if s.by_status.get(st) %}
+                    <li><a href="/admin/bank/questions?module_id={{ s.module.id }}&status={{ st.value }}">{{ status_labels[st] }}</a> : {{ s.by_status.get(st) }}</li>
+                    {% endif %}
+                    {% endfor %}
+                    <li>Signalées (signalement ouvert ou statut « signalée ») : {{ s.signaled }}</li>
+                    <li><a href="/admin/bank/questions?module_id={{ s.module.id }}&to_review=1" class="fw-semibold">À contrôler : {{ s.to_review }}</a></li>
+                </ul>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="fw-semibold mb-1">Difficulté et réussite</div>
+                <ul class="list-unstyled mb-0">
+                    {% if s.rated %}
+                    <li>Rating min / médian / max : {{ s.rating_min }} / {{ s.rating_median }} / {{ s.rating_max }}</li>
+                    <li>Questions avec un rating mesuré : {{ s.rated }}</li>
+                    {% else %}
+                    <li>Rating : pas encore de mesure (aucun questionnaire terminé depuis le rating adaptatif)</li>
+                    {% endif %}
+                    <li>Tentatives (questionnaires terminés) : {{ s.attempts }}</li>
+                    <li>Réussite moyenne : {% if s.success_rate is not none %}{{ s.success_rate }} %{% else %}—{% endif %}</li>
+                </ul>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="fw-semibold mb-1">Origine et réutilisation</div>
+                <ul class="list-unstyled mb-0">
+                    <li>Générées par IA : {{ s.generated }}</li>
+                    <li>Importées : {{ s.imported }}{% if s.manual %} — manuelles : {{ s.manual }}{% endif %}</li>
+                    <li>Réutilisées (servies dans ≥ 2 sessions) : {{ s.reused }}</li>
+                    <li>Passages en session : {{ s.servings }}</li>
+                </ul>
+            </div>
+            <div class="col-12">
+                <div class="fw-semibold mb-1">Usage IA</div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Période</th><th>Appels</th><th>Questions générées</th><th>Questions corrigées</th><th>Jetons entrée / sortie</th><th>Coût estimé</th></tr></thead>
+                        <tbody>
+                            {% for label, u in [("Ce mois-ci", s.usage_month), ("Total", s.usage_total)] %}
+                            <tr><td>{{ label }}</td><td>{{ u.calls }}</td><td>{{ u.generated_questions }}</td><td>{{ u.ai_corrections }}</td><td>{{ u.input_tokens }} / {{ u.output_tokens }}</td><td>{{ "%.4f"|format(u.estimated_cost) }} $</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% if usage_without_module.calls %}
+<p class="small text-muted">Usage IA non rattaché à un module : {{ usage_without_module.calls }} appel(s), {{ "%.4f"|format(usage_without_module.estimated_cost) }} $ estimés.</p>
+{% endif %}
+{% endblock %}

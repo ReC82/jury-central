@@ -36,6 +36,7 @@ from app.v1.ai_bridge import (
     content_to_questionnaire_question,
     describe_submitted_answer,
 )
+from app.v1.ai_usage import KIND_CORRECTION, KIND_GENERATION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
 from app.v1.bank import (
     persist_generated_questions,
@@ -47,6 +48,7 @@ from app.v1.bank import (
 from app.v1.dedup import is_near_duplicate, question_signature
 from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE, get_francais_context
 from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, FSE_PLAN_BY_CODE, get_fse_context
+from app.v1.generation_control import is_generation_paused
 from app.v1.hybrid_correction import correct_session_hybrid, correct_session_hybrid_resumable
 from app.v1.mc38_transversal import (
     MC38_CODE,
@@ -628,7 +630,8 @@ def _start_mc38_transversal_session(
         oversample, question_count, difficulty=difficulty, target_rating=target_rating
     )
 
-    if len(selected) < question_count:
+    # Ticket #46 : génération en pause pour ce module (admin) → banque uniquement.
+    if len(selected) < question_count and not is_generation_paused(db, module_id):
         missing = question_count - len(selected)
         long_count = sum(
             1 for q in selected if q.current_version.question_type in LONG_SEMANTIC_TYPES
@@ -809,7 +812,8 @@ def start_session(
         oversample, question_count, difficulty=difficulty, target_rating=target_rating
     )
 
-    if len(selected) < question_count:
+    # Ticket #46 : génération en pause pour ce module (admin) → banque uniquement.
+    if len(selected) < question_count and not is_generation_paused(db, module_id):
         missing = question_count - len(selected)
         long_count = sum(
             1 for q in selected if q.current_version.question_type in LONG_SEMANTIC_TYPES
@@ -1156,14 +1160,22 @@ def submit_session(
         return session
     session.status = SessionStatus.COMPLETED
 
+    tracker = UsageTrackingProvider(provider)
     try:
-        return _correct_and_finalize_claimed_session(
-            db, session=session, provider=provider, severity_ui=severity_ui
+        finalized = _correct_and_finalize_claimed_session(
+            db, session=session, provider=tracker, severity_ui=severity_ui
         )
     except Exception:
         session.status = SessionStatus.IN_PROGRESS
         db.commit()
         raise
+    # Ticket #46 : usage IA de la correction synchrone.
+    if record_ai_usage(
+        db, tracker, kind=KIND_CORRECTION, module_id=session.module_id, user_id=session.user_id,
+        session_id=session.id,
+    ) is not None:
+        db.commit()
+    return finalized
 
 
 def _correct_and_finalize_claimed_session(
@@ -1461,16 +1473,26 @@ def run_correction_job(db: DBSession, *, job: CorrectionJob, provider: AIProvide
         db.commit()
         return job
 
+    tracker = UsageTrackingProvider(provider)
     try:
-        _resolve_correction_job(db, session=session, provider=provider, severity_ui=job.severity_ui)
+        _resolve_correction_job(db, session=session, provider=tracker, severity_ui=job.severity_ui)
     except Exception as exc:  # noqa: BLE001 — job de fond, jamais de propagation vers un client HTTP
         db.rollback()
         job.status = CorrectionJobStatus.FAILED
         job.error_message = str(exc)[:2000]
+        record_ai_usage(
+            db, tracker, kind=KIND_CORRECTION, module_id=session.module_id, user_id=session.user_id,
+            session_id=session.id, failed=True,
+        )
         db.commit()
         return job
 
     db.refresh(session)
+    # Ticket #46 : usage IA de la correction (rien si tout a été corrigé localement).
+    record_ai_usage(
+        db, tracker, kind=KIND_CORRECTION, module_id=session.module_id, user_id=session.user_id,
+        session_id=session.id,
+    )
     job.status = (
         CorrectionJobStatus.COMPLETED
         if session.status == SessionStatus.COMPLETED
@@ -1728,17 +1750,26 @@ def run_session_build_job(db: DBSession, *, job: SessionBuildJob, provider: AIPr
         db.commit()
         return job
 
+    tracker = UsageTrackingProvider(provider)
     try:
         session = start_session(
             db, user=user, module_id=job.module_id, uaa_id=job.uaa_id, uaa_code=job.uaa_code,
-            mode=job.mode, difficulty=job.difficulty, provider=provider, question_count=job.question_count,
+            mode=job.mode, difficulty=job.difficulty, provider=tracker, question_count=job.question_count,
         )
     except Exception as exc:  # noqa: BLE001 — job de fond, jamais de propagation vers un client HTTP
         db.rollback()
         job.status = SessionBuildJobStatus.FAILED
         job.error_message = str(exc)[:2000]
+        record_ai_usage(
+            db, tracker, kind=KIND_GENERATION, module_id=job.module_id, user_id=job.user_id, failed=True
+        )
         db.commit()
         return job
+
+    # Ticket #46 : usage IA de la génération (rien si la session vient de la banque).
+    record_ai_usage(
+        db, tracker, kind=KIND_GENERATION, module_id=job.module_id, user_id=job.user_id, session_id=session.id
+    )
 
     job.status = SessionBuildJobStatus.READY
     job.created_session_id = session.id

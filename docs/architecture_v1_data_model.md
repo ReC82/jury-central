@@ -113,7 +113,8 @@ Module ──1:1──▶ ModuleGenerationConfig (generation_status)
 | `v1_user_module_ratings` | Rating utilisateur **par module** (jamais global). |
 | `v1_question_feedback` | Signalement utilisateur sur une question (trop facile/dure, ambiguë, incorrecte…). |
 | `v1_ai_usage` | Compteurs d'usage IA par utilisateur et par période (mensuelle) — pas de paiement réel. |
-| `v1_module_generation_configs` | Interrupteur ACTIVE/PAUSED de génération IA par module (#43/#46). |
+| `v1_ai_usage_events` | Journal d'usage IA par opération et par module (génération, correction, variante admin) : appels, jetons, coût estimé — ticket #46, alimente les statistiques admin par module. |
+| `v1_module_generation_configs` | Interrupteur ACTIVE/PAUSED de génération IA par module (#43/#46). Sans ligne = ACTIVE ; PAUSED = sessions composées depuis la banque uniquement. |
 
 ---
 

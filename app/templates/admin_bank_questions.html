@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Questions — Admin Jury Central{% endblock %}
+
+{% block content %}
+{% set page_title = "Questions de la banque" %}
+{% set active = "review" if filters.to_review else "questions" %}
+{% include "_admin_bank_nav.html" %}
+
+<form method="get" action="/admin/bank/questions" class="row g-2 align-items-end mb-3 small">
+    <div class="col-6 col-md-2">
+        <label class="form-label mb-0" for="f-module">Module</label>
+        <select class="form-select form-select-sm" name="module_id" id="f-module">
+            <option value="">Tous</option>
+            {% for m in modules %}
+            <option value="{{ m.id }}" {% if filters.module_id == m.id %}selected{% endif %}>{{ m.code }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label mb-0" for="f-uaa">Mini-cours</label>
+        <select class="form-select form-select-sm" name="uaa_id" id="f-uaa" {% if not uaas %}disabled{% endif %}>
+            <option value="">{% if uaas %}Tous{% else %}(choisir un module){% endif %}</option>
+            {% for u in uaas %}
+            <option value="{{ u.id }}" {% if filters.uaa_id == u.id %}selected{% endif %}>{{ u.code }} — {{ u.title[:40] }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label mb-0" for="f-type">Type</label>
+        <select class="form-select form-select-sm" name="question_type" id="f-type">
+            <option value="">Tous</option>
+            {% for t in question_types %}
+            <option value="{{ t }}" {% if filters.question_type == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label mb-0" for="f-status">Statut</label>
+        <select class="form-select form-select-sm" name="status" id="f-status">
+            <option value="">Tous</option>
+            {% for st in statuses %}
+            <option value="{{ st.value }}" {% if filters.status == st %}selected{% endif %}>{{ status_labels[st] }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-6 col-md-1">
+        <label class="form-label mb-0" for="f-rmin">Rating ≥</label>
+        <input class="form-control form-control-sm" type="number" step="1" name="rating_min" id="f-rmin" value="{{ filters.rating_min if filters.rating_min is not none else '' }}">
+    </div>
+    <div class="col-6 col-md-1">
+        <label class="form-label mb-0" for="f-rmax">Rating ≤</label>
+        <input class="form-control form-control-sm" type="number" step="1" name="rating_max" id="f-rmax" value="{{ filters.rating_max if filters.rating_max is not none else '' }}">
+    </div>
+    <div class="col-12 col-md-2">
+        <label class="form-label mb-0" for="f-q">Recherche (texte ou n°)</label>
+        <input class="form-control form-control-sm" type="search" name="q" id="f-q" value="{{ filters.text or '' }}">
+    </div>
+    <div class="col-12 d-flex flex-wrap gap-3 align-items-center">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="to_review" value="1" id="f-review" {% if filters.to_review %}checked{% endif %}>
+            <label class="form-check-label" for="f-review">À contrôler uniquement (signalée, à revoir ou signalement ouvert)</label>
+        </div>
+        <button type="submit" class="btn btn-dark btn-sm">Filtrer</button>
+        <a href="/admin/bank/questions" class="btn btn-outline-secondary btn-sm">Réinitialiser</a>
+    </div>
+</form>
+
+<p class="small text-muted mb-2">{{ total }} question(s){% if page_count > 1 %} — page {{ filters.page }} / {{ page_count }}{% endif %}</p>
+
+<div class="table-responsive">
+    <table class="table table-sm table-hover align-middle small">
+        <thead>
+            <tr><th>N°</th><th>Module / cours</th><th>Type</th><th>Énoncé</th><th>Statut</th><th>Rating</th><th>Tentatives</th><th>Réussite</th><th>Version</th><th>Signal.</th></tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            {% set v = item.current_version %}
+            <tr>
+                <td><a href="/admin/bank/questions/{{ item.id }}">#{{ item.id }}</a></td>
+                <td>{{ item.module.code }}{% if item.uaa %} / {{ item.uaa.code }}{% endif %}</td>
+                <td>{{ v.question_type if v else "—" }}</td>
+                <td><a href="/admin/bank/questions/{{ item.id }}" class="text-body">{{ ((v.content_json.get("prompt") if v else "") or "")[:110] }}</a></td>
+                <td>{{ status_labels[item.status] }}</td>
+                <td>{% if item.difficulty_rating is not none %}{{ "%.0f"|format(item.difficulty_rating) }}{% else %}—{% endif %}</td>
+                <td>{{ item.times_served }}</td>
+                <td>{% if item.times_served %}{{ "%.0f"|format(100 * item.times_correct / item.times_served) }} %{% else %}—{% endif %}</td>
+                <td>v{{ v.version if v else "?" }}</td>
+                <td>{% if feedback_counts.get(item.id) %}<span class="badge text-bg-danger">{{ feedback_counts.get(item.id) }}</span>{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="10" class="text-muted">Aucune question ne correspond à ces filtres.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page_count > 1 %}
+<nav class="d-flex gap-2">
+    {% if filters.page > 1 %}
+    <a class="btn btn-outline-dark btn-sm" href="/admin/bank/questions?{% for k, val in query_params.items() %}{{ k }}={{ val|urlencode }}&{% endfor %}page={{ filters.page - 1 }}">← Précédente</a>
+    {% endif %}
+    {% if filters.page < page_count %}
+    <a class="btn btn-outline-dark btn-sm" href="/admin/bank/questions?{% for k, val in query_params.items() %}{{ k }}={{ val|urlencode }}&{% endfor %}page={{ filters.page + 1 }}">Suivante →</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
