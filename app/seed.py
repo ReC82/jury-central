@@ -4902,6 +4902,43 @@ def _seed_uaa(
     return removed_obsolete
 
 
+# Ticket #65 : le correctif de contenu MC08 (repli de ligne pour que « > 2 To » reste dans
+# la phrase au lieu de devenir une citation Markdown, donc un encadré « ⚠️ Attention ») ne
+# peut pas atteindre une base déjà seedée : un bloc existant n'est jamais modifié par titre
+# (voir `seed()`). Réparation ponctuelle et bornée : seul le fragment EXACT d'avant
+# correctif est remplacé par le fragment corrigé (texte identique, seul le repli change) ;
+# le reste du bloc, et tout bloc dont ce fragment a été modifié depuis l'admin, restent
+# intacts. Idempotent : une fois remplacé, le fragment n'est plus trouvé.
+MC08_GREATER_THAN_STALE_FRAGMENT = (
+    "présente (opération destructive) ; (2) choisir GPT pour un usage moderne (UEFI, disque\n"
+    "> 2 To), MBR seulement pour une compatibilité ancienne spécifique ; (3) choisir le système\n"
+    "de fichiers selon l'usage (NTFS pour Windows, exFAT pour un support partagé multi-OS,\n"
+    "ext4 pour Linux)."
+)
+MC08_GREATER_THAN_FIXED_FRAGMENT = (
+    "présente (opération destructive) ; (2) choisir GPT pour un usage moderne (UEFI,\n"
+    "disque > 2 To), MBR seulement pour une compatibilité ancienne spécifique ; (3) choisir\n"
+    "le système de fichiers selon l'usage (NTFS pour Windows, exFAT pour un support partagé\n"
+    "multi-OS, ext4 pour Linux)."
+)
+
+
+def repair_mc08_greater_than_line(db) -> int:
+    """Remplace le fragment MC08 « > 2 To » d'avant correctif (ticket #65). Retourne le
+    nombre de blocs corrigés."""
+    blocks = (
+        db.query(LessonBlock)
+        .join(UAA, LessonBlock.uaa_id == UAA.id)
+        .filter(UAA.code == "MC08", LessonBlock.content.contains(MC08_GREATER_THAN_STALE_FRAGMENT))
+        .all()
+    )
+    for block in blocks:
+        block.content = block.content.replace(
+            MC08_GREATER_THAN_STALE_FRAGMENT, MC08_GREATER_THAN_FIXED_FRAGMENT
+        )
+    return len(blocks)
+
+
 def seed() -> None:
     """Charge les données de développement/démonstration.
 
@@ -5479,6 +5516,8 @@ def seed() -> None:
         # de pouvoir écrit → nouvelles versions (idempotent, sessions existantes intactes,
         # voir `app.v1.prompt_clarity`).
         clarity = repair_prompt_clarity(db)
+        # Ticket #65 : « > 2 To » MC08 déjà seedé avec l'ancien repli de ligne.
+        greater_than_fixed = repair_mc08_greater_than_line(db)
 
         db.commit()
 
@@ -5514,6 +5553,11 @@ def seed() -> None:
                 f"  Consignes clarifiées (nouvelle version de question) : "
                 f"{clarity['repaired']} ; documents d'examen : {clarity['documents']} ; "
                 f"non résolues : {clarity['unresolved']}"
+            )
+        if greater_than_fixed:
+            print(
+                f"  Corrigé (« > 2 To » MC08 rendu en encadré, ticket #65) : "
+                f"{greater_than_fixed} bloc(s)"
             )
         if repositioned["blocks"]:
             print(
