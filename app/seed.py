@@ -4939,6 +4939,61 @@ def repair_mc08_greater_than_line(db) -> int:
     return len(blocks)
 
 
+# Ticket #83 : l'enrichissement SMART de MC04 (développé « Self-Monitoring, Analysis and
+# Reporting Technology », livré par #87) n'atteint pas une base déjà seedée, pour la même
+# raison que #65. Même réparation bornée : chaque fragment EXACT d'avant correctif est
+# remplacé par le fragment du cours actuel ; un fragment modifié depuis l'admin n'est jamais
+# touché, le reste du bloc est conservé. Idempotent.
+_MC04_SMART_DEFINITION_STALE = (
+    "- **SMART** : indicateurs de santé du disque (température, secteurs défectueux, heures de\n"
+    "  fonctionnement...) — une alerte, jamais une garantie ni une sauvegarde.\n"
+)
+_MC04_SMART_DEFINITION_FIXED = (
+    "- **SMART** (*Self-Monitoring, Analysis and Reporting Technology*) : technologie de\n"
+    "  surveillance de l'état du stockage intégrée aux HDD/SSD — elle rapporte des\n"
+    "  indicateurs de santé (température, secteurs/erreurs détectés, heures de\n"
+    "  fonctionnement...) utiles pour un diagnostic, mais ne prédit pas toutes les pannes\n"
+    "  (un défaut brutal reste possible sans alerte SMART préalable) et ne remplace jamais\n"
+    "  une sauvegarde.\n"
+)
+_MC04_SMART_VOCABULARY_STALE = "| Sauvegarde | Backup |\n\n## 8. À retenir pour l'examen\n"
+_MC04_SMART_VOCABULARY_FIXED = (
+    "| Sauvegarde | Backup |\n"
+    "| Surveillance de l'état du disque | SMART (Self-Monitoring, Analysis and Reporting"
+    " Technology) |\n\n## 8. À retenir pour l'examen\n"
+)
+_MC04_SMART_SUMMARY_STALE = "- SMART = surveillance, jamais une garantie ni une sauvegarde.\n"
+_MC04_SMART_SUMMARY_FIXED = (
+    "- SMART (Self-Monitoring, Analysis and Reporting Technology) = surveillance de l'état du\n"
+    "  disque, utile pour diagnostic, jamais une garantie ni une sauvegarde.\n"
+)
+MC04_SMART_FRAGMENTS: tuple[tuple[str, str], ...] = (
+    (_MC04_SMART_DEFINITION_STALE, _MC04_SMART_DEFINITION_FIXED),
+    (_MC04_SMART_VOCABULARY_STALE, _MC04_SMART_VOCABULARY_FIXED),
+    (_MC04_SMART_SUMMARY_STALE, _MC04_SMART_SUMMARY_FIXED),
+)
+
+
+def repair_mc04_smart_expansion(db) -> int:
+    """Remplace les fragments MC04 SMART d'avant correctif (ticket #83). Retourne le nombre
+    de blocs modifiés."""
+    blocks = (
+        db.query(LessonBlock)
+        .join(UAA, LessonBlock.uaa_id == UAA.id)
+        .filter(UAA.code == "MC04")
+        .all()
+    )
+    repaired = 0
+    for block in blocks:
+        content = block.content or ""
+        for stale, fixed in MC04_SMART_FRAGMENTS:
+            content = content.replace(stale, fixed)
+        if content != block.content:
+            block.content = content
+            repaired += 1
+    return repaired
+
+
 def seed() -> None:
     """Charge les données de développement/démonstration.
 
@@ -5518,6 +5573,8 @@ def seed() -> None:
         clarity = repair_prompt_clarity(db)
         # Ticket #65 : « > 2 To » MC08 déjà seedé avec l'ancien repli de ligne.
         greater_than_fixed = repair_mc08_greater_than_line(db)
+        # Ticket #83 : développé SMART absent du MC04 déjà seedé.
+        smart_fixed = repair_mc04_smart_expansion(db)
 
         db.commit()
 
@@ -5559,6 +5616,8 @@ def seed() -> None:
                 f"  Corrigé (« > 2 To » MC08 rendu en encadré, ticket #65) : "
                 f"{greater_than_fixed} bloc(s)"
             )
+        if smart_fixed:
+            print(f"  Corrigé (développé SMART ajouté au MC04, ticket #83) : {smart_fixed} bloc(s)")
         if repositioned["blocks"]:
             print(
                 f"  Repositionné (ordre d'affichage MC01 corrigé, contenu inchangé) : "
