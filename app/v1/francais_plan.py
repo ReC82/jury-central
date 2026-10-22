@@ -148,6 +148,147 @@ FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
             "Adapter le registre d'un texte à une situation professionnelle",
         ),
     ),
+    # Ticket #94 PHASE B : FR06→FR10.
+    FrancaisUAAPlan(
+        code="FR06", title="Rechercher et sélectionner l'information",
+        allowed_notions=(
+            "sommaire, index, dictionnaire, encyclopédie, article, site, ressource multimédia/hypermédia",
+            "survol, repérage, lecture sélective",
+            "pertinence d'une source par rapport à une question de recherche",
+            "fiche-source et trace de recherche",
+        ),
+        competencies=(
+            "Transformer un sujet en questions de recherche et mots-clés",
+            "Choisir une source adaptée et juger sa pertinence par survol",
+            "Repérer une information précise et la noter dans une fiche-source",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR07", title="Évaluer une source et sa fiabilité",
+        allowed_notions=(
+            "auteur/organisme, expertise, éditeur/site, date, méthode/références, objectif déclaré vs réel",
+            "fait, opinion, témoignage, publicité, argument",
+            "biais et recoupement",
+            "différence entre pertinence et fiabilité",
+        ),
+        competencies=(
+            "Évaluer la fiabilité d'une source à partir de critères précis",
+            "Distinguer fait, opinion, témoignage et publicité dans un même texte",
+            "Recouper une information avec une autre source indépendante",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR08", title="Réduire et résumer un texte",
+        allowed_notions=(
+            "réduction, résumé, paraphrase, commentaire",
+            "idée principale, idées secondaires, hiérarchisation",
+            "condensation, reformulation, fidélité, neutralité",
+            "longueur imposée",
+        ),
+        competencies=(
+            "Hiérarchiser l'idée principale et les idées secondaires d'un texte",
+            "Résumer un texte par reformulation, jamais par copie",
+            "Respecter une longueur imposée en restant fidèle et neutre",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR09", title="Synthétiser plusieurs documents",
+        allowed_notions=(
+            "différence entre résumé et synthèse",
+            "points communs, compléments, divergences, nuances entre documents",
+            "plan thématique personnel (jamais un plan par document)",
+            "patchwork à éviter",
+        ),
+        competencies=(
+            "Confronter plusieurs documents pour en dégager des relations (commun/complément/divergence/nuance)",
+            "Organiser une synthèse selon un plan thématique personnel",
+            "Éviter le plan par document (D1/D2/D3) et le patchwork",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR10", title="Comprendre thèse, arguments et preuves",
+        allowed_notions=(
+            "thème, thèse explicite/implicite, argument, exemple, preuve/donnée, contre-argument, conclusion",
+            "solidité d'un argument (donnée précise vs impression)",
+            "généralisation hâtive, arguments répétitifs, attaque personnelle simple",
+            "argument vs exemple",
+        ),
+        competencies=(
+            "Identifier la thèse (explicite ou implicite) d'un texte argumentatif",
+            "Distinguer argument, exemple et preuve",
+            "Évaluer la solidité d'un argument et repérer ses faiblesses",
+        ),
+    ),    # Ticket #94 PHASE C : FR11→FR15.
+    FrancaisUAAPlan(
+        code="FR11", title="Construire un argument développé",
+        allowed_notions=(
+            "opinion, thèse, argument, affirmation gratuite",
+            "argument développé : idée annoncée, explication, exemple/preuve, lien avec la thèse",
+            "connecteurs logiques : addition, cause, conséquence, opposition, concession, illustration, conclusion",
+            "objection, réfutation, concession (« certes… mais »)",
+        ),
+        competencies=(
+            "Développer une idée en argument complet (idée, explication, exemple ou preuve, lien avec la thèse)",
+            "Employer des connecteurs logiques adaptés à la relation entre les idées",
+            "Tenir compte d'une objection par une concession ou une réfutation",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR12", title="Rédiger un texte argumentatif",
+        allowed_notions=(
+            "situation de communication : émetteur, destinataire, but, genre, longueur",
+            "registre de langue adapté au destinataire",
+            "introduction (amorce, sujet, thèse, annonce du plan), développement, conclusion (bilan, ouverture)",
+            "codes de la lettre, du courriel et de la lettre ouverte (objet, formule d'appel, formule de politesse, signature)",
+        ),
+        competencies=(
+            "Analyser la situation de communication imposée par une consigne",
+            "Construire un texte argumentatif structuré en introduction, développement et conclusion",
+            "Respecter les codes du genre, le registre et la longueur demandés",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR13", title="Utiliser un dossier documentaire dans son argumentation",
+        allowed_notions=(
+            "dossier documentaire, tri pour / contre / nuance",
+            "citation (guillemets, introduite, sourcée) et reformulation (mots personnels, sourcée)",
+            "indication de la source, copier-coller à éviter, déformation d'un document",
+            "document contraire utilisé comme objection, connaissances personnelles",
+        ),
+        competencies=(
+            "Sélectionner dans un dossier les informations utiles à sa thèse",
+            "Intégrer une information par citation ou reformulation en indiquant sa source",
+            "Utiliser les documents fidèlement, y compris celui qui contredit sa thèse",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR14", title="Réclamation et adaptation au destinataire",
+        allowed_notions=(
+            "réclamation : objet, formule d'appel, exposé des faits, justification, demande précise, pièces jointes, formule de politesse",
+            "références, dates et montants exacts",
+            "ton ferme mais courtois",
+            "adaptation du registre et du contenu au destinataire et au but",
+        ),
+        competencies=(
+            "Rédiger une réclamation structurée qui expose des faits précis et une demande claire",
+            "Adopter un ton ferme mais courtois, sans insulte ni menace",
+            "Adapter un message à son destinataire et à son but",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR15", title="Défendre une opinion oralement",
+        allowed_notions=(
+            "intervention orale, temps de parole, fiche aide-mémoire en mots-clés",
+            "ouverture, marqueurs oraux, prise en compte de l'objection, clôture",
+            "communication non verbale (regard, posture, gestes) et voix (volume, débit, articulation, pauses)",
+            "répondre à une objection (écouter, reformuler, répondre), attaque personnelle à éviter",
+        ),
+        competencies=(
+            "Préparer une intervention orale structurée à partir d'une fiche en mots-clés",
+            "Analyser la voix, l'attitude et la structure d'une prise de parole",
+            "Répondre calmement à une objection en la reformulant",
+        ),
+    ),
 )
 
 FRANCAIS_PLAN_BY_CODE: dict[str, FrancaisUAAPlan] = {plan.code: plan for plan in FRANCAIS_PLAN}

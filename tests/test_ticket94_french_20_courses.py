@@ -226,7 +226,8 @@ def test_fr01_05_pages_never_show_uaa_or_ticket_jargon(client, db_session):
 
 def test_c01_hidden_from_public_module_listing(client, db_session):
     """Review ChatGPT (§ 2/§ 3) : la page publique du module Français doit lister
-    exactement FR01→FR05 (à ce stade) et PLUS C01."""
+    FR01→FR05 et jamais C01 — vérifié comme un sous-ensemble plutôt qu'une égalité
+    stricte, pour rester vrai au fil des phases suivantes (FR06→FR20, #94 PHASE B+)."""
     seed()
     response = client.get("/modules/francais")
     assert response.status_code == 200
@@ -235,9 +236,10 @@ def test_c01_hidden_from_public_module_listing(client, db_session):
     for code in FR01_05_CODES:
         assert code in text
     public_course_links = re.findall(r'href="/uaa/(francais-[a-z0-9]+)"', text)
-    assert set(public_course_links) == set(FR01_05_SLUGS), (
-        f"attendu exactement 5 cours publics FR01→FR05, trouvé : {public_course_links}"
+    assert set(FR01_05_SLUGS) <= set(public_course_links), (
+        f"attendu au moins FR01→FR05 parmi les cours publics, trouvé : {public_course_links}"
     )
+    assert "francais-c01" not in public_course_links
 
 
 def test_c01_still_fully_reachable_via_its_legacy_url(client, db_session):
@@ -326,6 +328,27 @@ def test_fr01_05_bank_uses_only_relevant_question_types(db_session):
         }
         assert types_used <= allowed, (code, types_used)
         assert "multiple_choice" not in types_used, f"{code} : QCM artificiel détecté"
+
+
+def test_fallback_generation_never_produces_irrelevant_types_for_french(authenticated_client, db_session, monkeypatch):
+    """Bug réel constaté en validation staging (déploiement PHASE A, avant Phase B) :
+    FR01→FR05 ont une banque (7-9 questions) plus petite que `DEFAULT_QUESTION_COUNT`
+    (10) — le repli génération IA comblait l'écart via `BRIDGE_TYPES` SANS restriction,
+    produisant un `multiple_choice`/`ordering` hors périmètre pédagogique Français (§ 10
+    du ticket). Corrigé par `FRANCAIS_EXCLUDED_GENERATION_TYPES`
+    (`app.v1.session_service.start_session`). Utilise une session RÉELLE de bout en bout
+    (pas seulement l'audit de la banque statique ci-dessus) pour couvrir précisément le
+    chemin qui a révélé le bug."""
+    fake = _patch_fake_provider(monkeypatch)
+    seed()
+    for slug, code in zip(FR01_05_SLUGS, FR01_05_CODES, strict=True):
+        session_url = _start_session(authenticated_client, db_session, slug, mode="practice")
+        session_id = int(session_url.rsplit("/", 1)[-1])
+        session = db_session.get(QuestionnaireSession, session_id)
+        types_used = {sq.question_version.question_type for sq in session.session_questions}
+        forbidden = types_used & {"multiple_choice", "ordering", "diagnostic"}
+        assert not forbidden, f"{code} : type(s) hors périmètre Français généré(s) : {forbidden}"
+    _ = fake
 
 
 # =============================================================================================

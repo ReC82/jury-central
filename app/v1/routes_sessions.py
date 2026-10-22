@@ -38,6 +38,20 @@ from app.v1.francais_fr01_05_bank import (
     import_francais_fr04_to_bank,
     import_francais_fr05_to_bank,
 )
+from app.v1.francais_fr06_10_bank import (
+    import_francais_fr06_to_bank,
+    import_francais_fr07_to_bank,
+    import_francais_fr08_to_bank,
+    import_francais_fr09_to_bank,
+    import_francais_fr10_to_bank,
+)
+from app.v1.francais_fr11_15_bank import (
+    import_francais_fr11_to_bank,
+    import_francais_fr12_to_bank,
+    import_francais_fr13_to_bank,
+    import_francais_fr14_to_bank,
+    import_francais_fr15_to_bank,
+)
 from app.v1.francais_plan import get_francais_plan_by_slug
 from app.v1.fse_bank import (
     import_fse01_to_bank,
@@ -159,6 +173,16 @@ _FRANCAIS_BANK_IMPORTERS = {
     "francais-fr03": import_francais_fr03_to_bank,
     "francais-fr04": import_francais_fr04_to_bank,
     "francais-fr05": import_francais_fr05_to_bank,
+    "francais-fr06": import_francais_fr06_to_bank,
+    "francais-fr07": import_francais_fr07_to_bank,
+    "francais-fr08": import_francais_fr08_to_bank,
+    "francais-fr09": import_francais_fr09_to_bank,
+    "francais-fr10": import_francais_fr10_to_bank,
+    "francais-fr11": import_francais_fr11_to_bank,
+    "francais-fr12": import_francais_fr12_to_bank,
+    "francais-fr13": import_francais_fr13_to_bank,
+    "francais-fr14": import_francais_fr14_to_bank,
+    "francais-fr15": import_francais_fr15_to_bank,
 }
 
 # Ticket #96/#97/#98 : même mécanisme que `_FRANCAIS_BANK_IMPORTERS` ci-dessus, pour la

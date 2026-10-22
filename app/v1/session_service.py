@@ -101,6 +101,15 @@ GENERATION_BATCH_SIZE = 20
 REQUESTED_COUNT_KEY = "requested_question_count"
 LONG_SEMANTIC_TYPES = frozenset({"long_answer", "diagnostic", "procedure", "troubleshooting"}) | DOCUMENT_TYPES
 MAX_LONG_SEMANTIC_PER_SESSION = 3
+# Ticket #94 (validation staging PHASE A) : `BRIDGE_TYPES` (app.v1.ai_bridge) inclut
+# "multiple_choice"/"ordering"/"diagnostic" — pertinents pour AMPCR, mais explicitement
+# exclus du programme Français par le ticket (§ 10 : « short_answer / long_answer /
+# document_analysis / source_comparison / vocabulary / classification [...] Pas de QCM
+# artificiels uniquement pour varier »). Constaté en validation réelle : FR01→FR05 ont
+# une banque (7-9 questions) plus petite que `DEFAULT_QUESTION_COUNT` (10), donc le repli
+# génération IA comblait l'écart — sans cette restriction, il pouvait produire un QCM/un
+# ordering hors périmètre pédagogique Français.
+FRANCAIS_EXCLUDED_GENERATION_TYPES = frozenset({"multiple_choice", "ordering", "diagnostic"})
 # Ticket #75 : marqueur `parameters_json["scope"]` d'un examen ciblé « points faibles »
 # (questions de plusieurs cours d'un module, composées par `app.v1.weakness`).
 WEAKNESS_EXAM_SCOPE = "weakness_exam"
@@ -950,11 +959,10 @@ def start_session(
         # Le plafond § 14 est déjà respecté par `compose_selection` : si atteint, on
         # demande explicitement des types NON sémantiques longs pour le complément,
         # plutôt que de laisser la génération choisir librement et risquer de le dépasser.
-        allowed_types = tuple(
-            BRIDGE_TYPES - LONG_SEMANTIC_TYPES
-            if long_count >= MAX_LONG_SEMANTIC_PER_SESSION
-            else BRIDGE_TYPES
-        )
+        allowed_type_pool = BRIDGE_TYPES - LONG_SEMANTIC_TYPES if long_count >= MAX_LONG_SEMANTIC_PER_SESSION else BRIDGE_TYPES
+        if uaa_code and uaa_code in FRANCAIS_PLAN_BY_CODE:
+            allowed_type_pool = allowed_type_pool - FRANCAIS_EXCLUDED_GENERATION_TYPES
+        allowed_types = tuple(allowed_type_pool)
         context = _pedagogical_context_for(uaa_code)
         difficulty_fr = _generation_difficulty_fr(difficulty, target_rating)
         avoid_prompts = tuple(

@@ -179,3 +179,28 @@ appartiennent à ChatGPT :
 - `app/v1/session_service.py` — `build_question_display` (résolution des documents
   scopée), `submit_session` (contextes documentaires).
 - `tests/test_ticket47_francais_v1.py` — 30 tests, aucun appel OpenAI réel.
+
+---
+
+# 9. Parcours des 20 mini-cours (ticket #94)
+
+État au 22/10/2026 : **FR01→FR15 publiés** (cours, entraînement, évaluation) ; FR16→FR20
+à écrire (phase D ; FR20 = examen blanc transversal, à composer comme MC38).
+
+| Phase | Cours | Fichiers |
+|---|---|---|
+| A | FR01→FR05 | `app/v1/francais_fr01_05_{content,bank,courses}.py` |
+| B | FR06→FR10 | `app/v1/francais_fr06_10_{content,bank,courses}.py` |
+| C | FR11→FR15 | `app/v1/francais_fr11_15_{content,bank,courses}.py` |
+
+- Un cours = un bloc « Cours complet » en 10 sections (savoir-faire, théorie, définitions,
+  méthode, exemples commentés, mauvaises/bonnes réponses, pièges, exercices guidés à
+  corrigé masqué, corrigés expliqués, fiche mémo reprise dans « À retenir », #136).
+- Une banque par cours (8-9 questions, types Français uniquement : `short_answer`,
+  `long_answer`, `document_analysis`, `source_comparison`, `vocabulary`,
+  `classification`), importée à la première session (`_FRANCAIS_BANK_IMPORTERS`) ; le
+  complément IA exclut QCM/ordering/diagnostic (`FRANCAIS_EXCLUDED_GENERATION_TYPES`).
+- Tout support cité par une consigne est un vrai `SourceDocument` rattaché à la question ;
+  un document cité par numéro porte ce numéro en tête de titre (« Document 3 — … »,
+  #151). Audits : `tests/test_ticket94_french_fr06_10.py::test_fr01_10_document_references_and_prompts_are_resolvable`
+  (FR01→FR15) et `tests/test_ticket94_french_fr11_15.py`.
