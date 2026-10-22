@@ -1,9 +1,10 @@
 # Ticket #129 — FSE : varier les questions et afficher de vrais supports visuels
 
 - **Ticket** : [#129 — FSE — varier les questions et afficher de vrais supports visuels en entraînement et examen blanc](https://github.com/ReC82/jury-central/issues/129)
-- **État réel** : **Partiel — installé, reste à faire** (mécanisme commun + cas nouveaux FSE01 à FSE12 ; FSE13 à FSE16 restent à enrichir)
+- **État réel** : **Installé — à tester** (mécanisme commun + cas nouveaux pour les 16 cours FSE01 à FSE16, repris par l'examen blanc FSE17 ; illustrations générées par API non réalisées : clé refusée, voir § 6)
 - **Branche** : `feature/129-fse-variantes-visuels`
-- **SHA installé** : `73f175cef43395a7bb80fed5c6a49b37c41aadfb` (PR #185, lot 3 FSE09→FSE12 ; lot 2 : PR #183 ; lot 1 : PR #181)
+- **SHA installé** : `66a1fe48583b9fc693855859cb518fd5013309ed` (PR #186, lot 4 FSE13→FSE16 ; lot 3 : PR #185 ; lot 2 : PR #183 ; lot 1 : PR #181)
+- **Résumé** : 151 questions nouvelles et 30 documents structurés couvrant FSE01→FSE16, servis avant les exemples du cours en entraînement, examen et examen blanc FSE17 ; une affiche FSE01 et une illustration FSE03 réellement dessinées (SVG) ; aucune question existante modifiée.
 - **Date** : 2026-10-22
 
 ## 1. Diagnostic
@@ -158,7 +159,7 @@ colonne.
 
 ## 7. Restant à réaliser
 
-- Cas nouveaux pour FSE13 à FSE16 (dernier lot), même mécanisme.
+- Plus de cas de contenu à écrire : les 16 cours ont leurs cas nouveaux (lots 1 à 4).
 - Génération d'illustrations raster via l'API quand la clé sera valide (si souhaité).
 
 ## 8. Installation (2026-10-22)
@@ -321,3 +322,78 @@ démarrer un deuxième entraînement (aucune question répétée).
    le calcul et le vocabulaire ne se mémorisent pas ; totaux absents des documents.
 5. **Noms distincts des autres cours** (« Horizon », « rue des Glycines ») pour éviter la
    confusion avec la maison de quartier « des Tilleuls » de FSE01.
+
+## 11. Lot 4 — FSE13 à FSE16 (2026-10-22) — couverture complète
+
+### Livré
+
+| Cours | Cas nouveaux (supports) | Questions | Facile / moyen / difficile |
+|---|---|---|---|
+| FSE13 | Fiche de paie simplifiée d'une vendeuse (brut, cotisations personnelles, précompte, net, cotisations patronales ; montants cohérents) ; six demandes au service du personnel d'une entreprise de livraison (chute pendant une livraison, accident de ski en vacances — piège : pas un accident du travail —, CDD non renouvelé, adoption, fin de carrière, graphiste indépendant) ; 1 mini-situation (mutualisation) | 8 | 3 / 3 / 2 |
+| FSE14 | Sept courriers reçus en un trimestre par une famille namuroise (employeur → ONSS, mutualité pour le compte de l'INAMI, FAMIWAL, ONVA, SFP, FEDRIS, ONEM), avec un déménagement vers Bruxelles (FAMIRIS) ; trois interventions dans un débat (emploi, vieillissement, dépenses de santé) ; 1 mini-situation (INASTI) | 7 | 3 / 2 / 2 |
+| FSE15 | Une semaine d'une infirmière en sept moments (salaire, vélo importé, impôts et cotisations, école publique, pension, brasserie exportatrice, inspection d'hygiène) ; une prime à l'isolation suivie étape par étape, avec une fuite vers le reste du monde ; 1 mini-situation (éclairage public) | 8 | 2 / 4 / 2 |
+| FSE16 | Dossier en trois pièces sur la zone piétonne d'une commune (décision du conseil communal, note budgétaire avec subside régional non confirmé, trois réactions) : niveau compétent, agents touchés, court/long terme, coût net chiffré, conséquence indirecte, conclusion argumentée | 6 | 1 / 3 / 2 |
+
+Total lot 4 : 29 questions, 7 documents (HTML/CSS). **Cumul FSE01→FSE16 : 151 questions
+nouvelles, 30 documents**, toutes reprises par l'examen blanc FSE17 (même mécanisme de
+priorité, test dédié). Exemples du cours déclarés (dépriorisés) pour les 16 cours ;
+FSE13→FSE16 : toutes les questions historiques sur les documents du cours sont reconnues
+(8 par cours), aucune question générale prise à tort pour un exemple.
+
+### Tester (lot 4)
+
+- Entraînement FSE13 : https://jury-central.lodylands.com/uaa/fse-fse13/practice
+- Entraînement FSE14 : https://jury-central.lodylands.com/uaa/fse-fse14/practice
+- Entraînement FSE15 : https://jury-central.lodylands.com/uaa/fse-fse15/practice
+- Entraînement FSE16 : https://jury-central.lodylands.com/uaa/fse-fse16/practice
+- Examens : remplacer `practice` par `exam` ; examen blanc : https://jury-central.lodylands.com/uaa/fse-fse17/exam
+
+Procédure : démarrer un entraînement de 10 questions dans chaque cours ; vérifier les
+nouveaux supports (fiche de paie de Léa, service du personnel, courriers de la famille
+Moreau, débat, semaine de Sara, prime à l'isolation, dossier de Rochebelle) ; vérifier la
+fiche de paie sur téléphone ; démarrer un deuxième entraînement (aucune question répétée) ;
+lancer un examen blanc FSE17 de 20 questions (plusieurs cours, nouveaux supports).
+
+### Vérifications (lot 4)
+
+- `tests/test_ticket129_fse_cases.py` : 131 passed (mêmes contrôles que les lots précédents
+  étendus à FSE13→FSE16, difficultés réparties dans les 16 cours). Le test « matière sans
+  exemples déclarés » porte désormais sur le Français FR01, puisque tous les cours FSE en
+  déclarent.
+- Avec les tests liés FSE (97, 98, 99, 100, 101 examen blanc FSE17, 131, 133, 149, 152) et
+  Français (94) : 431 passed. Pas de suite complète (contenu + registre seulement, aucun
+  moteur partagé modifié dans les lots 3 et 4).
+- `ruff check` des fichiers modifiés : aucune erreur.
+- Essai à blanc sur une copie de la base réelle (fichier temporaire supprimé) : 8 / 7 / 8 /
+  6 questions importées, second passage 0.
+- Installation : `73f175c` → `66a1fe4` (avance rapide), sauvegarde de la base avant
+  installation, services redémarrés et actifs, `/health` local et public `ok`, pages
+  FSE13→FSE16 (entraînement et examen) : 303 (connexion requise, normal), compteurs 18 / 71 /
+  584 avant et après. Pas de seed.
+- Captures headless (desktop 1100 px, mobile 390 px) des 7 nouveaux documents, examinées ;
+  espaces insécables ajoutés dans les montants du dossier FSE16 (un montant se coupait à la
+  ligne sur téléphone).
+
+### Choix faits seul (lot 4)
+
+1. **Rôles des organismes repris du tableau vérifié du cours**, sans en ajouter : FEDRIS
+   illustré par une maladie professionnelle (qu'il indemnise directement), l'ONEM par un
+   crédit-temps ; aucun âge légal, montant ou projection.
+2. **FSE13 : piège de transfert volontaire** (accident de ski en vacances → maladie-
+   invalidité, pas accident du travail) pour vérifier la compréhension plutôt que la
+   mémorisation des six situations du cours.
+3. **FSE16 : autre décision et autre niveau de pouvoir** (commune au lieu de Région) ;
+   les trois pièces sont réunies dans un seul support numéroté « Pièce 1 à 3 », pour éviter
+   tout « document 3 » introuvable (#151).
+4. **FSE16 : 6 questions seulement**, sur un seul dossier riche ; avec les questions
+   générales sans document de la banque, une session de 10 reste sans exemple du cours
+   (vérifié par test).
+
+### Restant après le lot 4
+
+- Aucun contenu restant à écrire dans le périmètre du ticket. Restent, hors de mon
+  contrôle : la génération d'illustrations raster par l'API (clé OpenAI refusée, § 6
+  question 1) et la validation pédagogique et visuelle sur le site, par toi.
+- Limite de banque : chaque cours compte désormais 6 à 17 questions nouvelles en plus de
+  ses 14 questions historiques ; après deux ou trois sessions dans un même cours, les
+  exemples du cours reviennent en complément (jamais de répétition intra-session).
