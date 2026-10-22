@@ -13,6 +13,7 @@ Garanties vérifiées (aucun appel IA ni génération d'image réels) :
 - FSE17 : reprend les nouveaux cas et couvre plusieurs cours.
 """
 
+import html
 import random
 import re
 from types import SimpleNamespace
@@ -31,7 +32,14 @@ from app.v1.fse01_cases import (
     MEMO_TITLE,
     POSTER_TITLE,
 )
-from app.v1.fse_bank import import_fse01_to_bank, import_fse05_to_bank
+from app.v1.fse_bank import (
+    import_fse01_to_bank,
+    import_fse05_to_bank,
+    import_fse06_to_bank,
+    import_fse07_to_bank,
+    import_fse08_to_bank,
+    import_fse09_to_bank,
+)
 from app.v1.fse_cases import (
     COURSE_EXAMPLE,
     FRESH,
@@ -145,7 +153,7 @@ def test_new_cases_do_not_reuse_course_examples(case):
 
 
 def test_every_course_with_cases_spreads_difficulties():
-    for code in ("FSE01", "FSE02", "FSE03", "FSE04"):
+    for code in ("FSE01", "FSE02", "FSE03", "FSE04", "FSE05", "FSE06", "FSE07", "FSE08"):
         levels = {d for case in fse_cases.cases_for(code) for _t, _c, d in case.questions}
         assert levels == set(QuestionDifficulty), code
 
@@ -166,7 +174,7 @@ def test_layout_text_is_verbatim_and_covers_the_document(case):
               "date", "lieu", "objets", "acceptés", "sous", "note", "service", "dernier", "message",
               "nadia", "application", "indique", "encadré", "règle", "magazine", "principal",
               "couverture", "premiers", "résultats", "trouvés", "commentaires", "affichés",
-              "publication", "infos", "pays", "vert", "vallée", "page", "recettes"}
+              "publication", "infos", "pays", "vert", "vallée", "page", "recettes", "rédigée", "remise"}
     missing = {w for w in words if w not in shown and w not in labels}
     assert not missing, missing
 
@@ -295,8 +303,8 @@ def test_rank_is_a_strict_no_op_when_all_ranks_are_equal(db_session):
 def test_subjects_without_declared_examples_rank_everything_fresh(db_session):
     seed()
     module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE).first()
-    uaa = db_session.query(UAA).filter_by(slug="fse-fse05").first()
-    import_fse05_to_bank(db_session, module, uaa)
+    uaa = db_session.query(UAA).filter_by(slug="fse-fse09").first()
+    import_fse09_to_bank(db_session, module, uaa)
     rank = case_ranker(db_session, user_id=1)
     assert {rank(q) for q in db_session.query(Question).filter_by(uaa_id=uaa.id)} == {FRESH}
 
@@ -376,3 +384,61 @@ def test_fse17_mock_exam_reuses_new_cases_and_covers_several_courses(authenticat
     assert len({q.uaa.code for q in questions}) >= 4
     fse01 = [q for q in questions if q.uaa.code == "FSE01"]
     assert not [q for q in fse01 if is_course_example(q)]
+
+
+# --- Lot FSE05→FSE08 -----------------------------------------------------------------------
+
+_BANK_IMPORTERS = {
+    "FSE05": import_fse05_to_bank, "FSE06": import_fse06_to_bank,
+    "FSE07": import_fse07_to_bank, "FSE08": import_fse08_to_bank,
+}
+
+
+@pytest.mark.parametrize("code", sorted(_BANK_IMPORTERS))
+def test_fse05_to_fse08_cases_are_imported_ranked_and_served_first(db_session, code):
+    seed()
+    module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE).first()
+    uaa = db_session.query(UAA).filter_by(slug=f"fse-{code.lower()}").first()
+    bank = _BANK_IMPORTERS[code](db_session, module, uaa)
+    expected = sum(len(case.questions) for case in fse_cases.cases_for(code))
+    assert import_fse_cases(db_session, module, uaa) == expected
+    assert import_fse_cases(db_session, module, uaa) == 0
+    db_session.commit()
+    questions = db_session.query(Question).filter_by(uaa_id=uaa.id).all()
+    assert len(questions) == bank + expected
+    rank = case_ranker(db_session, user_id=1)
+    manual = [q for q in questions if q.generation_source == GenerationSource.MANUAL]
+    assert {rank(q) for q in manual} == {FRESH}
+    # Les documents commentés dans le cours sont reconnus comme exemples du cours.
+    assert any(rank(q) == COURSE_EXAMPLE for q in questions if q.generation_source != GenerationSource.MANUAL)
+    user = _user(db_session, f"fse129-{code.lower()}@example.invalid")
+    session = start_session(
+        db_session, user=user, module_id=module.id, uaa_id=uaa.id, uaa_code=code,
+        mode=SessionMode.PRACTICE, difficulty=SessionDifficultyRequest.ADAPTIVE,
+        provider=_UnconfiguredProvider(), question_count=10,
+    )
+    served = _questions(session)
+    assert len(served) == 10 and len({q.id for q in served}) == 10
+    # Cas nouveaux (et questions sans document) avant les exemples commentés du cours.
+    fresh_pool = [q for q in questions if rank(q) == FRESH]
+    assert len(fresh_pool) >= 10
+    assert not [q for q in served if is_course_example(q)], code
+    assert any(q.generation_source == GenerationSource.MANUAL for q in served)
+
+
+@pytest.mark.parametrize(
+    "case", [c for c in fse_cases.all_cases() if c.layout and c.course_code >= "FSE05"], ids=lambda c: c.key
+)
+def test_fse05_to_fse08_documents_render_without_placeholder(db_session, case):
+    seed()
+    module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE).first()
+    uaa = db_session.query(UAA).filter_by(slug=f"fse-{case.course_code.lower()}").first()
+    import_fse_cases(db_session, module, uaa)
+    db_session.commit()
+    version = db_session.query(SourceDocumentVersion).filter_by(title=case.title).one()
+    assert dl.resolve_layout(version)["kind"] == case.layout["kind"]
+    text = html.unescape(re.sub(r"<[^>]+>", " ", _render(version)))
+    assert "[" not in text  # aucune description entre crochets
+    shown = dl.comparable(text)
+    for fragment in dl.iter_content_strings(case.layout):
+        assert dl.comparable(fragment) in shown, fragment

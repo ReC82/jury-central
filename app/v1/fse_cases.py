@@ -92,10 +92,21 @@ def _registry() -> tuple[dict[str, tuple[FseCase, ...]], dict[str, CourseExample
     from app.v1.fse02_cases import FSE02_CASES, FSE02_EXAMPLES
     from app.v1.fse03_cases import FSE03_CASES, FSE03_EXAMPLES
     from app.v1.fse04_cases import FSE04_CASES, FSE04_EXAMPLES
+    from app.v1.fse05_cases import FSE05_CASES, FSE05_EXAMPLES
+    from app.v1.fse06_cases import FSE06_CASES, FSE06_EXAMPLES
+    from app.v1.fse07_cases import FSE07_CASES, FSE07_EXAMPLES
+    from app.v1.fse08_cases import FSE08_CASES, FSE08_EXAMPLES
 
     return (
-        {"FSE01": FSE01_CASES, "FSE02": FSE02_CASES, "FSE03": FSE03_CASES, "FSE04": FSE04_CASES},
-        {"FSE01": FSE01_EXAMPLES, "FSE02": FSE02_EXAMPLES, "FSE03": FSE03_EXAMPLES, "FSE04": FSE04_EXAMPLES},
+        {
+            "FSE01": FSE01_CASES, "FSE02": FSE02_CASES, "FSE03": FSE03_CASES, "FSE04": FSE04_CASES,
+            "FSE05": FSE05_CASES, "FSE06": FSE06_CASES, "FSE07": FSE07_CASES, "FSE08": FSE08_CASES,
+        },
+        {
+            "FSE01": FSE01_EXAMPLES, "FSE02": FSE02_EXAMPLES, "FSE03": FSE03_EXAMPLES,
+            "FSE04": FSE04_EXAMPLES, "FSE05": FSE05_EXAMPLES, "FSE06": FSE06_EXAMPLES,
+            "FSE07": FSE07_EXAMPLES, "FSE08": FSE08_EXAMPLES,
+        },
     )
 
 

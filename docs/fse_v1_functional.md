@@ -152,6 +152,15 @@ idempotent, questions `MANUAL`, aucune question existante modifiée).
   choix multiple (SMS « ne pas répondre », appel vidéo figé, panneau lumineux) : 17
   questions (5 faciles, 7 moyennes, 5 difficiles). FSE01 passe de 14 à 31 questions dont 8
   construites sur les exemples du cours.
+- **FSE02→FSE04 (lot 1)** : 30 questions, 7 documents (radio locale, magazine, site devenu
+  payant ; recherche en ligne sur un candidat ; équipe d'un garage, règlement d'une maison
+  de jeunes) + mini-situations.
+- **FSE05→FSE08 (lot 2)** : 38 questions, 5 documents — FSE05 : groupe des parents d'une
+  équipe U11 (photos du tournoi) et fiche d'inscription d'une salle d'escalade (12) ; FSE06 :
+  commentaires sous la publication d'une maison de quartier et fiche de signalement d'une
+  stagiaire (11) ; FSE07 : dossier en trois documents sur la vidéo d'un chauffeur de bus
+  (8) ; FSE08 : huit brèves d'actualité « qui a décidé ? » (7). Chaque lot ajoute aussi des
+  mini-situations à choix multiple.
 
 # 6. Fichiers clés
 
@@ -161,5 +170,5 @@ idempotent, questions `MANUAL`, aucune question existante modifiée).
 - `app/v1/fse_bank.py` — `import_fse01_to_bank`, les 14 questions.
 - `app/seed.py` — section « Formation sociale et économique (FSE) ».
 - `tests/test_ticket96_fse01.py` — 30 tests, aucun appel OpenAI réel.
-- `app/v1/fse_cases.py`, `app/v1/fse01_cases.py`, `tests/test_ticket129_fse_cases.py` —
+- `app/v1/fse_cases.py`, `app/v1/fse01_cases.py` à `fse08_cases.py`, `tests/test_ticket129_fse_cases.py` —
   cas nouveaux (ticket #129).

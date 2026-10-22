@@ -104,8 +104,8 @@ enregistré que si chaque position 1..n est utilisée une fois ; sinon la questi
 réponse et les choix partiels sont conservés (`positions`). Voir
 `docs/claude-reports/2026-10-22_ticket-152-consignes-fse-contexte.md`.
 
-Cas nouveaux FSE (ticket #129, lot 1 : FSE01) : `app/v1/fse_cases.py` (mécanisme commun) +
-`app/v1/fse01_cases.py` (contenu). Chaque cas ajoute un document structuré
+Cas nouveaux FSE (ticket #129, lots 1-2 : FSE01→FSE08) : `app/v1/fse_cases.py` (mécanisme
+commun) + `app/v1/fse01_cases.py` à `fse08_cases.py` (contenu). Chaque cas ajoute un document structuré
 (`content_json["layout"]`) et ses questions (`GenerationSource.MANUAL`, import idempotent
 par titre de document, appelé par `_ensure_bank_seeded` — FSE17 amorce les cas de
 FSE01→FSE16). FSE01 : affiche d'un atelier de réparation (composant `poster_sheet` :
