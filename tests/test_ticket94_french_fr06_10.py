@@ -186,9 +186,10 @@ def test_fr06_10_course_pages_are_not_stub(client, db_session):
             "Pièges et erreurs fréquentes",
             "Exercices guidés",
             "Corrigés très expliqués",
-            "Fiche mémo",
         ):
             assert required_section in text, f"{slug} : section manquante « {required_section} »"
+        # Ticket #136 : la « Fiche mémo » est reprise dans la séquence finale « À retenir ».
+        assert 'id="a-retenir"' in text, slug
 
 
 def test_fr06_10_pages_never_show_provisional_status_or_jargon(client, db_session):
@@ -482,3 +483,32 @@ def test_fr06_10_long_answer_accepts_long_text_without_truncation(authenticated_
     )
     assert response.status_code == 303
     _ = fake
+
+
+def test_fr01_10_document_references_and_prompts_are_resolvable(db_session):
+    """Tickets #151/#152 appliqués au Français : tout renvoi « Document N » est affiché sous
+    ce numéro et aucune consigne ne dépend d'un contexte absent de la question."""
+    from app.models import UAA
+    from app.v1.document_references import audit_document_references
+    from app.v1.prompt_clarity import audit_prompt_clarity
+
+    seed()
+    for slug, importer in routes_sessions._FRANCAIS_BANK_IMPORTERS.items():
+        uaa = db_session.query(UAA).filter_by(slug=slug).first()
+        importer(db_session, uaa.module, uaa)
+    db_session.commit()
+    codes = tuple(f"FR{n:02d}" for n in range(1, 11))
+    references = audit_document_references(db_session, uaa_codes=codes)
+    assert references["audited"] >= 80
+    assert references["unresolved"] == []
+    clarity = audit_prompt_clarity(db_session, uaa_prefix="FR")
+    assert clarity["audited"] >= 80
+    # L'heuristique « cette aide/décision » (#152) vise les fiches FSE courtes : dans un
+    # texte Français complet, l'antécédent est formulé autrement (« a décidé », FR02).
+    flagged = [
+        (item["uaa"], problem)
+        for item in clarity["flagged"]
+        for problem in item["problems"]
+        if "sans antécédent" not in problem
+    ]
+    assert flagged == []

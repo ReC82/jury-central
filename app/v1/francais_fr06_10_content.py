@@ -322,7 +322,7 @@ conditions matérielles du poste de travail à domicile de leurs employés en t�
 et de fournir si nécessaire un équipement ergonomique de base (chaise, écran \
 supplémentaire, repose-pieds)."""
 
-FR09_MINITEST_DOC1_TITLE = "Mini-test — Document 1 : La restauration scolaire, enquête nutritionnelle"
+FR09_MINITEST_DOC1_TITLE = "Document 1 — Mini-test : La restauration scolaire, enquête nutritionnelle"
 FR09_MINITEST_DOC1_TEXT = """Une enquête nutritionnelle menée dans les cantines de plusieurs écoles de la région \
 montre une amélioration progressive de la qualité des repas depuis l'introduction d'un \
 menu végétarien hebdomadaire obligatoire il y a deux ans. La part de légumes servis a \
@@ -334,7 +334,7 @@ menu végétarien, se traduisant par un gaspillage plus important ce jour-là pr
 (25% de plus que la moyenne des autres jours). Les auteurs recommandent un travail de \
 sensibilisation complémentaire, en lien avec les enseignants."""
 
-FR09_MINITEST_DOC2_TITLE = "Mini-test — Document 2 : Témoignage d'une directrice d'école"
+FR09_MINITEST_DOC2_TITLE = "Document 2 — Mini-test : Témoignage d'une directrice d'école"
 FR09_MINITEST_DOC2_TEXT = """Une directrice d'école ayant mis en place le menu végétarien hebdomadaire témoigne d'un \
 démarrage difficile, avec de nombreuses remarques de parents la première année. Elle \
 observe toutefois une évolution positive : « Les enfants se sont habitués plus vite que \
@@ -347,7 +347,7 @@ apprendre de nouvelles recettes pour proposer des repas végétariens à la fois
 équilibrés et appréciés des enfants, un point qu'elle juge déterminant dans la réussite \
 du dispositif."""
 
-FR09_MINITEST_DOC3_TITLE = "Mini-test — Document 3 : Avis d'une diététicienne scolaire"
+FR09_MINITEST_DOC3_TITLE = "Document 3 — Mini-test : Avis d'une diététicienne scolaire"
 FR09_MINITEST_DOC3_TEXT = """Une diététicienne intervenant dans plusieurs écoles nuance l'objectif nutritionnel du \
 menu végétarien hebdomadaire. Selon elle, un seul repas par semaine a un effet marginal \
 sur l'équilibre nutritionnel global des enfants, comparé à l'ensemble de leur alimentation \
