@@ -26,6 +26,8 @@ from app.templating import templates
 from app.v1 import document_layouts as dl
 from app.v1 import fse_cases
 from app.v1.correction_worker import _UnconfiguredProvider
+from app.v1.francais_fr01_05_bank import import_francais_fr01_to_bank
+from app.v1.francais_plan import FRANCAIS_MODULE_CODE
 from app.v1.fse01_cases import (
     CHAT_TITLE,
     FSE01_CASES,
@@ -43,6 +45,9 @@ from app.v1.fse_bank import (
     import_fse11_to_bank,
     import_fse12_to_bank,
     import_fse13_to_bank,
+    import_fse14_to_bank,
+    import_fse15_to_bank,
+    import_fse16_to_bank,
 )
 from app.v1.fse_cases import (
     COURSE_EXAMPLE,
@@ -157,7 +162,7 @@ def test_new_cases_do_not_reuse_course_examples(case):
 
 
 def test_every_course_with_cases_spreads_difficulties():
-    for code in [f"FSE{n:02d}" for n in range(1, 13)]:
+    for code in [f"FSE{n:02d}" for n in range(1, 17)]:
         levels = {d for case in fse_cases.cases_for(code) for _t, _c, d in case.questions}
         assert levels == set(QuestionDifficulty), code
 
@@ -306,9 +311,10 @@ def test_rank_is_a_strict_no_op_when_all_ranks_are_equal(db_session):
 
 def test_subjects_without_declared_examples_rank_everything_fresh(db_session):
     seed()
-    module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE).first()
-    uaa = db_session.query(UAA).filter_by(slug="fse-fse13").first()
-    import_fse13_to_bank(db_session, module, uaa)
+    # Tous les cours FSE01→FSE16 déclarent leurs exemples : contrôle sur le Français.
+    module = db_session.query(Module).filter_by(code=FRANCAIS_MODULE_CODE).first()
+    uaa = db_session.query(UAA).filter_by(slug="francais-fr01").first()
+    assert import_francais_fr01_to_bank(db_session, module, uaa) > 0
     rank = case_ranker(db_session, user_id=1)
     assert {rank(q) for q in db_session.query(Question).filter_by(uaa_id=uaa.id)} == {FRESH}
 
@@ -390,13 +396,15 @@ def test_fse17_mock_exam_reuses_new_cases_and_covers_several_courses(authenticat
     assert not [q for q in fse01 if is_course_example(q)]
 
 
-# --- Lots FSE05→FSE08 et FSE09→FSE12 -------------------------------------------------------
+# --- Lots FSE05→FSE08, FSE09→FSE12 et FSE13→FSE16 -------------------------------------------
 
 _BANK_IMPORTERS = {
     "FSE05": import_fse05_to_bank, "FSE06": import_fse06_to_bank,
     "FSE07": import_fse07_to_bank, "FSE08": import_fse08_to_bank,
     "FSE09": import_fse09_to_bank, "FSE10": import_fse10_to_bank,
     "FSE11": import_fse11_to_bank, "FSE12": import_fse12_to_bank,
+    "FSE13": import_fse13_to_bank, "FSE14": import_fse14_to_bank,
+    "FSE15": import_fse15_to_bank, "FSE16": import_fse16_to_bank,
 }
 
 

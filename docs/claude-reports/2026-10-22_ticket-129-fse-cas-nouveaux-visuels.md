@@ -1,9 +1,9 @@
 # Ticket #129 — FSE : varier les questions et afficher de vrais supports visuels
 
 - **Ticket** : [#129 — FSE — varier les questions et afficher de vrais supports visuels en entraînement et examen blanc](https://github.com/ReC82/jury-central/issues/129)
-- **État réel** : **Partiel — installé, reste à faire** (mécanisme commun + cas nouveaux FSE01 à FSE08 ; FSE09 à FSE16 restent à enrichir)
+- **État réel** : **Partiel — installé, reste à faire** (mécanisme commun + cas nouveaux FSE01 à FSE12 ; FSE13 à FSE16 restent à enrichir)
 - **Branche** : `feature/129-fse-variantes-visuels`
-- **SHA installé** : `8f651d531d74449aae71e4716fd6091c20686504` (PR #183, lot 2 FSE05→FSE08 ; lot 1 : PR #181)
+- **SHA installé** : `73f175cef43395a7bb80fed5c6a49b37c41aadfb` (PR #185, lot 3 FSE09→FSE12 ; lot 2 : PR #183 ; lot 1 : PR #181)
 - **Date** : 2026-10-22
 
 ## 1. Diagnostic
@@ -158,7 +158,7 @@ colonne.
 
 ## 7. Restant à réaliser
 
-- Cas nouveaux pour FSE09 à FSE16 (lots suivants : FSE09→FSE12 puis FSE13→FSE16), même mécanisme.
+- Cas nouveaux pour FSE13 à FSE16 (dernier lot), même mécanisme.
 - Génération d'illustrations raster via l'API quand la clé sera valide (si souhaité).
 
 ## 8. Installation (2026-10-22)
@@ -244,3 +244,80 @@ exemples du cours ; regarder le rendu sur téléphone ; démarrer un deuxième e
    aux trois noms de normes ; rien sur des textes réellement votés.
 4. **Nom de la maison de quartier FSE06 (« Le Préau »)** différent de celui de l'affiche
    FSE01 (« des Tilleuls ») pour éviter toute confusion entre cours.
+
+## 10. Lot 3 — FSE09 à FSE12 (2026-10-22)
+
+### Livré
+
+| Cours | Cas nouveaux (supports) | Questions | Facile / moyen / difficile |
+|---|---|---|---|
+| FSE09 | Neuf demandes notées par une permanence « Qui contacter ? » (rénovation de logement, changement d'école, trottoir abîmé, allocations de chômage, recherche d'emploi, maison de jeunes, conflit devant un tribunal, diabète — matière partagée —, appui technique à une commune) ; conversation de voisins qui se trompent d'interlocuteur (« le fédéral décide de tout ») ; 1 mini-situation (aide à l'installation d'une boulangerie) | 11 | 3 / 5 / 3 |
+| FSE10 | Feuille de résultats d'un scrutin communal fictif (27 sièges, aucune liste majoritaire, coalitions à chiffrer, bulletins blancs et nuls) ; conversation de jeunes électeurs liégeois la veille du vote (procuration, abstention ≠ vote blanc, règle flamande généralisée à tort, témoin du dépouillement, pétition, consultation populaire) ; 1 mini-situation (bulletin « Tous pareils ! ») | 11 | 3 / 6 / 2 |
+| FSE11 | Quatre tracts de listes imaginaires (noms d'arbres) à rattacher aux familles socialiste, libérale, écologiste, centriste/humaniste ; trois réponses d'élèves à une consigne de comparaison (neutre, opinion, incomplète) | 7 | 2 / 3 / 2 |
+| FSE12 | Budget d'un État imaginaire en **excédent** (autres recettes et dépenses, totaux à calculer absents du document) ; quatre mesures annoncées qui font basculer un autre budget en déficit ; 1 mini-situation (billets d'un musée public) | 8 | 2 / 4 / 2 |
+
+Total lot 3 : 37 questions, 8 documents (cartes, conversations, tableau de résultats,
+citations, budget — tous en HTML/CSS). Cumul FSE01→FSE12 : 122 questions nouvelles,
+23 documents. Exemples du cours déclarés (dépriorisés) : FSE09 (dix situations), FSE10
+(tableau daté des scrutins, bulletins A à D), FSE11 (six extraits sur les partis réels,
+propositions Alpha/Beta), FSE12 (tableau fictif du cours).
+
+Variations réelles : nouveaux supports et nouveaux modes de questionnement (orienter une
+personne, corriger des affirmations erronées dans une conversation, chiffrer des
+coalitions, critiquer un titre de presse, juger la neutralité d'une réponse d'élève,
+vérifier l'affirmation d'un ministre par le calcul), pas seulement de nouveaux noms.
+
+### Tester (lot 3)
+
+- Entraînement FSE09 : https://jury-central.lodylands.com/uaa/fse-fse09/practice
+- Entraînement FSE10 : https://jury-central.lodylands.com/uaa/fse-fse10/practice
+- Entraînement FSE11 : https://jury-central.lodylands.com/uaa/fse-fse11/practice
+- Entraînement FSE12 : https://jury-central.lodylands.com/uaa/fse-fse12/practice
+- Examens : remplacer `practice` par `exam` ; examen blanc : https://jury-central.lodylands.com/uaa/fse-fse17/exam
+
+Procédure : démarrer un entraînement de 10 questions dans chaque cours ; vérifier que les
+documents sont les nouveaux supports (permanence « Qui contacter ? », voisins de la rue des
+Glycines, résultats de Valbrise, groupe « Premiers votes — Liège », tracts Saule/Chêne/
+Érable/Bouleau, réponses d'Élise/Hamza/Lina, budget de Valmerie, mesures d'Ostrelande) et
+non plus les exemples du cours ; regarder le rendu sur téléphone (tableau et budget) ;
+démarrer un deuxième entraînement (aucune question répétée).
+
+### Vérifications (lot 3)
+
+- `tests/test_ticket129_fse_cases.py` : 103 passed (import réel, idempotence, rang « jamais
+  vu », exemples reconnus et première session sans exemple du cours pour FSE09→FSE12 ;
+  rendu HTML de chaque nouveau document avec tout son texte exact et sans crochets ; texte
+  mot pour mot et couverture ; difficultés réparties dans les 12 cours). Le test « matière
+  sans exemples déclarés » utilise désormais FSE13.
+- Tests FSE liés (`test_ticket97…`, `98…`, `99_fse09_12`, `101_fse17`, `131…`, `133…`,
+  `149…`, `152…`) : 234 passed. Pas de suite complète (contenu + registre seulement).
+- Contrôle des marqueurs d'exemples sur la banque réelle : les questions historiques sur
+  les documents du cours sont bien dépriorisées ; aucune question générale sans document
+  n'est prise à tort pour un exemple (un marqueur trop large, « du tableau », a été écarté
+  pour FSE12).
+- `ruff check` des fichiers modifiés : aucune erreur.
+- Essai à blanc sur une copie de la base réelle (fichier temporaire supprimé) : 11 / 11 /
+  7 / 8 questions importées, second passage 0.
+- Captures headless (desktop 1100 px, mobile 390 px) des 8 nouveaux documents avec les
+  vraies feuilles de style, examinées. Validation sur le site réel : à faire par toi.
+- Installation : `06c82a4` → `73f175c` (avance rapide), sauvegarde de la base avant
+  installation, services redémarrés et actifs, `/health` local et public `ok`, pages
+  FSE09→FSE12 et FSE17 : 303 (connexion requise, normal), compteurs 18 / 71 / 584 avant et
+  après. Pas de seed (import à l'ouverture du cours ou de FSE17).
+
+### Choix faits seul (lot 3)
+
+1. **Aucune image dans ce lot** : les notions de FSE09→FSE12 se travaillent sur des
+   demandes, conversations, résultats chiffrés, tracts et budgets ; HTML/CSS suffit et
+   garantit des chiffres exacts.
+2. **FSE10 : aucune condition d'âge mobilisée** ; la seule règle régionale citée (vote
+   communal plus obligatoire en Flandre depuis le 13 octobre 2024, toujours obligatoire en
+   Wallonie) est celle du tableau daté du cours. Les sièges de Valbrise correspondent à une
+   répartition proportionnelle (vérifiée avec la méthode D'Hondt), méthode ni enseignée ni
+   demandée.
+3. **FSE11 : listes imaginaires uniquement** (noms d'arbres neutres), pour ne jamais
+   décrire ni évaluer un parti réel ; aucune question ne demande d'opinion.
+4. **FSE12 : un budget en excédent**, à l'inverse de l'exemple du cours (déficit), pour que
+   le calcul et le vocabulaire ne se mémorisent pas ; totaux absents des documents.
+5. **Noms distincts des autres cours** (« Horizon », « rue des Glycines ») pour éviter la
+   confusion avec la maison de quartier « des Tilleuls » de FSE01.
