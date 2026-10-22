@@ -57,6 +57,7 @@ from app.v1.francais_plan import (
     FRANCAIS_PLAN_BY_CODE,
     get_francais_context,
 )
+from app.v1.fse_cases import case_ranker
 from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, FSE_PLAN_BY_CODE, get_fse_context
 from app.v1.generation_control import is_generation_paused
 from app.v1.hybrid_correction import correct_session_hybrid, correct_session_hybrid_resumable
@@ -320,6 +321,7 @@ def compose_selection(
     count: int,
     difficulty: SessionDifficultyRequest | None = None,
     target_rating: float | None = None,
+    rank_fn: Callable[[Question], int] | None = None,
 ) -> list[Question]:
     """Répartit la sélection entre types disponibles (round-robin, diversité maximale) en
     plafonnant STRICTEMENT les types sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION`
@@ -353,18 +355,38 @@ def compose_selection(
 
     `ADAPTIVE` + `target_rating` (ticket #45, `app.v1.rating`) : la première passe porte
     sur les questions dont le rating est dans la bande autour de `target_rating` (niveau
-    de l'utilisateur dans le module) ; sans `target_rating`, no-op comme avant."""
+    de l'utilisateur dans le module) ; sans `target_rating`, no-op comme avant.
+
+    `rank_fn` (ticket #129, `app.v1.fse_cases.case_ranker`) : à l'intérieur de chaque
+    passe de difficulté, les cas nouveaux passent avant les cas déjà vus, puis avant les
+    exemples commentés du cours — même mécanique de passes successives, jamais un filtre.
+    No-op strict quand toutes les questions ont le même rang (matières sans exemples
+    déclarés)."""
     matches = _difficulty_predicate(difficulty, target_rating)
     if matches is None or not any(matches(q) for q in pool):
-        selected, _ = _round_robin_fill(pool, count, [], 0)
-        return selected
-
-    matching = [q for q in pool if matches(q)]
-    other = [q for q in pool if not matches(q)]
-    selected, long_count = _round_robin_fill(matching, count, [], 0)
-    if len(selected) < count:
-        selected, long_count = _round_robin_fill(other, count, selected, long_count)
+        passes = [pool]
+    else:
+        passes = [[q for q in pool if matches(q)], [q for q in pool if not matches(q)]]
+    selected: list[Question] = []
+    long_count = 0
+    for difficulty_pass in passes:
+        for tier in _rank_tiers(difficulty_pass, rank_fn):
+            if len(selected) >= count:
+                return selected
+            selected, long_count = _round_robin_fill(tier, count, selected, long_count)
     return selected
+
+
+def _rank_tiers(pool: list[Question], rank_fn: Callable[[Question], int] | None) -> list[list[Question]]:
+    """Découpe `pool` par rang croissant (ordre interne conservé) ; `[pool]` tel quel sans
+    `rank_fn` ou si un seul rang est présent."""
+    if rank_fn is None:
+        return [pool]
+    ranks = [rank_fn(q) for q in pool]
+    distinct = sorted(set(ranks))
+    if len(distinct) <= 1:
+        return [pool]
+    return [[q for q, r in zip(pool, ranks, strict=True) if r == value] for value in distinct]
 
 
 def deduplicate_intra_session(selected: list[Question]) -> list[Question]:
@@ -428,7 +450,9 @@ def _extend_selection_without_duplicates(
     return deduplicate_intra_session([*selected, *fallback_pool])[:question_count]
 
 
-def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn) -> list[Question]:
+def _diversity_capped_oversample(
+    pool: list[Question], target_count: int, key_fn, rank_fn: Callable[[Question], int] | None = None
+) -> list[Question]:
     """Plafonne la représentation d'une seule valeur de `key_fn` (catégorie AMPCR pour
     MC38 — ticket #58 § 6 ; mini-cours/UAA pour l'examen blanc global — ticket #64 § 8)
     dans le pool transmis à `compose_selection`. `key_fn(question) -> str | None` ; une
@@ -451,6 +475,10 @@ def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn
         by_key[key].append(question)
     for bucket in by_key.values():
         random.shuffle(bucket)
+        if rank_fn is not None:
+            # Ticket #129 : dans chaque cours, les cas nouveaux d'abord (tri stable : sans
+            # effet quand tous les rangs sont égaux).
+            bucket.sort(key=rank_fn)
 
     if len(by_key) <= 1:
         return pool
@@ -498,10 +526,12 @@ def _uaa_key(question: Question) -> str | None:
     return question.uaa.code if question.uaa else None
 
 
-def _uaa_balanced_oversample(pool: list[Question], target_count: int) -> list[Question]:
+def _uaa_balanced_oversample(
+    pool: list[Question], target_count: int, rank_fn: Callable[[Question], int] | None = None
+) -> list[Question]:
     """Examen blanc global AMPCR (§ 8 du ticket #64 : « plusieurs mini-cours » obligatoires
     parmi les 20 questions) — voir `_diversity_capped_oversample`."""
-    return _diversity_capped_oversample(pool, target_count, _uaa_key)
+    return _diversity_capped_oversample(pool, target_count, _uaa_key, rank_fn)
 
 
 def _limit_near_duplicate_clusters(pool: list[Question], *, max_per_cluster: int = 2) -> list[Question]:
@@ -920,19 +950,21 @@ def _start_bank_transversal_session(
         db, user_id=user.id, module_id=module_id, limit=question_count * 12, only_unseen=True
     )
     target_rating = _adaptive_target(db, user_id=user.id, module_id=module_id, difficulty=difficulty)
+    rank = case_ranker(db, user_id=user.id)
     matches = _difficulty_predicate(difficulty, target_rating)
     if matches is not None and any(matches(q) for q in raw_pool):
         matching = [q for q in raw_pool if matches(q)]
         other = [q for q in raw_pool if not matches(q)]
         oversample = (
-            _uaa_balanced_oversample(matching, question_count)
-            + _uaa_balanced_oversample(other, question_count)
+            _uaa_balanced_oversample(matching, question_count, rank)
+            + _uaa_balanced_oversample(other, question_count, rank)
         )
     else:
-        oversample = _uaa_balanced_oversample(raw_pool, question_count)
+        oversample = _uaa_balanced_oversample(raw_pool, question_count, rank)
     oversample = _limit_near_duplicate_clusters(oversample)
     selected = compose_selection(
-        oversample, question_count, difficulty=difficulty, target_rating=target_rating
+        oversample, question_count, difficulty=difficulty, target_rating=target_rating,
+        rank_fn=rank,
     )
 
     if len(selected) < question_count:
@@ -1004,7 +1036,8 @@ def start_session(
         oversample = _uaa_balanced_oversample(oversample, question_count)
     oversample = _limit_near_duplicate_clusters(oversample)
     selected = compose_selection(
-        oversample, question_count, difficulty=difficulty, target_rating=target_rating
+        oversample, question_count, difficulty=difficulty, target_rating=target_rating,
+        rank_fn=case_ranker(db, user_id=user.id),
     )
 
     # Ticket #46 : génération en pause pour ce module (admin) → banque uniquement.

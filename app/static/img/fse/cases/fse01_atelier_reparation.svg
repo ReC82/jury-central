@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-labelledby="t">
+<title id="t">Deux bénévoles réparent un vélo installé sur un pied d'atelier ; des outils sont accrochés au mur derrière eux.</title>
+<!-- Dessin vectoriel original, ticket #129 : fond, mur, panneau à outils -->
+<rect width="640" height="420" fill="#fdf6e9"/>
+<rect x="0" y="330" width="640" height="90" fill="#e9dcc4"/>
+<rect x="150" y="38" width="340" height="150" rx="10" fill="#d8c3a0"/>
+<g fill="#c4ab84">
+<circle cx="180" cy="62" r="3"/><circle cx="220" cy="62" r="3"/><circle cx="260" cy="62" r="3"/><circle cx="300" cy="62" r="3"/><circle cx="340" cy="62" r="3"/><circle cx="380" cy="62" r="3"/><circle cx="420" cy="62" r="3"/><circle cx="460" cy="62" r="3"/>
+<circle cx="180" cy="164" r="3"/><circle cx="220" cy="164" r="3"/><circle cx="260" cy="164" r="3"/><circle cx="300" cy="164" r="3"/><circle cx="340" cy="164" r="3"/><circle cx="380" cy="164" r="3"/><circle cx="420" cy="164" r="3"/><circle cx="460" cy="164" r="3"/>
+</g>
+<!-- clé plate -->
+<g transform="translate(196 74) rotate(8)"><rect x="-6" y="0" width="12" height="80" rx="5" fill="#6b7a89"/><circle cx="0" cy="0" r="14" fill="#6b7a89"/><rect x="-5" y="-16" width="10" height="16" fill="#d8c3a0"/></g>
+<!-- tournevis -->
+<g transform="translate(250 72)"><rect x="-8" y="0" width="16" height="40" rx="6" fill="#e0533d"/><rect x="-3" y="40" width="6" height="52" fill="#8a96a3"/></g>
+<!-- marteau -->
+<g transform="translate(306 76)"><rect x="-4" y="12" width="8" height="84" rx="3" fill="#a0703f"/><rect x="-22" y="0" width="44" height="16" rx="3" fill="#55606b"/></g>
+<!-- pince -->
+<g transform="translate(366 74)"><path d="M-10 0 L-3 46 L-12 96" stroke="#2f7d6d" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M10 0 L3 46 L12 96" stroke="#2f7d6d" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="0" cy="46" r="6" fill="#55606b"/></g>
+<!-- rouleau de chambre à air -->
+<circle cx="440" cy="118" r="34" fill="none" stroke="#3a3a3a" stroke-width="9"/>
+<!-- établi à droite -->
+<rect x="470" y="262" width="150" height="16" rx="3" fill="#a0703f"/>
+<rect x="482" y="278" width="12" height="70" fill="#8a5d33"/><rect x="596" y="278" width="12" height="70" fill="#8a5d33"/>
+<rect x="500" y="236" width="44" height="26" rx="4" fill="#3d7cc9"/><rect x="556" y="246" width="40" height="16" rx="3" fill="#f2b33d"/>
+<!-- pied d'atelier -->
+<rect x="318" y="196" width="10" height="150" fill="#55606b"/>
+<path d="M280 352 L323 330 L366 352" stroke="#55606b" stroke-width="10" fill="none" stroke-linecap="round"/>
+<rect x="306" y="190" width="34" height="14" rx="4" fill="#2b3440"/>
+<!-- vélo (cadre, roues) suspendu au pied -->
+<g stroke="#2f6fb0" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<path d="M248 262 L300 206 L372 206 L404 262 L320 262 Z"/>
+<path d="M300 206 L320 262"/>
+<path d="M372 206 L366 186"/>
+<path d="M290 192 L310 192"/>
+</g>
+<path d="M300 206 L292 192" stroke="#2f6fb0" stroke-width="9" stroke-linecap="round"/>
+<path d="M356 182 L380 180" stroke="#2b3440" stroke-width="8" stroke-linecap="round"/>
+<g fill="none" stroke="#2b3440" stroke-width="10"><circle cx="248" cy="262" r="50"/><circle cx="404" cy="262" r="50"/></g>
+<g stroke="#9aa5b1" stroke-width="2"><path d="M248 212 V312 M198 262 H298 M213 227 L283 297 M283 227 L213 297"/><path d="M404 212 V312 M354 262 H454 M369 227 L439 297 M439 227 L369 297"/></g>
+<circle cx="248" cy="262" r="6" fill="#2b3440"/><circle cx="404" cy="262" r="6" fill="#2b3440"/><circle cx="320" cy="262" r="10" fill="#55606b"/>
+<!-- bénévole 1 (à gauche, accroupi, tient une clé près de la roue arrière) -->
+<g>
+<circle cx="126" cy="196" r="24" fill="#8d5b3c"/>
+<path d="M104 190 Q126 160 150 188 Q138 176 126 176 Q112 176 104 190 Z" fill="#2b2118"/>
+<path d="M94 230 Q126 212 158 230 L162 300 L90 300 Z" fill="#2f7d6d"/>
+<path d="M156 240 Q186 250 200 262" stroke="#2f7d6d" stroke-width="16" fill="none" stroke-linecap="round"/>
+<circle cx="202" cy="264" r="9" fill="#8d5b3c"/>
+<rect x="196" y="252" width="30" height="7" rx="3" transform="rotate(-25 200 256)" fill="#6b7a89"/>
+<path d="M96 300 L84 344 M150 300 L170 344" stroke="#24364f" stroke-width="20" stroke-linecap="round"/>
+<path d="M70 348 H98 M160 348 H188" stroke="#2b3440" stroke-width="10" stroke-linecap="round"/>
+</g>
+<!-- bénévole 2 (à droite, debout, tient la roue avant et une pompe) -->
+<g>
+<circle cx="520" cy="128" r="24" fill="#f0c9a4"/>
+<path d="M496 124 Q520 92 546 122 Q548 140 540 150 Q544 120 520 112 Q500 116 498 140 Q492 132 496 124 Z" fill="#c2702f"/>
+<path d="M486 164 Q520 146 554 164 L560 250 L480 250 Z" fill="#e0533d"/>
+<path d="M488 176 Q468 210 456 236" stroke="#e0533d" stroke-width="16" fill="none" stroke-linecap="round"/>
+<circle cx="454" cy="240" r="9" fill="#f0c9a4"/>
+<path d="M500 250 L496 340 M542 250 L546 340" stroke="#3a3a55" stroke-width="20" stroke-linecap="round"/>
+<path d="M480 344 H508 M534 344 H562" stroke="#2b3440" stroke-width="10" stroke-linecap="round"/>
+</g>
+</svg>
