@@ -19,7 +19,12 @@ from app.models import UAA
 from app.seed import seed
 from app.v1 import fse_bank
 from app.v1.ai_bridge import answer_json_to_submitted, content_to_questionnaire_question
-from app.v1.fse09_content import FSE09_SITUATIONS_EXAM_TEXT, FSE09_SITUATIONS_TEXT
+from app.v1.fse09_content import (
+    FSE09_SITUATIONS_EXAM_TEXT,
+    FSE09_SITUATIONS_TEXT,
+    FSE09_SITUATIONS_TITLE,
+)
+from app.v1.fse_cases import import_fse_cases
 from app.v1.models import (
     ContentStatus,
     Question,
@@ -41,6 +46,8 @@ def _import_fse_banks(db_session) -> None:
     for slug, importer in _FSE_BANK_IMPORTERS.items():
         uaa = db_session.query(UAA).filter_by(slug=slug).first()
         importer(db_session, uaa.module, uaa)
+        # Comme en production (`_ensure_bank_seeded`) : cas nouveaux #129 compris.
+        import_fse_cases(db_session, uaa.module, uaa)
     db_session.commit()
 
 
@@ -189,8 +196,10 @@ def test_repair_upgrades_a_legacy_bank_by_new_versions_and_is_idempotent(db_sess
     result = repair_prompt_clarity(db_session)
     db_session.commit()
     # 15 méthodes + 9 consignes, et les 5 autres questions FSE09 qui montrent le document,
-    # réorientées vers sa version d'examen.
-    assert result == {"repaired": 29, "unresolved": 0, "documents": 1}
+    # réorientées vers sa version d'examen ; + 2 questions FSE16 sur la note budgétaire
+    # (retour du 22/10). La consigne FSE09 de la permanence (#129) est déjà corrigée dans
+    # son cas source, donc absente d'une banque même « ancienne » importée ici.
+    assert result == {"repaired": 31, "unresolved": 0, "documents": 1}
     assert repair_prompt_clarity(db_session) == {"repaired": 0, "unresolved": 0, "documents": 0}
     assert audit_prompt_clarity(db_session)["flagged"] == []
 
@@ -210,7 +219,8 @@ def test_repair_upgrades_a_legacy_bank_by_new_versions_and_is_idempotent(db_sess
     # Chaque question FSE09 qui montre le document montre la version d'examen.
     for question in _questions(db_session, "FSE09"):
         for document in _shown(db_session, question.current_version.content_json):
-            assert document.content_text == FSE09_SITUATIONS_EXAM_TEXT
+            if document.title == FSE09_SITUATIONS_TITLE:  # pas les documents des cas #129
+                assert document.content_text == FSE09_SITUATIONS_EXAM_TEXT
 
 
 def test_repaired_legacy_content_equals_the_fresh_bank(db_session, monkeypatch):

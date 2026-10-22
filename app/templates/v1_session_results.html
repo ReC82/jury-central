@@ -207,7 +207,7 @@
                         <div class="mb-3">
                             {% for doc in item.source_documents %}
                             <details class="jc-sd-details"{% if is_signaled %} open{% endif %}>
-                                <summary><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Revoir le document — {{ doc.label }} : {{ doc.title }}</summary>
+                                <summary><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Revoir le document — {{ doc.label }} : {{ doc.title }}{% if doc.added_context %} <span class="badge text-bg-info" data-context-added>ajouté depuis le début de la session</span>{% endif %}</summary>
                                 {{ sd.render(doc.document, doc.label, question_text=item.prompt, uid="r" ~ item.position ~ "-") }}
                             </details>
                             {% endfor %}

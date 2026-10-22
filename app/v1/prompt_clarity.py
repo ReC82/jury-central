@@ -168,6 +168,15 @@ def _method_repairs() -> tuple[ClarityRepair, ...]:
             },
             reason=reason,
         ),
+        # Retour du 22/10 : cas nouveau #129 (permanence), même défaut que ci-dessus.
+        ClarityRepair(
+            "FSE09",
+            "classification",
+            ("Et pour ces trois autres demandes, quel niveau de pouvoir est compétent ?",),
+            {"prompt": "D'après les fiches de la permanence, quel niveau de pouvoir est compétent "
+             "pour les demandes 1, 6 et 7 ?"},
+            reason="« ces trois autres » dépend d'une question précédente",
+        ),
         ClarityRepair(
             "FSE06",
             "ordering",
@@ -435,9 +444,40 @@ def document_upgrades() -> tuple[DocumentUpgrade, ...]:
 
 
 def _context_repairs() -> tuple[ClarityRepair, ...]:
-    from app.v1.fse16_content import FSE16_PROPOSAL_TITLE, FSE16_REACTIONS_TITLE
+    from app.v1.fse16_content import (
+        FSE16_BUDGET_NOTE_TITLE,
+        FSE16_PROPOSAL_TITLE,
+        FSE16_REACTIONS_TITLE,
+    )
 
     return (
+        # Retour du 22/10 (audit « la subvention / la proposition ») : la note budgétaire
+        # (document 2) commence par « La subvention serait financée… » sans dire laquelle ;
+        # la proposition (document 1) est affichée avant elle, comme pour le document 3.
+        ClarityRepair(
+            "FSE16",
+            "classification",
+            ("Classe chaque élément selon qu'il relève du court terme ou du long terme (incertain).",),
+            {
+                "prompt": "D'après la note budgétaire (document 2), qui accompagne la proposition "
+                "du document 1, classe chaque élément selon qu'il relève du court terme ou du "
+                "long terme (incertain).",
+            },
+            document_titles=(FSE16_PROPOSAL_TITLE, FSE16_BUDGET_NOTE_TITLE),
+            reason="« La subvention » du document 2 sans la proposition qui la décrit",
+        ),
+        ClarityRepair(
+            "FSE16",
+            "document_analysis",
+            ("Analyse la note budgétaire (document 2) : pourquoi présente-t-elle la compensation par de nouvelles recettes comme une hypothèse plutôt qu'un fait acquis ?",),
+            {
+                "prompt": "Analyse la note budgétaire (document 2), qui accompagne la proposition du "
+                "document 1 : pourquoi présente-t-elle la compensation par de nouvelles recettes "
+                "comme une hypothèse plutôt qu'un fait acquis ?",
+            },
+            document_titles=(FSE16_PROPOSAL_TITLE, FSE16_BUDGET_NOTE_TITLE),
+            reason="« La subvention » du document 2 sans la proposition qui la décrit",
+        ),
         # Q2/20 de la capture : recopier l'auteur déjà écrit dans le document → analyse des
         # effets et limites (étape 3 de la méthode FSE16), avec la proposition (document 1)
         # qui donne son antécédent à « Cette aide ».
@@ -750,6 +790,25 @@ _VAGUE = re.compile(r"\b(?:catégories|notions|étapes) vues en cours\b", re.IGN
 # un document affiché.
 _DEMONSTRATIVE = re.compile(r"\bcette (aide|décision|mesure|proposition|réforme)\b", re.IGNORECASE)
 _ANTECEDENT = re.compile(r"\baide\b|subvention|propos|\bdécision|\bmesure\b|réforme", re.IGNORECASE)
+# Retour du 22/10 : « la subvention / la proposition » (article défini) renvoie aussi à une
+# mesure déjà présentée quand un DOCUMENT affiché l'emploie ; il faut qu'un texte affiché
+# (document ou consigne) l'INTRODUISE (« propose de… », « une
+# aide… »), pas seulement qu'il répète le mot — sinon un document d'accompagnement servi
+# seul (note budgétaire, réactions) passait l'audit.
+_DEFINITE = re.compile(r"\b(?:la|cette) (?:aide|subvention|proposition|mesure|décision|réforme)\b", re.IGNORECASE)
+_INTRODUCED = re.compile(
+    r"\bpropose(?:nt)? de\b|\bune (?:aide|subvention|proposition|mesure|décision|réforme)\b|"
+    r"\bdécide(?:nt)? de\b|\ba décidé\b|\bverse une aide\b",
+    re.IGNORECASE,
+)
+
+
+def _is_fse_dossier(version: QuestionVersion) -> bool:
+    """Règle « la subvention / la proposition » réservée aux dossiers FSE (pièces courtes
+    qui s'accompagnent) : un texte Français complet introduit autrement sa décision
+    (« a fait installer… Cette décision », FR02)."""
+    uaa = version.question.uaa if version.question else None
+    return bool(uaa and uaa.code.startswith("FSE"))
 
 
 def clarity_problems(db: Session, version: QuestionVersion) -> list[str]:
@@ -772,6 +831,8 @@ def clarity_problems(db: Session, version: QuestionVersion) -> list[str]:
     text = f"{shown} {prompt}"
     if _DEMONSTRATIVE.search(text) and not _ANTECEDENT.search(_DEMONSTRATIVE.sub("", text)):
         problems.append("« cette aide/décision… » sans antécédent affiché")
+    elif _is_fse_dossier(version) and _DEFINITE.search(shown) and not _INTRODUCED.search(text):
+        problems.append("« la subvention/la proposition… » sans document qui la présente")
     return problems
 
 
