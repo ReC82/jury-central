@@ -1,9 +1,127 @@
 # Ticket #149 — Documents et questions des entraînements/examens lisibles et visuels
 
 - **Ticket** : [#149 — P0 — Rendre les documents et questions des entraînements/examens lisibles et visuels](https://github.com/ReC82/jury-central/issues/149)
-- **État réel** : **Partiel — installé, reste à faire** (lot 1 : les 30 supports FSE installés et le composant partagé ; voir « Éléments restant à réaliser »)
-- **Branche** : `feature/149-supports-visuels` — **SHA installé** : `ec1952a894a210c535c1fac25087bd10c4f817e9`
-- **Date** : 2026-10-21
+- **État réel** : **Installé — à tester** (correction du 22/10 suite au retour du propriétaire ; restent les points du lot 1 listés plus bas)
+- **Branche** : `feature/149-supports-visuels` — **SHA installé** : `b0363fc8d2d94f677f220c211002393a70758c2a` (PR #188)
+- **Dates** : lot 1 le 2026-10-21 ; correction des pages de média et du cadre commun le 2026-10-22
+
+## 0. Correction du 22/10 — retour du propriétaire (supports médiatiques non validés)
+
+### 0.1 Constat et cause prouvée
+
+Retour : quiz FSE02, question de classement — supports fondus dans la page, titre répété,
+textes collés (« L'HEBDO DU LITTORALAbonnez-vous », « numérique14 € par mois », « seule9 € »),
+tarifs en texte brut, très grands titres.
+
+Diagnostic dans un vrai navigateur (Chromium, page complète du quiz connecté, base
+temporaire) :
+
+1. Le site sert bien la bonne feuille `design-system.css` (contenu identique à celui
+   installé, règles `.jc-sd-web…` présentes) **mais sans `Cache-Control` ni version dans
+   l'URL** (`/static/css/design-system.css`, seulement `Last-Modified`/`ETag`). Un
+   navigateur applique alors un cache heuristique : il peut réutiliser pendant des heures,
+   voire des jours, une copie ancienne sans revérifier.
+2. Rendu de la page réelle du quiz avec la feuille **d'avant #149** (version du ticket #148,
+   sans aucune règle `.jc-sd`) : Chromium produit **exactement** les textes cités —
+   `L'HEBDO DU LITTORALAbonnez-vous`, `Édition papier + numérique14 € par mois`,
+   `Édition numérique seule9 € par mois` — et des titres de document à 32 px, support sans
+   fond ni contour, titre affiché deux fois (titre + barre d'adresse). Capture :
+   ![](assets/ticket-149/r2-cause-feuille-perimee.webp)
+3. Le HTML n'avait aucun espace entre le nom du média et son slogan, ni entre formule et
+   prix : sans la feuille, les mots se collent.
+
+Conclusion : nouveau HTML + feuille périmée dans le navigateur. Je ne peux pas inspecter le
+cache de ton navigateur ; la preuve est la reproduction exacte des symptômes et l'absence de
+contrôle de cache. **Même avec la bonne feuille**, la composition restait insuffisante
+(capture « avant » ci-dessous : trois cartes imbriquées, titre trois fois, offres
+peu lisibles) — elle est aussi corrigée.
+
+![](assets/ticket-149/r2-avant-hebdo.webp)
+
+### 0.2 Corrections (composants partagés : entraînement, examen blanc, quiz, résultats, page document)
+
+- **Feuilles de style et scripts versionnés** : chaque CSS/JS local est appelé avec
+  `?v=<empreinte du contenu>` (`asset_version`, `app/templating.py`) dans `base.html` et les
+  pages qui chargent leurs propres scripts. Après chaque installation, l'URL change : le
+  navigateur charge forcément la nouvelle version.
+- **Cadre commun allégé** : le document n'est plus une carte. En haut, l'interface
+  (étiquette « Document de référence », titre en petit, « Ouvrir en grand ») ; dessous, le
+  **support autonome** sur feuille claire, contour et ombre discrets. Les supports qui sont
+  déjà un objet complet (page web, affiche, note sur papier à en-tête, forum, mails,
+  témoignages) ne sont plus posés sur une deuxième feuille.
+- **Page de média** (`webpage`) : fenêtre de site avec barre d'adresse neutre (le titre
+  n'est plus recopié), en-tête du média distinct (nom + slogan), contenu aéré.
+  - *L'Hebdo du Littoral* : trois **cartes d'offre** (formule, prix en grand, périodicité
+    « par mois » à côté ; le numéro à 2,50 € sans périodicité car le texte n'en donne pas),
+    citation éditoriale, ligne « accès réservé » avec cadenas, **zone « Vos lettres »**.
+  - *Le Flash Infos* : bandeau rouge, mention « Tous nos articles sont accessibles
+    gratuitement, sans inscription », bannière du haut, **colonne « À la une »** (titre,
+    phrase sur compteur de vues / « Partager » / commentaires avec leurs icônes, sans aucun
+    chiffre) et **bannière latérale**, puis pied « modèle économique ».
+  - *RCW* et les nouvelles pages (#129, ex. Vallée FM) profitent du même composant.
+- **Robustesse sans CSS** : espaces explicites dans le HTML ; même une feuille absente ne
+  colle plus les mots.
+- **Téléphone** : offres empilées (prix à droite), colonnes du site d'information
+  empilées. **Impression** : supports sans ombre, couleurs d'en-tête conservées, offres non
+  coupées.
+- Aucun texte inventé : chaque fragment affiché reste un extrait exact de la version du
+  document (test de fidélité existant, toujours vert) ; aucune donnée ni question modifiée,
+  pas de seed.
+
+### 0.3 Tester (SHA `b0363fc`)
+
+Connecte-toi, puis recharge une fois la page (l'URL des feuilles a changé, rien à vider).
+
+- Quiz FSE02 : https://jury-central.lodylands.com/quiz → chapitre FSE02 → question de
+  classement des trois médias.
+- Entraînement FSE02 : https://jury-central.lodylands.com/uaa/fse-fse02/practice
+- Examen blanc FSE16 (autres supports) : https://jury-central.lodylands.com/uaa/fse-fse16/exam
+- « Ouvrir en grand » depuis un document (page `/documents/…`, bouton Imprimer).
+
+Captures (Chromium, page complète connectée, serveur local sur base temporaire avec le
+contenu FSE du dépôt) :
+
+| | |
+|---|---|
+| Quiz FSE02 desktop ![](assets/ticket-149/r2-quiz-fse02-desktop.webp) | Quiz FSE02 mobile ![](assets/ticket-149/r2-quiz-fse02-mobile.webp) |
+| Entraînement FSE02 (Vallée FM) ![](assets/ticket-149/r2-entrainement-desktop.webp) | Ouvrir en grand ![](assets/ticket-149/r2-ouvrir-en-grand.webp) |
+| Impression (Flash Infos) ![](assets/ticket-149/r2-impression-flash.webp) | Autres supports (mail, notes, forum, réactions, fiches) ![](assets/ticket-149/r2-autres-supports.webp) |
+
+### 0.4 Vérifications
+
+- Page complète en vrai navigateur : quiz FSE02 desktop 1366 px et mobile 390 px,
+  entraînement FSE02 (3 questions), « Ouvrir en grand », impression (rendu `print` + PDF),
+  les 30 pages `/documents/{id}` FSE en desktop examinées.
+- Tests : `tests/test_ticket149_document_layouts.py` (73, dont 4 nouveaux : découpage du
+  prix, page d'abonnement, page d'accueil, URL versionnées) + tickets 47, 77, 79, 97, 129,
+  136, 137, 148, 153, 22, menu mobile : **370 passed**. `ruff check` des fichiers Python
+  modifiés : OK. Pas de suite complète (pas de modification du moteur partagé).
+- Installation : services actifs, `/health` OK local et public, la page sert
+  `design-system.css?v=e37e95a389` avec les nouvelles règles, compteurs 18/74/587 identiques
+  avant/après, sauvegarde de la base faite avant installation.
+- Non effectué : capture sur le site public lui-même (pas de compte de test ; je ne crée ni
+  ne modifie de compte réel) ; rendu Safari/Firefox non testé.
+
+### 0.5 Choix faits seul
+
+1. Version d'URL par empreinte du contenu plutôt qu'un en-tête `Cache-Control` : ce dernier
+   relève de nginx (infrastructure, interdit ici) ; l'empreinte suffit et ne change que si
+   le fichier change.
+2. Prix découpé en « montant + périodicité » à partir du texte exact (« 14 € » + « par
+   mois ») ; aucune périodicité ajoutée au numéro à l'unité.
+3. Le paragraphe final de chaque page découpé en zones (accès réservé / « Vos lettres » ;
+   gratuité / outils de l'article / modèle économique) : phrases exactes, ordre de lecture
+   conservé, test de fidélité vert.
+4. Pas d'image ni de chiffre ajoutés (compteur de vues représenté par une icône, sans
+   nombre) ; mention fictive inchangée, discrète sous le support.
+5. Barre d'adresse neutre (cadenas seul) plutôt qu'un faux nom de domaine.
+
+### 0.6 Décisions demandées au propriétaire
+
+Aucune nouvelle décision nécessaire pour cette correction. Les questions du lot 1 (§ 7)
+restent ouvertes.
+
+---
 
 ## 1. Synthèse
 
