@@ -12,7 +12,7 @@ import random
 import time
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import update
@@ -29,6 +29,7 @@ from app.ai.schemas import (
     QuestionnaireRequest,
 )
 from app.answer_checking import normalize_text
+from app.config import settings
 from app.v1.ai_bridge import (
     BRIDGE_TYPES,
     DOCUMENT_TYPES,
@@ -87,6 +88,17 @@ from app.v1.rating import (
 
 DEFAULT_QUESTION_COUNT = 10
 GLOBAL_EXAM_QUESTION_COUNT = 20
+# Ticket #86 : longueurs de session proposées AVANT création (sélecteur « Nombre de
+# questions »). 50 uniquement pour les parcours qui couvrent tout le programme AMPCR (MC38
+# et examen blanc/entraînement global) — jamais pour un mini-cours isolé.
+SESSION_LENGTH_OPTIONS = (10, 20, 30, 40)
+GLOBAL_SESSION_LENGTH_OPTIONS = (10, 20, 30, 40, 50)
+# Ticket #86 : au-delà de 20 questions manquantes (sessions de 30/40/50), la génération est
+# découpée en appels de cette taille (le délai d'un appel IA est borné, voir
+# `settings.ai_request_timeout_seconds`) — les volumes historiques 10/20 restent à UN seul
+# appel comme avant (invariant du ticket #55).
+GENERATION_BATCH_SIZE = 20
+REQUESTED_COUNT_KEY = "requested_question_count"
 LONG_SEMANTIC_TYPES = frozenset({"long_answer", "diagnostic", "procedure", "troubleshooting"}) | DOCUMENT_TYPES
 MAX_LONG_SEMANTIC_PER_SESSION = 3
 # Ticket #75 : marqueur `parameters_json["scope"]` d'un examen ciblé « points faibles »
@@ -190,22 +202,49 @@ def _generate_with_domain_retry(
     `MAX_DOMAIN_REGENERATION_ATTEMPTS` tentatives de complément — jamais de boucle
     infinie si le fournisseur produit systématiquement du contenu techniquement invalide ;
     le manque éventuel après cette limite reste à la charge de l'appelant, jamais une
-    question invalide servie pour compléter artificiellement une session."""
-    request = build_request(missing)
-    questionnaire = generate_questionnaire(provider, request)
-    persisted, domain_rejected = persist_batch(questionnaire)
-    collected: list[Question] = list(persisted)
-    remaining = missing - len(collected)
+    question invalide servie pour compléter artificiellement une session.
 
+    Ticket #86 (sessions de 20 à 50 questions) : le manque est demandé par lots de
+    `GENERATION_BATCH_SIZE` — un seul appel tant que `missing <= 20`. Si un lot SUIVANT
+    échoue côté fournisseur, les lots déjà persistés sont conservés (seul un échec du
+    PREMIER lot remonte à l'appelant)."""
+    collected: list[Question] = []
     attempts = 0
-    while remaining > 0 and domain_rejected > 0 and attempts < MAX_DOMAIN_REGENERATION_ATTEMPTS:
-        request = build_request(remaining)
-        questionnaire = generate_questionnaire(provider, request)
+    while len(collected) < missing:
+        batch_size = min(missing - len(collected), GENERATION_BATCH_SIZE)
+        request = build_request(batch_size)
+        if collected:
+            # Ticket #86 : un lot suivant ne doit jamais reproduire un énoncé du lot précédent.
+            request = replace(
+                request,
+                avoid_prompts=(*_prompts_of(collected), *request.avoid_prompts),
+            )
+        try:
+            questionnaire = generate_questionnaire(provider, request)
+        except AIProviderError:
+            if not collected:
+                raise
+            break  # garde les lots déjà persistés ; repli banque côté appelant.
         persisted, domain_rejected = persist_batch(questionnaire)
         collected.extend(persisted)
-        remaining = missing - len(collected)
-        attempts += 1
+        if len(persisted) >= batch_size:
+            continue
+        # Lot incomplet : nouvel appel uniquement si le manque vient de la validation métier.
+        if domain_rejected > 0 and attempts < MAX_DOMAIN_REGENERATION_ATTEMPTS:
+            attempts += 1
+            continue
+        break
     return collected
+
+
+def _prompts_of(questions: list[Question]) -> list[str]:
+    prompts = []
+    for question in questions:
+        content = question.current_version.content_json if question.current_version else None
+        prompt = str((content or {}).get("prompt", "")).strip()
+        if prompt:
+            prompts.append(prompt)
+    return prompts
 
 
 def _round_robin_fill(
@@ -384,10 +423,11 @@ def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn
     IMPORTANT : `compose_selection` regroupe son entrée par TYPE de question sans jamais
     tenir compte de l'ORDRE — réordonner `pool` sans réellement en exclure une partie
     n'aurait donc AUCUN effet sur la diversité obtenue en sortie. Cette fonction retire
-    donc réellement l'excédent d'une valeur dominante (au-delà de la moitié de
-    `target_count`) plutôt que de se contenter de le réordonner, sauf si cela laisserait
+    donc réellement l'excédent d'une valeur dominante (au-delà du plafond ci-dessous) plutôt que de se contenter de le réordonner, sauf si cela laisserait
     trop peu de questions au total (repli explicite, comme pour MC38 : pas besoin de
-    respecter exactement ces nombres si la banque disponible ne le permet pas)."""
+    respecter exactement ces nombres si la banque disponible ne le permet pas). Plafond
+    par valeur : voir `_min_distinct_keys` (ticket #86 ; auparavant la moitié de
+    `target_count`)."""
     by_key: dict[str, list[Question]] = defaultdict(list)
     for question in pool:
         key = key_fn(question)
@@ -400,7 +440,10 @@ def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn
     if len(by_key) <= 1:
         return pool
 
-    max_per_key = max(1, -(-target_count // 2))  # ceil(target_count / 2)
+    # Jamais plus de valeurs exigées que le pool n'en contient (sinon le plafond
+    # descendrait sous `target_count` et le repli réintroduirait tout l'excédent).
+    min_keys = min(_min_distinct_keys(target_count), len(by_key))
+    max_per_key = max(1, -(-target_count // min_keys))  # ceil
     capped = [question for bucket in by_key.values() for question in bucket[:max_per_key]]
     random.shuffle(capped)
 
@@ -410,6 +453,18 @@ def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn
         random.shuffle(leftovers)
         capped.extend(leftovers[: target_count * 3 - len(capped)])
     return capped
+
+
+def _min_distinct_keys(target_count: int) -> int:
+    """Ticket #86 § C : plus la session est longue, plus elle doit couvrir de catégories/
+    mini-cours — au moins 3 valeurs distinctes à 10 questions, 4 à 20, 6 au-delà (MC38 :
+    Hardware, Systèmes, Réseaux, Wi-Fi/Sécurité, Dépannage, Métier). Plafond d'une valeur =
+    `ceil(target_count / ce nombre)` ; repli sur les restes si la banque est trop étroite."""
+    if target_count <= DEFAULT_QUESTION_COUNT:
+        return 3
+    if target_count <= GLOBAL_EXAM_QUESTION_COUNT:
+        return 4
+    return 6
 
 
 def _ampcr_category_key(question: Question) -> str | None:
@@ -463,6 +518,46 @@ def _limit_near_duplicate_clusters(pool: list[Question], *, max_per_cluster: int
             cluster_counts[cluster_index] += 1
         # sinon : cluster déjà à `max_per_cluster`, question écartée du pool.
     return kept
+
+
+def session_length_options(*, uaa_id: int | None, uaa_code: str | None) -> tuple[int, ...]:
+    """Ticket #86 : longueurs proposables pour un parcours — 50 en plus pour MC38 et le
+    parcours global AMPCR (`uaa_id=None`), jamais pour un mini-cours isolé."""
+    if uaa_id is None or uaa_code == MC38_CODE:
+        return GLOBAL_SESSION_LENGTH_OPTIONS
+    return SESSION_LENGTH_OPTIONS
+
+
+def available_session_lengths(
+    db: DBSession, *, user: User, module_id: int, uaa_id: int | None, uaa_code: str | None
+) -> tuple[int, ...]:
+    """Ticket #86 § A : « ne pas afficher des choix impossibles ». Si la génération peut
+    compléter la banque (fournisseur configuré, module non en pause, parcours autre que
+    FSE17 — strictement banque), toutes les longueurs sont proposées : `start_session`
+    génère le manque. Sinon, seules celles que la banque couvre SANS doublon (#82) —
+    toujours au moins la plus courte (session éventuellement plus courte, comme avant)."""
+    options = session_length_options(uaa_id=uaa_id, uaa_code=uaa_code)
+    can_generate = (
+        uaa_code != FSE17_CODE
+        and bool(settings.openai_api_key)
+        and not is_generation_paused(db, module_id)
+    )
+    if can_generate:
+        return options
+    limit = max(options)
+    if uaa_code == MC38_CODE:
+        pool = select_transversal_bank_questions(db, user_id=user.id, module_id=module_id, limit=limit)
+    elif uaa_code == FSE17_CODE:
+        pool = select_fse_transversal_bank_questions(db, user_id=user.id, module_id=module_id, limit=limit)
+    else:
+        pool = select_bank_questions(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=limit)
+    distinct = len(deduplicate_intra_session(pool))
+    return tuple(n for n in options if n <= distinct) or options[:1]
+
+
+def requested_question_count(session: QuestionnaireSession) -> int | None:
+    """Longueur choisie avant création (ticket #86), `None` pour une session antérieure."""
+    return (session.parameters_json or {}).get(REQUESTED_COUNT_KEY)
 
 
 def get_in_progress_session(
@@ -555,6 +650,7 @@ def _finalize_session(
     difficulty: SessionDifficultyRequest,
     selected: list[Question],
     parameters_json: dict | None = None,
+    requested_question_count: int | None = None,
 ) -> QuestionnaireSession:
     """Construit la `QuestionnaireSession`/`SessionQuestion` à partir d'une sélection déjà
     prête — factorisé entre le parcours per-MC/global (`start_session`) et le parcours
@@ -567,8 +663,14 @@ def _finalize_session(
     soit ce qui a pu se produire en amont. `question_count` reflète le nombre RÉEL de
     questions retenues après cette garde (jamais le nombre demandé si la garde en a
     retiré) — une session plus courte que prévu est acceptable, un doublon ne l'est
-    jamais."""
+    jamais.
+
+    Ticket #86 : `requested_question_count` (longueur choisie avant création) est
+    conservé dans `parameters_json["requested_question_count"]` pour l'historique/export,
+    à côté du nombre réel `question_count`."""
     selected = deduplicate_intra_session(selected)
+    if requested_question_count is not None:
+        parameters_json = {**(parameters_json or {}), REQUESTED_COUNT_KEY: requested_question_count}
     session = QuestionnaireSession(
         user_id=user.id,
         mode=mode,
@@ -715,7 +817,7 @@ def _start_mc38_transversal_session(
 
     return _finalize_session(
         db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
-        parameters_json={"scope": MC38_SESSION_SCOPE},
+        parameters_json={"scope": MC38_SESSION_SCOPE}, requested_question_count=question_count,
     )
 
 
@@ -786,7 +888,7 @@ def _start_fse_transversal_session(
 
     return _finalize_session(
         db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
-        parameters_json={"scope": FSE17_SESSION_SCOPE},
+        parameters_json={"scope": FSE17_SESSION_SCOPE}, requested_question_count=question_count,
     )
 
 
@@ -900,7 +1002,8 @@ def start_session(
         selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
 
     return _finalize_session(
-        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected
+        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
+        requested_question_count=question_count,
     )
 
 
