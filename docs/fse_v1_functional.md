@@ -127,7 +127,33 @@ les matières existantes (non-régression vérifiée par
 
 ---
 
-# 5. Fichiers clés
+# 5. Cas nouveaux pour l'entraînement et l'examen (ticket #129)
+
+Les questions historiques reprennent les exemples commentés des cours. Depuis le ticket
+#129, chaque cours peut recevoir des **cas nouveaux** (autres situations, documents,
+protagonistes et distracteurs sur les mêmes notions), déclarés dans
+`app/v1/fseNN_cases.py` et importés par `app.v1.fse_cases.import_fse_cases` (ajout
+idempotent, questions `MANUAL`, aucune question existante modifiée).
+
+- **Sélection** : la difficulté demandée reste prioritaire ; à l'intérieur de chaque
+  difficulté, `case_ranker` sert d'abord les cas jamais vus par l'élève (entraînement et
+  examen confondus), puis les cas dont il a déjà vu le document, puis les exemples du
+  cours (titres de documents et noms propres déclarés dans `CourseExamples`). FSE17 garde
+  sa répartition par cours et applique le même ordre dans chaque cours.
+- **Supports** : document structuré (`content_json["layout"]`, mêmes composants que #149).
+  Affiche = composant `poster_sheet` (illustration + texte exact en HTML, agrandissement au
+  clic, page « Ouvrir en grand » imprimable, texte alternatif complet). L'illustration est
+  un `Asset` rattaché à la version du document (empreinte, méthode de production, prompt,
+  modèle). Fichier absent → cas non importé ; asset invalidé ou fichier disparu → questions
+  non servies. Aucune génération d'image à l'affichage, à la reprise ou au seed.
+- **FSE01 (lot 1)** : affiche d'atelier de réparation (Maison de quartier des Tilleuls),
+  conversation de groupe de futsal (consigne ambiguë, rétroaction, « lu par 8 des 12 »),
+  note de service jargonneuse d'un supermarché (obstacle de code), trois mini-situations à
+  choix multiple (SMS « ne pas répondre », appel vidéo figé, panneau lumineux) : 17
+  questions (5 faciles, 7 moyennes, 5 difficiles). FSE01 passe de 14 à 31 questions dont 8
+  construites sur les exemples du cours.
+
+# 6. Fichiers clés
 
 - `app/v1/fse_plan.py` — `FSE_SUBJECT_NAME`, `FSE_MODULE_CODE`, `FSE_PLAN`, contexte IA.
 - `app/v1/fse01_content.py` — les trois documents source.
@@ -135,3 +161,5 @@ les matières existantes (non-régression vérifiée par
 - `app/v1/fse_bank.py` — `import_fse01_to_bank`, les 14 questions.
 - `app/seed.py` — section « Formation sociale et économique (FSE) ».
 - `tests/test_ticket96_fse01.py` — 30 tests, aucun appel OpenAI réel.
+- `app/v1/fse_cases.py`, `app/v1/fse01_cases.py`, `tests/test_ticket129_fse_cases.py` —
+  cas nouveaux (ticket #129).

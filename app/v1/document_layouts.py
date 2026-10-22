@@ -49,6 +49,8 @@ PRESENTATION_KEYS = frozenset(
         "image_alt",
         "chrome",
         "variant",
+        "palette",
+        "sheet_label",
         "item_label",
         "marks",
         "type",

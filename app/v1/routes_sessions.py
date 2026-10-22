@@ -77,6 +77,7 @@ from app.v1.fse_bank import (
     import_fse15_to_bank,
     import_fse16_to_bank,
 )
+from app.v1.fse_cases import import_fse_cases
 from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, get_fse_plan_by_slug
 from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
 from app.v1.models import (
@@ -248,6 +249,16 @@ def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
         db.commit()
     elif uaa.slug in _FSE_BANK_IMPORTERS:
         _FSE_BANK_IMPORTERS[uaa.slug](db, module, uaa)
+        # Ticket #129 : cas nouveaux (documents, visuels, questions), ajout idempotent.
+        import_fse_cases(db, module, uaa)
+        db.commit()
+    elif uaa.slug == f"fse-{FSE17_CODE.lower()}":
+        # FSE17 tire dans FSE01→FSE16 : leurs banques et leurs cas nouveaux doivent exister
+        # même si l'élève n'a ouvert aucun de ces cours (même principe que FR20).
+        for course in module.uaas:
+            if course.slug in _FSE_BANK_IMPORTERS:
+                _FSE_BANK_IMPORTERS[course.slug](db, module, course)
+                import_fse_cases(db, module, course)
         db.commit()
 
 

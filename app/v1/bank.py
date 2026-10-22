@@ -295,8 +295,11 @@ def _exclude_unusable_assets(db: Session, query):
     """Ticket #48 : une question dont l'image courante a été marquée incorrecte par
     l'admin n'est plus servie (voir `app.v1.assets.unusable_asset_question_ids`)."""
     from app.v1.assets import unusable_asset_question_ids
+    from app.v1.fse_cases import unusable_document_question_ids
 
-    excluded = unusable_asset_question_ids(db)
+    # Ticket #129 : idem pour une question dont le document dépend d'une illustration
+    # indisponible (asset invalide ou fichier absent).
+    excluded = unusable_asset_question_ids(db) | unusable_document_question_ids(db)
     return query.filter(Question.id.notin_(excluded)) if excluded else query
 
 
@@ -511,6 +514,7 @@ def _select_courses_bank_questions(
         Question.status == ContentStatus.ACTIVE,
         Question.uaa_id.in_(uaa_ids),
     )
+    query = _exclude_unusable_assets(db, query)
     all_active = query.order_by(func.random()).all()
     unseen, seen = _split_unseen_and_seen(
         all_active, seen_question_ids=seen_question_ids, seen_signatures=seen_signatures

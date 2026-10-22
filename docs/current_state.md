@@ -104,6 +104,20 @@ enregistré que si chaque position 1..n est utilisée une fois ; sinon la questi
 réponse et les choix partiels sont conservés (`positions`). Voir
 `docs/claude-reports/2026-10-22_ticket-152-consignes-fse-contexte.md`.
 
+Cas nouveaux FSE (ticket #129, lot 1 : FSE01) : `app/v1/fse_cases.py` (mécanisme commun) +
+`app/v1/fse01_cases.py` (contenu). Chaque cas ajoute un document structuré
+(`content_json["layout"]`) et ses questions (`GenerationSource.MANUAL`, import idempotent
+par titre de document, appelé par `_ensure_bank_seeded` — FSE17 amorce les cas de
+FSE01→FSE16). FSE01 : affiche d'un atelier de réparation (composant `poster_sheet` :
+illustration SVG enregistrée comme `Asset` via `SourceDocumentVersion.asset_id` + texte
+exact en HTML), conversation de groupe de futsal, note de service jargonneuse, trois
+mini-situations à choix multiple — 17 questions. Sélection : après la difficulté demandée,
+`case_ranker` fait passer les cas nouveaux jamais vus, puis les cas dont l'élève a déjà vu
+le document, puis les exemples commentés du cours (`CourseExamples`) ; no-op pour les
+matières sans exemples déclarés. Une question dont l'illustration est invalide ou absente
+du disque n'est jamais servie (`unusable_document_question_ids`). Voir
+`docs/claude-reports/2026-10-22_ticket-129-fse-cas-nouveaux-visuels.md`.
+
 ---
 
 ## Administration

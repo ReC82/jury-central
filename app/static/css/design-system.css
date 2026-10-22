@@ -2115,6 +2115,24 @@ details.jc-glossary > .jc-definitions {
 
 /* Affiche (composition du cours) + légende descriptive */
 .jc-sd-poster { max-width: 34rem; margin: 0 auto; }
+/* Affiche composée (ticket #129) : illustration dessinée + texte exact en HTML. */
+.jc-sd-situation { display: flex; gap: 0.5rem; align-items: flex-start; background: var(--jc-gray-bg); border-radius: 0.5rem; padding: 0.5rem 0.75rem; margin-bottom: 0.9rem; font-size: 0.9rem; color: #33404d; }
+.jc-sd-situation i { color: var(--jc-gray); margin-top: 0.1rem; }
+.jc-sd-psheet { --psheet-ink: #14532d; --psheet-accent: #f2b33d; --psheet-paper: #fffdf5; max-width: 30rem; margin: 0 auto; background: var(--psheet-paper); border: 1px solid #e3dccb; border-top: 0.6rem solid var(--psheet-ink); border-radius: 0.3rem; box-shadow: 0 6px 18px rgba(31, 41, 51, 0.16); padding: 1rem 1.2rem 0.9rem; text-align: center; cursor: zoom-in; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.jc-sd-psheet--orange { --psheet-ink: #9a3412; --psheet-accent: #2f7d6d; }
+.jc-sd-psheet--blue { --psheet-ink: #1e3a8a; --psheet-accent: #f2b33d; }
+.jc-sd-psheet-issuer { margin: 0 0 0.45rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--psheet-ink); }
+.jc-sd-psheet-kicker { display: inline-block; margin: 0 0 0.55rem; padding: 0.2rem 0.75rem; border-radius: 999px; background: var(--psheet-accent); color: #1f2933; font-weight: 700; font-size: 0.85rem; }
+.jc-sd-psheet-headline { margin: 0 0 0.7rem; font-size: clamp(1.35rem, 4.6vw, 1.9rem); line-height: 1.12; font-weight: 900; color: var(--psheet-ink); letter-spacing: 0.01em; }
+.jc-sd-psheet-image { display: block; width: 100%; height: auto; border-radius: 0.4rem; background: #fdf6e9; }
+.jc-sd-psheet-tagline { margin: 0.6rem 0 0.5rem; font-size: 1rem; font-weight: 600; font-style: italic; color: #1f2933; }
+.jc-sd-psheet-details { list-style: none; margin: 0 auto 0.7rem; padding: 0; display: grid; gap: 0.3rem; text-align: left; max-width: 26rem; font-size: 0.95rem; }
+.jc-sd-psheet-details li { display: flex; gap: 0.5rem; align-items: flex-start; }
+.jc-sd-psheet-details i { color: var(--psheet-ink); margin-top: 0.15rem; }
+.jc-sd-psheet-footer { margin: 0; padding-top: 0.55rem; border-top: 2px dashed #d9d2bf; font-size: 0.85rem; color: #33404d; }
+.jc-sd-psheet.jc-zoomable--active { max-height: 94vh; overflow: auto; }
+.jc-sd-psheet-hint { margin: 0.5rem auto 0; max-width: 30rem; font-size: 0.82rem; color: var(--jc-sd-muted); text-align: center; }
+.jc-sd-chat-status { font-size: 0.75rem; color: var(--jc-sd-muted); margin: 0.2rem 0 0 !important; text-align: right; }
 .jc-sd-legend { margin-top: 0.9rem; background: #f6f8fa; border-radius: 0.6rem; padding: 0.75rem 0.9rem; font-size: 0.92rem; }
 .jc-sd-legend-title { font-weight: 600; margin-bottom: 0.5rem; }
 .jc-sd-legend dl { display: grid; grid-template-columns: minmax(7rem, max-content) 1fr; gap: 0.3rem 0.8rem; margin: 0; }
@@ -2310,4 +2328,5 @@ details.jc-glossary > .jc-definitions {
     .jc-sd { box-shadow: none; border-color: #999; break-inside: auto; }
     .jc-sd-card, .jc-sd-quote, .jc-sd-mail-msg, .jc-sd-chat-msg, .jc-sd-ballot, .jc-sd-agent { break-inside: avoid; }
     .jc-sd-open, .jc-sd-more > summary { display: none !important; }
+    .jc-sd-psheet { break-inside: avoid; box-shadow: none; max-width: 16cm; }
 }

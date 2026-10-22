@@ -771,7 +771,9 @@ def test_fse01_difficulty_composition_persists_through_resume(authenticated_clie
 
     db_session.expire_all()
     original_counts = _declared_difficulty_counts(db_session.get(QuestionnaireSession, session_id))
-    assert original_counts[QuestionDifficulty.HARD] == 3
+    # Ticket #129 : la route amorce aussi les cas nouveaux de FSE01 (5 questions difficiles
+    # de plus) ; 5 difficiles servables avec le plafond de 3 réponses longues.
+    assert original_counts[QuestionDifficulty.HARD] == 5
 
     for _ in range(2):
         authenticated_client.get(f"/uaa/{FSE01_SLUG}/practice")

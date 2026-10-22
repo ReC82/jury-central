@@ -61,6 +61,27 @@ Texte toujours issu de la version exacte du document ; rendu générique lisible
     </dl>
 </div>
 
+{% elif kind == "poster_sheet" %}
+{# Ticket #129 : affiche réellement composée (illustration dessinée + texte exact en HTML),
+   jamais une description à la place du visuel. L'illustration est l'asset du document. #}
+{% set picture = doc.asset if doc.asset is defined else None %}
+{% set spoken = [layout.issuer, layout.kicker, layout.headline, ("Dessin : " ~ layout.image_alt) if layout.image_alt else "", layout.tagline] + layout.details | map(attribute="text") | list + [layout.footer] %}
+<figure class="jc-sd-psheet jc-sd-psheet--{{ layout.palette or 'green' }} jc-zoomable"
+        aria-label="{{ layout.sheet_label or 'Affiche' }}. {{ spoken | select | join(' ') }}">
+    <p class="jc-sd-psheet-issuer">{{ layout.issuer }}</p>
+    <p class="jc-sd-psheet-kicker">{{ layout.kicker }}</p>
+    <p class="jc-sd-psheet-headline">{{ layout.headline }}</p>
+    {% if picture and picture.storage_ref and static_exists(picture.storage_ref) %}
+    <img class="jc-sd-psheet-image" src="/static/{{ picture.storage_ref }}" alt="Dessin : {{ layout.image_alt }}" loading="lazy">
+    {% endif %}
+    {% if layout.tagline %}<p class="jc-sd-psheet-tagline">{{ layout.tagline }}</p>{% endif %}
+    <ul class="jc-sd-psheet-details">
+        {% for entry in layout.details %}<li><i class="bi bi-{{ entry.icon }}" aria-hidden="true"></i> {{ entry.text }}</li>{% endfor %}
+    </ul>
+    {% if layout.footer %}<p class="jc-sd-psheet-footer">{{ layout.footer }}</p>{% endif %}
+</figure>
+<p class="jc-sd-psheet-hint d-print-none"><i class="bi bi-zoom-in" aria-hidden="true"></i> Cliquer sur le document pour l'agrandir.{% if layout.image_alt %} Illustration : {{ layout.image_alt }}{% endif %}</p>
+
 {% elif kind == "social_post" %}
 <div class="jc-sd-social">
     {% if layout.group %}
@@ -182,6 +203,7 @@ Texte toujours issu de la version exacte du document ; rendu générique lisible
             <div class="jc-sd-chat-bubble jc-sd-border-{{ message.tone }}">
                 <div class="jc-sd-chat-meta"><strong class="jc-sd-text-{{ message.tone }}">{{ message.author }}</strong><span>{{ message.time }}</span></div>
                 <p>{{ message.text }}</p>
+                {% if message.status %}<p class="jc-sd-chat-status"><i class="bi bi-check2-all" aria-hidden="true"></i> {{ message.status }}</p>{% endif %}
             </div>
         </div>
         {% endfor %}
@@ -327,6 +349,7 @@ Texte toujours issu de la version exacte du document ; rendu générique lisible
         {% endif %}
     </header>
     <div class="jc-sd-body">
+        {% if layout and layout.context %}<p class="jc-sd-situation"><i class="bi bi-pin-map" aria-hidden="true"></i> <span>{{ layout.context }}</span></p>{% endif %}
         {% if layout %}
         {{ body(doc, layout, focus) }}
         {% else %}
