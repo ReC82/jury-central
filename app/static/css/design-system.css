@@ -283,6 +283,7 @@ table.value-table tbody th {
 .jc-flow-step {
     flex: 1 1 140px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     background: var(--jc-blue-bg);
@@ -316,6 +317,196 @@ table.value-table tbody th {
 
 @media print {
     .jc-flow { break-inside: avoid; }
+}
+
+/* --- Grille de définitions (terme / explication / exemple) — refonte FSE, ticket #103 ---
+   Isole chaque définition d'une leçon dans une mini-carte, plus légère qu'une .jc-card
+   complète (jamais imbriquée dans une autre .jc-card) : terme en évidence, explication
+   courte, exemple concret optionnel. Voir docs/components/DefinitionGrid.md. */
+
+.jc-definitions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.85rem;
+    margin: 1.25rem 0;
+}
+
+.jc-definition {
+    background: var(--jc-blue-bg);
+    border: 1px solid var(--jc-blue);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+}
+
+.jc-definition-term {
+    font-weight: 700;
+    color: var(--jc-blue);
+    margin-bottom: 0.3rem;
+    display: block;
+}
+
+.jc-definition-body {
+    font-size: 0.93rem;
+    margin: 0;
+}
+
+.jc-definition-example {
+    margin: 0.45rem 0 0;
+    padding-top: 0.45rem;
+    border-top: 1px dashed rgba(21, 101, 192, 0.3);
+    font-size: 0.88rem;
+    color: #3a4552;
+}
+
+.jc-definition-example strong {
+    color: var(--jc-blue);
+}
+
+@media print {
+    .jc-definitions { break-inside: avoid; }
+}
+
+/* --- Comparaison visuelle entre deux notions souvent confondues --- */
+
+.jc-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    margin: 1.25rem 0;
+}
+
+.jc-compare-item {
+    border-radius: 8px;
+    border: 1px solid;
+    padding: 0.8rem 1rem;
+}
+
+.jc-compare-item--bad {
+    background: var(--jc-red-bg);
+    border-color: var(--jc-red);
+}
+
+.jc-compare-item--good {
+    background: var(--jc-green-bg);
+    border-color: var(--jc-green);
+}
+
+.jc-compare-item--a {
+    background: var(--jc-blue-bg);
+    border-color: var(--jc-blue);
+}
+
+.jc-compare-item--b {
+    background: var(--jc-orange-bg);
+    border-color: var(--jc-orange);
+}
+
+.jc-compare-label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.jc-compare-item--bad .jc-compare-label { color: var(--jc-red); }
+.jc-compare-item--good .jc-compare-label { color: var(--jc-green); }
+.jc-compare-item--a .jc-compare-label { color: var(--jc-blue); }
+.jc-compare-item--b .jc-compare-label { color: var(--jc-orange); }
+
+.jc-compare-item p:last-child { margin-bottom: 0; }
+
+@media (max-width: 576px) {
+    .jc-compare { grid-template-columns: 1fr; }
+}
+
+@media print {
+    .jc-compare { break-inside: avoid; }
+}
+
+/* --- Carte "document" (mail, affiche, publication) : support analysé par le cours,
+   toujours séparé de son analyse (celle-ci reste en texte/tableau/cartes juste après). --- */
+
+.jc-doc {
+    border: 1px solid #d7dce1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.25rem 0;
+    background: #fff;
+}
+
+.jc-doc-header {
+    background: var(--jc-gray-bg);
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    color: #444;
+    border-bottom: 1px solid #d7dce1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.jc-doc-header strong { color: #1f2933; }
+
+.jc-doc-fictive-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--jc-purple-bg);
+    color: var(--jc-purple);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.jc-doc-body { padding: 1rem 1.1rem; }
+
+.jc-doc-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 0.6rem;
+    font-size: 0.85rem;
+    margin: 0 0 0.75rem;
+}
+
+.jc-doc-meta dt { font-weight: 600; color: #55606b; }
+.jc-doc-meta dd { margin: 0; }
+
+.jc-doc-text { font-size: 0.95rem; }
+
+.jc-doc-comments {
+    border-top: 1px dashed #d7dce1;
+    margin-top: 0.85rem;
+    padding-top: 0.65rem;
+}
+
+.jc-doc-comment {
+    font-size: 0.9rem;
+    margin-bottom: 0.45rem;
+}
+
+.jc-doc-comment strong { color: var(--jc-blue); }
+
+@media print {
+    .jc-doc { break-inside: avoid; }
+}
+
+/* --- Conteneur de schéma SVG (remplace les schémas en caractères) --- */
+
+.jc-diagram {
+    margin: 1.25rem 0;
+    text-align: center;
+}
+
+.jc-diagram svg {
+    max-width: 100%;
+    height: auto;
+}
+
+@media print {
+    .jc-diagram { break-inside: avoid; }
 }
 
 /* --- Navigation Cours / S'entraîner / S'évaluer (ticket #22) --- */
@@ -357,4 +548,1766 @@ table.value-table tbody th {
     width: 0%;
     background: var(--jc-blue);
     transition: width 0.15s ease-out;
+}
+
+/* --- Icône de notion dans la grille de définitions (ticket #108) : additif, n'affecte
+   jamais .jc-definition/.jc-definition-term utilisés sans cette en-tête par FSE02-FSE17
+   (voir docs/components/DefinitionGrid.md). --- */
+
+.jc-definition-head {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.35rem;
+}
+
+.jc-definition-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--jc-blue);
+    color: #fff;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.jc-definition-head .jc-definition-term {
+    margin-bottom: 0;
+    display: inline;
+}
+
+/* --- Document "mail" réaliste (ticket #108 § 3) : texte réel, sélectionnable — jamais une
+   image. S'appuie sur .jc-doc pour l'habillage externe (en-tête, étiquette Fictif). --- */
+
+.jc-mail-thread {
+    padding: 0;
+}
+
+.jc-mail-message {
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid #eef0f2;
+}
+
+.jc-mail-message:last-child {
+    border-bottom: none;
+}
+
+.jc-mail-message--reply {
+    background: #fafbfc;
+}
+
+.jc-mail-message-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+
+.jc-mail-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    background: var(--jc-blue);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.jc-mail-avatar--reply {
+    background: var(--jc-green);
+}
+
+.jc-mail-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.85rem;
+}
+
+.jc-mail-from {
+    font-weight: 700;
+    color: #1f2933;
+}
+
+.jc-mail-address {
+    font-weight: 400;
+    color: #55606b;
+    word-break: break-word;
+}
+
+.jc-mail-to {
+    color: #55606b;
+    font-size: 0.8rem;
+}
+
+.jc-mail-date {
+    font-size: 0.78rem;
+    color: #55606b;
+    white-space: nowrap;
+}
+
+.jc-mail-subject {
+    font-weight: 600;
+    color: #1f2933;
+    margin: 0.2rem 0 0.55rem;
+}
+
+.jc-mail-body p {
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+}
+
+.jc-mail-body p:last-child {
+    margin-bottom: 0;
+}
+
+.jc-mail-interrupted {
+    border: 1px dashed var(--jc-red);
+    background: var(--jc-red-bg);
+    color: var(--jc-red);
+    border-radius: 6px;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem !important;
+    font-weight: 600;
+}
+
+@media (max-width: 576px) {
+    .jc-mail-message-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+    }
+}
+
+/* --- Publication "réseau social" réaliste (ticket #108 § 3) : texte réel, sélectionnable.
+   S'appuie également sur .jc-doc pour l'habillage externe. --- */
+
+.jc-social-post-head {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.65rem;
+}
+
+.jc-social-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 50%;
+    background: var(--jc-gray);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.jc-social-avatar--sm {
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: 0.7rem;
+}
+
+/* --- Une couleur par intervenant (ticket #112), toujours la même partout (publication et
+   fil de commentaires) : contraste blanc garanti sur chacune de ces teintes. --- */
+.jc-social-avatar--company { background: var(--jc-blue); }
+.jc-social-avatar--fatima { background: var(--jc-purple); }
+.jc-social-avatar--mourad { background: var(--jc-green); }
+.jc-social-avatar--julien { background: var(--jc-orange); }
+
+.jc-social-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.jc-social-author {
+    font-weight: 700;
+    color: #1f2933;
+}
+
+.jc-social-time {
+    font-size: 0.78rem;
+    color: #55606b;
+}
+
+.jc-social-text {
+    font-size: 0.95rem;
+    margin: 0 0 0.75rem;
+}
+
+.jc-social-reactions {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #55606b;
+    border-top: 1px solid #eef0f2;
+    border-bottom: 1px solid #eef0f2;
+    padding: 0.5rem 0;
+    margin-bottom: 0.75rem;
+}
+
+.jc-social-comments {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.jc-social-comment {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    background: #f8f9fa;
+}
+
+.jc-social-comment p {
+    margin: 0.1rem 0 0;
+    font-size: 0.88rem;
+}
+
+.jc-social-comment strong {
+    font-size: 0.85rem;
+    color: #1f2933;
+}
+
+/* --- Fil de discussion (ticket #112) : la réponse de l'entreprise suit immédiatement le
+   commentaire auquel elle répond, légèrement décalée vers la droite, pour se lire comme
+   une vraie réponse dans le fil plutôt que comme un commentaire isolé. --- */
+.jc-social-comment--reply {
+    margin-left: 1.6rem;
+}
+
+.jc-social-comment--company {
+    background: var(--jc-blue-bg);
+}
+
+@media (max-width: 420px) {
+    .jc-social-comment--reply { margin-left: 0.8rem; }
+}
+
+.jc-social-reply-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: var(--jc-blue);
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    margin-left: 0.4rem;
+    font-weight: 700;
+}
+
+/* --- Affiche illustrée (ticket #108 § 3-4, recomposée ticket #110) : UNE seule
+   composition — slogan, sous-titre, identité d'émetteur et QR code sont superposés en
+   HTML/SVG directement sur l'illustration (générée une fois, ou rendu de secours en CSS
+   pur), jamais des blocs séparés en dessous. Dimensionnée en unités `cqw` (container
+   query) : le texte reste proportionné du téléphone à l'agrandissement au clic, sans
+   recalcul JS. Largeur maximale ~440px, centrée, proportions d'image toujours préservées
+   (`width:100%; height:auto`, jamais de recadrage ni d'étirement). --- */
+
+.jc-poster-wrap {
+    max-width: 440px;
+    margin: 0 auto 1.25rem;
+}
+
+.jc-poster {
+    margin: 0;
+}
+
+.jc-poster-visual {
+    position: relative;
+    container-type: inline-size;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18);
+    cursor: zoom-in;
+    background: #f4f1ec;
+}
+
+.jc-poster-image,
+.jc-poster-fallback-visual {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.jc-poster-fallback-visual {
+    aspect-ratio: 2 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.jc-poster-fallback-visual svg {
+    max-width: 45%;
+    height: auto;
+}
+
+.jc-poster-slogan-zone {
+    position: absolute;
+    top: 4%;
+    left: 6%;
+    right: 6%;
+    text-align: center;
+}
+
+.jc-poster-slogan {
+    margin: 0;
+    font-weight: 800;
+    font-size: 6.6cqw;
+    line-height: 1.18;
+    letter-spacing: 0.01em;
+    color: var(--jc-red);
+}
+
+.jc-poster-subtitle {
+    margin: 0.35em 0 0;
+    font-size: 3.6cqw;
+    font-weight: 600;
+    color: #3a2020;
+}
+
+.jc-poster-badge {
+    position: absolute;
+    right: 4%;
+    bottom: 3%;
+    width: 19%;
+    text-align: center;
+}
+
+.jc-poster-badge-circle {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.jc-poster-badge-circle svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.jc-poster-badge-label {
+    display: block;
+    margin-top: 0.25em;
+    font-size: 1.9cqw;
+    line-height: 1.15;
+    color: #2b3440;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 4px;
+    padding: 0.1em 0.15em;
+}
+
+.jc-poster-qr {
+    position: absolute;
+    left: 4%;
+    bottom: 3%;
+    width: 19%;
+}
+
+.jc-poster-qr-box {
+    background: #fff;
+    border-radius: 6px;
+    padding: 8%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.jc-poster-qr-box svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.jc-poster-caption {
+    text-align: center;
+    font-size: 0.78rem;
+    color: #55606b;
+    margin: 0.5rem 0 0;
+}
+
+.jc-poster-caption a {
+    color: var(--jc-blue);
+}
+
+@media print {
+    .jc-poster-wrap { max-width: 340px; break-inside: avoid; }
+    .jc-poster-visual { cursor: default; box-shadow: none; border: 1px solid #d7dce1; }
+}
+
+/* --- Schéma de communication responsive (ticket #108 § 5) : deux rendus SVG distincts
+   (desktop large / mobile en colonne), permutés par média-requête plutôt que redimensionnés
+   — un simple scale-down du schéma large rendrait le texte illisible sur téléphone. --- */
+
+.jc-diagram--mobile { display: none; }
+
+@media (max-width: 576px) {
+    .jc-diagram--desktop { display: none; }
+    .jc-diagram--mobile { display: block; }
+}
+
+@media print {
+    .jc-diagram--mobile { display: none !important; }
+    .jc-diagram--desktop { display: block !important; }
+}
+
+/* --- Agrandissement au clic (ticket #110) : générique, réutilisable par tout visuel
+   marqué `.jc-zoomable` (voir enableZoomableImages() dans design_system.js) — pas
+   seulement l'affiche. Le même élément passe en position fixe et s'agrandit, plutôt que
+   d'ouvrir un fichier image séparé : la composition complète (texte inclus) reste visible
+   en grand, pas seulement l'illustration brute. --- */
+
+.jc-zoomable--active {
+    position: fixed !important;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    width: min(94vw, 620px) !important;
+    max-width: none !important;
+    cursor: zoom-out;
+}
+
+.jc-zoom-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    z-index: 1000;
+}
+
+body.jc-zoom-open {
+    overflow: hidden;
+}
+
+@media print {
+    .jc-zoomable--active { position: static !important; width: auto !important; }
+    .jc-zoom-backdrop { display: none !important; }
+}
+
+/* --- Espacement entre exemples commentés (ticket #112) : classe dédiée plutôt qu'une
+   règle générique `.content-markdown h3`, pour ne pas changer le rendu des autres cours
+   tant qu'elle n'y a pas été appliquée volontairement (voir docs/components/ExampleTitle.md
+   — composant réutilisable, pas encore étendu au-delà de FSE01). --- */
+
+.jc-example-title {
+    margin: 2rem 0 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1f2933;
+}
+
+.jc-example-title:first-child {
+    margin-top: 0;
+}
+
+@media print {
+    .jc-example-title { break-after: avoid; }
+}
+
+/* --- Titre "Décryptons ce document" avant chaque analyse (ticket #112) : sépare
+   visuellement le document de son explication. Réutilisable, pas encore étendu au-delà de
+   FSE01 — voir docs/components/DecryptTitle.md. --- */
+
+.jc-decrypt-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 1.5rem 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--jc-blue);
+}
+
+@media print {
+    .jc-decrypt-title { break-after: avoid; }
+}
+
+/* --- Exercices guidés : une carte par exercice (ticket #112) — remplace l'ancien rendu en
+   bloc de texte brut. Réutilisable, pas encore étendu au-delà de FSE01 — voir
+   docs/components/ExerciseStepCard.md. La consigne reste toujours visible ; seul le
+   corrigé est replié (natif <details>/<summary>, ouvert/fermé au clavier comme au clic). */
+
+.jc-exercise-card {
+    border: 1px solid #e3e6ea;
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    margin: 0 0 1.5rem;
+    background: #fff;
+}
+
+.jc-exercise-card:last-child {
+    margin-bottom: 0;
+}
+
+.jc-exercise-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.75rem;
+}
+
+.jc-exercise-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--jc-orange);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.jc-exercise-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f2933;
+}
+
+.jc-exercise-instructions {
+    font-size: 0.95rem;
+}
+
+.jc-exercise-instructions ol,
+.jc-exercise-instructions ul {
+    margin: 0.5rem 0 0.5rem 1.2rem;
+    padding: 0;
+}
+
+.jc-exercise-instructions li {
+    margin-bottom: 0.3rem;
+}
+
+.jc-exercise-doclink {
+    margin: 0.65rem 0 0;
+}
+
+.jc-exercise-doclink a {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--jc-blue);
+    text-decoration: none;
+}
+
+.jc-exercise-doclink a:hover,
+.jc-exercise-doclink a:focus-visible {
+    text-decoration: underline;
+}
+
+.jc-exercise-correction {
+    margin-top: 0.9rem;
+}
+
+.jc-exercise-correction summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    background: var(--jc-orange-bg);
+    color: var(--jc-orange);
+    border: 1px solid var(--jc-orange);
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+
+.jc-exercise-correction summary::-webkit-details-marker {
+    display: none;
+}
+
+.jc-exercise-correction summary::after {
+    content: "▾";
+    margin-left: 0.15rem;
+    transition: transform 0.15s ease-out;
+}
+
+.jc-exercise-correction[open] summary::after {
+    transform: rotate(180deg);
+}
+
+.jc-exercise-correction summary:focus-visible {
+    outline: 2px solid var(--jc-orange);
+    outline-offset: 2px;
+}
+
+.jc-exercise-correction summary:hover {
+    background: var(--jc-orange);
+    color: #fff;
+}
+
+.jc-exercise-correction-body {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed #d7dce1;
+    font-size: 0.93rem;
+}
+
+.jc-exercise-correction-body table {
+    margin-top: 0.5rem;
+}
+
+.jc-exercise-section {
+    margin-bottom: 0.85rem;
+}
+
+.jc-exercise-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.jc-exercise-section-label {
+    display: inline-block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: var(--jc-orange);
+    background: var(--jc-orange-bg);
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    margin-bottom: 0.3rem;
+}
+
+.jc-exercise-section p {
+    margin: 0;
+}
+
+.jc-why-correct {
+    margin-top: 1rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--jc-green-bg);
+    border: 1px solid var(--jc-green);
+    border-radius: 8px;
+}
+
+.jc-why-correct-label {
+    display: block;
+    font-weight: 700;
+    color: var(--jc-green);
+    margin-bottom: 0.25rem;
+    font-size: 0.88rem;
+}
+
+.jc-why-correct p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+@media print {
+    .jc-exercise-card { break-inside: avoid; }
+    .jc-exercise-correction summary { border: 1px solid #000; color: #000; background: none; }
+}
+
+/* --- Pages de médias réalistes (ticket #115, FSE02) : s'appuient sur .jc-doc pour
+   l'habillage externe (en-tête, étiquette Fictif) — composants réutilisables, pas encore
+   appliqués au-delà de FSE02 pour cette étape. --- */
+
+.jc-webpage-masthead {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: #1f2933;
+    margin-bottom: 0.3rem;
+}
+
+.jc-webpage-masthead--free { color: var(--jc-orange); }
+.jc-webpage-masthead--public { color: var(--jc-blue); }
+
+.jc-webpage-masthead-tag {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #55606b;
+    letter-spacing: normal;
+}
+
+.jc-webpage-tagline {
+    font-size: 0.92rem;
+    color: #3a4552;
+    margin: 0 0 0.85rem;
+}
+
+.jc-pricing-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.65rem;
+    margin: 0 0 0.85rem;
+}
+
+.jc-pricing-card {
+    border: 1px solid #d7dce1;
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    text-align: center;
+    background: #fafbfc;
+}
+
+.jc-pricing-card-label {
+    display: block;
+    font-size: 0.78rem;
+    color: #55606b;
+    margin-bottom: 0.3rem;
+}
+
+.jc-pricing-card-price {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--jc-blue);
+}
+
+.jc-pricing-card-price small {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #55606b;
+}
+
+.jc-webpage-quote {
+    font-style: italic;
+    color: #3a4552;
+    border-left: 3px solid var(--jc-blue);
+    padding-left: 0.75rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.92rem;
+}
+
+.jc-webpage-note {
+    font-size: 0.88rem;
+    color: #55606b;
+    margin: 0 0 0.75rem;
+}
+
+.jc-reader-letters {
+    background: var(--jc-blue-bg);
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+}
+
+.jc-reader-letters-title {
+    display: block;
+    font-weight: 700;
+    color: var(--jc-blue);
+    margin-bottom: 0.25rem;
+    font-size: 0.88rem;
+}
+
+.jc-reader-letters p {
+    margin: 0;
+    font-size: 0.88rem;
+}
+
+.jc-ad-banner {
+    border-radius: 6px;
+    padding: 0.55rem 0.75rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.jc-ad-banner--a {
+    background: var(--jc-gold-bg);
+    color: #7a5c00;
+    border: 1px dashed var(--jc-gold);
+}
+
+.jc-ad-banner--b {
+    background: var(--jc-purple-bg);
+    color: var(--jc-purple);
+    border: 1px dashed var(--jc-purple);
+}
+
+.jc-webpage-headline {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2933;
+    margin: 0 0 0.75rem;
+}
+
+.jc-webpage-article-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: #55606b;
+    border-top: 1px solid #eef0f2;
+    padding-top: 0.6rem;
+}
+
+.jc-webpage-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+}
+
+.jc-webpage-feature-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.jc-webpage-feature p {
+    margin: 0.2rem 0 0;
+    font-size: 0.88rem;
+}
+
+@media print {
+    .jc-pricing-cards { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* --- Document source générique (ticket #115) : variante légère de .jc-doc pour un
+   document textuel simple (note, mémo, dossier...) qui ne justifie pas un composant
+   entièrement bespoke — texte réel, structure préservée (listes, paragraphes). --- */
+
+.jc-source-doc-caption {
+    font-size: 0.82rem;
+    font-style: italic;
+    color: #55606b;
+    margin: 0 0 0.75rem;
+}
+
+.jc-source-doc-body p,
+.jc-source-doc-body ul,
+.jc-source-doc-body ol {
+    font-size: 0.93rem;
+}
+
+.jc-source-doc-body ul,
+.jc-source-doc-body ol {
+    margin: 0 0 0.75rem 1.2rem;
+    padding: 0;
+}
+
+.jc-source-doc-body li {
+    margin-bottom: 0.3rem;
+}
+
+/* --- Couleurs génériques d'intervenant (ticket #115) : 5 teintes stables, réutilisables
+   par tout dialogue à plusieurs voix (groupe en ligne, chat de classe, réactions de
+   plusieurs parties). La même personne garde la même couleur partout dans un même
+   document — attribuer p1/p2/... par ordre d'apparition, jamais au hasard. --- */
+
+.jc-social-avatar--p1 { background: var(--jc-blue); }
+.jc-social-avatar--p2 { background: var(--jc-purple); }
+.jc-social-avatar--p3 { background: var(--jc-green); }
+.jc-social-avatar--p4 { background: var(--jc-orange); }
+.jc-social-avatar--p5 { background: var(--jc-gold); }
+
+/* --- Fil de discussion compact (ticket #115, ex. FSE07) : messages successifs avec
+   avatar coloré et horodatage, plus léger que EmailCard (pas d'en-tête de/à, juste
+   auteur + heure) — adapté à une conversation de groupe. --- */
+
+.jc-chat-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.jc-chat-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+}
+
+.jc-chat-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.jc-chat-author {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1f2933;
+}
+
+.jc-chat-time {
+    font-size: 0.75rem;
+    color: #55606b;
+}
+
+.jc-chat-text {
+    margin: 0.15rem 0 0;
+    font-size: 0.9rem;
+}
+
+/* --- Carte de citation/réaction (ticket #115, ex. FSE04 témoignage, FSE16 réactions) :
+   une voix identifiée, isolée, pas un fil de discussion. --- */
+
+.jc-quote-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.65rem;
+}
+
+.jc-quote-card:last-child { margin-bottom: 0; }
+
+.jc-quote-author {
+    display: block;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1f2933;
+    margin-bottom: 0.2rem;
+}
+
+.jc-quote-text {
+    margin: 0;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+@media print {
+    .jc-chat-message, .jc-quote-card { break-inside: avoid; }
+}
+
+/* --- Carte de profil professionnel (ticket #118, FSE03) : portrait + nom + fonction,
+   dimensions raisonnables — le portrait accompagne le contenu, ne domine jamais la carte.
+   S'appuie sur .jc-doc pour l'habillage externe. --- */
+
+.jc-profile-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.65rem;
+}
+
+.jc-profile-portrait {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.jc-profile-name {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1f2933;
+}
+
+.jc-profile-function {
+    margin: 0.15rem 0 0;
+    font-size: 0.85rem;
+    color: #55606b;
+}
+
+.jc-profile-summary {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* --- Illustration de scène dans un document (ticket #118, ex. publication d'anniversaire)
+   : taille raisonnable, jamais plein cadre — le visuel accompagne le texte. --- */
+
+.jc-doc-scene-image {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    border-radius: 8px;
+    margin: 0 auto 0.65rem;
+}
+
+.jc-doc-tag {
+    display: inline-block;
+    font-size: 0.78rem;
+    background: var(--jc-gray-bg);
+    color: #55606b;
+    border-radius: 999px;
+    padding: 0.1rem 0.55rem;
+}
+
+/* --- Cartes de groupe d'appartenance (ticket #118, FSE03) : icône + nom, neutre, ne
+   révèle aucune classification pédagogique (volontaire/involontaire) sur le document
+   lui-même. --- */
+
+.jc-group-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.65rem;
+}
+
+.jc-group-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.4rem;
+    border: 1px solid #d7dce1;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: #fafbfc;
+}
+
+.jc-group-icon {
+    font-size: 1.6rem;
+}
+
+.jc-group-name {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1f2933;
+}
+
+@media print {
+    .jc-doc-scene-image { max-width: 220px; }
+}
+
+/* --- Texte suivi d'une explication théorique (tickets #120 → #148).
+
+   Ticket #148 — cause du « petit bloc de prose dans une carte géante » : `.jc-prose`
+   portait sa propre largeur maximale (70ch, ~710 px) alors que sa carte en mesure ~1060 px
+   sur ordinateur ; le reste de la carte restait vide à droite (FSE02, FSE05-16). La
+   largeur de lecture n'est plus portée par le texte mais par la composition qui le
+   contient :
+   - dans une cellule (`.jc-theory-layout`, `.jc-theory-split`, cartes), la prose prend la
+     largeur de sa cellule ;
+   - une carte purement textuelle se rétrécit elle-même, titre compris
+     (`.jc-card--reading`, voir plus bas) : contenant, titre et texte restent alignés.
+   Plus aucune marge automatique ni plafond propre au paragraphe. --- */
+
+.jc-prose {
+    max-width: none;
+}
+
+.jc-prose > :last-child {
+    margin-bottom: 0;
+}
+
+/* --- Théorie + mots clés (ticket #148, FSE05-FSE16 et FSE02) : l'explication occupe la
+   colonne principale, les définitions forment une colonne « Les mots clés » à droite —
+   au lieu d'une prose étroite suivie d'une grille pleine largeur. Empilé sous 992 px et à
+   l'impression (explication puis mots clés). --- */
+
+.jc-theory-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(250px, 1fr);
+    gap: 1.75rem;
+    align-items: start;
+}
+
+.jc-theory-layout + * {
+    margin-top: 1.5rem;
+}
+
+.jc-theory-layout-main > :first-child {
+    margin-top: 0;
+}
+
+.jc-theory-layout-main > :last-child,
+.jc-theory-layout-main .jc-prose > :last-child {
+    margin-bottom: 0;
+}
+
+.jc-theory-layout-aside {
+    border-left: 3px solid var(--jc-blue);
+    padding-left: 1rem;
+}
+
+.jc-theory-layout-aside-label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--jc-blue);
+    margin-bottom: 0.6rem;
+}
+
+.jc-theory-layout-aside .jc-definitions {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    margin: 0;
+}
+
+.jc-theory-layout-aside .jc-definition {
+    padding: 0.6rem 0.85rem;
+}
+
+.jc-theory-layout--wide-aside {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.jc-theory-layout--wide-aside .jc-theory-layout-aside .jc-definitions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 991.98px) {
+    .jc-theory-layout {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    .jc-theory-layout-aside .jc-definitions,
+    .jc-theory-layout--wide-aside .jc-theory-layout-aside .jc-definitions {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}
+
+@media print {
+    .jc-theory-layout { display: block; }
+    .jc-theory-layout-aside { margin-top: 1rem; }
+}
+
+/* --- Groupes pédagogiques d'une théorie composée (ticket #148, FSE02) : un intertitre
+   par groupe, des cartes de financement côte à côte. --- */
+
+.jc-theory-group-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f2933;
+    margin: 2rem 0 0.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e3e6ea;
+}
+
+.jc-card-body > .jc-theory-group-title:first-child,
+.content-markdown > .jc-theory-group-title:first-child {
+    margin-top: 0.25rem;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.jc-definitions.jc-fund-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 1rem 0 0;
+}
+
+.jc-fund-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.jc-fund-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+}
+
+.jc-fund-card .jc-definition-term small {
+    font-weight: 600;
+    font-size: 0.78em;
+}
+
+.jc-fund-card p {
+    margin: 0 0 0.45rem;
+}
+
+.jc-fund-card > :last-child {
+    margin-bottom: 0;
+}
+
+.jc-fund-payer {
+    padding-top: 0.45rem;
+    border-top: 1px dashed rgba(21, 101, 192, 0.35);
+    font-size: 0.9rem;
+}
+
+.jc-fund-detail {
+    font-size: 0.88rem;
+    color: #4a5561;
+}
+
+@media (max-width: 991.98px) {
+    .jc-definitions.jc-fund-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 576px) {
+    .jc-definitions.jc-fund-cards { grid-template-columns: 1fr; }
+}
+
+@media print {
+    .jc-fund-card { break-inside: avoid; }
+}
+
+/* --- Carte purement textuelle (ticket #148) : sans tableau, grille, schéma ni image, une
+   carte de texte seul (présentation, méthode, sources...) ne s'étire plus sur ~1060 px. La
+   carte entière — bandeau, titre et texte — prend une largeur de lecture confortable et
+   reste centrée dans la colonne du cours. Détection côté serveur
+   (`app.content.is_text_only_html`). --- */
+
+#jc-lesson .jc-card--reading {
+    max-width: 50rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media print {
+    #jc-lesson .jc-card--reading { max-width: none; }
+}
+
+/* --- Théorie à deux colonnes (ticket #124) : explication à gauche, exemple ou repère
+   pédagogique à droite — pour une section dont le contenu s'y prête réellement (jamais une
+   simple carte généralisée partout : un bloc purement textuel reste un `.jc-prose` centré
+   ci-dessus). La colonne de texte n'a pas de largeur maximale propre : c'est la grille qui
+   la limite, pas `.jc-prose`, conformément à « la limite de largeur doit être adaptée au
+   composant, plutôt qu'appliquée uniformément ». --- */
+
+.jc-theory-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.9fr);
+    gap: 1.5rem;
+    align-items: start;
+    margin: 1.25rem 0;
+}
+
+.jc-theory-split-main-title {
+    display: block;
+    font-weight: 700;
+    color: #1f2933;
+    margin-bottom: 0.4rem;
+}
+
+.jc-theory-split-main p {
+    margin: 0 0 0.85rem;
+}
+
+.jc-theory-split-main > :last-child {
+    margin-bottom: 0;
+}
+
+.jc-theory-split-aside {
+    background: var(--jc-blue-bg);
+    border: 1px solid var(--jc-blue);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+}
+
+.jc-theory-split-aside-label {
+    display: block;
+    font-weight: 700;
+    color: var(--jc-blue);
+    margin-bottom: 0.35rem;
+    font-size: 0.88rem;
+}
+
+.jc-theory-split-aside p {
+    margin: 0;
+    font-size: 0.93rem;
+}
+
+.jc-theory-split-aside p + p {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .jc-theory-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    .jc-theory-split { break-inside: avoid; }
+}
+
+/* --- Deux blocs pédagogiques courts, côte à côte, largeur égale (ticket #126) : icône +
+   titre + paragraphes courts, fond discret (`var(--jc-gray-bg)`), SANS bordure propre —
+   remplace une colonne de prose isolée quand le contenu se décompose naturellement en
+   deux idées de même poids (ex. FSE04 « Une tension peut créer de la frustration » / « Le
+   groupe influence, chacun peut réagir »), plutôt qu'une comparaison stricte
+   (`.jc-compare`, qui oppose deux notions) ou une paire explication/exemple asymétrique
+   (`.jc-theory-split`). Deux colonnes fixes (`repeat(2, 1fr)`) + media query explicite
+   pour l'empilement mobile, pas `repeat(auto-fit, minmax(...))` : voir la note sur
+   `.jc-compare--three` ci-dessous, cette technique ne s'est pas comportée de façon fiable
+   avec l'outil de prévisualisation locale utilisé pour ce projet. --- */
+
+.jc-theory-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 1.25rem 0;
+}
+
+/* Variante à trois cartes (ticket #126, ex. FSE03 : partielle/ancienne/hors contexte) —
+   même technique à colonnes fixes que `.jc-compare--three`. */
+.jc-theory-cards--three {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+    .jc-theory-cards--three { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 576px) {
+    .jc-theory-cards { grid-template-columns: 1fr; }
+}
+
+.jc-theory-card {
+    background: var(--jc-gray-bg);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+}
+
+.jc-theory-card-icon {
+    display: block;
+    font-size: 1.3rem;
+    margin-bottom: 0.3rem;
+}
+
+.jc-theory-card-title {
+    display: block;
+    font-weight: 700;
+    color: #1f2933;
+    margin-bottom: 0.4rem;
+}
+
+.jc-theory-card p {
+    margin: 0 0 0.5rem;
+    font-size: 0.93rem;
+}
+
+.jc-theory-card > :last-child {
+    margin-bottom: 0;
+}
+
+@media print {
+    .jc-theory-cards { break-inside: avoid; }
+    .jc-theory-card { break-inside: avoid; }
+}
+
+/* --- Comparaison à trois éléments (ticket #124, ex. valeur/norme/comportement) : nombre
+   de colonnes fixe (`repeat(3, 1fr)`) + media query explicite pour l'empilement mobile —
+   même technique, vérifiée, que `.jc-compare`/`.jc-theory-split`.
+
+   `repeat(auto-fit, minmax(...))` essayé d'abord (ticket #124) puis abandonné au ticket
+   #126 : collapse systématiquement sur 1 colonne, quelle que soit la largeur disponible,
+   avec l'outil de prévisualisation locale utilisé pour ce projet (WeasyPrint) — reproduit
+   en isolation (conteneur de 700px, deux éléments de 240px chacun) avant d'écrire ce
+   correctif. Un navigateur réel gère normalement ce calcul correctement, mais faute de
+   pouvoir le vérifier dans cet environnement, la technique explicite et déjà éprouvée est
+   préférée ici. --- */
+
+.jc-compare--three {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+    .jc-compare--three { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 576px) {
+    .jc-compare--three { grid-template-columns: 1fr; }
+}
+
+.jc-compare-item--c {
+    background: var(--jc-purple-bg);
+    border-color: var(--jc-purple);
+}
+
+.jc-compare-item--c .jc-compare-label {
+    color: var(--jc-purple);
+}
+
+/* --- Phrase "À retenir" en fin de section théorique (ticket #120) : même couleur que la
+   Fiche mémo (icône 📌, var(--jc-gold)) — une seule phrase courte, jamais un résumé complet
+   (qui reste le rôle de SummaryCard/Fiche mémo). --- */
+
+.jc-takeaway {
+    margin: 1rem 0;
+    padding: 0.7rem 0.9rem;
+    background: var(--jc-gold-bg);
+    border: 1px solid var(--jc-gold);
+    border-radius: 8px;
+}
+
+.jc-takeaway-label {
+    display: block;
+    font-weight: 700;
+    color: var(--jc-gold);
+    margin-bottom: 0.25rem;
+    font-size: 0.88rem;
+}
+
+.jc-takeaway p {
+    margin: 0;
+}
+
+@media print {
+    .jc-takeaway { break-inside: avoid; }
+}
+
+/* --- Lexique repliable (ticket #120) : évite de répéter une liste de définitions qui dit
+   exactement la même chose que les explications déjà visibles au-dessus. Fermé à l'écran
+   par défaut ; rendu disponible à l'impression même fermé, car il reste une matière utile
+   hors ligne (contrairement aux corrigés d'exercice, qui restent volontairement masqués à
+   l'impression). --- */
+
+details.jc-glossary {
+    margin: 1.25rem 0;
+    border: 1px solid #e3e6ea;
+    border-radius: 8px;
+    padding: 0.2rem 1rem;
+}
+
+details.jc-glossary > summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.65rem 0;
+    list-style: none;
+}
+
+details.jc-glossary > summary::-webkit-details-marker {
+    display: none;
+}
+
+details.jc-glossary > .jc-definitions {
+    margin-top: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+@media print {
+    details.jc-glossary:not([open]) > *:not(summary) {
+        display: block !important;
+    }
+}
+
+/* =========================================================================================
+   Documents sources composés (ticket #149) — `_document_layouts.html`.
+   Un cadre commun (.jc-sd : étiquette, titre, « Ouvrir en grand », mention discrète) et un
+   composant par nature de document. Lecture naturelle de la page : jamais d'ascenseur
+   interne ni de texte coupé ; empilement sur téléphone ; impression sans les commandes.
+   ========================================================================================= */
+:root {
+    --jc-sd-p1: #1565c0;
+    --jc-sd-p2: #6f42c1;
+    --jc-sd-p3: #1e7e45;
+    --jc-sd-p4: #bf5b13;
+    --jc-sd-p5: #55606b;
+    --jc-sd-p6: #a61e4d;
+    --jc-sd-company: #0b5f73;
+    --jc-sd-line: #e3e7ec;
+    --jc-sd-ink: #1f2933;
+    --jc-sd-muted: #5f6b76;
+}
+
+.jc-sd-stack { display: flex; flex-direction: column; gap: 1rem; }
+
+.jc-sd {
+    background: #fff;
+    border: 1px solid var(--jc-sd-line);
+    border-radius: 0.9rem;
+    box-shadow: 0 1px 3px rgba(31, 41, 51, 0.06);
+    padding: 1rem 1.1rem 0.85rem;
+    color: var(--jc-sd-ink);
+}
+.jc-sd-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.85rem;
+}
+.jc-sd-label {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--jc-blue);
+    background: var(--jc-blue-bg);
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    margin-bottom: 0.3rem;
+}
+.jc-sd-title { font-size: 1.12rem; font-weight: 700; margin: 0; line-height: 1.35; }
+.jc-sd-open {
+    font-size: 0.85rem;
+    color: var(--jc-sd-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    border: 1px solid var(--jc-sd-line);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+}
+.jc-sd-open:hover, .jc-sd-open:focus-visible { color: var(--jc-sd-ink); border-color: #b8c1cb; }
+.jc-sd-body { font-size: 0.98rem; line-height: 1.6; }
+.jc-sd-body p:last-child { margin-bottom: 0; }
+.jc-sd-notice {
+    margin: 0.85rem 0 0;
+    font-size: 0.8rem;
+    color: var(--jc-sd-muted);
+    font-style: italic;
+}
+.jc-sd-muted { color: var(--jc-sd-muted); font-size: 0.85rem; display: block; }
+.jc-sd-heading { font-weight: 700; font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--jc-sd-muted); margin-bottom: 0.5rem; }
+.jc-sd-intro { color: var(--jc-sd-muted); font-size: 0.9rem; }
+.jc-sd-note { background: #f6f8fa; border-radius: 0.5rem; padding: 0.6rem 0.8rem; font-size: 0.9rem; margin-top: 0.75rem; }
+.jc-sd-prose { max-width: 46rem; }
+.jc-sd-prose { white-space: pre-line; }
+
+/* Couleurs d'identité (avatars, bordures) — même personne = même couleur partout. */
+.jc-sd-avatar {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    background: var(--jc-sd-p1);
+}
+.jc-sd-avatar--sm { width: 2rem; height: 2rem; font-size: 0.8rem; }
+.jc-sd-avatar--anon { background: #c9d0d8; color: #3d4852; }
+.jc-sd-tone-p1 { background: var(--jc-sd-p1); }
+.jc-sd-tone-p2 { background: var(--jc-sd-p2); }
+.jc-sd-tone-p3 { background: var(--jc-sd-p3); }
+.jc-sd-tone-p4 { background: var(--jc-sd-p4); }
+.jc-sd-tone-p5 { background: var(--jc-sd-p5); }
+.jc-sd-tone-p6 { background: var(--jc-sd-p6); }
+.jc-sd-tone-company { background: var(--jc-sd-company); }
+.jc-sd-border-p1 { border-left-color: var(--jc-sd-p1) !important; }
+.jc-sd-border-p2 { border-left-color: var(--jc-sd-p2) !important; }
+.jc-sd-border-p3 { border-left-color: var(--jc-sd-p3) !important; }
+.jc-sd-border-p4 { border-left-color: var(--jc-sd-p4) !important; }
+.jc-sd-border-p5 { border-left-color: var(--jc-sd-p5) !important; }
+.jc-sd-border-p6 { border-left-color: var(--jc-sd-p6) !important; }
+.jc-sd-text-p1 { color: var(--jc-sd-p1); }
+.jc-sd-text-p2 { color: var(--jc-sd-p2); }
+.jc-sd-text-p3 { color: var(--jc-sd-p3); }
+.jc-sd-text-p4 { color: var(--jc-sd-p4); }
+.jc-sd-text-p5 { color: var(--jc-sd-p5); }
+.jc-sd-text-p6 { color: var(--jc-sd-p6); }
+
+/* Mail */
+.jc-sd-mail { display: flex; flex-direction: column; gap: 0.9rem; }
+.jc-sd-mail-msg { border: 1px solid var(--jc-sd-line); border-radius: 0.7rem; padding: 0.9rem 1rem; max-width: 46rem; }
+.jc-sd-mail-msg + .jc-sd-mail-msg { margin-left: 1.25rem; background: #fbfcfd; }
+.jc-sd-mail-head { display: flex; gap: 0.7rem; align-items: flex-start; }
+.jc-sd-mail-meta { flex: 1 1 auto; min-width: 0; font-size: 0.92rem; overflow-wrap: anywhere; }
+.jc-sd-mail-addr, .jc-sd-mail-to, .jc-sd-mail-date { color: var(--jc-sd-muted); font-size: 0.85rem; }
+.jc-sd-mail-date { white-space: nowrap; }
+.jc-sd-mail-subject { font-weight: 700; margin: 0.7rem 0 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--jc-sd-line); }
+.jc-sd-mail-subject span { color: var(--jc-sd-muted); font-weight: 500; }
+.jc-sd-mail-signature { color: var(--jc-sd-muted); }
+.jc-sd-context { margin-top: 0.75rem; background: #fff7e6; border-left: 4px solid var(--jc-orange); border-radius: 0.4rem; padding: 0.55rem 0.75rem; font-size: 0.9rem; }
+
+/* Affiche (composition du cours) + légende descriptive */
+.jc-sd-poster { max-width: 34rem; margin: 0 auto; }
+.jc-sd-legend { margin-top: 0.9rem; background: #f6f8fa; border-radius: 0.6rem; padding: 0.75rem 0.9rem; font-size: 0.92rem; }
+.jc-sd-legend-title { font-weight: 600; margin-bottom: 0.5rem; }
+.jc-sd-legend dl { display: grid; grid-template-columns: minmax(7rem, max-content) 1fr; gap: 0.3rem 0.8rem; margin: 0; }
+.jc-sd-legend dt { font-weight: 600; color: var(--jc-sd-muted); }
+.jc-sd-legend dd { margin: 0; }
+
+/* Publication de réseau social / groupe */
+.jc-sd-social { max-width: 40rem; }
+.jc-sd-social-group, .jc-sd-chat-head { display: flex; gap: 0.7rem; align-items: center; padding: 0.6rem 0.8rem; background: #f1f4f8; border-radius: 0.7rem 0.7rem 0 0; border: 1px solid var(--jc-sd-line); border-bottom: 0; }
+.jc-sd-social-group-icon { display: inline-flex; align-items: center; justify-content: center; width: 2.3rem; height: 2.3rem; border-radius: 0.6rem; background: var(--jc-sd-company); color: #fff; }
+.jc-sd-social-network { font-size: 0.82rem; color: var(--jc-sd-muted); margin-bottom: 0.4rem; }
+.jc-sd-post { border: 1px solid var(--jc-sd-line); border-radius: 0 0 0.7rem 0.7rem; padding: 0.9rem 1rem; }
+.jc-sd-social-network + .jc-sd-post { border-radius: 0.7rem; }
+.jc-sd-post-head { display: flex; gap: 0.7rem; align-items: center; margin-bottom: 0.6rem; }
+.jc-sd-post-text { font-size: 1.02rem; }
+.jc-sd-attachment { margin: 0.6rem 0; border: 1px dashed #b8c1cb; border-radius: 0.6rem; overflow: hidden; }
+.jc-sd-attachment-frame { display: flex; align-items: center; justify-content: center; height: 5.5rem; background: repeating-linear-gradient(135deg, #eef1f5, #eef1f5 10px, #e6eaf0 10px, #e6eaf0 20px); color: #7b8794; font-size: 2rem; }
+.jc-sd-attachment figcaption { padding: 0.5rem 0.75rem; font-size: 0.88rem; }
+.jc-sd-post-stats { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; color: var(--jc-sd-muted); font-size: 0.88rem; border-top: 1px solid var(--jc-sd-line); padding-top: 0.5rem; margin-top: 0.5rem; }
+.jc-sd-comments-title { font-size: 0.82rem; color: var(--jc-sd-muted); margin: 0.8rem 0 0.4rem; }
+.jc-sd-comments { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.jc-sd-comment { display: flex; gap: 0.55rem; align-items: flex-start; }
+.jc-sd-comment--reply { margin-left: 2.5rem; }
+.jc-sd-comment-bubble { background: #f1f4f8; border-radius: 0.9rem; padding: 0.45rem 0.8rem; min-width: 0; }
+.jc-sd-comment-bubble p { margin: 0.1rem 0 0; }
+.jc-sd-comment-badge { font-size: 0.78rem; color: var(--jc-sd-muted); }
+
+/* Page web de média */
+.jc-sd-web { border: 1px solid #cfd6de; border-radius: 0.7rem; overflow: hidden; max-width: 46rem; }
+.jc-sd-web-bar { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.7rem; background: #eef1f5; border-bottom: 1px solid #cfd6de; font-size: 0.78rem; color: var(--jc-sd-muted); }
+.jc-sd-web-dots { display: inline-flex; gap: 0.25rem; }
+.jc-sd-web-dots i { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #c3cbd4; display: inline-block; }
+.jc-sd-web-url { background: #fff; border-radius: 999px; padding: 0.05rem 0.7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jc-sd-web-masthead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.8rem; padding: 0.8rem 1rem; color: #fff; background: #23395d; }
+.jc-sd-web-masthead strong { font-family: Georgia, "Times New Roman", serif; font-size: 1.35rem; letter-spacing: 0.02em; }
+.jc-sd-web--free .jc-sd-web-masthead { background: #b02a37; }
+.jc-sd-web--free .jc-sd-web-masthead strong { font-family: inherit; font-weight: 900; }
+.jc-sd-web--public .jc-sd-web-masthead { background: #1e7e45; }
+.jc-sd-web-content { padding: 0.9rem 1rem; }
+.jc-sd-web-lead { font-size: 1.05rem; }
+.jc-sd-web-section { font-weight: 700; margin: 0.6rem 0 0.4rem; }
+.jc-sd-offers { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.6rem; margin-bottom: 0.8rem; }
+.jc-sd-offer { border: 1px solid var(--jc-sd-line); border-radius: 0.6rem; padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; }
+.jc-sd-offer strong { font-size: 1.15rem; color: #23395d; }
+.jc-sd-web-quote { border-left: 4px solid #23395d; padding: 0.3rem 0.9rem; font-style: italic; margin: 0.6rem 0 0.8rem; }
+.jc-sd-ad { position: relative; border: 2px dashed #e0a800; background: #fff8e1; border-radius: 0.5rem; padding: 0.7rem 0.8rem 0.6rem; margin: 0.6rem 0; text-align: center; font-weight: 600; }
+.jc-sd-ad-tag { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8a6d00; margin-bottom: 0.2rem; }
+.jc-sd-headline span { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.06em; color: #b02a37; }
+.jc-sd-headline p { font-size: 1.2rem; font-weight: 800; line-height: 1.3; margin: 0.1rem 0 0.6rem; }
+.jc-sd-feature { display: flex; gap: 0.7rem; align-items: flex-start; margin: 0.6rem 0; }
+.jc-sd-feature i { font-size: 1.3rem; color: #1e7e45; margin-top: 0.1rem; }
+
+/* Éléments retrouvés (fiches avec vignette) */
+.jc-sd-findings { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.jc-sd-finding { display: grid; grid-template-columns: auto auto 1fr; gap: 0.75rem; align-items: center; border: 1px solid var(--jc-sd-line); border-radius: 0.7rem; padding: 0.6rem 0.8rem; }
+.jc-sd-finding p { margin: 0; }
+.jc-sd-finding-num { font-weight: 800; color: var(--jc-blue); min-width: 1.2rem; text-align: center; }
+.jc-sd-finding-media { width: 4rem; height: 4rem; border-radius: 0.5rem; overflow: hidden; background: #eef1f5; display: inline-flex; align-items: center; justify-content: center; cursor: zoom-in; }
+.jc-sd-finding-media img { width: 100%; height: 100%; object-fit: cover; }
+.jc-sd-finding-media--icon { cursor: default; font-size: 1.6rem; color: var(--jc-sd-muted); }
+
+/* Papier à en-tête (note, proposition, document daté) */
+.jc-sd-paper { max-width: 44rem; margin: 0 auto; background: #fffefb; border: 1px solid #e7e2d6; border-radius: 0.3rem; box-shadow: 0 2px 6px rgba(31, 41, 51, 0.08); padding: 1.2rem 1.5rem 1.3rem; font-family: Georgia, "Times New Roman", serif; }
+.jc-sd-letterhead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.3rem 1rem; border-bottom: 2px solid #23395d; padding-bottom: 0.45rem; margin-bottom: 0.8rem; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.jc-sd-letterhead-org { font-weight: 800; color: #23395d; letter-spacing: 0.02em; }
+.jc-sd-letterhead-type { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--jc-sd-muted); }
+.jc-sd-paper-meta { display: grid; grid-template-columns: max-content 1fr; gap: 0.15rem 0.8rem; font-size: 0.9rem; margin-bottom: 0.9rem; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.jc-sd-paper-meta dt { color: var(--jc-sd-muted); font-weight: 600; }
+.jc-sd-paper-meta dd { margin: 0; }
+.jc-sd-points { padding-left: 1.3rem; }
+.jc-sd-points li { margin-bottom: 0.5rem; }
+
+/* Forum */
+.jc-sd-forum { border: 1px solid #cfd6de; border-radius: 0.7rem; overflow: hidden; max-width: 46rem; }
+.jc-sd-forum-bar { background: #34495e; color: #fff; padding: 0.45rem 0.9rem; font-size: 0.85rem; font-weight: 600; }
+.jc-sd-forum-topic { font-weight: 800; font-size: 1.1rem; padding: 0.7rem 1rem; margin: 0; border-bottom: 1px solid var(--jc-sd-line); background: #f7f9fb; }
+.jc-sd-forum-post { display: grid; grid-template-columns: 11.5rem 1fr; }
+.jc-sd-forum-author { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.4rem; padding: 0.9rem 0.6rem; background: #f7f9fb; border-right: 1px solid var(--jc-sd-line); overflow-wrap: break-word; }
+.jc-sd-forum-body { padding: 0.9rem 1rem; }
+
+/* Conversation de groupe */
+.jc-sd-chat { max-width: 40rem; }
+.jc-sd-chat-head .jc-sd-social-group-icon { background: var(--jc-sd-p3); }
+.jc-sd-chat-thread { border: 1px solid var(--jc-sd-line); border-radius: 0 0 0.7rem 0.7rem; padding: 0.8rem; background: #f8fafc; display: flex; flex-direction: column; gap: 0.5rem; }
+.jc-sd-chat-day { text-align: center; margin: 0.2rem 0; font-size: 0.78rem; color: var(--jc-sd-muted); }
+.jc-sd-chat-day span { background: #e6eaf0; border-radius: 999px; padding: 0.1rem 0.6rem; }
+.jc-sd-chat-msg { display: flex; gap: 0.5rem; align-items: flex-start; }
+.jc-sd-chat-bubble { background: #fff; border: 1px solid var(--jc-sd-line); border-left: 4px solid; border-radius: 0.8rem; padding: 0.4rem 0.75rem; max-width: 34rem; }
+.jc-sd-chat-bubble p { margin: 0.1rem 0 0; }
+.jc-sd-chat-meta { display: flex; gap: 0.6rem; align-items: baseline; font-size: 0.85rem; }
+.jc-sd-chat-meta span { color: var(--jc-sd-muted); font-size: 0.78rem; }
+
+/* Témoignages */
+.jc-sd-quotes { display: grid; gap: 0.75rem; }
+.jc-sd-quotes--multi { max-width: 46rem; } /* citations longues : empilées, jamais en colonnes étroites */
+.jc-sd-quote { margin: 0; border: 1px solid var(--jc-sd-line); border-left: 5px solid; border-radius: 0.7rem; padding: 0.75rem 0.9rem; background: #fff; }
+.jc-sd-quote figcaption { display: flex; gap: 0.6rem; align-items: center; margin-bottom: 0.5rem; }
+.jc-sd-quote blockquote { margin: 0; font-size: 1rem; }
+
+/* Fiches numérotées (situations, scénarios, extraits, affirmations, propositions) */
+.jc-sd-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); gap: 0.7rem; }
+.jc-sd-cards--proposals { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+.jc-sd-card { border: 1px solid var(--jc-sd-line); border-left: 4px solid #9aa5b1; border-radius: 0.7rem; padding: 0.65rem 0.85rem; background: #fff; }
+.jc-sd-card-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
+.jc-sd-card-num { display: inline-flex; align-items: center; justify-content: center; min-width: 1.75rem; height: 1.75rem; padding: 0 0.35rem; border-radius: 0.45rem; background: #23395d; color: #fff; font-weight: 800; font-size: 0.85rem; }
+.jc-sd-card-label { font-weight: 700; font-size: 0.85rem; color: var(--jc-sd-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.jc-sd-card-title { font-weight: 700; margin-bottom: 0.25rem; }
+.jc-sd-card-text { margin: 0; }
+.jc-sd-source { font-size: 0.88rem; background: #f6f8fa; border-radius: 0.5rem; padding: 0.45rem 0.7rem; }
+.jc-sd-focus-title { font-weight: 700; color: var(--jc-blue); font-size: 0.9rem; margin-bottom: 0.5rem; }
+.jc-sd-more { margin-top: 0.75rem; }
+.jc-sd-more > summary, .jc-sd-details > summary { cursor: pointer; color: var(--jc-blue); font-weight: 600; font-size: 0.92rem; padding: 0.3rem 0; }
+.jc-sd-more[open] > summary { margin-bottom: 0.5rem; }
+.jc-sd-details { margin-bottom: 0.6rem; }
+.jc-sd-details[open] > summary { margin-bottom: 0.5rem; }
+
+/* Tableaux */
+.jc-sd-table { margin: 0; font-size: 0.93rem; }
+.jc-sd-table thead th { background: #23395d; color: #fff; font-weight: 600; border: 0; }
+.jc-sd-table tbody th { font-weight: 700; min-width: 9rem; }
+.jc-sd-table td, .jc-sd-table th { vertical-align: top; padding: 0.55rem 0.7rem; }
+.jc-sd-table tbody tr:nth-child(even) { background: #f7f9fb; }
+
+/* Budget */
+.jc-sd-budget { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 1rem; }
+.jc-sd-budget-table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+.jc-sd-budget-table caption { caption-side: top; color: var(--jc-sd-ink); padding: 0 0 0.4rem; }
+.jc-sd-budget-table caption span { color: var(--jc-sd-muted); font-size: 0.82rem; }
+.jc-sd-budget-table th { font-weight: 400; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--jc-sd-line); }
+.jc-sd-budget-table td { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--jc-sd-line); white-space: nowrap; }
+.jc-sd-budget-label { display: inline-block; font-weight: 700; color: var(--jc-sd-muted); font-size: 0.8rem; margin-right: 0.3rem; }
+
+/* Circuit économique et chaîne de flux */
+.jc-sd-agents { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 0.7rem; }
+.jc-sd-agent { border: 1px solid var(--jc-sd-line); border-left: 5px solid; border-radius: 0.7rem; padding: 0.65rem 0.85rem; }
+.jc-sd-agent p { margin: 0; }
+.jc-sd-agent-name { display: flex; align-items: center; gap: 0.5rem; font-weight: 800; margin-bottom: 0.35rem !important; }
+.jc-sd-flows { padding-left: 1.1rem; margin: 0; }
+.jc-sd-flows li { margin-bottom: 0.35rem; }
+.jc-sd-arrow { color: var(--jc-blue); font-weight: 800; padding: 0 0.2rem; }
+.jc-sd-case { background: #f6f8fa; border-radius: 0.6rem; padding: 0.7rem 0.9rem; max-width: 46rem; }
+.jc-sd-chain { margin-top: 0.9rem; }
+.jc-sd-chain-row { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.jc-sd-chain-node { display: inline-flex; align-items: center; gap: 0.45rem; border: 1px solid var(--jc-sd-line); border-left: 5px solid; border-radius: 0.6rem; padding: 0.45rem 0.7rem; font-weight: 700; background: #fff; }
+.jc-sd-chain-arrow { display: inline-flex; align-items: center; font-size: 0.85rem; color: var(--jc-sd-muted); }
+.jc-sd-chain-arrow span::after { content: " ⟶"; color: var(--jc-blue); font-weight: 800; font-size: 1.1rem; }
+.jc-sd-chain-branches { margin-top: 0.7rem; border-left: 3px dashed #b8c1cb; padding-left: 0.8rem; }
+.jc-sd-chain-branches ul { list-style: none; padding: 0; margin: 0; }
+.jc-sd-chain-branches li { margin-bottom: 0.25rem; }
+
+/* Bulletins de vote */
+.jc-sd-ballots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0.8rem; }
+.jc-sd-ballot { margin: 0; }
+.jc-sd-ballot-paper { position: relative; background: #fdfdf8; border: 1px solid #d8d4c4; border-radius: 0.3rem; padding: 0.6rem 2rem 0.6rem 0.7rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); margin-bottom: 0.5rem; }
+.jc-sd-ballot-head { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem !important; }
+.jc-sd-ballot-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
+.jc-sd-ballot-box { width: 0.95rem; height: 0.95rem; border: 1.5px solid #55606b; border-radius: 50%; flex: 0 0 auto; }
+.jc-sd-ballot-box--filled { background: #c1121f; border-color: #c1121f; }
+.jc-sd-ballot-line { flex: 1 1 auto; height: 0.45rem; border-radius: 0.2rem; background: #e3e1d6; }
+.jc-sd-ballot-scribble { position: absolute; right: 0.35rem; top: 0.6rem; bottom: 0.6rem; width: 1.1rem; background: repeating-linear-gradient(170deg, transparent 0 5px, #1565c0 5px 6.5px, transparent 6.5px 10px); opacity: 0.8; }
+.jc-sd-ballot figcaption { font-size: 0.9rem; }
+
+/* Zone question (ticket #149) */
+.jc-q-card { max-width: 52rem; margin-left: auto; margin-right: auto; }
+.jc-q-prompt { background: var(--jc-blue-bg); border-left: 5px solid var(--jc-blue); border-radius: 0.6rem; padding: 0.7rem 0.95rem; margin-bottom: 1.2rem; }
+.jc-q-prompt-label { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--jc-blue); margin-bottom: 0.2rem; }
+.jc-q-prompt p { font-size: 1.06rem; font-weight: 600; margin: 0; line-height: 1.5; }
+.jc-q-counter { font-size: 0.8rem; color: var(--jc-sd-muted); }
+.jc-q-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.6rem; }
+
+@media (max-width: 575.98px) {
+    .jc-sd { padding: 0.85rem 0.8rem 0.7rem; border-radius: 0.7rem; }
+    .jc-sd-mail-msg + .jc-sd-mail-msg { margin-left: 0; }
+    .jc-sd-mail-head { flex-wrap: wrap; }
+    .jc-sd-comment--reply { margin-left: 1.2rem; }
+    .jc-sd-forum-post { grid-template-columns: 1fr; }
+    .jc-sd-forum-author { flex-direction: row; text-align: left; border-right: 0; border-bottom: 1px solid var(--jc-sd-line); }
+    .jc-sd-finding { grid-template-columns: auto 1fr; }
+    .jc-sd-finding-num { display: none; }
+    .jc-sd-paper { padding: 0.9rem 0.9rem 1rem; }
+    .jc-sd-legend dl { grid-template-columns: 1fr; }
+    .jc-sd-chain-row { flex-direction: column; align-items: stretch; }
+    .jc-sd-chain-arrow { justify-content: center; }
+    .jc-sd-chain-arrow span::after { content: " ↓"; }
+    /* Tableaux empilés en fiches sur téléphone */
+    .jc-sd-table thead { display: none; }
+    .jc-sd-table tr { display: block; border: 1px solid var(--jc-sd-line); border-radius: 0.6rem; margin-bottom: 0.6rem; background: #fff !important; }
+    .jc-sd-table th, .jc-sd-table td { display: block; border: 0; }
+    .jc-sd-table td::before { content: attr(data-label); display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--jc-sd-muted); }
+}
+
+@media print {
+    .jc-sd { box-shadow: none; border-color: #999; break-inside: auto; }
+    .jc-sd-card, .jc-sd-quote, .jc-sd-mail-msg, .jc-sd-chat-msg, .jc-sd-ballot, .jc-sd-agent { break-inside: avoid; }
+    .jc-sd-open, .jc-sd-more > summary { display: none !important; }
 }

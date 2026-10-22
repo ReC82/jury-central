@@ -1,4 +1,53 @@
-# Ticket #65 — Bug de rendu Markdown : `>` interprété comme encadré ATTENTION
+# Ticket #65 — Bug rendu Markdown AMPCR : `> 2 To` transformé en encadré ATTENTION
+
+Ticket : [#65](https://github.com/ReC82/jury-central/issues/65)
+
+## Synthèse (mise à jour du 2026-10-22)
+
+- **État réel : Installé — à tester.**
+- **SHA installé :** `17ff0e843e9aa998cab5582c73db86a0192603af` (merge de la PR [#169](https://github.com/ReC82/jury-central/pull/169) sur `develop`).
+- **Lien direct pour tester :** https://jury-central.lodylands.com/uaa/ampcr-mc08 — cours « Partitionnement, GPT/MBR et formatage », section « 4. Procédure / méthode ».
+- **Procédure :** ouvrir la page, lire la phrase « (2) choisir GPT pour un usage moderne (UEFI, disque > 2 To), MBR seulement… » : elle doit être continue, dans un seul paragraphe, sans encadré « ⚠️ Attention » au milieu. Les vrais encadrés « Piège fréquent » des autres cours (ex. https://jury-central.lodylands.com/uaa/ampcr-mc01) doivent rester inchangés.
+- **Décisions demandées au propriétaire :** Aucune décision utilisateur nécessaire.
+- **Reste à faire :** rien pour ce ticket (validation visuelle par le propriétaire).
+
+## Session du 2026-10-22 — le correctif n'atteignait pas le site
+
+### Constat (réconciliation)
+
+Le correctif de contenu du 2026-09-19 (section plus bas, livré via la PR #87) était bien dans `develop`, mais **le site servait toujours l'ancien texte** : `seed()` ne modifie jamais un bloc de cours déjà présent (pour ne pas écraser une édition faite depuis l'admin). Vérifié en lecture seule : le bloc « Cours de révision express » de MC08 contenait encore la ligne commençant par `> 2 To)`, et la page `/uaa/ampcr-mc08` rendait un `<blockquote>` (donc l'encadré ATTENTION).
+
+La PR #89 (ouverte depuis le 2026-09-19, jamais fusionnée) visait ce problème mais remplaçait le bloc **entier** et mélangeait la correction MC04/SMART du ticket #83.
+
+### Changements (PR #169)
+
+- `app/seed.py` : nouvelle réparation ponctuelle `repair_mc08_greater_than_line`, appelée par `seed()`. Elle remplace **uniquement le fragment exact** d'avant correctif (4 lignes de la section « 4. Procédure / méthode » de MC08) par le fragment corrigé — mots identiques, seul le retour à la ligne est déplacé avant « disque ». Le reste du bloc n'est jamais touché ; un fragment déjà modifié depuis l'admin n'est pas trouvé, donc pas touché ; idempotent.
+- `tests/test_ticket65_markdown_greater_than.py` : 4 tests ajoutés (l'ancien fragment reproduit bien le `<blockquote>` ; le fragment corrigé est celui du cours actuel ; remplacement ciblé qui conserve le reste du bloc et un vrai encadré « Piège fréquent », idempotence ; autre UAA et texte modifié jamais touchés).
+
+### Installation et vérifications
+
+- Sauvegarde de la base avant installation (`jury_central-pre-ticket65-*.db`, hors dépôt), fast-forward `b47f61e` → `17ff0e8`, seed idempotent : « Corrigé (« > 2 To » MC08…) : 1 bloc(s) » ; second seed : 0 bloc (idempotence vérifiée sur le site).
+- Services `jury-central` et `jury-central-correction-worker` actifs, `/health` OK en local et en HTTPS.
+- `/uaa/ampcr-mc08` : HTTP 200, 0 `<blockquote>` (contre 1 avant), texte « disque &gt; 2 To), MBR seulement… » dans le paragraphe.
+- Compteurs utilisateurs / sessions / réponses identiques avant et après (18 / 71 / 584).
+- Tests : fichier du ticket 10/10 ; `ruff check` des fichiers touchés : OK ; suite complète : 1917 passed, 1 failed — `test_ticket55_urgent_ampcr_full.py::test_json_autosave_api_never_reveals_correctness`, **instable et préexistant** (échoue 2 fois sur 15 sur `develop` sans ce changement : la première question MC01 est tirée au hasard et une réponse texte envoyée à une question non textuelle renvoie 422).
+- Audit du contenu Informatique **réellement servi** (tous les blocs AMPCR de la base) : plus aucune ligne commençant par `>` au milieu d'un paragraphe. Les seules lignes `> nombre` restantes (MC01 « > 3,2 GHz », MC02 « > 16 lanes », « > 12V-2x6 ») font partie de vrais encadrés « Piège fréquent » où chaque ligne commence par `>` : rendu correct, rien à corriger. Aucune comparaison `< nombre` en début de ligne.
+- Non effectué : contrôle visuel dans un navigateur (validation par le propriétaire).
+
+### Choix techniques faits seul
+
+- Remplacement du **fragment** plutôt que du bloc entier (contrairement à la PR #89) : préserve toute édition admin ailleurs dans le bloc, et ne peut rien écraser si le fragment a été modifié.
+- Correction restée au niveau du contenu, sans toucher `render_markdown` ni `wrapBlockquotesAsWarningCards` : les vrais encadrés ATTENTION gardent exactement leur style (exigence du ticket).
+- La partie MC04/SMART de la PR #89 relève du ticket #83 : non reprise ici. La PR #89 reste ouverte (non fermée par cette session) ; le ticket #83 pourra s'en servir ou la remplacer.
+
+### Suites proposées (non implémentées)
+
+- Rendre `test_json_autosave_api_never_reveals_correctness` déterministe (choisir une question textuelle) — instabilité de test signalée.
+- Décider du sort de la PR #89 dans le cadre du ticket #83.
+
+---
+
+## Session du 2026-09-19 — correctif de contenu initial
 
 **Branche :** `fix/65-markdown-greater-than`
 **Base :** `develop` @ `486f35c4bcabc172e6f172c0250e073b6e03223b` (merge #81)

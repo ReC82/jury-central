@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Question #{{ question.id }} — Admin Jury Central{% endblock %}
+
+{% block content %}
+{% set page_title = "Question #" ~ question.id %}
+{% set active = "questions" %}
+{% include "_admin_bank_nav.html" %}
+{% set current = question.current_version %}
+
+{% if message %}<div class="alert alert-success small" role="status">{{ message }}{% if variant_id %} <a href="/admin/bank/questions/{{ variant_id }}">Voir la variante #{{ variant_id }}</a>{% endif %}</div>{% endif %}
+{% if error %}<div class="alert alert-danger small" role="alert">{{ error }}</div>{% endif %}
+
+<div class="row g-3">
+    <div class="col-12 col-lg-7">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body small">
+                <p class="mb-1"><strong>{{ question.module.code }}</strong>{% if question.uaa %} — {{ question.uaa.code }} {{ question.uaa.title }}{% endif %}</p>
+                <p class="mb-1">Type : <code>{{ current.question_type if current else "—" }}</code> — version courante : v{{ current.version if current else "?" }}</p>
+                <p class="mb-1">Statut : <strong>{{ status_labels[question.status] }}</strong> — origine : {{ source_labels[question.generation_source] }}
+                    {% if question.difficulty_declared %} — difficulté déclarée : {{ question.difficulty_declared.value }}{% endif %}</p>
+                <p class="mb-1">Rating : {% if question.difficulty_rating is not none %}{{ "%.1f"|format(question.difficulty_rating) }} ({{ question.rating_sample_size }} réponse(s) notée(s)){% else %}pas encore mesuré{% endif %}</p>
+                <p class="mb-0">Tentatives : {{ question.times_served }} — réussites complètes : {{ question.times_correct }}
+                    {% if question.times_served %}({{ "%.0f"|format(100 * question.times_correct / question.times_served) }} %){% endif %}</p>
+                {% if current %}
+                <hr>
+                <p class="fw-semibold mb-1">Énoncé</p>
+                <p style="white-space: pre-line;">{{ current.content_json.get("prompt", "") }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if assets %}
+        <div class="card shadow-sm mb-3">
+            <div class="card-header small fw-semibold">Visuels de la version courante ({{ assets|length }})</div>
+            <div class="card-body">
+                {% set next_question = question.id %}
+                {% for row in assets %}
+                {% include "_admin_asset_card.html" %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-header small fw-semibold">Modifier (crée une nouvelle version)</div>
+            <div class="card-body">
+                <p class="small text-muted">Les sessions passées gardent la version qu'elles ont servie. Le type de question ne change pas ; le contenu est vérifié avant enregistrement.</p>
+                <form method="post" action="/admin/bank/questions/{{ question.id }}/edit">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <textarea class="form-control font-monospace small mb-2" name="content_json" rows="16" spellcheck="false">{{ content_draft }}</textarea>
+                    <button type="submit" class="btn btn-dark btn-sm">Enregistrer une nouvelle version</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-header small fw-semibold">Versions</div>
+            <div class="card-body small">
+                {% for v in versions %}
+                <details class="mb-2" {% if loop.first %}open{% endif %}>
+                    <summary>v{{ v.version }}{% if current and v.id == current.id %} (courante){% endif %} — {{ v.created_at.strftime("%d/%m/%Y %H:%M") if v.created_at else "" }} — servie {{ version_usage.get(v.id, 0) }} fois{% if v.generator_model %} — {{ v.generator_model }}{% endif %}</summary>
+                    <pre class="bg-light border rounded p-2 mt-1 small" style="white-space: pre-wrap; max-height: 40vh; overflow-y: auto;">{{ v.content_json | tojson(indent=2) }}</pre>
+                </details>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header small fw-semibold">Statut</div>
+            <div class="card-body small">
+                <form method="post" action="/admin/bank/questions/{{ question.id }}/status" class="d-flex flex-wrap gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    {% for st in statuses %}
+                    {% if st != question.status %}
+                    <button type="submit" name="status" value="{{ st.value }}" class="btn btn-sm {% if st.value == 'active' %}btn-success{% else %}btn-outline-dark{% endif %}">
+                        {% if st.value == "active" %}Activer / réactiver{% elif st.value == "archived" %}Archiver{% else %}Marquer « {{ status_labels[st] }} »{% endif %}
+                    </button>
+                    {% endif %}
+                    {% endfor %}
+                </form>
+                <p class="text-muted mt-2 mb-0">Seules les questions actives sont proposées aux élèves. Aucune suppression : l'historique des sessions reste intact.</p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-header small fw-semibold">Régénérer une variante (IA)</div>
+            <div class="card-body small">
+                {% if variant_unavailable %}
+                <p class="text-muted mb-0">{{ variant_unavailable }}</p>
+                {% else %}
+                <p class="text-muted">Un appel IA crée une nouvelle question du même type et du même mini-cours, au statut « À revoir ». L'original n'est pas modifié.</p>
+                <form method="post" action="/admin/bank/questions/{{ question.id }}/variant">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-outline-dark btn-sm">Générer une variante</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-header small fw-semibold">Signalements ({{ feedback|length }})</div>
+            <div class="card-body small">
+                {% for f in feedback %}
+                <div class="border rounded p-2 mb-2 {% if f.resolved_at %}bg-light text-muted{% endif %}">
+                    <div class="d-flex justify-content-between gap-2">
+                        <strong>{{ feedback_labels[f.feedback_type] }}</strong>
+                        <span>{{ f.created_at.strftime("%d/%m/%Y") if f.created_at else "" }}</span>
+                    </div>
+                    {% if f.comment %}<p class="mb-1" style="white-space: pre-line;">{{ f.comment }}</p>{% endif %}
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <span>{% for v in versions %}{% if v.id == f.question_version_id %}sur v{{ v.version }}{% endif %}{% endfor %}{% if f.resolved_at %} — traité{% endif %}</span>
+                        <form method="post" action="/admin/bank/feedback/{{ f.id }}/resolve">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="next" value="question">
+                            <input type="hidden" name="resolved" value="{{ '0' if f.resolved_at else '1' }}">
+                            <button type="submit" class="btn btn-outline-dark btn-sm">{{ "Rouvrir" if f.resolved_at else "Marquer traité" }}</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Aucun signalement.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

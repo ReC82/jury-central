@@ -654,9 +654,8 @@ def test_source_document_panel_is_shown_for_document_referencing_questions(
     response = authenticated_client.get(f"{session_url}?q={doc_position}")
     assert response.status_code == 200
     assert "source-document-panel" in response.text
-    assert "Voir le document" in response.text
-    assert "Ouvrir dans un nouvel onglet" in response.text
-    assert "inutile de revenir en arrière" in response.text
+    # Ticket #149 : document affiché d'emblée, une seule commande d'ouverture optionnelle.
+    assert "Ouvrir en grand</a>" in response.text
 
 
 def test_mobile_viewport_meta_present(authenticated_client, db_session, monkeypatch):
@@ -670,7 +669,9 @@ def test_mobile_viewport_meta_present(authenticated_client, db_session, monkeypa
 def test_document_accordion_is_scoped_and_bounded(authenticated_client, db_session, monkeypatch):
     """Une question ne doit jamais afficher les 5 documents à la fois (Phase 8, mission
     de nuit) : seul(s) le(s) document(s) réellement référencé(s) apparaissent, dans un
-    accordéon à hauteur bornée et défilable (pas un mur de texte permanent)."""
+    accordéon à hauteur bornée et défilable (pas un mur de texte permanent).
+    Ticket #149 : plus d'ascenseur interne à hauteur arbitraire — lecture naturelle de la
+    page, document toujours limité à ceux réellement référencés."""
     seed()
     _patch_fake_provider(monkeypatch)
     session_url = _start_session(authenticated_client, db_session, mode="practice")
@@ -692,8 +693,8 @@ def test_document_accordion_is_scoped_and_bounded(authenticated_client, db_sessi
         response = authenticated_client.get(f"{session_url}?q={position}")
         assert response.status_code == 200
         assert response.text.count("source-document-panel") <= expected_max
-        assert "max-height: 50vh" in response.text
-        assert "overflow-y: auto" in response.text
+        assert "max-height: 50vh" not in response.text
+        assert "overflow-y: auto" not in response.text
 
 
 # --- 7. Non-régression AMPCR (le parcours Français ne casse rien d'existant) ------------------
@@ -853,10 +854,10 @@ def test_francais_space_nav_present_on_course_practice_and_exam_pages(authentica
         response = authenticated_client.get(url)
         assert response.status_code == 200, url
         assert 'class="jc-space-nav' in response.text
-        assert '📘 Cours' in response.text
-        assert "📝 S'entraîner" in response.text
-        assert "📝 S'évaluer" not in response.text  # jamais le mauvais emoji collé
-        assert "🎓 S'évaluer" in response.text
+        # Ticket #136 : icônes Bootstrap Icons, « S'évaluer » libellé « Examen blanc ».
+        assert '<i class="bi bi-book" aria-hidden="true"></i> Cours' in response.text
+        assert "<i class=\"bi bi-pencil-square\" aria-hidden=\"true\"></i> S'entraîner" in response.text
+        assert '<i class="bi bi-mortarboard" aria-hidden="true"></i> Examen blanc' in response.text
         assert 'href="/uaa/francais-c01"' in response.text
         assert 'href="/uaa/francais-c01/practice"' in response.text
         assert 'href="/uaa/francais-c01/exam"' in response.text

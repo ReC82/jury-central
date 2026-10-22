@@ -193,6 +193,10 @@ def test_generation_still_bounded_to_one_call_even_with_a_populated_bank(
     mc01 = db_session.query(UAA).filter_by(slug="ampcr-mc01").first()
     import_mc01_legacy_to_bank(db_session, ampcr, mc01)
     db_session.commit()
+    # Ticket #48 : les 10 questions visuelles MC01 (non sémantiques) suffiraient à
+    # compléter la session sans génération — neutralisées ici pour conserver la
+    # prémisse de ce test (banque legacy seule).
+    monkeypatch.setattr("app.v1.routes_sessions.import_mc01_visual_questions", lambda *a, **k: 0)
 
     fake = _patch_fake_provider(monkeypatch)
     _start_session(authenticated_client, db_session, "ampcr-mc01", mode="practice")

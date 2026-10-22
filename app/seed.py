@@ -9,6 +9,7 @@ from app.quiz import QuizConfig
 from app.slugify import slugify
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.v1.ampcr_plan import AMPCR_PLAN
+from app.v1.document_references import repair_dossier_references
 from app.v1.francais_fr01_05_courses import (
     fr01_course_markdown,
     fr02_course_markdown,
@@ -24,6 +25,25 @@ from app.v1.francais_fr06_10_courses import (
     fr10_course_markdown,
 )
 from app.v1.francais_plan import FRANCAIS_MODULE_CODE, FRANCAIS_SUBJECT_NAME
+from app.v1.fse01_course import fse01_course_sections
+from app.v1.fse02_course import fse02_course_sections
+from app.v1.fse03_course import fse03_course_sections
+from app.v1.fse04_course import fse04_course_sections
+from app.v1.fse05_course import fse05_course_sections
+from app.v1.fse06_course import fse06_course_sections
+from app.v1.fse07_course import fse07_course_sections
+from app.v1.fse08_course import fse08_course_sections
+from app.v1.fse09_course import fse09_course_sections
+from app.v1.fse10_course import fse10_course_sections
+from app.v1.fse11_course import fse11_course_sections
+from app.v1.fse12_course import fse12_course_sections
+from app.v1.fse13_course import fse13_course_sections
+from app.v1.fse14_course import fse14_course_sections
+from app.v1.fse15_course import fse15_course_sections
+from app.v1.fse16_course import fse16_course_sections
+from app.v1.fse17_course import fse17_course_sections
+from app.v1.fse_plan import FSE_MODULE_CODE, FSE_SUBJECT_NAME
+from app.v1.prompt_clarity import repair_prompt_clarity
 
 SUBJECT_NAME = "Mathématiques"
 MODULE_CODES = ["MB32", "MQ32", "MQ34"]
@@ -4671,6 +4691,161 @@ FRANCAIS_FR10_BLOCKS = [
 ]
 
 
+# =========================================================================================
+# Formation sociale et économique (FSE) — CESS Professionnel (ticket #96 : FSE01 ;
+# ticket #97 : FSE02-FSE04 ; ticket #98 : FSE05-FSE08 ; ticket #99 : FSE09-FSE12 ;
+# ticket #100 : FSE13-FSE16 ; ticket #101 : FSE17)
+# =========================================================================================
+#
+# Aucune matière FSE n'existait dans le dépôt avant le ticket #96 (voir `app.v1.fse_plan`,
+# docstring). Les 17 mini-cours officiels FSE01-FSE17 sont désormais tous rédigés et seedés
+# ici (tickets #96-#101, cahiers des charges détaillés) — jamais un cours vide présenté
+# comme disponible.
+#
+# Refonte pédagogique et visuelle (ticket #105, pilote FSE01) : un mini-cours FSE n'est
+# plus livré comme un seul bloc « Cours complet » (une seule carte indifférenciée) mais
+# comme plusieurs blocs titrés, chaque titre pilotant automatiquement le type de carte
+# affiché (`app.card_kind.classify_block_title`) — voir `_fse_course_blocks()`.
+
+
+def _fse_course_blocks(sections: list[tuple[str, str]]) -> list[dict]:
+    """Construit les blocs de leçon (espace Cours) d'un mini-cours FSE à partir de
+    sections (titre, Markdown) — refonte ticket #105. Chaque section devient un bloc
+    distinct dont le titre pilote le type de carte affiché, jamais un seul bloc
+    « Cours complet » mélangeant théorie/exemples/méthode/mémo dans une carte unique."""
+    return [
+        {
+            "title": title,
+            "type": BlockType.MARKDOWN,
+            "content": markdown,
+            "position": position,
+            "is_published": True,
+            "space": BlockSpace.COURSE,
+        }
+        for position, (title, markdown) in enumerate(sections, start=1)
+    ]
+
+
+FSE01_CODE = "FSE01"
+FSE01_TITLE = "Communiquer : le schéma de communication"
+
+FSE01_BLOCKS = _fse_course_blocks(fse01_course_sections())
+
+FSE02_CODE = "FSE02"
+FSE02_TITLE = "Les médias et leurs financements"
+
+FSE02_BLOCKS = _fse_course_blocks(fse02_course_sections())
+
+FSE03_CODE = "FSE03"
+FSE03_TITLE = "Identités, traces numériques et appartenance"
+
+FSE03_BLOCKS = _fse_course_blocks(fse03_course_sections())
+
+# Ticket #120 : le bloc unique "Théorie : notions et définitions" (ancienne position 2)
+# est remplacé par trois cartes ("Qui suis-je ?", "Quelles traces je laisse ?", "Quelle
+# image les autres voient-ils ?"), décalant la position de tous les blocs qui suivaient
+# (Méthode 3→5, Comparer 5→7, Fiche mémo 7→9 ; "Exemples commentés" et "Exercices guidés"
+# n'ont pas besoin de resynchronisation : déjà dans `obsolete_titles` ci-dessous, ils sont
+# recréés à chaque seed avec une position toujours à jour). Sur tout staging seedé avant ce
+# ticket, "Méthode"/"Comparer"/"Fiche mémo" existent déjà (jamais dans `obsolete_titles`,
+# donc jamais recréés) : sans resynchronisation explicite de leur `position`, ils
+# garderaient leur ancienne valeur, entrant en collision avec celle des trois nouveaux
+# blocs et inversant l'ordre d'affichage (ex. Fiche mémo avant Exercices guidés) — même
+# mécanisme que `MC01_PRACTICE_REPOSITION_TITLES` (ticket #37).
+FSE03_REPOSITION_TITLES = frozenset(
+    {
+        "FSE03 — Méthode",
+        "FSE03 — Comparer pour ne pas confondre",
+        "FSE03 — Fiche mémo",
+    }
+)
+
+FSE04_CODE = "FSE04"
+FSE04_TITLE = "Normes, valeurs et influence sociale"
+
+FSE04_BLOCKS = _fse_course_blocks(fse04_course_sections())
+
+# Ticket #124 : le bloc unique "Théorie : notions et définitions" (ancienne position 2)
+# est remplacé par trois cartes ("Valeur, norme, comportement : quelle différence ?",
+# "Pourquoi suit-on parfois le groupe ?", "Peut-on agir autrement ?"), décalant la position
+# des blocs qui suivaient (Méthode 3→5, Comparer 5→7, Fiche mémo 7→9 ; "Exemples commentés"
+# et "Exercices guidés" n'ont pas besoin de resynchronisation : déjà dans
+# `obsolete_titles`, recréés à chaque seed avec une position à jour) — même mécanisme que
+# `FSE03_REPOSITION_TITLES` (ticket #120) et `MC01_PRACTICE_REPOSITION_TITLES` (ticket #37).
+FSE04_REPOSITION_TITLES = frozenset(
+    {
+        "FSE04 — Méthode",
+        "FSE04 — Comparer pour ne pas confondre",
+        "FSE04 — Fiche mémo",
+    }
+)
+
+FSE05_CODE = "FSE05"
+FSE05_TITLE = "Image, vie privée et données personnelles"
+
+FSE05_BLOCKS = _fse_course_blocks(fse05_course_sections())
+
+FSE06_CODE = "FSE06"
+FSE06_TITLE = "Droits et comportements illicites en ligne"
+
+FSE06_BLOCKS = _fse_course_blocks(fse06_course_sections())
+
+FSE07_CODE = "FSE07"
+FSE07_TITLE = "Analyser un dossier médiatique"
+
+FSE07_BLOCKS = _fse_course_blocks(fse07_course_sections())
+
+FSE08_CODE = "FSE08"
+FSE08_TITLE = "La Belgique : État et niveaux de pouvoir"
+
+FSE08_BLOCKS = _fse_course_blocks(fse08_course_sections())
+
+FSE09_CODE = "FSE09"
+FSE09_TITLE = "Qui décide de quoi ?"
+
+FSE09_BLOCKS = _fse_course_blocks(fse09_course_sections())
+
+FSE10_CODE = "FSE10"
+FSE10_TITLE = "Élections et participation citoyenne"
+
+FSE10_BLOCKS = _fse_course_blocks(fse10_course_sections())
+
+FSE11_CODE = "FSE11"
+FSE11_TITLE = "Partis politiques et choix argumenté"
+
+FSE11_BLOCKS = _fse_course_blocks(fse11_course_sections())
+
+FSE12_CODE = "FSE12"
+FSE12_TITLE = "Le budget de l'État"
+
+FSE12_BLOCKS = _fse_course_blocks(fse12_course_sections())
+
+FSE13_CODE = "FSE13"
+FSE13_TITLE = "La sécurité sociale : rôle et financement"
+
+FSE13_BLOCKS = _fse_course_blocks(fse13_course_sections())
+
+FSE14_CODE = "FSE14"
+FSE14_TITLE = "La sécurité sociale : organismes et enjeux"
+
+FSE14_BLOCKS = _fse_course_blocks(fse14_course_sections())
+
+FSE15_CODE = "FSE15"
+FSE15_TITLE = "Le circuit économique et les interventions de l'État"
+
+FSE15_BLOCKS = _fse_course_blocks(fse15_course_sections())
+
+FSE16_CODE = "FSE16"
+FSE16_TITLE = "Analyser une décision publique"
+
+FSE16_BLOCKS = _fse_course_blocks(fse16_course_sections())
+
+FSE17_CODE = "FSE17"
+FSE17_TITLE = "Révision générale et méthode d'examen"
+
+FSE17_BLOCKS = _fse_course_blocks(fse17_course_sections())
+
+
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
 
@@ -4760,7 +4935,16 @@ def _seed_uaa(
             removed_obsolete += 1
     db.flush()
 
-    existing_by_title = {block.title: block for block in uaa.lesson_blocks}
+    # Requête fraîche plutôt que `uaa.lesson_blocks` (ticket #108) : cette collection de
+    # relation peut rester périmée juste après les suppressions ci-dessus (observé lors de
+    # deux appels `seed()` consécutifs dans le même process/session — `_fse_course_blocks`
+    # retire puis recrée certains titres sous le même nom pour forcer un rafraîchissement
+    # de contenu, voir le site d'appel FSE01). Une requête directe élimine tout risque de
+    # recréer un doublon ou, pire, d'ignorer à tort un bloc déjà supprimé comme "existant".
+    existing_by_title = {
+        block.title: block
+        for block in db.query(LessonBlock).filter_by(uaa_id=uaa.id).all()
+    }
     for block_data in blocks:
         existing_block = existing_by_title.get(block_data["title"])
         if existing_block is None:
@@ -4781,6 +4965,98 @@ def _seed_uaa(
                 repositioned["blocks"] += 1
 
     return removed_obsolete
+
+
+# Ticket #65 : le correctif de contenu MC08 (repli de ligne pour que « > 2 To » reste dans
+# la phrase au lieu de devenir une citation Markdown, donc un encadré « ⚠️ Attention ») ne
+# peut pas atteindre une base déjà seedée : un bloc existant n'est jamais modifié par titre
+# (voir `seed()`). Réparation ponctuelle et bornée : seul le fragment EXACT d'avant
+# correctif est remplacé par le fragment corrigé (texte identique, seul le repli change) ;
+# le reste du bloc, et tout bloc dont ce fragment a été modifié depuis l'admin, restent
+# intacts. Idempotent : une fois remplacé, le fragment n'est plus trouvé.
+MC08_GREATER_THAN_STALE_FRAGMENT = (
+    "présente (opération destructive) ; (2) choisir GPT pour un usage moderne (UEFI, disque\n"
+    "> 2 To), MBR seulement pour une compatibilité ancienne spécifique ; (3) choisir le système\n"
+    "de fichiers selon l'usage (NTFS pour Windows, exFAT pour un support partagé multi-OS,\n"
+    "ext4 pour Linux)."
+)
+MC08_GREATER_THAN_FIXED_FRAGMENT = (
+    "présente (opération destructive) ; (2) choisir GPT pour un usage moderne (UEFI,\n"
+    "disque > 2 To), MBR seulement pour une compatibilité ancienne spécifique ; (3) choisir\n"
+    "le système de fichiers selon l'usage (NTFS pour Windows, exFAT pour un support partagé\n"
+    "multi-OS, ext4 pour Linux)."
+)
+
+
+def repair_mc08_greater_than_line(db) -> int:
+    """Remplace le fragment MC08 « > 2 To » d'avant correctif (ticket #65). Retourne le
+    nombre de blocs corrigés."""
+    blocks = (
+        db.query(LessonBlock)
+        .join(UAA, LessonBlock.uaa_id == UAA.id)
+        .filter(UAA.code == "MC08", LessonBlock.content.contains(MC08_GREATER_THAN_STALE_FRAGMENT))
+        .all()
+    )
+    for block in blocks:
+        block.content = block.content.replace(
+            MC08_GREATER_THAN_STALE_FRAGMENT, MC08_GREATER_THAN_FIXED_FRAGMENT
+        )
+    return len(blocks)
+
+
+# Ticket #83 : l'enrichissement SMART de MC04 (développé « Self-Monitoring, Analysis and
+# Reporting Technology », livré par #87) n'atteint pas une base déjà seedée, pour la même
+# raison que #65. Même réparation bornée : chaque fragment EXACT d'avant correctif est
+# remplacé par le fragment du cours actuel ; un fragment modifié depuis l'admin n'est jamais
+# touché, le reste du bloc est conservé. Idempotent.
+_MC04_SMART_DEFINITION_STALE = (
+    "- **SMART** : indicateurs de santé du disque (température, secteurs défectueux, heures de\n"
+    "  fonctionnement...) — une alerte, jamais une garantie ni une sauvegarde.\n"
+)
+_MC04_SMART_DEFINITION_FIXED = (
+    "- **SMART** (*Self-Monitoring, Analysis and Reporting Technology*) : technologie de\n"
+    "  surveillance de l'état du stockage intégrée aux HDD/SSD — elle rapporte des\n"
+    "  indicateurs de santé (température, secteurs/erreurs détectés, heures de\n"
+    "  fonctionnement...) utiles pour un diagnostic, mais ne prédit pas toutes les pannes\n"
+    "  (un défaut brutal reste possible sans alerte SMART préalable) et ne remplace jamais\n"
+    "  une sauvegarde.\n"
+)
+_MC04_SMART_VOCABULARY_STALE = "| Sauvegarde | Backup |\n\n## 8. À retenir pour l'examen\n"
+_MC04_SMART_VOCABULARY_FIXED = (
+    "| Sauvegarde | Backup |\n"
+    "| Surveillance de l'état du disque | SMART (Self-Monitoring, Analysis and Reporting"
+    " Technology) |\n\n## 8. À retenir pour l'examen\n"
+)
+_MC04_SMART_SUMMARY_STALE = "- SMART = surveillance, jamais une garantie ni une sauvegarde.\n"
+_MC04_SMART_SUMMARY_FIXED = (
+    "- SMART (Self-Monitoring, Analysis and Reporting Technology) = surveillance de l'état du\n"
+    "  disque, utile pour diagnostic, jamais une garantie ni une sauvegarde.\n"
+)
+MC04_SMART_FRAGMENTS: tuple[tuple[str, str], ...] = (
+    (_MC04_SMART_DEFINITION_STALE, _MC04_SMART_DEFINITION_FIXED),
+    (_MC04_SMART_VOCABULARY_STALE, _MC04_SMART_VOCABULARY_FIXED),
+    (_MC04_SMART_SUMMARY_STALE, _MC04_SMART_SUMMARY_FIXED),
+)
+
+
+def repair_mc04_smart_expansion(db) -> int:
+    """Remplace les fragments MC04 SMART d'avant correctif (ticket #83). Retourne le nombre
+    de blocs modifiés."""
+    blocks = (
+        db.query(LessonBlock)
+        .join(UAA, LessonBlock.uaa_id == UAA.id)
+        .filter(UAA.code == "MC04")
+        .all()
+    )
+    repaired = 0
+    for block in blocks:
+        content = block.content or ""
+        for stale, fixed in MC04_SMART_FRAGMENTS:
+            content = content.replace(stale, fixed)
+        if content != block.content:
+            block.content = content
+            repaired += 1
+    return repaired
 
 
 def seed() -> None:
@@ -4911,12 +5187,474 @@ def seed() -> None:
         _seed_uaa(db, cessp, "FR09", FRANCAIS_FR09_TITLE, 10, FRANCAIS_FR09_BLOCKS, created, kept)
         _seed_uaa(db, cessp, "FR10", FRANCAIS_FR10_TITLE, 11, FRANCAIS_FR10_BLOCKS, created, kept)
 
+        # Formation sociale et économique (tickets #96-#101, FSE01-FSE17) : même mécanisme
+        # générique, purement additif — ne touche jamais Mathématiques/Informatique/
+        # Français (voir docstring de la section FSE ci-dessus).
+        fse_subject = _ensure_subject(db, FSE_SUBJECT_NAME, created, kept)
+        _ensure_modules(db, fse_subject, [FSE_MODULE_CODE], created, kept)
+        fse_module = next(m for m in fse_subject.modules if m.code == FSE_MODULE_CODE)
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE01_CODE,
+            FSE01_TITLE,
+            1,
+            FSE01_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique, retiré définitivement.
+            # Les titres suivants sont ajoutés pour forcer le remplacement du contenu déjà
+            # seedé par une version enrichie (ticket #108 : cartes-documents réalistes,
+            # schéma responsive, icônes ; ticket #112 : espacement des exemples, avatars
+            # colorés, titre "Décryptons ce document", refonte des exercices guidés en
+            # cartes HTML) : FSE01 est un contenu entièrement piloté par le code (jamais
+            # édité depuis l'admin, voir docstring de la section FSE), donc
+            # retirer-puis-recréer sous le même titre est sûr ici — contrairement à la
+            # garantie générale de `_seed_uaa` (jamais écraser un bloc existant), qui reste
+            # inchangée pour tout titre non listé ici.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE01 — Théorie : le schéma de communication",
+                    "FSE01 — Exemples commentés : mail, affiche, réseau social",
+                    "FSE01 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE02_CODE,
+            FSE02_TITLE,
+            2,
+            FSE02_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (ticket #115) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie — même mécanisme que FSE01 (ticket #108/#112) : ce
+            # contenu est entièrement piloté par le code, jamais édité depuis l'admin.
+            # FSE02 a en plus ses documents réalistes (pages de médias HTML/CSS) et
+            # des nuances pédagogiques supplémentaires (financement exclusif vs mixte,
+            # compteur de vues vs interactivité) dans Théorie et Fiche mémo.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE02 — Théorie : notions et définitions",
+                    "FSE02 — Exemples commentés",
+                    "FSE02 — Exercices guidés",
+                    "FSE02 — Fiche mémo",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE03_CODE,
+            FSE03_TITLE,
+            3,
+            FSE03_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#118/#120) forcent le remplacement du contenu déjà seedé par
+            # la version enrichie — même mécanisme que FSE01 (ticket #108/#112) : ce
+            # contenu est entièrement piloté par le code, jamais édité depuis l'admin.
+            # "FSE03 — Théorie : notions et définitions" (ticket #120) : ancien bloc unique
+            # fusionnant théorie+définitions, remplacé par trois cartes progressives
+            # ("Qui suis-je ?", "Quelles traces je laisse ?", "Quelle image les autres
+            # voient-ils ?") — voir `app.v1.fse03_course`.
+            # "FSE03 — Quelle image les autres voient-ils ?" (ticket #126) : même titre
+            # qu'au ticket #120, seul le contenu change (paragraphe des trois limites ->
+            # cartes + rangée à deux colonnes) — sans cet ajout, un site déjà seedé garde
+            # l'ancien contenu indéfiniment (même bug que trouvé pour FSE04 au ticket
+            # #126, corrigé ici avant tout déploiement cette fois).
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE03 — Exemples commentés",
+                    "FSE03 — Exercices guidés",
+                    "FSE03 — Théorie : notions et définitions",
+                    "FSE03 — Quelle image les autres voient-ils ?",
+                    # Ticket #148 : prose étroite → explication + repère côte à côte.
+                    "FSE03 — Qui suis-je ?",
+                }
+            ),
+            reposition_titles=FSE03_REPOSITION_TITLES, repositioned=repositioned,
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE04_CODE,
+            FSE04_TITLE,
+            4,
+            FSE04_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            # "FSE04 — Peut-on agir autrement ?" (ticket #126) : même titre qu'au ticket
+            # #124, seul le contenu change (colonne de prose isolée -> deux cartes
+            # .jc-theory-cards) — sans cet ajout, un site déjà seedé au ticket #124 garde
+            # l'ancien contenu indéfiniment (bug trouvé en vérifiant l'installation réelle
+            # du ticket #126, corrigé avant la fin du déploiement).
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE04 — Théorie : notions et définitions",
+                    "FSE04 — Exemples commentés",
+                    "FSE04 — Exercices guidés",
+                    "FSE04 — Peut-on agir autrement ?",
+                }
+            ),
+            reposition_titles=FSE04_REPOSITION_TITLES, repositioned=repositioned,
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE05_CODE,
+            FSE05_TITLE,
+            5,
+            FSE05_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE05 — Théorie : notions et définitions",
+                    "FSE05 — Exemples commentés",
+                    "FSE05 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE06_CODE,
+            FSE06_TITLE,
+            6,
+            FSE06_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE06 — Théorie : notions et définitions",
+                    "FSE06 — Exemples commentés",
+                    "FSE06 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE07_CODE,
+            FSE07_TITLE,
+            7,
+            FSE07_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE07 — Théorie : notions et définitions",
+                    "FSE07 — Exemples commentés",
+                    "FSE07 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE08_CODE,
+            FSE08_TITLE,
+            8,
+            FSE08_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE08 — Théorie : notions et définitions",
+                    "FSE08 — Exemples commentés",
+                    "FSE08 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE09_CODE,
+            FSE09_TITLE,
+            9,
+            FSE09_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE09 — Théorie : notions et définitions",
+                    "FSE09 — Exemples commentés",
+                    "FSE09 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE10_CODE,
+            FSE10_TITLE,
+            10,
+            FSE10_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            # "Comparer pour ne pas confondre"/"Fiche mémo" (ticket #131, audit de
+            # couverture) : ajout de la distinction abstention/vote blanc, absente du
+            # cahier des charges jusqu'ici — mêmes titres qu'avant, seul le contenu change.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE10 — Théorie : notions et définitions",
+                    "FSE10 — Exemples commentés",
+                    "FSE10 — Exercices guidés",
+                    "FSE10 — Comparer pour ne pas confondre",
+                    "FSE10 — Fiche mémo",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE11_CODE,
+            FSE11_TITLE,
+            11,
+            FSE11_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE11 — Théorie : notions et définitions",
+                    "FSE11 — Exemples commentés",
+                    "FSE11 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE12_CODE,
+            FSE12_TITLE,
+            12,
+            FSE12_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE12 — Théorie : notions et définitions",
+                    "FSE12 — Exemples commentés",
+                    "FSE12 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE13_CODE,
+            FSE13_TITLE,
+            13,
+            FSE13_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE13 — Théorie : notions et définitions",
+                    "FSE13 — Exemples commentés",
+                    "FSE13 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE14_CODE,
+            FSE14_TITLE,
+            14,
+            FSE14_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE14 — Théorie : notions et définitions",
+                    "FSE14 — Exemples commentés",
+                    "FSE14 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE15_CODE,
+            FSE15_TITLE,
+            15,
+            FSE15_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE15 — Théorie : notions et définitions",
+                    "FSE15 — Exemples commentés",
+                    "FSE15 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE16_CODE,
+            FSE16_TITLE,
+            16,
+            FSE16_BLOCKS,
+            created,
+            kept,
+            # "Cours complet" (ticket #105) : ancien bloc unique. Les titres suivants
+            # (tickets #115/#120) forcent le remplacement du contenu déjà seedé par la
+            # version enrichie (titres d'exemple espacés, "Décryptons ce document",
+            # exercices en cartes HTML structurées, théorie restructurée en prose à
+            # largeur de lecture limitée + définitions en grille/lexique repliable) —
+            # même mécanisme que FSE01 (ticket #108/#112) : ce contenu est entièrement
+            # piloté par le code, jamais édité depuis l'admin.
+            obsolete_titles=frozenset(
+                {
+                    "Cours complet",
+                    "FSE16 — Théorie : notions et définitions",
+                    "FSE16 — Exemples commentés",
+                    "FSE16 — Exercices guidés",
+                }
+            ),
+        )
+        _seed_uaa(
+            db,
+            fse_module,
+            FSE17_CODE,
+            FSE17_TITLE,
+            17,
+            FSE17_BLOCKS,
+            created,
+            kept,
+            # FSE17 a une structure propre (voir app.v1.fse17_course) : ses blocs ne
+            # s'appellent jamais "Exemples commentés"/"Exercices guidés", donc aucun
+            # ajout à obsolete_titles n'est nécessaire au-delà de l'ancien bloc unique.
+            obsolete_titles=frozenset({"Cours complet"}),
+        )
+
+        # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
+        # n'était pas résolvable → nouvelle version (idempotent, sessions existantes
+        # intactes, voir `app.v1.document_references`).
+        references = repair_dossier_references(db)
+        # Ticket #152 : consignes FSE autonomes (méthodes nommées, contexte « cette aide »,
+        # plus de « maintenant… ces trois autres ») et document FSE09 d'examen sans le niveau
+        # de pouvoir écrit → nouvelles versions (idempotent, sessions existantes intactes,
+        # voir `app.v1.prompt_clarity`).
+        clarity = repair_prompt_clarity(db)
+        # Ticket #65 : « > 2 To » MC08 déjà seedé avec l'ancien repli de ligne.
+        greater_than_fixed = repair_mc08_greater_than_line(db)
+        # Ticket #83 : développé SMART absent du MC04 déjà seedé.
+        smart_fixed = repair_mc04_smart_expansion(db)
+
         db.commit()
 
         all_subjects = (
             f"{SUBJECT_NAME} ({', '.join(MODULE_CODES)}), "
             f"{INFORMATIQUE_SUBJECT_NAME} ({', '.join(INFORMATIQUE_MODULE_CODES)}), "
-            f"{FRANCAIS_SUBJECT_NAME} ({FRANCAIS_MODULE_CODE})"
+            f"{FRANCAIS_SUBJECT_NAME} ({FRANCAIS_MODULE_CODE}), "
+            f"{FSE_SUBJECT_NAME} ({FSE_MODULE_CODE})"
         )
         print(f"Seed terminé : {all_subjects}")
         print(
@@ -4934,6 +5672,24 @@ def seed() -> None:
                 f"  Reclassé (espace pédagogique COURSE/PRACTICE/EXAM mis à jour, "
                 f"contenu inchangé) : {reclassified['blocks']} bloc(s)"
             )
+        if references["repaired"] or references["unresolved"]:
+            print(
+                f"  Renvois documentaires réparés (nouvelle version de question) : "
+                f"{references['repaired']} ; non résolus : {references['unresolved']}"
+            )
+        if clarity["repaired"] or clarity["unresolved"] or clarity["documents"]:
+            print(
+                f"  Consignes clarifiées (nouvelle version de question) : "
+                f"{clarity['repaired']} ; documents d'examen : {clarity['documents']} ; "
+                f"non résolues : {clarity['unresolved']}"
+            )
+        if greater_than_fixed:
+            print(
+                f"  Corrigé (« > 2 To » MC08 rendu en encadré, ticket #65) : "
+                f"{greater_than_fixed} bloc(s)"
+            )
+        if smart_fixed:
+            print(f"  Corrigé (développé SMART ajouté au MC04, ticket #83) : {smart_fixed} bloc(s)")
         if repositioned["blocks"]:
             print(
                 f"  Repositionné (ordre d'affichage MC01 corrigé, contenu inchangé) : "

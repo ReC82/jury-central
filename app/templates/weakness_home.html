@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Mes points faibles — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-12 col-lg-10">
+    <span class="jc-eyebrow"><i class="bi bi-bullseye" aria-hidden="true"></i> Renforcement</span>
+    <h1 class="h2 mt-3 mb-1">Mes points faibles</h1>
+    <p class="text-muted mb-3">
+        Calculés à partir de tes entraînements, examens blancs et renforcements corrigés. Une notion
+        devient « Fort » après plusieurs bonnes réponses — jamais après une seule.
+    </p>
+
+    {% if notice == "vide" %}
+    <div class="alert alert-info" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i>
+        Pas encore de question à correction immédiate (QCM, classement, remise en ordre) pour ce choix.
+        Relis le cours ou lance un examen ciblé.</div>
+    {% elif notice == "examen" %}
+    <div class="alert alert-info" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i>
+        Pas assez de questions disponibles sur tes points faibles de cette matière pour un examen ciblé.</div>
+    {% endif %}
+
+    {% for session in in_progress %}
+    {% set p = reinforcement_params(session) %}
+    <div class="jc-quiz-card mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div><span class="jc-pill jc-pill-primary"><i class="bi bi-play-circle" aria-hidden="true"></i> En cours</span>
+            <strong class="ms-1">{{ p.label }}</strong></div>
+        <a class="jc-btn jc-btn-primary" href="/renforcement/{{ session.id }}">Reprendre <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    {% endfor %}
+
+    {% if not groups %}
+    <div class="jc-quiz-card mb-4">
+        <p class="mb-2"><strong>Pas encore de données.</strong></p>
+        <p class="mb-0 text-muted">Termine un entraînement ou un examen blanc : tes points faibles apparaîtront ici,
+            avec un renforcement ciblé pour chacun.</p>
+        <a class="jc-btn jc-btn-primary mt-3" href="/mon-parcours">Aller à mon parcours</a>
+    </div>
+    {% else %}
+
+    {% if active_total %}
+    <form method="post" action="/points-faibles/renforcer" class="mb-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="jc-btn jc-btn-primary">
+            <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i> Travailler mes points faibles
+        </button>
+        <span class="small text-muted ms-2">Mélange tes {{ [active_total, 3] | min }} points faibles principaux, une question à la fois, correction immédiate.</span>
+    </form>
+    {% else %}
+    <div class="jc-celebrate mb-4"><i class="bi bi-trophy-fill" aria-hidden="true"></i>
+        <div>Aucun point faible actif pour l'instant. Continue tes entraînements pour le confirmer.</div></div>
+    {% endif %}
+
+    {% for group in groups %}
+    <section class="mb-4" aria-labelledby="group-{{ group.module.id }}">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <h2 id="group-{{ group.module.id }}" class="h4 mb-0">{{ group.subject }}</h2>
+            {% if group.exam_in_progress %}
+            <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/sessions/{{ group.exam_in_progress.id }}">
+                <i class="bi bi-play-circle" aria-hidden="true"></i> Reprendre l'examen ciblé</a>
+            {% elif group.active %}
+            <form method="post" action="/points-faibles/examen" class="d-flex flex-wrap align-items-center gap-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="matiere" value="{{ group.module.code }}">
+                <label class="small text-muted" for="exam-len-{{ group.module.id }}">Examen ciblé points faibles</label>
+                <select class="form-select form-select-sm w-auto" id="exam-len-{{ group.module.id }}" name="questions">
+                    {% for n in exam_lengths %}<option value="{{ n }}">{{ n }} questions</option>{% endfor %}
+                </select>
+                <button type="submit" class="jc-btn jc-btn-ghost jc-btn-sm"><i class="bi bi-clipboard-check" aria-hidden="true"></i> Lancer</button>
+            </form>
+            {% endif %}
+        </div>
+        {% if group.active %}
+        <p class="small text-muted mb-2">L'examen ciblé est un vrai test&nbsp;: aucune correction avant la fin.</p>
+        {% endif %}
+
+        <div class="table-responsive">
+        <table class="table align-middle bg-white rounded shadow-sm mb-0">
+            <thead><tr>
+                <th scope="col">Notion / cours</th>
+                <th scope="col">Niveau</th>
+                <th scope="col">Dernière erreur</th>
+                <th scope="col">Tendance</th>
+                <th scope="col" class="text-end">Actions</th>
+            </tr></thead>
+            <tbody>
+            {% for entry in group.entries %}
+            {% set pill = level_pills[entry.level_key] %}
+            {% set trend = trend_labels[entry.trend] %}
+            <tr id="weakness-{{ entry.key }}">
+                <td>{{ entry.label }}
+                    <div class="small text-muted">{{ entry.answers }} réponse{{ 's' if entry.answers > 1 }} corrigée{{ 's' if entry.answers > 1 }}{% if entry.low_data %} — peu de données{% endif %}</div></td>
+                <td><span class="jc-pill {{ pill[0] }}"><i class="bi {{ pill[1] }}" aria-hidden="true"></i> {{ entry.level_label }}</span></td>
+                <td class="small">{{ entry.last_error_at.strftime('%d/%m/%Y') if entry.last_error_at else '—' }}</td>
+                <td class="small"><i class="bi {{ trend[0] }}" aria-hidden="true"></i> {{ trend[1] }}</td>
+                <td class="text-end">
+                    <div class="d-flex flex-wrap justify-content-end gap-2">
+                        <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/uaa/{{ entry.uaa.slug }}"><i class="bi bi-book" aria-hidden="true"></i> Relire le cours</a>
+                        {% if entry.level_key != "fort" %}
+                        {% if available.get(entry.key) %}
+                        <form method="post" action="/points-faibles/renforcer">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="cible" value="{{ entry.key }}">
+                            <button type="submit" class="jc-btn jc-btn-primary jc-btn-sm"><i class="bi bi-bullseye" aria-hidden="true"></i> S'entraîner sur ce point</button>
+                        </form>
+                        {% else %}
+                        <span class="small text-muted">Pas encore de question à correction immédiate</span>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </section>
+    {% endfor %}
+    {% endif %}
+
+    {% if recent %}
+    <h2 class="h5 mt-4">Derniers renforcements</h2>
+    <ul class="list-unstyled">
+        {% for session in recent %}
+        <li class="mb-1"><a href="/renforcement/{{ session.id }}">{{ reinforcement_params(session).label }}</a>
+            <span class="small text-muted">— {{ session.completed_at.strftime('%d/%m/%Y') if session.completed_at else '' }}</span></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <details class="small text-muted mt-4">
+        <summary>Comment sont calculés les niveaux&nbsp;?</summary>
+        <p class="mt-2 mb-1">Chaque réponse corrigée compte une seule fois. Une erreur fait monter la fragilité
+            (davantage sur une question facile), une réponse partielle un peu moins, et chaque bonne réponse la fait
+            redescendre progressivement — les réponses récentes pèsent plus que les anciennes.</p>
+        <p class="mb-0">Niveaux&nbsp;: {% for _, key, label in levels %}{{ label }}{{ ", " if not loop.last }}{% endfor %}.
+            Les quiz ne comptent pas.</p>
+    </details>
+</div>
+</div>
+{% endblock %}

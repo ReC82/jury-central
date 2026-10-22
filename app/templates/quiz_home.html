@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz — Jury Central{% endblock %}
+{% block main_class %}jc-wide{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+        <span class="jc-eyebrow"><i class="bi bi-controller" aria-hidden="true"></i> Quiz</span>
+        <h1 class="h2 mt-3 mb-1">Quiz du parcours</h1>
+        <p class="text-muted mb-0">
+            Des parties courtes pour réviser en jouant&nbsp;: une question à la fois, la correction et
+            l'explication tout de suite après chaque réponse. {{ pathway.form.label }} — option {{ pathway.option.short }}.
+        </p>
+    </div>
+    <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/mon-parcours">
+        <i class="bi bi-map" aria-hidden="true"></i> Mon parcours
+    </a>
+</div>
+
+{% if request.query_params.get("vide") %}
+<div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+    Aucune question de quiz n'est disponible pour ce choix. Choisis une autre matière ou d'autres cours.
+</div>
+{% endif %}
+
+{% if in_progress %}
+<section class="jc-next mb-4" aria-labelledby="quiz-resume">
+    <div class="jc-next-kicker mb-1"><i class="bi bi-bookmark-star" aria-hidden="true"></i> À reprendre</div>
+    <h2 id="quiz-resume" class="h5 mb-3">Partie{{ 's' if in_progress | length > 1 }} en cours</h2>
+    <div class="d-flex flex-column gap-2">
+        {% for quiz in in_progress %}
+        {% set p = quiz_params(quiz) %}
+        {% set answered = quiz.session_questions | selectattr("answer") | list | length %}
+        <a class="jc-quiz-row" href="/quiz/parties/{{ quiz.id }}">
+            <span><i class="bi bi-play-circle" aria-hidden="true"></i> <strong>{{ p.label }}</strong></span>
+            <span class="text-muted small">Question {{ answered + 1 }} / {{ quiz.question_count }} — reprends exactement où tu t'étais arrêté·e</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<form method="get" action="/quiz/apercu" class="mb-4" aria-labelledby="quiz-choose">
+    <h2 id="quiz-choose" class="h4 mb-3">1. Sur quoi veux-tu jouer&nbsp;?</h2>
+
+    <div class="jc-quiz-check mb-3">
+        <input class="jc-answer-input" type="checkbox" name="parcours" value="1" id="scope-all">
+        <label class="jc-answer jc-answer-lg" for="scope-all">
+            <i class="bi bi-stars jc-answer-icon" aria-hidden="true"></i>
+            <span>
+                <strong>Tout mon parcours</strong>
+                <span class="d-block small text-muted">Un mélange équilibré de toutes les matières ci-dessous qui ont des questions.</span>
+            </span>
+        </label>
+    </div>
+
+    <p class="text-muted small mb-2">Ou coche une ou plusieurs matières (tous leurs cours), ou seulement certains cours&nbsp;:</p>
+    <div class="row g-3 mb-4">
+        {% for offer in catalog %}
+        {% set track = offer.track %}
+        <div class="col-12 col-lg-4">
+            <fieldset class="jc-quiz-subject jc-theme-{{ track.theme }} h-100">
+                <legend class="visually-hidden">{{ track.title }}</legend>
+                {% if offer.available %}
+                <input class="jc-answer-input" type="checkbox" name="matiere" value="{{ offer.module.code }}"
+                       id="subject-{{ offer.module.code }}" {% if offer.module.code in preselected_modules %}checked{% endif %}>
+                <label class="jc-answer" for="subject-{{ offer.module.code }}">
+                    <i class="bi bi-{{ track.icon }} jc-answer-icon" aria-hidden="true"></i>
+                    <span>
+                        <strong>{{ track.title }}</strong>
+                        <span class="d-block small text-muted">
+                            {{ offer.available }} question{{ 's' if offer.available > 1 }} dans {{ offer.playable_chapters | length }} cours
+                            {% if offer.unseen < offer.available %}— {{ offer.unseen }} jamais vue{{ 's' if offer.unseen > 1 }}{% endif %}
+                        </span>
+                    </span>
+                </label>
+                {% else %}
+                <div class="jc-answer is-unavailable" aria-disabled="true">
+                    <i class="bi bi-{{ track.icon }} jc-answer-icon" aria-hidden="true"></i>
+                    <span><strong>{{ track.title }}</strong>
+                        <span class="d-block small">Pas encore de questions de quiz pour cette matière.</span></span>
+                </div>
+                {% endif %}
+
+                {% if offer.available %}
+                <details class="mt-2" {% if offer.module.code in open_modules %}open{% endif %}>
+                    <summary class="small fw-semibold">Choisir des cours</summary>
+                    <ul class="list-unstyled mt-2 mb-0 jc-quiz-chapters">
+                        {% for chapter in offer.chapters %}
+                        <li>
+                            {% if chapter.available %}
+                            <label class="d-flex gap-2 align-items-start">
+                                <input class="form-check-input mt-1" type="checkbox" name="uaa" value="{{ chapter.uaa.slug }}"
+                                       {% if chapter.uaa.slug in preselected_uaas %}checked{% endif %}>
+                                <span>{{ chapter.uaa.code }} — {{ chapter.uaa.title }}
+                                    <span class="text-muted small">({{ chapter.available }})</span></span>
+                            </label>
+                            {% else %}
+                            <span class="d-flex gap-2 text-muted small">
+                                <i class="bi bi-hourglass-split mt-1" aria-hidden="true"></i>
+                                <span>{{ chapter.uaa.code }} — {{ chapter.uaa.title }} : pas encore de questions de quiz</span>
+                            </span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </details>
+                {% endif %}
+            </fieldset>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row g-4 mb-4">
+        <fieldset class="col-12 col-md-6">
+            <legend class="h4 mb-3">2. Combien de questions&nbsp;?</legend>
+            <div class="d-flex flex-wrap gap-2">
+                {% for n in lengths %}
+                <div>
+                    <input class="jc-answer-input" type="radio" name="questions" value="{{ n }}" id="len-{{ n }}"
+                           {% if n == default_length %}checked{% endif %}>
+                    <label class="jc-answer jc-answer-pill" for="len-{{ n }}"><strong>{{ n }}</strong>&nbsp;questions</label>
+                </div>
+                {% endfor %}
+            </div>
+        </fieldset>
+        <fieldset class="col-12 col-md-6">
+            <legend class="h4 mb-3">3. Quelle difficulté&nbsp;?</legend>
+            <div class="d-flex flex-wrap gap-2">
+                {% for value, label in difficulties %}
+                <div>
+                    <input class="jc-answer-input" type="radio" name="difficulte" value="{{ value.value }}" id="diff-{{ value.value }}"
+                           {% if value == default_difficulty %}checked{% endif %}>
+                    <label class="jc-answer jc-answer-pill" for="diff-{{ value.value }}">{{ label }}</label>
+                </div>
+                {% endfor %}
+            </div>
+        </fieldset>
+    </div>
+
+    <button type="submit" class="jc-btn jc-btn-primary">
+        <i class="bi bi-list-check" aria-hidden="true"></i> Voir le récapitulatif avant de jouer
+    </button>
+</form>
+
+<div class="jc-honest mb-4">
+    <p class="mb-2"><i class="bi bi-info-circle" aria-hidden="true"></i>
+        <strong>Ce que mesure le quiz.</strong>
+        Uniquement des questions à réponse objective (QCM, classement, remise en ordre) tirées des cours
+        de ton parcours. Les réponses rédigées, l'analyse de documents longue et l'oral se travaillent
+        dans « S'entraîner » et « Examen blanc ».
+    </p>
+    <p class="mb-0"><i class="bi bi-shield-check" aria-hidden="true"></i>
+        Le quiz est un jeu de révision&nbsp;: il ne compte ni comme entraînement ni comme examen blanc,
+        et ce n'est pas une note officielle.
+    </p>
+</div>
+
+{% if finished or stats %}
+<section aria-labelledby="quiz-history" class="mb-4">
+    <h2 id="quiz-history" class="h4 mb-3">Mes parties</h2>
+    {% if stats %}
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        {% for offer in catalog if offer.module.code in stats %}
+        {% set s = stats[offer.module.code] %}
+        <span class="jc-pill jc-pill-primary">
+            <i class="bi bi-{{ offer.track.icon }}" aria-hidden="true"></i>
+            {{ offer.track.title }} : {{ s.correct }}/{{ s.answered }} bonnes réponses ({{ s.pct }}&nbsp;%)
+        </span>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if finished %}
+    <div class="d-flex flex-column gap-2">
+        {% for quiz in finished %}
+        {% set p = quiz_params(quiz) %}
+        <a class="jc-quiz-row" href="/quiz/parties/{{ quiz.id }}">
+            <span><i class="bi bi-flag-fill" aria-hidden="true"></i> <strong>{{ p.label }}</strong></span>
+            <span class="text-muted small">
+                {{ "%g" | format(quiz.score or 0) }} / {{ quiz.question_count }} —
+                {{ quiz.completed_at.strftime('%d/%m/%Y') if quiz.completed_at else '' }}
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}

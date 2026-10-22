@@ -5,7 +5,11 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-12 col-md-10 col-lg-8">
-        <h1 class="h4 mb-3">Mes entraînements / évaluations</h1>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h1 class="h4 mb-0">Mes entraînements / évaluations</h1>
+            {# Ticket #75 : points faibles et renforcement ciblé. #}
+            <a href="/points-faibles" class="btn btn-outline-dark btn-sm">Mes points faibles</a>
+        </div>
 
         {% if not rows and not build_job_rows %}
         <p class="text-muted">Aucune session pour l'instant — commence un entraînement depuis une matière.</p>
@@ -67,6 +71,8 @@
                     </p>
                     <p class="small text-muted mb-0">
                         {{ session.question_count }} question(s)
+                        {% set requested_count = (session.parameters_json or {}).get('requested_question_count') %}
+                        {% if requested_count and requested_count != session.question_count %}(sur {{ requested_count }} choisies){% endif %}
                         {% if session.status.value == 'completed' %}
                         — score : {{ session.score }} / {{ session.question_count }}
                         {% if row.severity_label %} — sévérité : {{ row.severity_label }}{% endif %}

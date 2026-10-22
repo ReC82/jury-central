@@ -25,6 +25,21 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     ai_request_timeout_seconds: float = 20.0
 
+    # Génération d'images pédagogiques (ticket #108) — réutilise `openai_api_key`
+    # ci-dessus (même compte, même clé), mais un modèle et un délai DISTINCTS de ceux
+    # utilisés pour la génération/correction d'exercices : ne jamais changer
+    # `openai_model`/`ai_request_timeout_seconds` pour cette fonctionnalité séparée
+    # (voir app/ai/image_provider.py). Délai plus long que l'appel texte : une génération
+    # d'image complexe peut prendre jusqu'à 2 minutes (doc officielle OpenAI, 2026-10).
+    openai_image_model: str = "gpt-image-2.5-flare"
+    ai_image_request_timeout_seconds: float = 120.0
+
+    # Coût IA ESTIMÉ affiché dans l'admin (ticket #46), en USD par million de jetons —
+    # simple estimation indicative (aucun paiement réel), à ajuster si le tarif du modèle
+    # change. Jamais lu ailleurs que dans `app/v1/ai_usage.py`.
+    ai_cost_input_per_million: float = 1.25
+    ai_cost_output_per_million: float = 10.0
+
     model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".env"), extra="ignore")
 
 

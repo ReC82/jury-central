@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Visuels — Admin Jury Central{% endblock %}
+
+{% block content %}
+{% set page_title = "Visuels de la banque" %}
+{% set active = "assets" %}
+{% include "_admin_bank_nav.html" %}
+
+{% if message %}<div class="alert alert-success small" role="status">{{ message }}</div>{% endif %}
+
+<p class="small text-muted">Photos réelles, illustrations générées et schémas techniques utilisés par les questions.
+    Un même visuel est enregistré une seule fois et partagé entre questions. Un visuel marqué incorrect retire
+    du tirage les questions qui l'utilisent, sans modifier les sessions passées.</p>
+
+{% set next_question = "" %}
+{% for row in rows %}
+{% include "_admin_asset_card.html" %}
+{% else %}
+<p class="text-muted">Aucun visuel enregistré pour l'instant (la banque visuelle MC01 est créée à la première ouverture de MC01 « S'entraîner » ou « S'évaluer »).</p>
+{% endfor %}
+{% endblock %}

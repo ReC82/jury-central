@@ -1,0 +1,19 @@
+{# Ticket #48 : visuels d'une question (photo réelle, illustration générée, schéma
+   technique). `assets` = liste de `app.v1.assets.asset_display`. Responsive : largeur
+   100 % du conteneur, hauteur plafonnée, lien « agrandir » pour zoomer sur mobile. #}
+{% for asset in assets %}
+<figure class="question-asset mb-3 text-center">
+    <a href="{{ asset.url }}" target="_blank" rel="noopener" title="Agrandir l'image">
+        <img src="{{ asset.url }}" alt="{{ asset.alt }}" loading="lazy"
+             class="img-fluid rounded border bg-white"
+             style="max-height: 60vh; width: auto; object-fit: contain;">
+    </a>
+    <figcaption class="small text-muted mt-1">
+        {% if asset.caption %}{{ asset.caption }}<br>{% endif %}
+        <span class="badge text-bg-light border">{{ asset.visual_type_label }}</span>
+        {% if asset.author %}{{ asset.author }}{% endif %}{% if asset.license %} — {{ asset.license }}{% endif %}
+        {% if asset.source_url %} — <a href="{{ asset.source_url }}" target="_blank" rel="noopener">source</a>{% endif %}
+        <span class="d-print-none"> — <a href="{{ asset.url }}" target="_blank" rel="noopener">agrandir</a></span>
+    </figcaption>
+</figure>
+{% endfor %}

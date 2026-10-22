@@ -1,0 +1,43 @@
+{# Tuile de matière du parcours (ticket #136). Attend `view` (voir
+app.v1.parcours.build_track_view). Progression = actions réellement enregistrées. #}
+{% set track = view.track %}
+<article class="jc-tile jc-theme-{{ track.theme }}">
+    <div class="jc-tile-art" aria-hidden="true">
+        {% include "_parcours_art.html" %}
+        <span class="jc-pill jc-tile-role">
+            {% if track.role == "option" %}<i class="bi bi-star-fill"></i> Option{% else %}<i class="bi bi-bookmark"></i> Formation commune{% endif %}
+        </span>
+    </div>
+    <div class="jc-tile-body">
+        <h3 class="jc-tile-title">
+            <a href="/modules/{{ view.module.slug }}">{{ track.title }}</a>
+        </h3>
+        <p class="text-muted small mb-0">{{ track.tagline }}</p>
+        <p class="jc-stat mb-0">
+            <i class="bi bi-journal-check" aria-hidden="true"></i>
+            <strong>{{ view.available_count }}</strong> cours disponible{{ 's' if view.available_count > 1 }}
+            {% if view.planned_count > view.available_count %}
+            sur {{ view.planned_count }} prévus
+            {% endif %}
+        </p>
+        {% if current_user %}
+        <div>
+            <div class="d-flex justify-content-between jc-stat mb-1">
+                <span>Entraînés&nbsp;: {{ view.practiced_count }}/{{ view.available_count }}</span>
+                <span><i class="bi bi-patch-check" aria-hidden="true"></i> Examens blancs réussis&nbsp;: {{ view.passed_count }}</span>
+            </div>
+            <div class="jc-meter" role="progressbar" aria-label="Cours entraînés en {{ track.title }}"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ view.practiced_pct }}">
+                <span style="width: {{ view.practiced_pct }}%"></span>
+            </div>
+        </div>
+        {% endif %}
+        <div class="jc-tile-actions">
+            {% if view.next_course %}
+            <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/uaa/{{ view.next_course.uaa.slug }}">
+                <i class="bi bi-play" aria-hidden="true"></i> {{ view.next_course.uaa.code }} — {{ view.next_course.uaa.title | truncate(38) }}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</article>

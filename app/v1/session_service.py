@@ -12,7 +12,7 @@ import random
 import time
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import update
@@ -29,6 +29,7 @@ from app.ai.schemas import (
     QuestionnaireRequest,
 )
 from app.answer_checking import normalize_text
+from app.config import settings
 from app.v1.ai_bridge import (
     BRIDGE_TYPES,
     DOCUMENT_TYPES,
@@ -36,15 +37,22 @@ from app.v1.ai_bridge import (
     content_to_questionnaire_question,
     describe_submitted_answer,
 )
+from app.v1.ai_usage import KIND_CORRECTION, KIND_GENERATION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
+from app.v1.assets import asset_display, assets_for_version
 from app.v1.bank import (
     persist_generated_questions,
     recent_seen_prompts,
     select_bank_questions,
+    select_fse_transversal_bank_questions,
     select_transversal_bank_questions,
 )
 from app.v1.dedup import is_near_duplicate, question_signature
+from app.v1.display_order import SNAPSHOT_KEY as DISPLAY_ORDER_KEY
+from app.v1.display_order import apply_display_order, build_display_order
 from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE, get_francais_context
+from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, FSE_PLAN_BY_CODE, get_fse_context
+from app.v1.generation_control import is_generation_paused
 from app.v1.hybrid_correction import correct_session_hybrid, correct_session_hybrid_resumable
 from app.v1.mc38_transversal import (
     MC38_CODE,
@@ -58,6 +66,7 @@ from app.v1.models import (
     CorrectionJob,
     CorrectionJobStatus,
     Question,
+    QuestionDifficulty,
     QuestionnaireSession,
     SessionAnswer,
     SessionBuildJob,
@@ -70,9 +79,26 @@ from app.v1.models import (
     User,
     record_question_seen,
 )
+from app.v1.rating import (
+    apply_session_rating_safely,
+    generation_difficulty_fr,
+    in_adaptive_band,
+    user_rating_value,
+)
 
 DEFAULT_QUESTION_COUNT = 10
 GLOBAL_EXAM_QUESTION_COUNT = 20
+# Ticket #86 : longueurs de session proposées AVANT création (sélecteur « Nombre de
+# questions »). 50 uniquement pour les parcours qui couvrent tout le programme AMPCR (MC38
+# et examen blanc/entraînement global) — jamais pour un mini-cours isolé.
+SESSION_LENGTH_OPTIONS = (10, 20, 30, 40)
+GLOBAL_SESSION_LENGTH_OPTIONS = (10, 20, 30, 40, 50)
+# Ticket #86 : au-delà de 20 questions manquantes (sessions de 30/40/50), la génération est
+# découpée en appels de cette taille (le délai d'un appel IA est borné, voir
+# `settings.ai_request_timeout_seconds`) — les volumes historiques 10/20 restent à UN seul
+# appel comme avant (invariant du ticket #55).
+GENERATION_BATCH_SIZE = 20
+REQUESTED_COUNT_KEY = "requested_question_count"
 LONG_SEMANTIC_TYPES = frozenset({"long_answer", "diagnostic", "procedure", "troubleshooting"}) | DOCUMENT_TYPES
 MAX_LONG_SEMANTIC_PER_SESSION = 3
 # Ticket #94 (validation staging PHASE A) : `BRIDGE_TYPES` (app.v1.ai_bridge) inclut
@@ -84,6 +110,9 @@ MAX_LONG_SEMANTIC_PER_SESSION = 3
 # génération IA comblait l'écart — sans cette restriction, il pouvait produire un QCM/un
 # ordering hors périmètre pédagogique Français.
 FRANCAIS_EXCLUDED_GENERATION_TYPES = frozenset({"multiple_choice", "ordering", "diagnostic"})
+# Ticket #75 : marqueur `parameters_json["scope"]` d'un examen ciblé « points faibles »
+# (questions de plusieurs cours d'un module, composées par `app.v1.weakness`).
+WEAKNESS_EXAM_SCOPE = "weakness_exam"
 
 # Ticket #68 § 15 : « priorité qualité > économie de tokens » — si la validation métier
 # (`app.v1.domain_validation`) rejette une partie d'un lot généré (ex. une question IPv4
@@ -122,6 +151,22 @@ _SEVERITY_UI_TO_INTERNAL = {
 }
 
 
+def _adaptive_target(
+    db: DBSession, *, user_id: int, module_id: int, difficulty: SessionDifficultyRequest
+) -> float | None:
+    """Niveau visé pour une session `ADAPTIVE` (ticket #45) : le rating de l'utilisateur
+    dans CE module (jamais un rating global) ; `None` pour toute autre difficulté."""
+    if difficulty != SessionDifficultyRequest.ADAPTIVE:
+        return None
+    return user_rating_value(db, user_id=user_id, module_id=module_id)
+
+
+def _generation_difficulty_fr(difficulty: SessionDifficultyRequest, target_rating: float | None) -> str:
+    if target_rating is not None:
+        return generation_difficulty_fr(target_rating)
+    return _DIFFICULTY_TO_FRENCH[difficulty]
+
+
 class SessionCreationError(Exception):
     """La banque est vide et la génération a échoué : aucune question disponible du
     tout — cas limite documenté, ne devrait normalement jamais se produire une fois la
@@ -140,6 +185,9 @@ class QuestionDisplay:
     answer_json: dict
     source_documents: list[SourceDocumentVersion]
     source_document_labels: list[str]
+    # Ticket #48 : visuels de la question (`app.v1.assets.asset_display`), dans l'ordre
+    # de rattachement à la QuestionVersion figée de la session.
+    assets: list[dict] = field(default_factory=list)
 
 
 def _generate_with_domain_retry(
@@ -163,32 +211,61 @@ def _generate_with_domain_retry(
     `MAX_DOMAIN_REGENERATION_ATTEMPTS` tentatives de complément — jamais de boucle
     infinie si le fournisseur produit systématiquement du contenu techniquement invalide ;
     le manque éventuel après cette limite reste à la charge de l'appelant, jamais une
-    question invalide servie pour compléter artificiellement une session."""
-    request = build_request(missing)
-    questionnaire = generate_questionnaire(provider, request)
-    persisted, domain_rejected = persist_batch(questionnaire)
-    collected: list[Question] = list(persisted)
-    remaining = missing - len(collected)
+    question invalide servie pour compléter artificiellement une session.
 
+    Ticket #86 (sessions de 20 à 50 questions) : le manque est demandé par lots de
+    `GENERATION_BATCH_SIZE` — un seul appel tant que `missing <= 20`. Si un lot SUIVANT
+    échoue côté fournisseur, les lots déjà persistés sont conservés (seul un échec du
+    PREMIER lot remonte à l'appelant)."""
+    collected: list[Question] = []
     attempts = 0
-    while remaining > 0 and domain_rejected > 0 and attempts < MAX_DOMAIN_REGENERATION_ATTEMPTS:
-        request = build_request(remaining)
-        questionnaire = generate_questionnaire(provider, request)
+    while len(collected) < missing:
+        batch_size = min(missing - len(collected), GENERATION_BATCH_SIZE)
+        request = build_request(batch_size)
+        if collected:
+            # Ticket #86 : un lot suivant ne doit jamais reproduire un énoncé du lot précédent.
+            request = replace(
+                request,
+                avoid_prompts=(*_prompts_of(collected), *request.avoid_prompts),
+            )
+        try:
+            questionnaire = generate_questionnaire(provider, request)
+        except AIProviderError:
+            if not collected:
+                raise
+            break  # garde les lots déjà persistés ; repli banque côté appelant.
         persisted, domain_rejected = persist_batch(questionnaire)
         collected.extend(persisted)
-        remaining = missing - len(collected)
-        attempts += 1
+        if len(persisted) >= batch_size:
+            continue
+        # Lot incomplet : nouvel appel uniquement si le manque vient de la validation métier.
+        if domain_rejected > 0 and attempts < MAX_DOMAIN_REGENERATION_ATTEMPTS:
+            attempts += 1
+            continue
+        break
     return collected
 
 
-def compose_selection(pool: list[Question], count: int) -> list[Question]:
-    """Répartit la sélection entre types disponibles (round-robin, diversité maximale) en
-    plafonnant STRICTEMENT les types sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION`
-    (§ 14 du ticket #55 : « maximum 3 réponses longues/sémantiques » — règle stricte, pas
-    seulement une préférence). Peut retourner MOINS de `count` questions si la banque
-    disponible ne fournit pas assez de types non-sémantiques : à l'appelant
-    (`start_session`) de compléter par génération ciblée plutôt que de violer le
-    plafond en repêchant des types déjà plafonnés."""
+def _prompts_of(questions: list[Question]) -> list[str]:
+    prompts = []
+    for question in questions:
+        content = question.current_version.content_json if question.current_version else None
+        prompt = str((content or {}).get("prompt", "")).strip()
+        if prompt:
+            prompts.append(prompt)
+    return prompts
+
+
+def _round_robin_fill(
+    pool: list[Question], count: int, selected: list[Question], long_count: int
+) -> tuple[list[Question], int]:
+    """Cœur du round-robin par type (diversité maximale), plafonnant STRICTEMENT les types
+    sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION` (§ 14 du ticket #55) — extrait de
+    `compose_selection` (ticket #96, review) pour pouvoir être appelé deux fois de suite
+    (d'abord sur les questions de la difficulté demandée, puis sur le reste) SANS jamais
+    réinitialiser `long_count` entre les deux appels : le plafond doit rester valable sur
+    l'ensemble de la session, pas recommencer à zéro à la deuxième passe. Étend `selected`
+    EN PLACE (accumulateur) et renvoie `(selected, long_count)` mis à jour."""
     by_type: dict[str, list[Question]] = defaultdict(list)
     for question in pool:
         by_type[question.current_version.question_type].append(question)
@@ -198,8 +275,6 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
     type_cycle = list(by_type.keys())
     random.shuffle(type_cycle)
 
-    selected: list[Question] = []
-    long_count = 0
     progressed = True
     while len(selected) < count and progressed:
         progressed = False
@@ -216,6 +291,73 @@ def compose_selection(pool: list[Question], count: int) -> list[Question]:
             long_count += is_long
             progressed = True
 
+    return selected, long_count
+
+
+def _difficulty_predicate(
+    difficulty: SessionDifficultyRequest | None, target_rating: float | None
+) -> Callable[[Question], bool] | None:
+    """Critère « question de la difficulté demandée » : difficulté déclarée identique
+    (facile/moyen/difficile, ticket #96) ou, en `ADAPTIVE` avec un niveau connu (ticket
+    #45), rating dans la bande autour du niveau de l'utilisateur dans le module. `None` =
+    aucune préférence."""
+    if difficulty is not None and difficulty != SessionDifficultyRequest.ADAPTIVE:
+        target = QuestionDifficulty(difficulty.value)
+        return lambda q: q.difficulty_declared == target
+    if difficulty == SessionDifficultyRequest.ADAPTIVE and target_rating is not None:
+        return lambda q: in_adaptive_band(q, target_rating)
+    return None
+
+
+def compose_selection(
+    pool: list[Question],
+    count: int,
+    difficulty: SessionDifficultyRequest | None = None,
+    target_rating: float | None = None,
+) -> list[Question]:
+    """Répartit la sélection entre types disponibles (round-robin, diversité maximale) en
+    plafonnant STRICTEMENT les types sémantiques longs à `MAX_LONG_SEMANTIC_PER_SESSION`
+    (§ 14 du ticket #55 : « maximum 3 réponses longues/sémantiques » — règle stricte, pas
+    seulement une préférence). Peut retourner MOINS de `count` questions si la banque
+    disponible ne fournit pas assez de types non-sémantiques : à l'appelant
+    (`start_session`) de compléter par génération ciblée plutôt que de violer le
+    plafond en repêchant des types déjà plafonnés.
+
+    `difficulty` (ticket #96, review) : EXÉCUTE D'ABORD le round-robin type-diverse
+    EXCLUSIVEMENT sur les questions dont `difficulty_declared` correspond à `difficulty`
+    (`_round_robin_fill`, pool `matching`) — diversité de types maintenue, mais seulement
+    parmi cette difficulté. Si cette première passe atteint déjà `count`, la session EST
+    entièrement de la difficulté demandée (filtre réellement effectif, pas seulement une
+    préférence noyée dans la diversité de types). Seulement si elle ne suffit pas (banque
+    insuffisante pour cette difficulté — cas réel de FSE01, dont les 14 questions ne
+    couvrent par exemple que 3 `HARD`), une SECONDE passe complète avec le reste du pool,
+    en conservant le même compteur `long_count` (le plafond sémantique reste valable sur
+    l'ensemble des deux passes, jamais remis à zéro). Un simple tri/réordonnancement du
+    pool AVANT le groupage par type aurait été insuffisant : avec une banque aussi petite
+    que celle de FSE01 (14 questions pour 10 demandées), le round-robin par type consomme
+    presque tout le pool en 1-2 tours quel que soit l'ordre interne de chaque bucket — seule
+    une vraie première passe RESTREINTE à la difficulté demandée (pool filtré, pas
+    seulement trié) produit un effet réellement observable. Jamais un filtre strict qui
+    ferait échouer ou raccourcir une session : la seconde passe garantit toujours jusqu'à
+    `count` questions si le pool total le permet. No-op strict (comportement rigoureusement
+    identique à avant ce ticket) quand `difficulty` est `None`/`ADAPTIVE`, ou qu'aucune
+    question du pool ne porte de difficulté déclarée — jamais de changement pour les
+    matières qui n'en déclarent pas encore (Informatique AMPCR, Français ; vérifié par
+    `tests/test_ticket96_fse01.py::test_other_subjects_selection_is_byte_for_byte_unaffected_by_difficulty_priority`).
+
+    `ADAPTIVE` + `target_rating` (ticket #45, `app.v1.rating`) : la première passe porte
+    sur les questions dont le rating est dans la bande autour de `target_rating` (niveau
+    de l'utilisateur dans le module) ; sans `target_rating`, no-op comme avant."""
+    matches = _difficulty_predicate(difficulty, target_rating)
+    if matches is None or not any(matches(q) for q in pool):
+        selected, _ = _round_robin_fill(pool, count, [], 0)
+        return selected
+
+    matching = [q for q in pool if matches(q)]
+    other = [q for q in pool if not matches(q)]
+    selected, long_count = _round_robin_fill(matching, count, [], 0)
+    if len(selected) < count:
+        selected, long_count = _round_robin_fill(other, count, selected, long_count)
     return selected
 
 
@@ -290,10 +432,11 @@ def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn
     IMPORTANT : `compose_selection` regroupe son entrée par TYPE de question sans jamais
     tenir compte de l'ORDRE — réordonner `pool` sans réellement en exclure une partie
     n'aurait donc AUCUN effet sur la diversité obtenue en sortie. Cette fonction retire
-    donc réellement l'excédent d'une valeur dominante (au-delà de la moitié de
-    `target_count`) plutôt que de se contenter de le réordonner, sauf si cela laisserait
+    donc réellement l'excédent d'une valeur dominante (au-delà du plafond ci-dessous) plutôt que de se contenter de le réordonner, sauf si cela laisserait
     trop peu de questions au total (repli explicite, comme pour MC38 : pas besoin de
-    respecter exactement ces nombres si la banque disponible ne le permet pas)."""
+    respecter exactement ces nombres si la banque disponible ne le permet pas). Plafond
+    par valeur : voir `_min_distinct_keys` (ticket #86 ; auparavant la moitié de
+    `target_count`)."""
     by_key: dict[str, list[Question]] = defaultdict(list)
     for question in pool:
         key = key_fn(question)
@@ -306,7 +449,10 @@ def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn
     if len(by_key) <= 1:
         return pool
 
-    max_per_key = max(1, -(-target_count // 2))  # ceil(target_count / 2)
+    # Jamais plus de valeurs exigées que le pool n'en contient (sinon le plafond
+    # descendrait sous `target_count` et le repli réintroduirait tout l'excédent).
+    min_keys = min(_min_distinct_keys(target_count), len(by_key))
+    max_per_key = max(1, -(-target_count // min_keys))  # ceil
     capped = [question for bucket in by_key.values() for question in bucket[:max_per_key]]
     random.shuffle(capped)
 
@@ -316,6 +462,18 @@ def _diversity_capped_oversample(pool: list[Question], target_count: int, key_fn
         random.shuffle(leftovers)
         capped.extend(leftovers[: target_count * 3 - len(capped)])
     return capped
+
+
+def _min_distinct_keys(target_count: int) -> int:
+    """Ticket #86 § C : plus la session est longue, plus elle doit couvrir de catégories/
+    mini-cours — au moins 3 valeurs distinctes à 10 questions, 4 à 20, 6 au-delà (MC38 :
+    Hardware, Systèmes, Réseaux, Wi-Fi/Sécurité, Dépannage, Métier). Plafond d'une valeur =
+    `ceil(target_count / ce nombre)` ; repli sur les restes si la banque est trop étroite."""
+    if target_count <= DEFAULT_QUESTION_COUNT:
+        return 3
+    if target_count <= GLOBAL_EXAM_QUESTION_COUNT:
+        return 4
+    return 6
 
 
 def _ampcr_category_key(question: Question) -> str | None:
@@ -371,6 +529,46 @@ def _limit_near_duplicate_clusters(pool: list[Question], *, max_per_cluster: int
     return kept
 
 
+def session_length_options(*, uaa_id: int | None, uaa_code: str | None) -> tuple[int, ...]:
+    """Ticket #86 : longueurs proposables pour un parcours — 50 en plus pour MC38 et le
+    parcours global AMPCR (`uaa_id=None`), jamais pour un mini-cours isolé."""
+    if uaa_id is None or uaa_code == MC38_CODE:
+        return GLOBAL_SESSION_LENGTH_OPTIONS
+    return SESSION_LENGTH_OPTIONS
+
+
+def available_session_lengths(
+    db: DBSession, *, user: User, module_id: int, uaa_id: int | None, uaa_code: str | None
+) -> tuple[int, ...]:
+    """Ticket #86 § A : « ne pas afficher des choix impossibles ». Si la génération peut
+    compléter la banque (fournisseur configuré, module non en pause, parcours autre que
+    FSE17 — strictement banque), toutes les longueurs sont proposées : `start_session`
+    génère le manque. Sinon, seules celles que la banque couvre SANS doublon (#82) —
+    toujours au moins la plus courte (session éventuellement plus courte, comme avant)."""
+    options = session_length_options(uaa_id=uaa_id, uaa_code=uaa_code)
+    can_generate = (
+        uaa_code != FSE17_CODE
+        and bool(settings.openai_api_key)
+        and not is_generation_paused(db, module_id)
+    )
+    if can_generate:
+        return options
+    limit = max(options)
+    if uaa_code == MC38_CODE:
+        pool = select_transversal_bank_questions(db, user_id=user.id, module_id=module_id, limit=limit)
+    elif uaa_code == FSE17_CODE:
+        pool = select_fse_transversal_bank_questions(db, user_id=user.id, module_id=module_id, limit=limit)
+    else:
+        pool = select_bank_questions(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=limit)
+    distinct = len(deduplicate_intra_session(pool))
+    return tuple(n for n in options if n <= distinct) or options[:1]
+
+
+def requested_question_count(session: QuestionnaireSession) -> int | None:
+    """Longueur choisie avant création (ticket #86), `None` pour une session antérieure."""
+    return (session.parameters_json or {}).get(REQUESTED_COUNT_KEY)
+
+
 def get_in_progress_session(
     db: DBSession,
     *,
@@ -404,7 +602,7 @@ def get_in_progress_session(
         # caractéristique « plusieurs mini-cours » sans être une vraie session globale
         # /modules/ampcr/... — même classe de bug que ci-dessus, à ne pas réintroduire.
         for candidate in sessions:
-            if (candidate.parameters_json or {}).get("scope") == MC38_SESSION_SCOPE:
+            if (candidate.parameters_json or {}).get("scope") in (MC38_SESSION_SCOPE, WEAKNESS_EXAM_SCOPE):
                 continue
             uaa_ids = {
                 sq.question_version.question.uaa_id
@@ -415,6 +613,9 @@ def get_in_progress_session(
                 return candidate
         return None
     for candidate in sessions:
+        # Ticket #75 : un examen ciblé « points faibles » n'est jamais l'examen d'un cours.
+        if (candidate.parameters_json or {}).get("scope") == WEAKNESS_EXAM_SCOPE:
+            continue
         first_question = candidate.session_questions[0] if candidate.session_questions else None
         if first_question and first_question.question_version.question.uaa_id == uaa_id:
             return candidate
@@ -430,6 +631,11 @@ def _pedagogical_context_for(uaa_code: str | None) -> PedagogicalContext:
     if uaa_code and uaa_code in FRANCAIS_PLAN_BY_CODE:
         plan = FRANCAIS_PLAN_BY_CODE[uaa_code]
         context = get_francais_context(plan.course_key)
+        if context is not None:
+            return context
+    if uaa_code and uaa_code in FSE_PLAN_BY_CODE:
+        plan = FSE_PLAN_BY_CODE[uaa_code]
+        context = get_fse_context(plan.course_key)
         if context is not None:
             return context
     # Parcours global : contexte générique couvrant l'ensemble du programme AMPCR.
@@ -453,6 +659,7 @@ def _finalize_session(
     difficulty: SessionDifficultyRequest,
     selected: list[Question],
     parameters_json: dict | None = None,
+    requested_question_count: int | None = None,
 ) -> QuestionnaireSession:
     """Construit la `QuestionnaireSession`/`SessionQuestion` à partir d'une sélection déjà
     prête — factorisé entre le parcours per-MC/global (`start_session`) et le parcours
@@ -465,8 +672,14 @@ def _finalize_session(
     soit ce qui a pu se produire en amont. `question_count` reflète le nombre RÉEL de
     questions retenues après cette garde (jamais le nombre demandé si la garde en a
     retiré) — une session plus courte que prévu est acceptable, un doublon ne l'est
-    jamais."""
+    jamais.
+
+    Ticket #86 : `requested_question_count` (longueur choisie avant création) est
+    conservé dans `parameters_json["requested_question_count"]` pour l'historique/export,
+    à côté du nombre réel `question_count`."""
     selected = deduplicate_intra_session(selected)
+    if requested_question_count is not None:
+        parameters_json = {**(parameters_json or {}), REQUESTED_COUNT_KEY: requested_question_count}
     session = QuestionnaireSession(
         user_id=user.id,
         mode=mode,
@@ -480,26 +693,41 @@ def _finalize_session(
     db.flush()
 
     for position, question in enumerate(selected, start=1):
-        # Snapshot optionnel (§ H du modèle #38) : uniquement pour document_analysis
-        # (UN document) — jamais requis pour la relecture (résolue à l'affichage depuis
-        # content_json, voir `build_question_display`), simple dénormalisation utile.
-        # source_comparison référence plusieurs documents, non représentable par ce
-        # champ FK unique : laissé à None, sans conséquence fonctionnelle.
-        content = question.current_version.content_json or {}
-        source_document_version_id = content.get("source_document_version_id")
-        session_question = SessionQuestion(
-            session_id=session.id,
-            question_version_id=question.current_version_id,
-            position=position,
-            points_max=1.0,
-            source_document_version_id=source_document_version_id,
-        )
-        db.add(session_question)
-        record_question_seen(
-            db, user_id=user.id, question_version=question.current_version, session_id=session.id
-        )
+        add_session_question(db, session=session, question=question, position=position, user_id=user.id)
     db.commit()
     return session
+
+
+def add_session_question(
+    db: DBSession, *, session: QuestionnaireSession, question: Question, position: int, user_id: int
+) -> SessionQuestion:
+    """Sert la version courante de `question` à la position donnée (sans commit) — utilisé
+    par `_finalize_session` et par le renforcement ciblé (ticket #75), qui ajoute une
+    variante en cours de session après une erreur."""
+    # Snapshot optionnel (§ H du modèle #38) : uniquement pour document_analysis
+    # (UN document) — jamais requis pour la relecture (résolue à l'affichage depuis
+    # content_json, voir `build_question_display`), simple dénormalisation utile.
+    # source_comparison référence plusieurs documents, non représentable par ce
+    # champ FK unique : laissé à None, sans conséquence fonctionnelle.
+    content = question.current_version.content_json or {}
+    source_document_version_id = content.get("source_document_version_id")
+    session_question = SessionQuestion(
+        session=session,
+        question_version_id=question.current_version_id,
+        position=position,
+        points_max=1.0,
+        source_document_version_id=source_document_version_id,
+    )
+    # Ticket #150 : ordre d'affichage des réponses propre à cette question servie,
+    # persisté (stable à la reprise) — la banque n'est jamais modifiée.
+    display_order = build_display_order(question.current_version.question_type, content)
+    if display_order:
+        session_question.content_snapshot_json = {DISPLAY_ORDER_KEY: display_order}
+    db.add(session_question)
+    record_question_seen(
+        db, user_id=user_id, question_version=question.current_version, session_id=session.id
+    )
+    return session_question
 
 
 def _start_mc38_transversal_session(
@@ -527,14 +755,21 @@ def _start_mc38_transversal_session(
     Anti-répétition (ticket #64 § 1) : la sélection banque initiale n'interroge QUE des
     questions jamais vues (`only_unseen=True`) — une question déjà vue n'est reprise qu'en
     tout dernier recours, ci-dessous, après tentative de génération."""
+    target_rating = _adaptive_target(db, user_id=user.id, module_id=module_id, difficulty=difficulty)
     oversample = select_transversal_bank_questions(
         db, user_id=user.id, module_id=module_id, limit=question_count * 3, only_unseen=True
     )
     oversample = _category_balanced_oversample(oversample, question_count)
     oversample = _limit_near_duplicate_clusters(oversample)
-    selected = compose_selection(oversample, question_count)
+    # Ticket #96 (review) : `difficulty` transmis pour cohérence avec `start_session` —
+    # no-op ici en pratique tant qu'aucune question MC01-38 ne déclare de difficulté (voir
+    # `compose_selection`, docstring).
+    selected = compose_selection(
+        oversample, question_count, difficulty=difficulty, target_rating=target_rating
+    )
 
-    if len(selected) < question_count:
+    # Ticket #46 : génération en pause pour ce module (admin) → banque uniquement.
+    if len(selected) < question_count and not is_generation_paused(db, module_id):
         missing = question_count - len(selected)
         long_count = sum(
             1 for q in selected if q.current_version.question_type in LONG_SEMANTIC_TYPES
@@ -545,7 +780,7 @@ def _start_mc38_transversal_session(
             else BRIDGE_TYPES
         )
         contexts = pick_transversal_contexts()
-        difficulty_fr = _DIFFICULTY_TO_FRENCH[difficulty]
+        difficulty_fr = _generation_difficulty_fr(difficulty, target_rating)
         avoid_prompts = tuple(recent_seen_prompts(db, user_id=user.id, module_id=module_id))
 
         def _persist_non_meta(questionnaire: Questionnaire) -> tuple[list[Question], int]:
@@ -591,7 +826,78 @@ def _start_mc38_transversal_session(
 
     return _finalize_session(
         db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
-        parameters_json={"scope": MC38_SESSION_SCOPE},
+        parameters_json={"scope": MC38_SESSION_SCOPE}, requested_question_count=question_count,
+    )
+
+
+def _start_fse_transversal_session(
+    db: DBSession,
+    *,
+    user: User,
+    module_id: int,
+    mode: SessionMode,
+    difficulty: SessionDifficultyRequest,
+    question_count: int,
+) -> QuestionnaireSession:
+    """FSE17 (ticket #101) : même principe que `_start_mc38_transversal_session`, mais
+    strictement BANQUE — FSE17 n'est pas une matière propre, ses sessions tirent
+    exclusivement dans FSE01→FSE16 (jamais dans son propre contenu de synthèse, voir
+    `app.v1.fse17_course`). Contrairement à MC38, AUCUNE génération IA n'est jamais
+    déclenchée ici : le volume de banque existant (16 cours × 14 questions = 224) suffit
+    très largement à couvrir `question_count` (20 pour un « examen blanc », voir
+    `GLOBAL_EXAM_QUESTION_COUNT`), conformément au principe FSE établi depuis le ticket #96
+    (banque hand-authored uniquement, jamais une nouvelle intégration IA).
+
+    `difficulty` réalise concrètement les « trois examens blancs progressifs » du ticket
+    #101 (facile/moyen/difficile) : `compose_selection` ci-dessous applique le même
+    correctif générique de priorisation par difficulté que pour chaque cours FSE pris
+    individuellement (ticket #96, review) — ici appliqué à l'ensemble du pool FSE01-16.
+
+    Ordre important (bug constaté en test, corrigé ici) : balancer par UAA AVANT de
+    connaître la difficulté (comme le fait `start_session` pour le parcours global AMPCR,
+    où la difficulté n'a jamais d'effet) détruirait le filtre de difficulté — avec 16 UAA
+    et seulement 3 questions `HARD` par cours (48 au total), un `_uaa_balanced_oversample`
+    appliqué sur tout le pool AVANT la difficulté ne retient qu'une poignée de `HARD` par
+    UAA avant même que `compose_selection` ne s'exécute. Ce correctif sépare donc d'abord
+    le pool par difficulté (comme le fait déjà `compose_selection` en interne), balance
+    CHAQUE sous-pool par UAA séparément, puis ne laisse `compose_selection` qu'ordonner
+    par type — jamais l'inverse."""
+    raw_pool = select_fse_transversal_bank_questions(
+        db, user_id=user.id, module_id=module_id, limit=question_count * 12, only_unseen=True
+    )
+    target_rating = _adaptive_target(db, user_id=user.id, module_id=module_id, difficulty=difficulty)
+    matches = _difficulty_predicate(difficulty, target_rating)
+    if matches is not None and any(matches(q) for q in raw_pool):
+        matching = [q for q in raw_pool if matches(q)]
+        other = [q for q in raw_pool if not matches(q)]
+        oversample = (
+            _uaa_balanced_oversample(matching, question_count)
+            + _uaa_balanced_oversample(other, question_count)
+        )
+    else:
+        oversample = _uaa_balanced_oversample(raw_pool, question_count)
+    oversample = _limit_near_duplicate_clusters(oversample)
+    selected = compose_selection(
+        oversample, question_count, difficulty=difficulty, target_rating=target_rating
+    )
+
+    if len(selected) < question_count:
+        # Jamais de génération IA pour FSE (voir docstring) : passe directement au dernier
+        # recours banque (questions déjà vues autorisées), même principe que
+        # `_start_mc38_transversal_session` après l'étape de génération (ici absente).
+        fallback_pool = select_fse_transversal_bank_questions(
+            db, user_id=user.id, module_id=module_id, limit=question_count * 5
+        )
+        if not fallback_pool and not selected:
+            raise SessionCreationError(
+                "Aucune question disponible pour la révision transversale FSE17 (banque "
+                "FSE01-16 vide)."
+            )
+        selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
+
+    return _finalize_session(
+        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
+        parameters_json={"scope": FSE17_SESSION_SCOPE}, requested_question_count=question_count,
     )
 
 
@@ -614,28 +920,38 @@ def start_session(
     MC38 (ticket #58) est délégué à `_start_mc38_transversal_session` : ce mini-cours
     n'est pas une matière propre, ses sessions tirent exclusivement dans MC01→MC37 (jamais
     dans son propre contexte « révision/mémorisation », source du bug de questions méta
-    constaté en validation staging)."""
+    constaté en validation staging). FSE17 (ticket #101) est délégué de la même façon à
+    `_start_fse_transversal_session`, strictement banque (FSE01→FSE16)."""
     if uaa_code == MC38_CODE:
         return _start_mc38_transversal_session(
             db, user=user, module_id=module_id, mc38_uaa_id=uaa_id, mode=mode, difficulty=difficulty,
             provider=provider, question_count=question_count,
         )
+    if uaa_code == FSE17_CODE:
+        return _start_fse_transversal_session(
+            db, user=user, module_id=module_id, mode=mode, difficulty=difficulty,
+            question_count=question_count,
+        )
 
     # Anti-répétition (ticket #64 § 1) : la sélection banque initiale n'interroge QUE des
     # questions jamais vues — une question déjà vue n'est reprise qu'en tout dernier
     # recours, plus bas, après tentative de génération.
+    target_rating = _adaptive_target(db, user_id=user.id, module_id=module_id, difficulty=difficulty)
     oversample = select_bank_questions(
         db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 3,
-        only_unseen=True,
+        only_unseen=True, difficulty=difficulty, target_rating=target_rating,
     )
     if uaa_id is None:
         # Parcours global/examen blanc AMPCR (§ 8 du ticket #64) : plusieurs mini-cours
         # obligatoires — jamais pertinent pour une session scopée à un seul UAA.
         oversample = _uaa_balanced_oversample(oversample, question_count)
     oversample = _limit_near_duplicate_clusters(oversample)
-    selected = compose_selection(oversample, question_count)
+    selected = compose_selection(
+        oversample, question_count, difficulty=difficulty, target_rating=target_rating
+    )
 
-    if len(selected) < question_count:
+    # Ticket #46 : génération en pause pour ce module (admin) → banque uniquement.
+    if len(selected) < question_count and not is_generation_paused(db, module_id):
         missing = question_count - len(selected)
         long_count = sum(
             1 for q in selected if q.current_version.question_type in LONG_SEMANTIC_TYPES
@@ -648,7 +964,7 @@ def start_session(
             allowed_type_pool = allowed_type_pool - FRANCAIS_EXCLUDED_GENERATION_TYPES
         allowed_types = tuple(allowed_type_pool)
         context = _pedagogical_context_for(uaa_code)
-        difficulty_fr = _DIFFICULTY_TO_FRENCH[difficulty]
+        difficulty_fr = _generation_difficulty_fr(difficulty, target_rating)
         avoid_prompts = tuple(
             recent_seen_prompts(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id)
         )
@@ -683,7 +999,8 @@ def start_session(
         # question déjà retenue (ticket #82 : une session plus courte que demandé est
         # acceptable, un doublon intra-session ne l'est jamais).
         fallback_pool = select_bank_questions(
-            db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5
+            db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5,
+            difficulty=difficulty, target_rating=target_rating,
         )
         if not fallback_pool and not selected:
             raise SessionCreationError(
@@ -693,13 +1010,23 @@ def start_session(
         selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
 
     return _finalize_session(
-        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected
+        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
+        requested_question_count=question_count,
     )
 
 
-def get_owned_session(db: DBSession, *, session_id: int, user_id: int) -> QuestionnaireSession | None:
+def get_owned_session(
+    db: DBSession, *, session_id: int, user_id: int, include_quiz: bool = False
+) -> QuestionnaireSession | None:
+    """`include_quiz` (ticket #137) : une partie de quiz (`SessionMode.QUIZ`) a son propre
+    cycle (validation question par question, `app.v1.quiz_service`) — par défaut elle est
+    invisible des routes d'entraînement/examen (réponse, soumission, correction, export),
+    qui ne peuvent donc jamais la modifier."""
     session = db.get(QuestionnaireSession, session_id)
     if session is None or session.user_id != user_id:
+        return None
+    # Ticket #75 : le renforcement ciblé suit le même cycle question par question.
+    if session.mode in (SessionMode.QUIZ, SessionMode.REINFORCEMENT) and not include_quiz:
         return None
     return session
 
@@ -711,6 +1038,10 @@ def describe_session_scope(session: QuestionnaireSession) -> str:
     (une seule UAA pour une session per-MC, plusieurs pour un parcours global)."""
     if (session.parameters_json or {}).get("scope") == MC38_SESSION_SCOPE:
         return "MC38 — Révision transversale (MC01→MC37)"
+    if (session.parameters_json or {}).get("scope") == FSE17_SESSION_SCOPE:
+        return "FSE17 — Révision transversale (FSE01→FSE16)"
+    if (session.parameters_json or {}).get("scope") == WEAKNESS_EXAM_SCOPE:
+        return "Examen ciblé — mes points faibles"
 
     uaa_titles: list[str] = []
     seen_ids: set[int] = set()
@@ -734,6 +1065,9 @@ def list_user_sessions(db: DBSession, *, user_id: int) -> list[QuestionnaireSess
     return (
         db.query(QuestionnaireSession)
         .filter_by(user_id=user_id)
+        # Ticket #137 : les parties de quiz ont leur propre historique (`/quiz`) ; ticket
+        # #75 : les renforcements ciblés, le leur (`/points-faibles`).
+        .filter(QuestionnaireSession.mode.notin_((SessionMode.QUIZ, SessionMode.REINFORCEMENT)))
         .order_by(QuestionnaireSession.created_at.desc())
         .all()
     )
@@ -794,6 +1128,7 @@ def build_question_display(db: DBSession, session_question: SessionQuestion) -> 
 
     version = session_question.question_version
     payload = public_payload(version.question_type, version.schema_version, version.content_json)
+    payload = apply_display_order(version.question_type, payload, session_question.content_snapshot_json)
     answer = session_question.answer
 
     # Français (ticket #47) : une question document_analysis/source_comparison/
@@ -813,6 +1148,7 @@ def build_question_display(db: DBSession, session_question: SessionQuestion) -> 
         answer_json=(answer.answer_json if answer else {}) or {},
         source_documents=source_documents,
         source_document_labels=source_document_labels,
+        assets=[asset_display(asset) for asset in assets_for_version(db, version.id)],
     )
 
 
@@ -861,7 +1197,7 @@ def _document_contexts_for(db: DBSession, session_questions: list[SessionQuestio
     return tuple(
         PedagogicalContext(
             course_key=f"source-document-{document.id}",
-            course_title=document.title or "Document source",
+            course_title=_numbered_title(document),
             level="Texte de référence pour les questions de cette session qui le citent",
             allowed_notions=[],
             competencies=[],
@@ -874,6 +1210,19 @@ def _document_contexts_for(db: DBSession, session_questions: list[SessionQuestio
         )
         for document in documents
     )
+
+
+def _numbered_title(document: SourceDocumentVersion) -> str:
+    """Titre transmis au correcteur, avec le numéro réel affiché à l'élève quand le document
+    en porte un (ticket #151 : un barème « s'appuie sur le document 3 » doit pouvoir être
+    relié au bon texte) — jamais une numérotation inventée."""
+    from app.v1.document_layouts import display_heading, resolve_layout
+
+    title = document.title or "Document source"
+    heading = display_heading(document, resolve_layout(document), "")
+    if heading["label"] and not title.startswith(heading["label"]):
+        return f"{heading['label']} — {title}"
+    return title
 
 
 def _build_questionnaire_inputs(
@@ -968,14 +1317,22 @@ def submit_session(
         return session
     session.status = SessionStatus.COMPLETED
 
+    tracker = UsageTrackingProvider(provider)
     try:
-        return _correct_and_finalize_claimed_session(
-            db, session=session, provider=provider, severity_ui=severity_ui
+        finalized = _correct_and_finalize_claimed_session(
+            db, session=session, provider=tracker, severity_ui=severity_ui
         )
     except Exception:
         session.status = SessionStatus.IN_PROGRESS
         db.commit()
         raise
+    # Ticket #46 : usage IA de la correction synchrone.
+    if record_ai_usage(
+        db, tracker, kind=KIND_CORRECTION, module_id=session.module_id, user_id=session.user_id,
+        session_id=session.id,
+    ) is not None:
+        db.commit()
+    return finalized
 
 
 def _correct_and_finalize_claimed_session(
@@ -1054,6 +1411,8 @@ def _correct_and_finalize_claimed_session(
     updated_parameters = dict(session.parameters_json or {})
     updated_parameters["severity"] = severity_ui
     session.parameters_json = updated_parameters
+    # Ticket #45 : rating adaptatif mis à jour UNE fois, au questionnaire terminé.
+    apply_session_rating_safely(db, session)
     db.commit()
     return session
 
@@ -1251,6 +1610,8 @@ def _resolve_correction_job(
     updated_parameters = dict(session.parameters_json or {})
     updated_parameters["severity"] = severity_ui
     session.parameters_json = updated_parameters
+    # Ticket #45 : rating adaptatif mis à jour UNE fois, au questionnaire terminé.
+    apply_session_rating_safely(db, session)
     db.commit()
     return session
 
@@ -1269,16 +1630,26 @@ def run_correction_job(db: DBSession, *, job: CorrectionJob, provider: AIProvide
         db.commit()
         return job
 
+    tracker = UsageTrackingProvider(provider)
     try:
-        _resolve_correction_job(db, session=session, provider=provider, severity_ui=job.severity_ui)
+        _resolve_correction_job(db, session=session, provider=tracker, severity_ui=job.severity_ui)
     except Exception as exc:  # noqa: BLE001 — job de fond, jamais de propagation vers un client HTTP
         db.rollback()
         job.status = CorrectionJobStatus.FAILED
         job.error_message = str(exc)[:2000]
+        record_ai_usage(
+            db, tracker, kind=KIND_CORRECTION, module_id=session.module_id, user_id=session.user_id,
+            session_id=session.id, failed=True,
+        )
         db.commit()
         return job
 
     db.refresh(session)
+    # Ticket #46 : usage IA de la correction (rien si tout a été corrigé localement).
+    record_ai_usage(
+        db, tracker, kind=KIND_CORRECTION, module_id=session.module_id, user_id=session.user_id,
+        session_id=session.id,
+    )
     job.status = (
         CorrectionJobStatus.COMPLETED
         if session.status == SessionStatus.COMPLETED
@@ -1536,17 +1907,26 @@ def run_session_build_job(db: DBSession, *, job: SessionBuildJob, provider: AIPr
         db.commit()
         return job
 
+    tracker = UsageTrackingProvider(provider)
     try:
         session = start_session(
             db, user=user, module_id=job.module_id, uaa_id=job.uaa_id, uaa_code=job.uaa_code,
-            mode=job.mode, difficulty=job.difficulty, provider=provider, question_count=job.question_count,
+            mode=job.mode, difficulty=job.difficulty, provider=tracker, question_count=job.question_count,
         )
     except Exception as exc:  # noqa: BLE001 — job de fond, jamais de propagation vers un client HTTP
         db.rollback()
         job.status = SessionBuildJobStatus.FAILED
         job.error_message = str(exc)[:2000]
+        record_ai_usage(
+            db, tracker, kind=KIND_GENERATION, module_id=job.module_id, user_id=job.user_id, failed=True
+        )
         db.commit()
         return job
+
+    # Ticket #46 : usage IA de la génération (rien si la session vient de la banque).
+    record_ai_usage(
+        db, tracker, kind=KIND_GENERATION, module_id=job.module_id, user_id=job.user_id, session_id=session.id
+    )
 
     job.status = SessionBuildJobStatus.READY
     job.created_session_id = session.id

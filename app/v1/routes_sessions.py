@@ -24,9 +24,12 @@ from app.ai.provider import AINotConfiguredError, AIProviderError
 from app.database import get_db
 from app.models import UAA, Module
 from app.templating import templates
+from app.v1.ai_usage import KIND_CORRECTION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_MODULE_CODE, get_plan_by_slug
-from app.v1.auth import require_user, require_user_api
+from app.v1.ampcr_visual_bank import import_mc01_visual_questions
+from app.v1.auth import require_user, require_user_api, validate_csrf_token
 from app.v1.bank import get_uaa_by_slug, import_mc01_legacy_to_bank
+from app.v1.feedback import FEEDBACK_LABELS, create_question_feedback, parse_feedback_type
 from app.v1.francais_bank import import_francais_c01_to_bank
 from app.v1.francais_fr01_05_bank import (
     import_francais_fr01_to_bank,
@@ -43,8 +46,28 @@ from app.v1.francais_fr06_10_bank import (
     import_francais_fr10_to_bank,
 )
 from app.v1.francais_plan import get_francais_plan_by_slug
+from app.v1.fse_bank import (
+    import_fse01_to_bank,
+    import_fse02_to_bank,
+    import_fse03_to_bank,
+    import_fse04_to_bank,
+    import_fse05_to_bank,
+    import_fse06_to_bank,
+    import_fse07_to_bank,
+    import_fse08_to_bank,
+    import_fse09_to_bank,
+    import_fse10_to_bank,
+    import_fse11_to_bank,
+    import_fse12_to_bank,
+    import_fse13_to_bank,
+    import_fse14_to_bank,
+    import_fse15_to_bank,
+    import_fse16_to_bank,
+)
+from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, get_fse_plan_by_slug
 from app.v1.mc38_transversal import MC38_CODE, MC38_SESSION_SCOPE
 from app.v1.models import (
+    DEFAULT_MODULE_RATING,
     QuestionnaireSession,
     SessionBuildJob,
     SessionBuildJobStatus,
@@ -54,6 +77,7 @@ from app.v1.models import (
     SourceDocumentVersion,
     User,
 )
+from app.v1.rating import get_user_module_rating
 from app.v1.session_service import (
     DEFAULT_QUESTION_COUNT,
     GLOBAL_EXAM_QUESTION_COUNT,
@@ -69,6 +93,7 @@ from app.v1.session_service import (
     # (`build_question_display`) et que le correcteur IA (`_document_contexts_for`),
     # plutôt que d'en réimplémenter une troisième copie qui pourrait diverger.
     _referenced_document_ids,
+    available_session_lengths,
     build_question_display,
     describe_session_scope,
     enqueue_correction,
@@ -78,9 +103,11 @@ from app.v1.session_service import (
     get_owned_session,
     get_session_build_job,
     list_user_sessions,
+    requested_question_count,
     retry_correction_job,
     retry_session_build_job,
     save_answer,
+    session_length_options,
     simulate_severity_comparison,
 )
 
@@ -112,7 +139,18 @@ _DIFFICULTY_LABELS = {
     SessionDifficultyRequest.EASY: "Facile",
     SessionDifficultyRequest.MEDIUM: "Moyen",
     SessionDifficultyRequest.HARD: "Difficile",
+    # Ticket #45 : sélection autour du niveau de l'utilisateur dans le module.
+    SessionDifficultyRequest.ADAPTIVE: "Adaptatif (selon ton niveau dans ce module)",
 }
+
+
+def _module_rating_context(db, *, user: User, module: Module) -> dict:
+    """Niveau de l'utilisateur dans CE module (ticket #45), affiché sur la page de
+    démarrage — jamais un niveau global toutes matières confondues."""
+    row = get_user_module_rating(db, user_id=user.id, module_id=module.id)
+    if row is None:
+        return {"rating": round(DEFAULT_MODULE_RATING), "sessions_count": 0, "module_code": module.code}
+    return {"rating": round(row.rating), "sessions_count": row.sessions_count, "module_code": module.code}
 
 
 def _ampcr_module(db) -> Module:
@@ -135,15 +173,41 @@ _FRANCAIS_BANK_IMPORTERS = {
     "francais-fr10": import_francais_fr10_to_bank,
 }
 
+# Ticket #96/#97/#98 : même mécanisme que `_FRANCAIS_BANK_IMPORTERS` ci-dessus, pour la
+# matière Formation sociale et économique.
+_FSE_BANK_IMPORTERS = {
+    "fse-fse01": import_fse01_to_bank,
+    "fse-fse02": import_fse02_to_bank,
+    "fse-fse03": import_fse03_to_bank,
+    "fse-fse04": import_fse04_to_bank,
+    "fse-fse05": import_fse05_to_bank,
+    "fse-fse06": import_fse06_to_bank,
+    "fse-fse07": import_fse07_to_bank,
+    "fse-fse08": import_fse08_to_bank,
+    "fse-fse09": import_fse09_to_bank,
+    "fse-fse10": import_fse10_to_bank,
+    "fse-fse11": import_fse11_to_bank,
+    "fse-fse12": import_fse12_to_bank,
+    "fse-fse13": import_fse13_to_bank,
+    "fse-fse14": import_fse14_to_bank,
+    "fse-fse15": import_fse15_to_bank,
+    "fse-fse16": import_fse16_to_bank,
+    # FSE17 (ticket #101) volontairement ABSENT de ce dict : révision transversale sans
+    # banque propre, voir app.v1.session_service._start_fse_transversal_session (même
+    # principe que MC38, qui n'est pas non plus dans _FRANCAIS_BANK_IMPORTERS/ci-dessus).
+}
+
 
 def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
     """Amorce paresseuse de la banque hand-authored au premier accès practice/exam de
-    l'UAA concernée — MC01 (ticket #55), Français C01 (ticket #47) et FR01→FR05 (ticket
-    #94, PHASE A), même principe (idempotent, jamais de doublon). `_FRANCAIS_BANK_
-    IMPORTERS` évite d'accumuler un `elif` par cours à mesure que FR06→FR20 sont ajoutés
-    (phases B/C/D)."""
+    l'UAA concernée — MC01 (ticket #55), Français C01 (ticket #47), FR01→FR05 (ticket #94,
+    PHASE A) et FSE01 (ticket #96), même principe (idempotent, jamais de doublon).
+    `_FRANCAIS_BANK_IMPORTERS`/`_FSE_BANK_IMPORTERS` évitent d'accumuler un `elif` par
+    cours à mesure que de nouveaux mini-cours sont ajoutés."""
     if uaa.slug == "ampcr-mc01":
         import_mc01_legacy_to_bank(db, module, uaa)
+        # Ticket #48 : questions d'identification visuelle (idempotent, assets sans doublon).
+        import_mc01_visual_questions(db, module, uaa)
         db.commit()
     elif uaa.slug == "francais-c01":
         import_francais_c01_to_bank(db, module, uaa)
@@ -151,20 +215,29 @@ def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
     elif uaa.slug in _FRANCAIS_BANK_IMPORTERS:
         _FRANCAIS_BANK_IMPORTERS[uaa.slug](db, module, uaa)
         db.commit()
+    elif uaa.slug in _FSE_BANK_IMPORTERS:
+        _FSE_BANK_IMPORTERS[uaa.slug](db, module, uaa)
+        db.commit()
 
 
 # --- Landing pages (appelées depuis app/main.py pour les UAA AMPCR) ---------------------------
 
 
 def _resumable_session_for_uaa(db, *, user_id: int, module_id: int, mode: SessionMode, uaa: UAA):
-    """Repère une session per-MC déjà en cours pour `uaa`. MC38 (ticket #58) est un cas
-    particulier : ses questions appartiennent à MC01→MC37, jamais à MC38 lui-même, donc
-    `uaa_id=uaa.id` ne matcherait jamais — on utilise le marqueur `scope` à la place (voir
+    """Repère une session per-MC déjà en cours pour `uaa`. MC38 (ticket #58) et FSE17
+    (ticket #101) sont des cas particuliers : leurs questions appartiennent respectivement
+    à MC01→MC37 et FSE01→FSE16, jamais à MC38/FSE17 eux-mêmes, donc `uaa_id=uaa.id` ne
+    matcherait jamais — on utilise le marqueur `scope` à la place (voir
     `get_in_progress_session`)."""
     plan = get_plan_by_slug(uaa.slug)
     if plan is not None and plan.code == MC38_CODE:
         return get_in_progress_session(
             db, user_id=user_id, module_id=module_id, mode=mode, scope=MC38_SESSION_SCOPE
+        )
+    fse_plan = get_fse_plan_by_slug(uaa.slug)
+    if fse_plan is not None and fse_plan.code == FSE17_CODE:
+        return get_in_progress_session(
+            db, user_id=user_id, module_id=module_id, mode=mode, scope=FSE17_SESSION_SCOPE
         )
     return get_in_progress_session(db, user_id=user_id, module_id=module_id, mode=mode, uaa_id=uaa.id)
 
@@ -177,6 +250,62 @@ def _is_unstarted(session: QuestionnaireSession | None) -> bool:
     reste intacte pour tout usage réel — seule la répétition EXACTE et IMMÉDIATE de la
     création (aucune réponse entre les deux) est traitée comme un doublon."""
     return session is not None and all(sq.answer is None for sq in session.session_questions)
+
+
+def _uaa_code_for(uaa: UAA) -> str | None:
+    """Code de plan (MC01-38, FR01…, FSE01-17) d'une UAA, `None` si non enregistrée."""
+    plan = get_plan_by_slug(uaa.slug)
+    if plan is not None:
+        return plan.code
+    francais_plan = get_francais_plan_by_slug(uaa.slug)
+    if francais_plan is not None:
+        return francais_plan.code
+    # Ticket #96-#101 : Formation sociale et économique, même résolution que
+    # Français ci-dessus — FSE01-FSE17 sont tous enregistrés.
+    fse_plan = get_fse_plan_by_slug(uaa.slug)
+    return fse_plan.code if fse_plan else None
+
+
+# Ticket #86 § F : indication NON officielle, jamais une durée d'épreuve.
+_LENGTH_HINTS = {10: "révision rapide", 20: "standard"}
+_LONG_LENGTH_HINT = "examen approfondi"
+
+
+def _length_context(
+    db, *, user: User, module_id: int, uaa_id: int | None, uaa_code: str | None, mode: SessionMode
+) -> dict:
+    """Ticket #86 : sélecteur « Nombre de questions » de l'écran de démarrage — seules les
+    longueurs réellement satisfaisables (voir `available_session_lengths`) ; valeur
+    présélectionnée : 10 en entraînement, 20 en évaluation (la plus proche disponible
+    en dessous si la banque seule ne suffit pas)."""
+    available = available_session_lengths(
+        db, user=user, module_id=module_id, uaa_id=uaa_id, uaa_code=uaa_code
+    )
+    recommended = GLOBAL_EXAM_QUESTION_COUNT if mode == SessionMode.EXAM else DEFAULT_QUESTION_COUNT
+    default = max((n for n in available if n <= recommended), default=available[0])
+    hints = [f"{n} ≈ {hint}" for n, hint in _LENGTH_HINTS.items() if n in available]
+    long_counts = [str(n) for n in available if n not in _LENGTH_HINTS]
+    if long_counts:
+        hints.append(f"{'/'.join(long_counts)} ≈ {_LONG_LENGTH_HINT}")
+    return {
+        "length_options": available,
+        "default_length": default,
+        "length_hint": " · ".join(hints),
+    }
+
+
+def _chosen_length(raw: str, *, uaa_id: int | None, uaa_code: str | None, fallback: int) -> int:
+    """Longueur postée par le formulaire (ticket #86). Absente (ancien formulaire, appel
+    direct) → `fallback`, le volume historique ; hors des options du parcours → 400."""
+    if not raw:
+        return fallback
+    try:
+        value = int(raw)
+    except ValueError:
+        value = 0
+    if value not in session_length_options(uaa_id=uaa_id, uaa_code=uaa_code):
+        raise HTTPException(status_code=400, detail="Nombre de questions invalide")
+    return value
 
 
 def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLResponse:
@@ -195,8 +324,13 @@ def render_practice_landing(request: Request, db, uaa: UAA, user: User) -> HTMLR
             "start_url": f"/uaa/{uaa.slug}/practice/start",
             "resumable": resumable,
             "difficulties": list(_DIFFICULTY_LABELS.items()),
+            "module_rating": _module_rating_context(db, user=user, module=module),
             "allow_new_while_in_progress": True,
             "active_space": "practice",
+            **_length_context(
+                db, user=user, module_id=module.id, uaa_id=uaa.id, uaa_code=_uaa_code_for(uaa),
+                mode=SessionMode.PRACTICE,
+            ),
         },
     )
 
@@ -217,16 +351,22 @@ def render_exam_landing(request: Request, db, uaa: UAA, user: User) -> HTMLRespo
             "start_url": f"/uaa/{uaa.slug}/exam/start",
             "resumable": resumable,
             "difficulties": list(_DIFFICULTY_LABELS.items()),
+            "module_rating": _module_rating_context(db, user=user, module=module),
             # Évite plusieurs examens IN_PROGRESS identiques (choix documenté, ticket #55
             # § 12/§ RESUME) : si un examen est déjà en cours, seule la reprise est proposée.
             "allow_new_while_in_progress": False,
             "active_space": "exam",
+            **_length_context(
+                db, user=user, module_id=module.id, uaa_id=uaa.id, uaa_code=_uaa_code_for(uaa),
+                mode=SessionMode.EXAM,
+            ),
         },
     )
 
 
 def _enqueue_build_for_uaa(
-    db, *, uaa: UAA, user: User, mode: SessionMode, difficulty: SessionDifficultyRequest
+    db, *, uaa: UAA, user: User, mode: SessionMode, difficulty: SessionDifficultyRequest,
+    question_count_raw: str = "",
 ) -> SessionBuildJob:
     """Ticket #92 : équivalent non bloquant de l'ancienne `_start_session_for_uaa` — mêmes
     paramètres calculés (uaa_code/question_count, générique MC01-38 + Français, § 92.11),
@@ -235,13 +375,7 @@ def _enqueue_build_for_uaa(
     (`run_session_build_job`, réutilise `start_session` telle quelle)."""
     module = uaa.module
     _ensure_bank_seeded(db, module, uaa)
-    plan = get_plan_by_slug(uaa.slug)
-    francais_plan = None
-    if plan is not None:
-        uaa_code = plan.code
-    else:
-        francais_plan = get_francais_plan_by_slug(uaa.slug)
-        uaa_code = francais_plan.code if francais_plan else None
+    uaa_code = _uaa_code_for(uaa)
     # MC38 examen (ticket #58 § 6) : « utiliser 20 questions si le moteur le permet déjà »
     # — même volume que l'examen blanc global, cohérent avec sa nature transversale
     # MC01→MC37 (voir app.v1.session_service._start_mc38_transversal_session). Français
@@ -250,11 +384,20 @@ def _enqueue_build_for_uaa(
     # MC01→MC37, jamais comme MC38) — chacun garde le volume standard, y compris à
     # l'examen ; seul FR20 (§ 12 du ticket, phase D, pas encore implémenté) jouera le
     # rôle transversal de MC38 et nécessitera sa propre fonction de composition dédiée
-    # (jamais un simple ajustement de `question_count` comme ici).
-    question_count = (
+    # (jamais un simple ajustement de `question_count` comme ici). Ticket #101 : FSE17
+    # joue ce même rôle transversal pour FSE (voir
+    # app.v1.session_service._start_fse_transversal_session) — même volume à l'examen,
+    # ce qui réalise concrètement les « trois examens blancs progressifs » (facile/moyen/
+    # difficile = le sélecteur de difficulté déjà existant sur cette même page).
+    legacy_count = (
         GLOBAL_EXAM_QUESTION_COUNT
-        if mode == SessionMode.EXAM and (uaa_code == "MC38" or uaa_code == "C01")
+        if mode == SessionMode.EXAM and uaa_code in ("MC38", "C01", FSE17_CODE)
         else DEFAULT_QUESTION_COUNT
+    )
+    # Ticket #86 : le nombre choisi sur l'écran de démarrage prime ; le volume ci-dessus
+    # ne sert plus que de repli quand le formulaire ne l'envoie pas.
+    question_count = _chosen_length(
+        question_count_raw, uaa_id=uaa.id, uaa_code=uaa_code, fallback=legacy_count
     )
     return enqueue_session_build(
         db,
@@ -276,6 +419,7 @@ async def start_practice_session(
     user: User = Depends(require_user),  # noqa: B008
     difficulty: str = Form("medium"),
     resume: str = Form(""),
+    question_count: str = Form(""),
 ):
     uaa = get_uaa_by_slug(db, uaa_slug)
     if uaa is None:
@@ -301,7 +445,7 @@ async def start_practice_session(
     # `SessionBuildJobStatus.FAILED`, affiché sur la page d'attente).
     job = _enqueue_build_for_uaa(
         db, uaa=uaa, user=user, mode=SessionMode.PRACTICE,
-        difficulty=SessionDifficultyRequest(difficulty),
+        difficulty=SessionDifficultyRequest(difficulty), question_count_raw=question_count,
     )
     return RedirectResponse(url=f"/session-build-jobs/{job.id}", status_code=303)
 
@@ -314,6 +458,7 @@ async def start_exam_session(
     user: User = Depends(require_user),  # noqa: B008
     difficulty: str = Form("medium"),
     resume: str = Form(""),
+    question_count: str = Form(""),
 ):
     uaa = get_uaa_by_slug(db, uaa_slug)
     if uaa is None:
@@ -331,7 +476,7 @@ async def start_exam_session(
 
     job = _enqueue_build_for_uaa(
         db, uaa=uaa, user=user, mode=SessionMode.EXAM,
-        difficulty=SessionDifficultyRequest(difficulty),
+        difficulty=SessionDifficultyRequest(difficulty), question_count_raw=question_count,
     )
     return RedirectResponse(url=f"/session-build-jobs/{job.id}", status_code=303)
 
@@ -358,7 +503,12 @@ async def ampcr_global_practice_landing(
             "start_url": "/modules/ampcr/practice/start",
             "resumable": resumable,
             "difficulties": list(_DIFFICULTY_LABELS.items()),
+            "module_rating": _module_rating_context(db, user=user, module=module),
             "allow_new_while_in_progress": True,
+            **_length_context(
+                db, user=user, module_id=module.id, uaa_id=None, uaa_code=None,
+                mode=SessionMode.PRACTICE,
+            ),
         },
     )
 
@@ -378,11 +528,16 @@ async def ampcr_global_exam_landing(
             "uaa": None,
             "global_title": "Informatique AMPCR — examen blanc complet",
             "mode": "exam",
-            "mode_label": "S'évaluer (examen blanc AMPCR, 20 questions)",
+            "mode_label": "S'évaluer (examen blanc AMPCR)",
             "start_url": "/modules/ampcr/exam/start",
             "resumable": resumable,
             "difficulties": list(_DIFFICULTY_LABELS.items()),
+            "module_rating": _module_rating_context(db, user=user, module=module),
             "allow_new_while_in_progress": False,
+            **_length_context(
+                db, user=user, module_id=module.id, uaa_id=None, uaa_code=None,
+                mode=SessionMode.EXAM,
+            ),
         },
     )
 
@@ -394,6 +549,7 @@ async def start_ampcr_global_practice(
     user: User = Depends(require_user),  # noqa: B008
     difficulty: str = Form("medium"),
     resume: str = Form(""),
+    question_count: str = Form(""),
 ):
     module = _ampcr_module(db)
     existing = get_in_progress_session(
@@ -407,7 +563,9 @@ async def start_ampcr_global_practice(
     job = enqueue_session_build(
         db, user=user, module_id=module.id, uaa_id=None, uaa_code=None,
         mode=SessionMode.PRACTICE, difficulty=SessionDifficultyRequest(difficulty),
-        question_count=DEFAULT_QUESTION_COUNT,
+        question_count=_chosen_length(
+            question_count, uaa_id=None, uaa_code=None, fallback=DEFAULT_QUESTION_COUNT
+        ),
     )
     return RedirectResponse(url=f"/session-build-jobs/{job.id}", status_code=303)
 
@@ -419,6 +577,7 @@ async def start_ampcr_global_exam(
     user: User = Depends(require_user),  # noqa: B008
     difficulty: str = Form("medium"),
     resume: str = Form(""),
+    question_count: str = Form(""),
 ):
     module = _ampcr_module(db)
     existing = get_in_progress_session(
@@ -429,7 +588,9 @@ async def start_ampcr_global_exam(
     job = enqueue_session_build(
         db, user=user, module_id=module.id, uaa_id=None, uaa_code=None,
         mode=SessionMode.EXAM, difficulty=SessionDifficultyRequest(difficulty),
-        question_count=GLOBAL_EXAM_QUESTION_COUNT,
+        question_count=_chosen_length(
+            question_count, uaa_id=None, uaa_code=None, fallback=GLOBAL_EXAM_QUESTION_COUNT
+        ),
     )
     return RedirectResponse(url=f"/session-build-jobs/{job.id}", status_code=303)
 
@@ -519,14 +680,30 @@ def _parse_answer_form(question_type: str, content: dict[str, Any], form) -> dic
             assignments.append(int(raw) if raw.isdigit() else -1)
         return {"assignments": assignments}
     if question_type == "ordering":
+        # Ticket #152 : un ordre n'est enregistré que si chaque élément a une position
+        # distincte de 1 à n. Avant, les positions vides ou en double étaient départagées
+        # par l'ordre des identifiants de la banque (e1, e2…) — souvent l'ordre correct :
+        # naviguer sans rien choisir donnait tous les points. Une saisie incomplète reste
+        # « sans réponse » (navigation libre, pas de note) et ses choix sont conservés.
         items = content["items"]
-        positions = []
+        positions = {}
         for item in items:
             raw = form.get(f"position__{item['id']}", "0")
-            positions.append((int(raw) if raw.isdigit() else 0, item["id"]))
-        ordered = [item_id for _, item_id in sorted(positions)]
-        return {"order": ordered}
-    # short_answer / vocabulary / diagnostic / long_answer
+            positions[item["id"]] = int(raw) if raw.isdigit() else 0
+        if sorted(positions.values()) == list(range(1, len(items) + 1)):
+            return {"order": sorted(positions, key=positions.get)}
+        return {"order": [], "positions": {item_id: pos for item_id, pos in positions.items() if pos}}
+    if question_type == "image_identification" and content.get("response_mode", "choice") == "choice":
+        return {"selected_option_ids": form.getlist("option_id")}
+    if question_type == "diagram_labeling":
+        label_ids = {label["id"] for label in content["label_options"]}
+        mapping = {}
+        for zone in content["zones"]:
+            raw = form.get(f"zone__{zone['zone_id']}", "")
+            if raw in label_ids:
+                mapping[zone["zone_id"]] = raw
+        return {"mapping": mapping}
+    # short_answer / vocabulary / diagnostic / long_answer / image_identification (texte)
     return {"text": form.get("text", "")}
 
 
@@ -559,12 +736,17 @@ async def view_session(
     session_id: int,
     request: Request,
     q: int = 1,
+    signaled: int | None = None,
     db=Depends(get_db),  # noqa: B008
     user: User = Depends(require_user),  # noqa: B008
 ) -> HTMLResponse:
-    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    session = get_owned_session(db, session_id=session_id, user_id=user.id, include_quiz=True)
     if session is None:
         raise HTTPException(status_code=404, detail="Session introuvable")
+    if session.mode == SessionMode.QUIZ:
+        return RedirectResponse(url=f"/quiz/parties/{session.id}", status_code=303)
+    if session.mode == SessionMode.REINFORCEMENT:
+        return RedirectResponse(url=f"/renforcement/{session.id}", status_code=303)
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
 
@@ -598,6 +780,8 @@ async def view_session(
                 "comparison": None,
                 "comparison_error": None,
                 "courses_to_review": _courses_to_review(results),
+                "feedback_labels": FEEDBACK_LABELS,
+                "signaled_position": signaled,
             },
         )
 
@@ -644,12 +828,19 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     `course_title`/`course_slug` (ticket #79 § 13) : rattachement de la question à son
     UAA/cours, exposé pour qu'un futur ticket (#74) puisse ajouter un bouton « Relire le
     cours » sans nouvelle architecture — aucun bouton ajouté ici."""
+    from app.v1.assets import asset_display, assets_by_version
+    from app.v1.display_order import apply_display_order
+    from app.v1.document_layouts import display_heading, resolve_layout
     from app.v1.question_engine import public_payload
     from app.v1.session_service import document_label, resolve_documents_in_order
 
     payloads = {
-        sq.position: public_payload(
-            sq.question_version.question_type, sq.question_version.schema_version, sq.question_version.content_json
+        sq.position: apply_display_order(
+            sq.question_version.question_type,
+            public_payload(
+                sq.question_version.question_type, sq.question_version.schema_version, sq.question_version.content_json
+            ),
+            sq.content_snapshot_json,
         )
         for sq in session_questions
     }
@@ -660,20 +851,33 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
         document.id: document for document in resolve_documents_in_order(db, sorted(all_doc_ids))
     }
 
+    # Ticket #48 : visuels de chaque question, une seule requête pour toute la session.
+    assets_by_version_id = assets_by_version(db, [sq.question_version_id for sq in session_questions])
+
     rows = []
     for sq in session_questions:
         question_type = sq.question_version.question_type
         doc_ids = _referenced_document_ids(payloads[sq.position])
-        source_documents = [
-            {
-                "id": doc_id,
-                "label": document_label(question_type, index),
-                "title": documents_by_id[doc_id].title or "Document source",
-                "content_text": documents_by_id[doc_id].content_text or "",
-            }
-            for index, doc_id in enumerate(doc_ids)
-            if doc_id in documents_by_id
-        ]
+        source_documents = []
+        for index, doc_id in enumerate(doc_ids):
+            if doc_id not in documents_by_id:
+                continue
+            document = documents_by_id[doc_id]
+            # Ticket #151 : même libellé que pendant la session (« Document 3 — Réactions
+            # des groupes concernés »), jamais « Document de référence » ici et un numéro
+            # là — résultats, export et impression citent le document comme la consigne.
+            heading = display_heading(document, resolve_layout(document), document_label(question_type, index))
+            source_documents.append(
+                {
+                    "id": doc_id,
+                    "label": heading["label"],
+                    "title": heading["title"],
+                    "content_text": document.content_text or "",
+                    # Ticket #149 : la version exacte, rendue par les mêmes composants que
+                    # pendant la session (`_document_layouts.html`).
+                    "document": document,
+                }
+            )
         uaa = sq.question_version.question.uaa if sq.question_version.question else None
         # Ticket #90 : `correction_status` distingue une question RÉELLEMENT corrigée
         # (CORRECTED) d'une question encore en attente d'une vraie correction IA (FAILED/
@@ -690,6 +894,7 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
                 "points_awarded": sq.answer.points_awarded if sq.answer else None,
                 "correction_status": correction_status,
                 "source_documents": source_documents,
+                "assets": [asset_display(asset) for asset in assets_by_version_id.get(sq.question_version_id, [])],
                 "course_title": uaa.title if uaa else None,
                 "course_slug": uaa.slug if uaa else None,
                 "course_code": uaa.code if uaa else None,
@@ -879,15 +1084,23 @@ async def compare_severity_route(
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
     comparison = None
     comparison_error = None
+    tracker = UsageTrackingProvider(_get_provider_or_unconfigured())
     try:
         comparison = simulate_severity_comparison(
-            db, session=session, provider=_get_provider_or_unconfigured(), severity_ui=severity_ui
+            db, session=session, provider=tracker, severity_ui=severity_ui
         )
     except AIProviderError:
         comparison_error = (
             "La comparaison de sévérité n'a pas pu être calculée pour le moment "
             "(service de correction indisponible). Réessaie plus tard."
         )
+    # Ticket #46 : seul enregistrement de cette simulation = son compteur d'usage IA
+    # (le résultat de la session reste intact).
+    if record_ai_usage(
+        db, tracker, kind=KIND_CORRECTION, module_id=session.module_id, user_id=user.id,
+        session_id=session.id, failed=comparison is None,
+    ) is not None:
+        db.commit()
 
     results = _build_results_rows(db, session_questions)
     original_severity_ui = (session.parameters_json or {}).get("severity")
@@ -905,11 +1118,62 @@ async def compare_severity_route(
             "comparison": comparison,
             "comparison_error": comparison_error,
             "courses_to_review": _courses_to_review(results),
+            "feedback_labels": FEEDBACK_LABELS,
+            "signaled_position": None,
         },
     )
 
 
 # --- API autosave JSON (ticket #55 § AUTOSAVE) --------------------------------------------------
+
+
+@router.post("/sessions/{session_id}/questions/{position}/feedback")
+async def question_feedback_route(
+    session_id: int,
+    position: int,
+    request: Request,
+    feedback_type: str = Form(...),
+    comment: str = Form(""),
+    csrf_token: str = Form(""),
+    db=Depends(get_db),  # noqa: B008
+    user: User = Depends(require_user),  # noqa: B008
+):
+    """Signalement d'une question depuis les résultats (ticket #46) : vise la version
+    exactement servie dans CETTE session de l'utilisateur, jamais une autre."""
+    session = get_owned_session(db, session_id=session_id, user_id=user.id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session introuvable")
+    if session.status == SessionStatus.IN_PROGRESS:
+        raise HTTPException(status_code=409, detail="Signalement possible après la soumission.")
+    if not validate_csrf_token(request, csrf_token):
+        raise HTTPException(status_code=400, detail="Session expirée, recharge la page.")
+    parsed_type = parse_feedback_type(feedback_type)
+    if parsed_type is None:
+        raise HTTPException(status_code=400, detail="Type de signalement inconnu.")
+    session_question = next((sq for sq in session.session_questions if sq.position == position), None)
+    if session_question is None:
+        raise HTTPException(status_code=404, detail="Question introuvable")
+    create_question_feedback(
+        db, user_id=user.id, session_question=session_question, feedback_type=parsed_type, comment=comment
+    )
+    db.commit()
+    return RedirectResponse(
+        url=f"/sessions/{session_id}?signaled={position}#result-item-{position}", status_code=303
+    )
+
+
+def _validated_ordering_autosave(content: dict[str, Any], answer_json: dict[str, Any]) -> dict[str, Any]:
+    """Ticket #153 : l'autosave des cartes de remise en ordre n'enregistre qu'une
+    permutation complète des identifiants de la question (ou un ordre vide = sans
+    réponse). Tout autre contenu (doublon, élément inconnu ou manquant) est refusé — rien
+    n'est enregistré, l'ancienne réponse reste intacte."""
+    item_ids = [item["id"] for item in content.get("items") or []]
+    order = answer_json.get("order")
+    if order == []:
+        return {"order": []}
+    if not isinstance(order, list) or not all(isinstance(i, str) for i in order) or sorted(order) != sorted(item_ids):
+        raise HTTPException(status_code=422, detail="Ordre invalide : chaque élément doit apparaître une seule fois.")
+    return {"order": list(order)}
 
 
 @router.post("/api/v1/sessions/{session_id}/answers/{session_question_id}")
@@ -936,6 +1200,9 @@ async def api_autosave_answer(
     answer_json = payload.get("answer_json")
     if not isinstance(answer_json, dict):
         raise HTTPException(status_code=422, detail="answer_json (objet) est requis.")
+    version = session_question.question_version
+    if version.question_type == "ordering":
+        answer_json = _validated_ordering_autosave(version.content_json, answer_json)
 
     # Jamais de correct/incorrect/solution/score ici (voir docstring du module) : l'API
     # ne retourne QUE la confirmation d'enregistrement.
@@ -1002,6 +1269,14 @@ def _export_slug(session: QuestionnaireSession) -> str:
     return session.module.code.lower() if session.module else "session"
 
 
+def _length_label(session: QuestionnaireSession) -> str:
+    """Ticket #86 : nombre réel de questions, avec la longueur choisie si elle diffère."""
+    requested = requested_question_count(session)
+    if requested and requested != session.question_count:
+        return f"{session.question_count} (choisi : {requested})"
+    return str(session.question_count)
+
+
 def _build_session_export_markdown(session: QuestionnaireSession, results: list[dict]) -> str:
     """Contenu Markdown de l'export (ticket #62 § 13) — structure imposée : métadonnées
     puis une section par question (énoncé, ma réponse, attendu/critères, points, points
@@ -1023,6 +1298,7 @@ def _build_session_export_markdown(session: QuestionnaireSession, results: list[
         f"- Mode : {'Évaluation' if session.mode.value == 'exam' else 'Entraînement'}",
         f"- Date : {session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else ''}",
         score_line,
+        f"- Nombre de questions : {_length_label(session)}",
         f"- Sévérité : {SEVERITY_UI_LABELS.get(severity_ui, '—')}",
         "",
     ]

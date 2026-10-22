@@ -34,6 +34,51 @@ précise pas explicitement.
   badges, pas une carte encadrée — voir la fiche pour le détail).
 - [CourseCard](CourseCard.md) — carte de navigation vers une UAA, **non implémentée**.
 
+# Composants internes à une carte (sous-éléments, ticket #103)
+
+Contrairement aux cartes ci-dessus (une par bloc de leçon, via `app/card_kind.py`), ces
+composants vivent À L'INTÉRIEUR d'une carte existante (généralement `TheoryCard`/
+`ExampleCard`), embarqués directement en HTML brut dans le Markdown du bloc (passé tel
+quel par `app/content.py`) :
+
+- [DefinitionGrid](DefinitionGrid.md) — plusieurs définitions courtes côte à côte (terme,
+  explication, exemple).
+- [CompareGrid](CompareGrid.md) — deux notions souvent confondues, ou mauvaise/bonne
+  réponse, côte à côte.
+- [DocCard](DocCard.md) — document support (mail, affiche, publication) séparé de son
+  analyse.
+- [EmailCard](EmailCard.md) — variante de DocCard : mail réaliste (en-tête, fil de réponse),
+  texte réel et sélectionnable (ticket #108, FSE01 uniquement pour l'instant).
+- [SocialPostCard](SocialPostCard.md) — variante de DocCard : publication de réseau social
+  réaliste (avatar, réactions, commentaires), texte réel (ticket #108, FSE01 uniquement).
+- [PosterCard](PosterCard.md) — variante de DocCard : affiche avec illustration générée une
+  fois via l'API OpenAI et conservée durablement + slogan/mentions en HTML (ticket #108,
+  FSE01 uniquement).
+- [Diagram](Diagram.md) — schéma SVG relationnel (remplace les schémas en caractères),
+  pour les cas que `.jc-flow` (linéaire) ne couvre pas. Depuis le ticket #108, un schéma
+  destiné à un usage mobile peut fournir deux rendus distincts (large/colonne) permutés par
+  média-requête, plutôt qu'un simple redimensionnement qui rendrait le texte illisible.
+- [ExampleTitle](ExampleTitle.md) — titre d'un exemple commenté, espacé précisément de
+  l'exemple précédent et du document qui suit (ticket #112, étendu à FSE02-17 au
+  ticket #115).
+- [DecryptTitle](DecryptTitle.md) — titre dédié annonçant l'analyse d'un document juste
+  après celui-ci (ticket #112, étendu à FSE02-17 au ticket #115).
+- [ExerciseStepCard](ExerciseStepCard.md) — une carte par exercice guidé (numéro, titre,
+  consigne visible, lien vers le document, accordéon « Voir le corrigé »), corrigé
+  structuré en HTML réel (ticket #112, étendu à FSE02-17 au ticket #115) — toujours un exercice guidé du
+  cours, jamais un nouveau moteur de correction/notation.
+- [DialogueComponents](DialogueComponents.md) — ChatThread, QuoteCard et couleurs
+  génériques d'intervenant (`.jc-social-avatar--p1` à `--p5`) pour tout échange à
+  plusieurs voix (ticket #115, FSE02/04/07/16 pour l'instant).
+- [ProfileAndGroupCards](ProfileAndGroupCards.md) — carte de profil professionnel (portrait
+  + nom + fonction), image de scène intégrée à une publication, cartes de groupe
+  d'appartenance — jamais de classification pédagogique révélée sur le document lui-même
+  (ticket #118, FSE03 pour l'instant).
+- [TheoryProgression](TheoryProgression.md) — largeur de lecture confortable (`.jc-prose`),
+  phrase « À retenir » ponctuelle (`.jc-takeaway`), lexique repliable (`.jc-glossary`) :
+  réorganise un bloc théorique dense en petites cartes progressives (ticket #120, FSE03
+  d'abord, puis FSE01-17 selon les besoins de chaque cours).
+
 ---
 
 # État d'implémentation

@@ -1,0 +1,340 @@
+{# Composants des documents sources (ticket #149) — un composant par nature de document
+(mail, affiche, publication, page de média, forum, conversation, note, fiches, tableau,
+budget, circuit, chaîne de flux, bulletins), alimentés par `app.v1.document_layouts`.
+Partagés par l'entraînement, l'examen blanc, le quiz, les résultats et la page « document ».
+Texte toujours issu de la version exacte du document ; rendu générique lisible sinon. #}
+
+{% macro avatar(tone, content, icon=None, small=False) -%}
+<span class="jc-sd-avatar jc-sd-tone-{{ tone or 'p1' }}{% if small %} jc-sd-avatar--sm{% endif %}" aria-hidden="true">
+    {%- if icon %}<i class="bi {{ icon }}"></i>{% else %}{{ content }}{% endif -%}
+</span>
+{%- endmacro %}
+
+{% macro card_grid(items, variant=None) -%}
+<div class="jc-sd-cards{% if variant %} jc-sd-cards--{{ variant }}{% endif %}">
+    {% for item in items %}
+    <section class="jc-sd-card{% if item.tone %} jc-sd-border-{{ item.tone }}{% endif %}">
+        <header class="jc-sd-card-head">
+            <span class="jc-sd-card-num{% if item.tone %} jc-sd-tone-{{ item.tone }}{% endif %}" aria-hidden="true">{% if item.icon %}<i class="bi {{ item.icon }}"></i>{% else %}{{ item.number }}{% endif %}</span>
+            <span class="jc-sd-card-label">{{ item.label }}</span>
+        </header>
+        {% if item.title %}<p class="jc-sd-card-title">{{ item.title }}</p>{% endif %}
+        <p class="jc-sd-card-text">{{ item.text }}</p>
+    </section>
+    {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro body(doc, layout, focus) -%}
+{% set kind = layout.kind %}
+
+{% if kind == "email_thread" %}
+<div class="jc-sd-mail">
+    {% for message in layout.messages %}
+    <section class="jc-sd-mail-msg">
+        <div class="jc-sd-mail-head">
+            {{ avatar(message.tone, message.initials) }}
+            <div class="jc-sd-mail-meta">
+                <div><strong>{{ message.from_name }}</strong> <span class="jc-sd-mail-addr">&lt;{{ message.from_addr }}&gt;</span></div>
+                <div class="jc-sd-mail-to">À : {{ message.to }}</div>
+            </div>
+            <span class="jc-sd-mail-date">{{ message.date }}</span>
+        </div>
+        <p class="jc-sd-mail-subject"><span>Objet :</span> {{ message.subject }}</p>
+        <div class="jc-sd-mail-body">
+            {% for paragraph in message.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+            {% if message.signature %}<p class="jc-sd-mail-signature">{{ message.signature }}</p>{% endif %}
+        </div>
+        {% if message.interrupted %}
+        <p class="jc-sd-context"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ message.interrupted }}</p>
+        {% endif %}
+    </section>
+    {% endfor %}
+</div>
+
+{% elif kind == "poster" %}
+<div class="jc-sd-poster">{{ course_card_html(layout.html_ref) | safe }}</div>
+<div class="jc-sd-legend">
+    <p class="jc-sd-legend-title"><i class="bi bi-signpost-2" aria-hidden="true"></i> {{ layout.legend_title }}</p>
+    <dl>
+        {% for entry in layout.legend %}<dt>{{ entry.label }}</dt><dd>{{ entry.text }}</dd>{% endfor %}
+    </dl>
+</div>
+
+{% elif kind == "social_post" %}
+<div class="jc-sd-social">
+    {% if layout.group %}
+    <div class="jc-sd-social-group">
+        <span class="jc-sd-social-group-icon" aria-hidden="true"><i class="bi bi-people-fill"></i></span>
+        <div>
+            <strong>{{ layout.group }}</strong>
+            <div class="jc-sd-muted"><i class="bi bi-globe2" aria-hidden="true"></i> {{ layout.visibility }} · {{ layout.members }}</div>
+        </div>
+    </div>
+    {% elif layout.network %}
+    <div class="jc-sd-social-network"><i class="bi bi-briefcase" aria-hidden="true"></i> {{ layout.network }}</div>
+    {% endif %}
+    <div class="jc-sd-post">
+        <div class="jc-sd-post-head">
+            {{ avatar(layout.tone, layout.initials) }}
+            <div><strong>{{ layout.author }}</strong>{% if layout.time %}<div class="jc-sd-muted">{{ layout.time }}</div>{% endif %}</div>
+        </div>
+        <p class="jc-sd-post-text">{{ layout.text }}</p>
+        {% if layout.attachment %}
+        <figure class="jc-sd-attachment">
+            <div class="jc-sd-attachment-frame" aria-hidden="true"><i class="bi bi-camera-video"></i></div>
+            <figcaption><strong>{{ layout.attachment.label }}</strong> — {{ layout.attachment.text }}</figcaption>
+        </figure>
+        {% endif %}
+        {% if layout.stats %}
+        <div class="jc-sd-post-stats">{% for stat in layout.stats %}<span>{{ stat }}</span>{% endfor %}</div>
+        {% endif %}
+    </div>
+    {% if layout.comments %}
+    <p class="jc-sd-comments-title">{{ layout.comments_title }}</p>
+    <ul class="jc-sd-comments">
+        {% for comment in layout.comments %}
+        <li class="jc-sd-comment{% if comment.reply %} jc-sd-comment--reply{% endif %}">
+            {{ avatar(comment.tone, comment.initials, small=True) }}
+            <div class="jc-sd-comment-bubble">
+                <strong>{{ comment.author }}</strong>{% if comment.badge %} <span class="jc-sd-comment-badge">{{ comment.badge }}</span>{% endif %}
+                <p>{{ comment.text }}</p>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+
+{% elif kind == "webpage" %}
+<div class="jc-sd-web jc-sd-web--{{ layout.variant }}">
+    <div class="jc-sd-web-bar" aria-hidden="true"><span class="jc-sd-web-dots"><i></i><i></i><i></i></span><span class="jc-sd-web-url">{{ layout.site }} — {{ layout.url }}</span></div>
+    <div class="jc-sd-web-masthead"><strong>{{ layout.site }}</strong><span>{{ layout.tagline }}</span></div>
+    <div class="jc-sd-web-content">
+        {% for block in layout.blocks %}
+        {% if block.type == "lead" %}<p class="jc-sd-web-lead">{{ block.text }}</p>
+        {% elif block.type == "offers" %}
+        <p class="jc-sd-web-section">{{ block.title }}</p>
+        <div class="jc-sd-offers">{% for offer in block["items"] %}<div class="jc-sd-offer"><span>{{ offer.label }}</span><strong>{{ offer.value }}</strong></div>{% endfor %}</div>
+        {% elif block.type == "quote" %}<blockquote class="jc-sd-web-quote">{{ block.text }}</blockquote>
+        {% elif block.type == "ad" %}<div class="jc-sd-ad"><span class="jc-sd-ad-tag">Bannière publicitaire</span>{{ block.text }}</div>
+        {% elif block.type == "headline" %}<div class="jc-sd-headline"><span>{{ block.kicker }}</span><p>{{ block.text }}</p></div>
+        {% elif block.type == "feature" %}<div class="jc-sd-feature"><i class="bi {{ block.icon }}" aria-hidden="true"></i><p>{{ block.text }}</p></div>
+        {% else %}<p>{{ block.text }}</p>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{% elif kind == "findings" %}
+<p class="jc-sd-heading">{{ layout.heading }}</p>
+<ol class="jc-sd-findings">
+    {% for item in layout["items"] %}
+    <li class="jc-sd-finding">
+        <span class="jc-sd-finding-num" aria-hidden="true">{{ loop.index }}</span>
+        {% if item.image and static_exists(item.image) %}
+        <span class="jc-sd-finding-media jc-zoomable" role="img" aria-label="{{ item.image_alt }}"><img src="/static/{{ item.image }}" alt="" loading="lazy"></span>
+        {% else %}
+        <span class="jc-sd-finding-media jc-sd-finding-media--icon" aria-hidden="true"><i class="bi {{ item.icon }}"></i></span>
+        {% endif %}
+        <p>{{ item.text }}</p>
+    </li>
+    {% endfor %}
+</ol>
+
+{% elif kind == "memo" %}
+<div class="jc-sd-paper{% if layout.variant %} jc-sd-paper--{{ layout.variant }}{% endif %}">
+    <div class="jc-sd-letterhead">
+        {% if layout.org %}<span class="jc-sd-letterhead-org">{{ layout.org }}</span>{% endif %}
+        <span class="jc-sd-letterhead-type">{{ layout.doc_type }}</span>
+    </div>
+    {% if layout.meta %}
+    <dl class="jc-sd-paper-meta">{% for entry in layout.meta %}<dt>{{ entry.field }}</dt><dd>{{ entry.value }}</dd>{% endfor %}</dl>
+    {% endif %}
+    {% for paragraph in layout.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+    {% if layout.points %}
+    <ol class="jc-sd-points">{% for point in layout.points %}<li><strong>{{ point.title }}</strong> : {{ point.text }}</li>{% endfor %}</ol>
+    {% endif %}
+    {% if layout.closing %}<p>{{ layout.closing }}</p>{% endif %}
+</div>
+
+{% elif kind == "forum_post" %}
+<div class="jc-sd-forum">
+    <div class="jc-sd-forum-bar"><i class="bi bi-chat-left-text" aria-hidden="true"></i> {{ layout.forum }}</div>
+    <p class="jc-sd-forum-topic">{{ layout.topic }}</p>
+    <div class="jc-sd-forum-post">
+        <div class="jc-sd-forum-author">
+            <span class="jc-sd-avatar jc-sd-avatar--anon" aria-hidden="true"><i class="bi bi-person"></i></span>
+            <div><strong>{{ layout.pseudo }}</strong><span class="jc-sd-muted">{{ layout.status }}</span></div>
+        </div>
+        <div class="jc-sd-forum-body"><p>{{ layout.body }}</p></div>
+    </div>
+</div>
+
+{% elif kind == "chat" %}
+<div class="jc-sd-chat">
+    <div class="jc-sd-chat-head"><span class="jc-sd-social-group-icon" aria-hidden="true"><i class="bi bi-chat-dots-fill"></i></span><strong>{{ layout.group }}</strong></div>
+    <div class="jc-sd-chat-thread">
+        {% for message in layout.messages %}
+        {% if loop.first or message.day != loop.previtem.day %}<p class="jc-sd-chat-day"><span>{{ message.day }}</span></p>{% endif %}
+        <div class="jc-sd-chat-msg">
+            {{ avatar(message.tone, message.author[:1], small=True) }}
+            <div class="jc-sd-chat-bubble jc-sd-border-{{ message.tone }}">
+                <div class="jc-sd-chat-meta"><strong class="jc-sd-text-{{ message.tone }}">{{ message.author }}</strong><span>{{ message.time }}</span></div>
+                <p>{{ message.text }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% elif kind == "quotes" %}
+<div class="jc-sd-quotes{% if layout['items']|length > 1 %} jc-sd-quotes--multi{% endif %}">
+    {% for item in layout["items"] %}
+    <figure class="jc-sd-quote jc-sd-border-{{ item.tone }}">
+        <figcaption>{{ avatar(item.tone, item.initials, icon=item.icon) }}<strong>{{ item.actor }}</strong></figcaption>
+        <blockquote>{{ item.text }}</blockquote>
+    </figure>
+    {% endfor %}
+</div>
+
+{% elif kind == "cards" %}
+{% if layout.source %}<p class="jc-sd-source"><i class="bi bi-journal-text" aria-hidden="true"></i> Source : {{ layout.source }}</p>{% endif %}
+{% if layout.intro %}<p class="jc-sd-intro">{{ layout.intro }}</p>{% endif %}
+{% if focus %}
+{% set focused = layout["items"] | selectattr("number", "in", focus) | list %}
+<p class="jc-sd-focus-title"><i class="bi bi-crosshair" aria-hidden="true"></i> Concerné{{ "s" if focused|length > 1 }} par cette question</p>
+{{ card_grid(focused, layout.variant) }}
+<details class="jc-sd-more">
+    <summary>Voir tout le document ({{ layout["items"]|length }} fiches)</summary>
+    {{ card_grid(layout["items"], layout.variant) }}
+</details>
+{% else %}
+{{ card_grid(layout["items"], layout.variant) }}
+{% endif %}
+
+{% elif kind == "table" %}
+{% if layout.heading %}<p class="jc-sd-heading">{{ layout.heading }}</p>{% endif %}
+<div class="table-responsive">
+    <table class="table jc-sd-table">
+        <thead><tr>{% for column in layout.columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
+        <tbody>
+            {% for row in layout.rows %}
+            <tr>{% for cell in row %}{% if loop.first %}<th scope="row" data-label="{{ layout.columns[loop.index0] }}">{{ cell }}</th>{% else %}<td data-label="{{ layout.columns[loop.index0] }}">{{ cell }}</td>{% endif %}{% endfor %}</tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if layout.note %}<p class="jc-sd-note"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ layout.note }}</p>{% endif %}
+{% if layout.after %}
+<p class="jc-sd-heading mt-3">{{ layout.after.heading }}</p>
+{% if layout.after.intro %}<p class="jc-sd-intro">{{ layout.after.intro }}</p>{% endif %}
+{{ card_grid(layout.after["items"]) }}
+{% endif %}
+
+{% elif kind == "budget" %}
+<div class="jc-sd-budget">
+    {% for section in layout.sections %}
+    <table class="jc-sd-budget-table">
+        <caption><strong>{{ section.title }}</strong> <span>({{ section.unit }})</span></caption>
+        <tbody>
+            {% for row in section.rows %}
+            <tr><th scope="row"><span class="jc-sd-budget-label">{{ row.label }}</span> {{ row.text }}</th><td>{{ row.amount }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+</div>
+{% if layout.note %}<p class="jc-sd-note"><i class="bi bi-info-circle" aria-hidden="true"></i> {{ layout.note }}</p>{% endif %}
+
+{% elif kind == "circuit" %}
+<p class="jc-sd-heading">{{ layout.heading }}</p>
+<div class="jc-sd-agents">
+    {% for agent in layout.agents %}
+    <section class="jc-sd-agent jc-sd-border-{{ agent.tone }}">
+        <p class="jc-sd-agent-name">{{ avatar(agent.tone, '', icon=agent.icon, small=True) }} {{ agent.name }}</p>
+        <p>{{ agent.text }}</p>
+    </section>
+    {% endfor %}
+</div>
+<p class="jc-sd-heading mt-3">{{ layout.flows_title }}</p>
+<p class="jc-sd-intro">{{ layout.flows_intro }}</p>
+<ul class="jc-sd-flows">
+    {% for flow in layout.flows %}
+    <li>{% for part in flow.split("→") %}{% if not loop.first %}<span class="jc-sd-arrow" aria-label="vers">→</span>{% endif %}{{ part }}{% endfor %}</li>
+    {% endfor %}
+</ul>
+
+{% elif kind == "flow_chain" %}
+<p class="jc-sd-case">{{ layout.case }}</p>
+<div class="jc-sd-chain" role="img" aria-label="Schéma : circulation de l'argent décrite dans l'exemple">
+    <ol class="jc-sd-chain-row">
+        {% for step in layout.chain %}
+        {% if step.type == "node" %}
+        <li class="jc-sd-chain-node jc-sd-border-{{ step.tone }}">{{ avatar(step.tone, '', icon=step.icon, small=True) }} {{ step.name }}</li>
+        {% else %}
+        <li class="jc-sd-chain-arrow"><span>{{ step.text }}{% if step.detail %} <em>({{ step.detail }})</em>{% endif %}</span></li>
+        {% endif %}
+        {% endfor %}
+    </ol>
+    <div class="jc-sd-chain-branches">
+        <p class="jc-sd-muted mb-1">Puis {{ layout.branches_from }} :</p>
+        <ul>
+            {% for branch in layout.branches %}
+            <li><i class="bi {{ branch.icon }}" aria-hidden="true"></i> {{ branch.text }}{% if branch.to %} <span class="jc-sd-arrow">→</span> <strong>{{ branch.to }}</strong>{% endif %}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+{% elif kind == "ballots" %}
+<div class="jc-sd-ballots">
+    {% for ballot in layout["items"] %}
+    <figure class="jc-sd-ballot">
+        <div class="jc-sd-ballot-paper" aria-hidden="true">
+            <p class="jc-sd-ballot-head">{{ ballot.label }}</p>
+            {% for row in range(3) %}
+            <div class="jc-sd-ballot-row"><span class="jc-sd-ballot-box{% if row in ballot.marks %} jc-sd-ballot-box--filled{% endif %}"></span><span class="jc-sd-ballot-line"></span></div>
+            {% endfor %}
+            {% if ballot.type == "margin" %}<span class="jc-sd-ballot-scribble"></span>{% endif %}
+        </div>
+        <figcaption><strong>{{ ballot.label }}</strong> — {{ ballot.text }}</figcaption>
+    </figure>
+    {% endfor %}
+</div>
+{% endif %}
+{%- endmacro %}
+
+{#
+  render(doc, label, question_text, uid, show_open)
+  - doc : SourceDocumentVersion (ou objet équivalent : id, title, content_text, content_json)
+  - label : étiquette par défaut (« Document de référence », « Document A »…)
+  - question_text : consigne (+ éléments) pour mettre en avant les fiches visées
+#}
+{% macro render(doc, label, question_text="", uid="", show_open=True) -%}
+{% set layout = doc_layout(doc) %}
+{% set heading = doc_heading(doc, layout, label) %}
+{% set focus = doc_focus(layout, question_text) %}
+<article class="jc-sd source-document-panel{% if layout %} jc-sd--{{ layout.kind }}{% endif %}" id="doc-{{ uid }}{{ doc.id }}" aria-labelledby="doc-{{ uid }}{{ doc.id }}-title">
+    <header class="jc-sd-head">
+        <div>
+            <span class="jc-sd-label">{{ heading.label }}</span>
+            <h2 class="jc-sd-title" id="doc-{{ uid }}{{ doc.id }}-title">{{ heading.title }}</h2>
+        </div>
+        {% if show_open %}
+        <a class="jc-sd-open d-print-none" href="/documents/{{ doc.id }}" target="_blank" rel="noopener"
+           aria-label="Ouvrir {{ heading.label }} en grand dans un nouvel onglet"><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i> Ouvrir en grand</a>
+        {% endif %}
+    </header>
+    <div class="jc-sd-body">
+        {% if layout %}
+        {{ body(doc, layout, focus) }}
+        {% else %}
+        {% set parts = doc_generic(doc.content_text) %}
+        <div class="jc-sd-prose">{{ parts.text }}</div>
+        {% endif %}
+    </div>
+    {% set notice = layout.notice if layout else doc_generic(doc.content_text).notice %}
+    {% if notice %}<p class="jc-sd-notice"><i class="bi bi-info-circle" aria-hidden="true"></i> {{ notice }}</p>{% endif %}
+</article>
+{%- endmacro %}

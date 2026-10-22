@@ -36,3 +36,27 @@ def _inject_current_user(request: Request) -> dict:
 templates = Jinja2Templates(
     directory=str(BASE_DIR / "templates"), context_processors=[_inject_current_user]
 )
+
+
+def static_exists(path: str) -> bool:
+    """Ticket #136 : une illustration générée n'est affichée que si son fichier existe
+    réellement — sinon le template retombe sur un rendu de secours (icône), jamais une
+    image cassée."""
+    return (BASE_DIR / "static" / path).is_file()
+
+
+templates.env.globals["static_exists"] = static_exists
+
+
+def _register_document_layouts() -> None:
+    """Ticket #149 : composants des documents sources (`_document_layouts.html`)."""
+    from app.v1 import document_layouts
+
+    templates.env.globals["doc_layout"] = document_layouts.resolve_layout
+    templates.env.globals["doc_heading"] = document_layouts.display_heading
+    templates.env.globals["doc_focus"] = document_layouts.focus_numbers
+    templates.env.globals["doc_generic"] = document_layouts.generic_parts
+    templates.env.globals["course_card_html"] = document_layouts.course_card_html
+
+
+_register_document_layouts()

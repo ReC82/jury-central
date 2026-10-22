@@ -89,3 +89,7 @@ def ensure_schema_migrations() -> None:
         _add_column_if_missing(
             connection, table="uaas", column="hidden_from_listing", ddl_type="BOOLEAN NOT NULL DEFAULT 0"
         )
+        # Ticket #46 : traitement admin d'un signalement utilisateur (jamais supprimé).
+        _add_column_if_missing(
+            connection, table="v1_question_feedback", column="resolved_at", ddl_type="DATETIME"
+        )

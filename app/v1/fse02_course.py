@@ -1,0 +1,494 @@
+"""Contenu de cours — FSE02 « Les médias et leurs financements » (ticket #97, cahier des
+charges détaillé).
+
+Même structure que FSE01 (`app.v1.fse01_course`, ticket #96) : 1. Ce que tu dois savoir
+faire à l'examen — 2. Théorie progressive — 3. Définitions importantes — 4. Méthode étape
+par étape — 5. Exemples commentés (les trois médias explicitement demandés par le ticket
+#97 : payant, gratuit/publicitaire, financé par fonds publics) — 6. Mauvaises réponses
+comparées aux bonnes — 7. Pièges et erreurs fréquentes — 8. Exercices guidés (corrigés
+masqués par défaut) — 9. Corrigés très expliqués — 10. Fiche mémo.
+
+Périmètre strict (ticket #97, programme p. 43, 45) : offre médiatique, interactivité,
+financement (vente, abonnement, publicité, fonds publics), lien entre financement et
+recherche d'audience. Aucune autre notion (ex. régulation des médias, déontologie
+journalistique) n'est introduite : elle n'est pas au programme de ce mini-cours."""
+
+from app.v1.fse02_content import (
+    FSE02_FREE_AD_CARD_HTML,
+    FSE02_FREE_AD_TITLE,
+    FSE02_PAID_CARD_HTML,
+    FSE02_PAID_TITLE,
+    FSE02_PUBLIC_CARD_HTML,
+    FSE02_PUBLIC_TITLE,
+)
+
+from app.v1.fse_course_sections import build_course_sections
+
+
+def fse02_course_markdown() -> str:
+    return f"""# FSE02 — Les médias et leurs financements
+
+## 1. Ce que tu dois savoir faire à l'examen
+
+Tu dois être capable d'identifier comment un média se finance à partir d'un document (vente, \
+abonnement, publicité, fonds publics), d'expliquer le lien entre ce financement et la \
+recherche d'audience, et de comparer plusieurs médias sur ce critère.
+
+**Prérequis** : ce cours réutilise le schéma de communication vu dans FSE01 (émetteur, \
+récepteur, message, canal) — un média y est un émetteur qui transmet des messages \
+(articles, émissions) à un large public de récepteurs.
+
+## 2. Théorie progressive
+
+Un **média** est un support qui transmet de l'information à un large public : la presse \
+(journaux, magazines), la radio, la télévision, les sites d'information et les réseaux \
+sociaux. L'ensemble de ces supports disponibles constitue l'**offre médiatique**.
+
+Certains médias sont **interactifs** : ils permettent au récepteur de réagir directement \
+(commenter un article, appeler une émission en direct, partager une publication), alors \
+que d'autres médias plus anciens (un journal papier, une émission de radio sans ligne \
+ouverte) ne le permettent pas, ou seulement de façon différée (un courrier des lecteurs \
+publié la semaine suivante).
+
+Un média a besoin de revenus pour fonctionner : rémunérer les journalistes, produire des \
+contenus, maintenir un site ou une antenne. Quatre modes de financement sont possibles, \
+souvent combinés :
+- la **vente** : le récepteur paie pour accéder à un contenu précis (un numéro de journal \
+à l'unité, un article en ligne) ;
+- l'**abonnement** : le récepteur paie une somme régulière pour accéder à l'ensemble des \
+contenus pendant une période ;
+- la **publicité** : des annonceurs paient le média pour diffuser leurs messages \
+publicitaires ; le contenu reste gratuit pour le récepteur ;
+- les **fonds publics** : une dotation financée par la collectivité (impôts) permet au \
+média de fonctionner sans faire payer le récepteur ni dépendre de la publicité.
+
+Le mode de financement influence directement le comportement du média. Un média financé \
+par la publicité cherche à maximiser son **audience** (le nombre de personnes qui le \
+consultent), car plus l'audience est grande, plus les annonceurs sont prêts à payer — ce \
+qui peut pousser à privilégier des sujets qui attirent beaucoup de clics plutôt que des \
+sujets moins populaires mais utiles. Un média financé EXCLUSIVEMENT par des fonds publics \
+n'a pas cette contrainte : il peut traiter des sujets qui intéressent peu de monde, sans \
+perdre de revenus. Un média payant (vente/abonnement) dépend, lui, de la fidélité de ses \
+lecteurs/lectrices : il doit leur apporter une valeur suffisante pour qu'ils continuent à \
+payer.
+
+Attention à une généralisation fréquente : beaucoup de médias financés par des fonds \
+publics dans la réalité combinent cette dotation avec d'autres sources (un peu de \
+publicité, par exemple) — un financement MIXTE. L'indépendance totale vis-à-vis de \
+l'audience et de la publicité ne vaut que pour un financement exclusivement public, comme \
+celui de RCW dans l'exemple étudié plus loin ; un média public qui diffuse aussi de la \
+publicité reste, lui, partiellement concerné par la recherche d'audience.
+
+Chacun de ces quatre modes de financement correspond à un **flux économique réel entre \
+agents** : quand un récepteur (un **ménage**) paie un abonnement ou un numéro, il verse \
+un flux monétaire directement au média (une **entreprise**) ; quand un annonceur (une \
+**entreprise**) paie pour de la publicité, il verse lui aussi un flux monétaire au média ; \
+une dotation de fonds publics est un flux monétaire qui part de l'**État** vers le média, \
+financé par les impôts que les ménages et les entreprises lui versent par ailleurs. \
+Observer le financement d'un média, c'est donc déjà observer un petit morceau du circuit \
+économique complet, qui sera détaillé plus loin dans ce module (FSE15) : même sans le \
+connaître encore, retiens que chaque mode de financement relie toujours au moins deux \
+agents économiques par un flux monétaire précis.
+
+## 3. Définitions importantes
+
+- **Média** : support qui transmet de l'information à un large public (presse, radio, \
+télévision, sites d'information, réseaux sociaux).
+- **Offre médiatique** : l'ensemble des médias disponibles pour s'informer.
+- **Interactivité** : possibilité, pour le récepteur, de réagir au message (commenter, \
+appeler, partager), immédiatement ou en différé.
+- **Vente** : paiement pour accéder à un contenu précis et ponctuel.
+- **Abonnement** : paiement régulier pour accéder à l'ensemble des contenus pendant une \
+période.
+- **Publicité (comme mode de financement)** : des annonceurs paient le média pour \
+diffuser leurs messages ; le contenu reste gratuit pour le récepteur.
+- **Fonds publics** : financement par une dotation collective (impôts), sans paiement \
+direct du récepteur ni dépendance à la publicité.
+- **Audience** : le nombre de personnes qui consultent un média — un enjeu central pour \
+un média financé par la publicité.
+
+## 4. Méthode étape par étape
+
+Face à un document présentant un média, procède dans cet ordre :
+
+1. Identifie le **type de média** (presse, radio, télévision, site, réseau social).
+2. Cherche si un **prix** est mentionné (abonnement, numéro à l'unité) : indice d'un \
+financement par la vente/l'abonnement.
+3. Cherche la présence de **publicités** dans le document : indice d'un financement \
+publicitaire.
+4. Cherche une mention de **dotation**, de **service public** ou de **financement \
+collectif** : indice d'un financement par fonds publics.
+5. Identifie un élément d'**interactivité** (commentaires, appel en direct, partage) s'il \
+est mentionné.
+6. Mets en relation le mode de financement identifié avec le comportement du média \
+(recherche d'audience ou non) décrit dans le document.
+
+## 5. Exemples commentés
+
+### Exemple 1 — {FSE02_PAID_TITLE}
+
+{FSE02_PAID_CARD_HTML}
+
+**Analyse commentée :** ce média se finance par la **vente** (numéro à l'unité à 2,50 €) \
+et l'**abonnement** (9 ou 14 €/mois). Le document précise explicitement l'absence de \
+publicité : L'Hebdo du Littoral dépend donc entièrement de la fidélité de ses \
+lecteurs/lectrices, pas de l'audience publicitaire — un financement exclusivement privé \
+par la vente/l'abonnement, sans aucune part de publicité ni de fonds publics. Son \
+interactivité est limitée et différée : un encadré « Vos lettres » publié chaque semaine, \
+pas de réaction immédiate.
+
+### Exemple 2 — {FSE02_FREE_AD_TITLE}
+
+{FSE02_FREE_AD_CARD_HTML}
+
+**Analyse commentée :** ce média est gratuit pour le récepteur et se finance \
+exclusivement par la **publicité** (deux bannières publicitaires visibles, et le texte \
+l'indique explicitement). Le document précise que plus un article est consulté, plus il \
+génère de revenus : Le Flash Infos a donc un intérêt direct à maximiser son **audience**, \
+ce qui peut l'inciter à privilégier des sujets qui attirent beaucoup de clics. Le \
+compteur de vues mesure cette audience, mais ne constitue pas en soi une interactivité : \
+l'interactivité réelle de ce média vient du partage et des commentaires publics, qui \
+permettent au récepteur de réagir, pas du simple fait que les vues soient comptées.
+
+### Exemple 3 — {FSE02_PUBLIC_TITLE}
+
+{FSE02_PUBLIC_CARD_HTML}
+
+**Analyse commentée :** ce média se finance par des **fonds publics** (une dotation \
+votée chaque année), et le document précise qu'il s'agit ici de sa SEULE source de \
+revenus (pas de vente, pas de publicité) — un financement exclusivement public, à ne pas \
+généraliser à tous les médias publics réels, dont beaucoup combinent en réalité une \
+dotation publique avec d'autres sources (publicité partielle, par exemple). Le document \
+précise qu'il ne diffuse aucune publicité commerciale et qu'il peut traiter des sujets qui \
+intéressent peu les annonceurs (santé publique, éducation) — contrairement au Flash \
+Infos, RCW n'a pas besoin de maximiser son audience pour obtenir des revenus, PARCE QUE \
+son financement est exclusivement public : un média public qui combinerait dotation ET \
+publicité resterait, lui, partiellement soumis à cette logique d'audience. Son \
+interactivité est forte et immédiate : une émission en direct où les auditeurs peuvent \
+appeler l'antenne.
+
+## 6. Mauvaises réponses comparées aux bonnes
+
+- ❌ **Mauvaise réponse** (question : « Comment Le Flash Infos se finance-t-il ? ») : \
+« Il est gratuit. » → décrit une conséquence (l'accès gratuit pour le récepteur), pas le \
+mode de financement réel.
+- ✅ **Bonne réponse** : « Le Flash Infos se finance par la publicité : les annonceurs \
+paient pour que leurs messages apparaissent sur le site, ce qui permet de ne rien faire \
+payer aux lecteurs. »
+
+- ❌ **Mauvaise réponse** (question : « RCW cherche-t-elle à maximiser son audience ? ») : \
+« Oui, comme tous les médias. » → généralisation incorrecte qui ignore l'information \
+donnée dans le document.
+- ✅ **Bonne réponse** : « Non : financée par des fonds publics, RCW ne dépend pas de la \
+publicité ni du nombre de lecteurs pour obtenir des revenus, ce qui lui permet de traiter \
+des sujets peu populaires sans perdre de financement. »
+
+## 7. Pièges et erreurs fréquentes
+
+- **Confondre « gratuit pour le récepteur » et « sans financement »** : un média gratuit \
+pour son public est presque toujours financé autrement (publicité, fonds publics) — \
+jamais sans aucune source de revenus.
+- **Supposer qu'un média combine un seul mode de financement** : en réalité, plusieurs \
+médias combinent plusieurs sources (ex. un journal avec abonnement ET un peu de \
+publicité) ; reste toujours basé sur ce que le document précise réellement, sans inventer.
+- **Oublier le lien entre financement et comportement du média** : identifier le mode de \
+financement ne suffit pas, il faut aussi expliquer son effet (recherche d'audience ou \
+non).
+- **Confondre interactivité et mode de financement** : ce sont deux notions \
+indépendantes — un média payant peut être interactif (forum de lecteurs) et un média \
+gratuit peut ne pas l'être.
+
+## 8. Exercices guidés
+
+<details>
+<summary>Exercice 1 — Identifier le financement et son effet (essaie avant de regarder la \
+correction)</summary>
+
+Reprends le document du Flash Infos (exemple 2). Identifie son mode de financement, PUIS \
+explique en quoi ce mode de financement peut influencer le choix des sujets traités par \
+ce média.
+
+<details>
+<summary>Voir la correction expliquée</summary>
+
+Mode de financement : la publicité (bannières publicitaires visibles, confirmé par le \
+texte). Effet sur le choix des sujets : comme les revenus dépendent directement du nombre \
+de vues de chaque article, Le Flash Infos a intérêt à privilégier des sujets qui attirent \
+beaucoup de clics, ce qui peut l'inciter à délaisser des sujets importants mais moins \
+populaires.
+
+Ce corrigé fonctionne parce qu'il ne se limite pas à nommer le mode de financement : il \
+relie explicitement ce financement à un effet concret sur le comportement du média, \
+appuyé sur une information précise du document (le lien entre vues et revenus).
+</details>
+</details>
+
+<details>
+<summary>Exercice 2 — Comparer deux médias (essaie avant de regarder la correction)</summary>
+
+Compare L'Hebdo du Littoral (exemple 1) et Radio Communauté Wallonie (exemple 3) : les \
+deux médias évitent-ils la publicité pour la même raison ?
+
+<details>
+<summary>Voir la correction expliquée</summary>
+
+Non, pas pour la même raison. L'Hebdo du Littoral évite la publicité parce qu'il se \
+finance par la vente et l'abonnement : ses lecteurs paient directement pour un contenu \
+sans publicité intrusive. RCW évite la publicité parce qu'elle est financée par des fonds \
+publics : sa mission de service public ne dépend ni des lecteurs payants, ni des \
+annonceurs.
+
+Ce corrigé fonctionne parce qu'il ne se contente pas de constater un point commun (aucun \
+des deux ne fait de publicité) : il explique que ce point commun repose sur deux \
+logiques de financement totalement différentes, en les nommant précisément.
+</details>
+</details>
+
+## 9. Corrigés très expliqués
+
+**Question :** « Pourquoi Radio Communauté Wallonie peut-elle traiter des sujets comme la \
+santé publique ou l'éducation, alors que ce sont des sujets qui intéressent peu les \
+annonceurs publicitaires ? »
+
+**Corrigé expliqué :** RCW est financée par des fonds publics (une dotation votée chaque \
+année), et non par la publicité ou la vente de ses programmes. Ses revenus ne dépendent \
+donc ni du nombre de personnes qui la regardent/l'écoutent, ni de l'intérêt des \
+annonceurs pour un sujet donné. Un média financé par la publicité, lui, doit attirer un \
+large public pour que les annonceurs continuent à payer — un sujet peu populaire mais \
+important (comme la santé publique) risque d'y être moins traité. L'indépendance de RCW \
+vis-à-vis de l'audience et de la publicité lui permet donc de traiter ce type de sujet \
+sans perdre de revenus.
+
+Ce corrigé fonctionne parce qu'il relie explicitement le mode de financement (fonds \
+publics) à sa conséquence concrète (pas de contrainte d'audience), en comparant avec ce \
+qui se passerait pour un média financé autrement.
+
+## 10. Fiche mémo
+
+- Quatre modes de financement d'un média : vente, abonnement, publicité, fonds publics — \
+souvent combinés (financement mixte) ; vérifie toujours ce que le document précise \
+réellement, sans supposer un seul mode par défaut.
+- Un média financé par la publicité dépend de son audience : plus il attire de vues, plus \
+il génère de revenus publicitaires.
+- Un média financé EXCLUSIVEMENT par des fonds publics ne dépend ni de l'audience ni de la \
+publicité : il peut traiter des sujets peu populaires sans perdre de financement — un \
+média public financé en partie par la publicité reste, lui, partiellement concerné par \
+cette logique d'audience.
+- Un média payant (vente/abonnement) dépend de la fidélité de son public.
+- Chaque mode de financement est un flux monétaire entre agents économiques (ménage, \
+entreprise, État) — un abonnement relie un ménage à une entreprise, une dotation publique \
+relie l'État à un média.
+- Interactivité (réagir au message), délai de la réponse et mode de financement sont trois \
+notions indépendantes — ne jamais les confondre. Un compteur de vues mesure l'audience, \
+pas l'interactivité : seule la possibilité de réagir (commenter, partager, appeler) compte \
+comme interactivité.
+"""
+
+
+def _definition(term: str, body: str) -> str:
+    """Carte de définition (même balisage que la grille générique : la séquence « À
+    retenir » la relit, voir `app.v1.course_memo.parse_html_definitions`)."""
+    return (
+        f'<div class="jc-definition">\n<span class="jc-definition-term">{term}</span>\n'
+        f'<p class="jc-definition-body">{body}</p>\n</div>'
+    )
+
+
+def _keywords_aside(*definitions: str) -> str:
+    return (
+        '<aside class="jc-theory-layout-aside" aria-label="Mots clés">\n'
+        '<span class="jc-theory-layout-aside-label">🔑 Les mots clés</span>\n'
+        '<div class="jc-definitions">\n' + "\n".join(definitions) + "\n</div>\n</aside>"
+    )
+
+
+_MIXED_FINANCING_WARNING = """<div class="jc-takeaway">
+<span class="jc-takeaway-label">⚠️ Attention : le financement mixte</span>
+<p>Beaucoup de médias financés par des fonds publics dans la réalité combinent cette dotation \
+avec d'autres sources (un peu de publicité, par exemple) — un financement MIXTE. \
+L'indépendance totale vis-à-vis de l'audience et de la publicité ne vaut que pour un \
+financement exclusivement public, comme celui de RCW dans l'exemple étudié plus loin ; un média \
+public qui diffuse aussi de la publicité reste, lui, partiellement concerné par la recherche \
+d'audience.</p>
+</div>"""
+
+
+def _financing_card(icon: str, term: str, definition: str, payer: str, detail: str) -> str:
+    """Carte d'un mode de financement : la définition (relue par « À retenir ») + qui paie
+    + l'exemple ou la précision de la théorie progressive."""
+    return (
+        f'<div class="jc-definition jc-fund-card">\n'
+        f'<span class="jc-fund-icon" aria-hidden="true">{icon}</span>\n'
+        f'<span class="jc-definition-term">{term}</span>\n'
+        f'<p class="jc-definition-body">{definition}</p>\n'
+        f'<p class="jc-fund-payer"><strong>Qui paie ?</strong> {payer}</p>\n'
+        f'<p class="jc-fund-detail">{detail}</p>\n'
+        f"</div>"
+    )
+
+
+def fse02_theory_html() -> str:
+    """Théorie FSE02 composée en groupes pédagogiques (ticket #148) — remplace la colonne
+    de prose étroite + grille de définitions séparée (grand vide à droite sur ordinateur).
+    Même matière que les sections 2 et 3 du Markdown ci-dessus (aucune notion ajoutée) :
+    1. média / offre médiatique, 2. interactivité (directe / différée ou absente), 3. les
+    quatre financements en cartes (définition + qui paie + exemple), 4. financement et
+    audience avec la nuance du financement mixte, 5. le flux économique entre agents.
+    HTML littéral (`<strong>`, jamais `**gras**`) : diagnostic ticket #112."""
+    media = f"""<h3 class="jc-theory-group-title"><span aria-hidden="true">📰</span> Média et offre médiatique</h3>
+<div class="jc-theory-layout">
+<div class="jc-theory-layout-main">
+<p>Un <strong>média</strong> est un support qui transmet de l'information à un large public : la \
+presse (journaux, magazines), la radio, la télévision, les sites d'information et les réseaux \
+sociaux. L'ensemble de ces supports disponibles constitue l'<strong>offre médiatique</strong>.</p>
+<div class="jc-theory-split-aside">
+<span class="jc-theory-split-aside-label">Exemple</span>
+<p>Un journal papier, une radio, une chaîne de télévision, un site d'information, un réseau \
+social : chacun est un média. Tous ceux qui sont disponibles pour s'informer forment, \
+ensemble, l'offre médiatique.</p>
+</div>
+</div>
+{_keywords_aside(
+    _definition("Média", "support qui transmet de l'information à un large public (presse, radio, "
+                "télévision, sites d'information, réseaux sociaux)."),
+    _definition("Offre médiatique", "l'ensemble des médias disponibles pour s'informer."),
+)}
+</div>"""
+
+    interactivity = f"""<h3 class="jc-theory-group-title"><span aria-hidden="true">💬</span> L'interactivité</h3>
+<div class="jc-theory-layout">
+<div class="jc-theory-layout-main">
+<p>Certains médias sont <strong>interactifs</strong> : ils permettent au récepteur de réagir \
+directement. D'autres médias, plus anciens, ne le permettent pas, ou seulement de façon \
+différée.</p>
+</div>
+{_keywords_aside(
+    _definition("Interactivité", "possibilité, pour le récepteur, de réagir au message (commenter, "
+                "appeler, partager), immédiatement ou en différé."),
+)}
+</div>
+<div class="jc-theory-cards">
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">⚡</span>
+<span class="jc-theory-card-title">Réagir directement</span>
+<p>Commenter un article, appeler une émission en direct, partager une publication.</p>
+</div>
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">⏳</span>
+<span class="jc-theory-card-title">En différé, ou pas du tout</span>
+<p>Un courrier des lecteurs publié la semaine suivante : la réaction existe, mais elle est \
+différée.</p>
+<p>Un journal papier, une émission de radio sans ligne ouverte : pas de réaction \
+possible.</p>
+</div>
+</div>"""
+
+    financing = "\n".join(
+        [
+            (
+                '<h3 class="jc-theory-group-title"><span aria-hidden="true">💶</span> '
+                "Quatre modes de financement</h3>"
+            ),
+            (
+                "<p>Un média a besoin de revenus pour fonctionner : rémunérer les journalistes, "
+                "produire des contenus, maintenir un site ou une antenne. Quatre modes de "
+                "financement sont possibles, <strong>souvent combinés</strong> :</p>"
+            ),
+            '<div class="jc-definitions jc-fund-cards">',
+            _financing_card(
+                "🛒", "Vente",
+                "paiement pour accéder à un contenu précis et ponctuel.",
+                "le récepteur.",
+                "Exemple : un numéro de journal à l'unité, un article en ligne.",
+            ),
+            _financing_card(
+                "📅", "Abonnement",
+                "paiement régulier pour accéder à l'ensemble des contenus pendant une période.",
+                "le récepteur, une somme régulière.",
+                "Exemple : un abonnement mensuel donnant accès à tous les articles.",
+            ),
+            _financing_card(
+                "📢", "Publicité <small>(comme mode de financement)</small>",
+                "des annonceurs paient le média pour diffuser leurs messages ; le contenu reste "
+                "gratuit pour le récepteur.",
+                "les annonceurs.",
+                "Le contenu est gratuit pour le récepteur.",
+            ),
+            _financing_card(
+                "🏛️", "Fonds publics",
+                "financement par une dotation collective (impôts), sans paiement direct du "
+                "récepteur ni dépendance à la publicité.",
+                "la collectivité, par une dotation financée par les impôts.",
+                "Le média fonctionne sans faire payer le récepteur ni dépendre de la publicité.",
+            ),
+            "</div>",
+        ]
+    )
+
+    audience = f"""<h3 class="jc-theory-group-title"><span aria-hidden="true">📊</span> Le financement influence le média</h3>
+<p>Le mode de financement influence directement le comportement du média.</p>
+<div class="jc-theory-cards jc-theory-cards--three">
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">📢</span>
+<span class="jc-theory-card-title">Financé par la publicité</span>
+<p>Il cherche à maximiser son <strong>audience</strong> (le nombre de personnes qui le \
+consultent), car plus l'audience est grande, plus les annonceurs sont prêts à payer — ce qui \
+peut pousser à privilégier des sujets qui attirent beaucoup de clics plutôt que des sujets \
+moins populaires mais utiles.</p>
+</div>
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">🏛️</span>
+<span class="jc-theory-card-title">Financé EXCLUSIVEMENT par des fonds publics</span>
+<p>Il n'a pas cette contrainte : il peut traiter des sujets qui intéressent peu de monde, sans \
+perdre de revenus.</p>
+</div>
+<div class="jc-theory-card">
+<span class="jc-theory-card-icon" aria-hidden="true">🛒</span>
+<span class="jc-theory-card-title">Payant (vente/abonnement)</span>
+<p>Il dépend, lui, de la fidélité de ses lecteurs/lectrices : il doit leur apporter une \
+valeur suffisante pour qu'ils continuent à payer.</p>
+</div>
+</div>
+<div class="jc-theory-layout">
+<div class="jc-theory-layout-main">
+{_MIXED_FINANCING_WARNING}
+</div>
+{_keywords_aside(
+    _definition("Audience", "le nombre de personnes qui consultent un média — un enjeu central "
+                "pour un média financé par la publicité."),
+)}
+</div>"""
+
+    flows = """<h3 class="jc-theory-group-title"><span aria-hidden="true">🔁</span> Un flux économique entre agents</h3>
+<div class="jc-theory-split">
+<div class="jc-theory-split-main">
+<p>Chacun de ces quatre modes de financement correspond à un <strong>flux économique réel \
+entre agents</strong>. Observer le financement d'un média, c'est donc déjà observer un petit \
+morceau du circuit économique complet, qui sera détaillé plus loin dans ce module (FSE15).</p>
+<p>Même sans le connaître encore, retiens que chaque mode de financement relie toujours au \
+moins deux agents économiques par un flux monétaire précis.</p>
+</div>
+<div class="jc-theory-split-aside">
+<span class="jc-theory-split-aside-label">Qui verse à qui ?</span>
+<p><strong>Vente, abonnement</strong> : un récepteur (un <strong>ménage</strong>) verse un flux \
+monétaire directement au média (une <strong>entreprise</strong>).</p>
+<p><strong>Publicité</strong> : un annonceur (une <strong>entreprise</strong>) verse lui aussi \
+un flux monétaire au média.</p>
+<p><strong>Fonds publics</strong> : un flux monétaire part de l'<strong>État</strong> vers le \
+média, financé par les impôts que les ménages et les entreprises lui versent par ailleurs.</p>
+</div>
+</div>"""
+
+    return f"{media}\n\n{interactivity}\n\n{financing}\n\n{audience}\n\n{flows}"
+
+
+def fse02_course_sections() -> list[tuple[str, str]]:
+    """Sections (titre, Markdown) du cours FSE02 — refonte pédagogique et visuelle
+    (ticket #105), voir `app.v1.fse_course_sections.build_course_sections`. Ticket #148 :
+    la théorie est composée en groupes pédagogiques (`fse02_theory_html`)."""
+    sections = build_course_sections("FSE02", fse02_course_markdown())
+    return [
+        (title, fse02_theory_html()) if title == "FSE02 — Théorie : notions et définitions"
+        else (title, content)
+        for title, content in sections
+    ]

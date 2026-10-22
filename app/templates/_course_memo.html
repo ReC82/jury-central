@@ -1,0 +1,94 @@
+{# Séquence finale « À retenir » d'un cours (ticket #136) — construite par
+`app.v1.course_memo` à partir du contenu déjà publié du cours (synthèse, définitions,
+vocabulaire FR/EN, plan validé, lexique AMPCR). Jamais de titre h2 ici : un h2 créerait une
+nouvelle séquence dans `lesson_sequences.js`. Tout reste visible sans JS et à l'impression. #}
+<div class="jc-memo"{% if memo_anchor %} id="a-retenir"{% endif %}>
+    <p class="jc-memo-lead">
+        <i class="bi bi-bookmark-star" aria-hidden="true"></i>
+        Fiche de fin de chapitre : l'essentiel, ce que tu dois savoir faire et le vocabulaire
+        du cours. Elle complète les séquences précédentes, qui gardent les explications et les
+        nuances — la connaître seule ne suffit pas pour réussir l'examen.
+    </p>
+
+    <div class="jc-memo-top">
+        <section class="jc-memo-panel jc-memo-essentials" aria-labelledby="memo-essentials-{{ uaa.slug }}">
+            <h3 id="memo-essentials-{{ uaa.slug }}" class="jc-memo-panel-title">
+                <i class="bi bi-stars" aria-hidden="true"></i> L'essentiel
+            </h3>
+            {{ memo.summary_html | safe }}
+        </section>
+
+        {% if memo.skills or memo.objective or memo.method_steps %}
+        <section class="jc-memo-panel jc-memo-skills" aria-labelledby="memo-skills-{{ uaa.slug }}">
+            <h3 id="memo-skills-{{ uaa.slug }}" class="jc-memo-panel-title">
+                <i class="bi bi-check2-square" aria-hidden="true"></i> Ce que je dois savoir faire
+            </h3>
+            {% if memo.skills %}
+            <ul class="jc-memo-checklist">
+                {% for skill in memo.skills %}
+                <li><i class="bi bi-check-circle" aria-hidden="true"></i><span>{{ skill | safe }}</span></li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if memo.objective %}
+            <p class="jc-memo-objective"><strong>Objectif du programme :</strong> {{ memo.objective }}</p>
+            {% endif %}
+            {% if memo.method_steps %}
+            <p class="jc-memo-method-title"><i class="bi bi-signpost-split" aria-hidden="true"></i>
+                Méthode courte{% if memo.method_title %} — {{ memo.method_title }}{% endif %}</p>
+            <ol class="jc-memo-method">
+                {% for step in memo.method_steps %}<li>{{ step | safe }}</li>{% endfor %}
+            </ol>
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+
+    {% if memo.vocabulary %}
+    <section class="jc-memo-vocab" aria-labelledby="memo-vocab-{{ uaa.slug }}">
+        <h3 id="memo-vocab-{{ uaa.slug }}" class="jc-memo-panel-title">
+            <i class="bi bi-book" aria-hidden="true"></i> Le vocabulaire à retenir
+        </h3>
+        {% if memo.definitions %}
+        <div class="jc-memo-terms">
+            {% for card in memo.definitions %}
+            <article class="jc-memo-term">
+                <p class="jc-memo-term-name">{{ card.term }}</p>
+                {% if card.expansion or card.english %}
+                <p class="jc-memo-term-meta">
+                    {% if card.expansion %}<span><i class="bi bi-type" aria-hidden="true"></i> {{ card.expansion }}</span>{% endif %}
+                    {% if card.english and card.english | striptags | lower != card.expansion | lower %}<span><span class="jc-memo-lang">EN</span> {{ card.english | safe }}</span>{% endif %}
+                </p>
+                {% endif %}
+                <p class="jc-memo-term-def">{{ card.definition_html | safe }}</p>
+                {% if card.example_html %}
+                <p class="jc-memo-term-extra"><i class="bi bi-lightbulb" aria-hidden="true"></i> <span><strong>Exemple :</strong> {{ card.example_html | safe }}</span></p>
+                {% endif %}
+                {% if card.landmark %}
+                <p class="jc-memo-term-extra"><i class="bi bi-geo-alt" aria-hidden="true"></i> <span><strong>Repère :</strong> {{ card.landmark }}</span></p>
+                {% endif %}
+                {% if card.confusion_html %}
+                <p class="jc-memo-term-extra jc-memo-term-trap"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> <span><strong>À ne pas confondre :</strong> {{ card.confusion_html | safe }}</span></p>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if memo.pairs %}
+        <p class="jc-memo-pairs-title"><i class="bi bi-translate" aria-hidden="true"></i> Équivalents français / anglais</p>
+        <dl class="jc-memo-pairs">
+            {% for card in memo.pairs %}
+            <div><dt>{{ card.term }}</dt><dd>{{ card.english | safe }}</dd></div>
+            {% endfor %}
+        </dl>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if memo.notes_html %}
+    <section class="jc-memo-panel jc-memo-notes">
+        <h3 class="jc-memo-panel-title"><i class="bi bi-compass" aria-hidden="true"></i> Repères et méthode</h3>
+        {{ memo.notes_html | safe }}
+    </section>
+    {% endif %}
+</div>

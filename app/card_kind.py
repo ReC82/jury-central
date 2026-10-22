@@ -29,7 +29,7 @@ def classify_block_title(title: str) -> str:
         return "exam"
     if "fiche mémo" in lowered or "mémo" in lowered:
         return "summary"
-    if "ressource" in lowered:
+    if "ressource" in lowered or "source" in lowered:
         return "info"
     if "attention" in lowered or "piège" in lowered:
         return "warning"
@@ -37,6 +37,8 @@ def classify_block_title(title: str) -> str:
         return "exercise"
     if "exemple" in lowered or "transfert" in lowered:
         return "example"
+    if "méthode" in lowered:
+        return "method"
     return "theory"
 
 

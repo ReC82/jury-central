@@ -16,11 +16,21 @@
     </ol>
 </nav>
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h3 mb-0">{{ uaa.title }} <small class="text-muted">({{ uaa.code }})</small></h1>
-    <button type="button" class="btn btn-dark mark-complete-btn" data-uaa-slug="{{ uaa.slug }}">
-        Marquer comme terminé
-    </button>
+<div class="jc-theme-{{ track.theme if track else 'neutral' }}">
+<header class="jc-module-head mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <p class="jc-stat mb-1">
+                <i class="bi bi-{{ track.icon if track else 'journal-text' }}" aria-hidden="true"></i>
+                {{ track.title if track else uaa.module.subject.name }} · cours {{ uaa.code }}
+            </p>
+            <h1 class="h3 mb-0">{{ uaa.title }} <small class="text-muted">({{ uaa.code }})</small></h1>
+        </div>
+        <button type="button" class="btn btn-dark mark-complete-btn" data-uaa-slug="{{ uaa.slug }}">
+            J'ai lu ce cours jusqu'au bout
+        </button>
+    </div>
+</header>
 </div>
 
 {% include "_uaa_space_nav.html" %}
@@ -29,12 +39,37 @@
     <div class="jc-lesson-progress-bar"></div>
 </div>
 
+{# Ticket #136 : `lesson_sequences.js` découpe l'affichage en séquences courtes
+(comprendre → exemple → essayer → retenir) sans modifier ni retirer de contenu ; sans JS
+ou à l'impression, le cours complet reste affiché tel quel. #}
+<div id="jc-lesson" data-uaa-slug="{{ uaa.slug }}" data-practice-url="/uaa/{{ uaa.slug }}/practice">
 {% with empty_message = "Aucun contenu de cours publié pour cette UAA." %}
 {% include "_lesson_blocks.html" %}
 {% endwith %}
+</div>
+
+<nav class="d-flex flex-wrap justify-content-between gap-2 mt-4 d-print-none" aria-label="Cours voisins">
+    {% if prev_uaa %}
+    <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/uaa/{{ prev_uaa.slug }}">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> {{ prev_uaa.code }} — {{ prev_uaa.title | truncate(40) }}
+    </a>
+    {% else %}<span></span>{% endif %}
+    <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/modules/{{ uaa.module.slug }}">
+        <i class="bi bi-signpost" aria-hidden="true"></i> Tous les cours
+    </a>
+    {% if next_uaa %}
+    <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/uaa/{{ next_uaa.slug }}">
+        {{ next_uaa.code }} — {{ next_uaa.title | truncate(40) }} <i class="bi bi-arrow-right" aria-hidden="true"></i>
+    </a>
+    {% endif %}
+</nav>
 
 {% if needs_plotly %}
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script src="{{ url_for('static', path='js/interactive_graph.js') }}"></script>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='js/lesson_sequences.js') }}"></script>
 {% endblock %}

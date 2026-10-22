@@ -6,7 +6,12 @@ Attend `rendered_blocks` et `empty_message` dans le contexte du template qui l'i
 
 {% for item in rendered_blocks %}
 
-    {% if item.quiz_run %}
+    {% if item.memo_card %}
+    {% call cards.card(item.card, title="À retenir", extra_class="jc-card--memo") %}
+    {% with memo = item.memo_card, memo_anchor = True %}{% include "_course_memo.html" %}{% endwith %}
+    {% endcall %}
+
+    {% elif item.quiz_run %}
     {% call cards.card(item.card, title="Quiz — " ~ item.quiz_run.count ~ " questions") %}
     <div class="quiz-run" data-questions="{{ item.quiz_run.questions_json }}">
         <div class="quiz-run-progress small text-muted mb-2"></div>
@@ -16,8 +21,12 @@ Attend `rendered_blocks` et `empty_message` dans le contexte du template qui l'i
     {% endcall %}
 
     {% elif item.block.type.value == "markdown" %}
-    {% call cards.card(item.card, title=item.block.title) %}
-    <div class="content-markdown">{{ item.html | safe }}</div>
+    {% call cards.card(item.card, title=item.block.title, extra_class="jc-card--reading" if item.reading and not item.memo else "") %}
+    <div class="content-markdown">{{ item.html | safe }}
+    {%- if item.memo %}
+    <h2 id="a-retenir" class="jc-memo-heading">À retenir</h2>
+    {% with memo = item.memo %}{% include "_course_memo.html" %}{% endwith %}
+    {%- endif %}</div>
     {% endcall %}
 
     {% elif item.block.type.value == "youtube" and item.youtube_id %}

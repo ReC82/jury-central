@@ -298,7 +298,7 @@ def test_question_170_document_visible_end_to_end_practice_and_exam(
     assert response.status_code == 200
     assert "source-document-panel" in response.text
     assert "Document de référence" in response.text
-    assert "Voir le document" in response.text
+    assert "Ouvrir en grand</a>" in response.text  # ticket #149 : document affiché d'emblée
     assert "/documents/" in response.text
     assert escaped_title in response.text
     assert "answer-textarea" in response.text
@@ -332,9 +332,8 @@ def test_question_170_document_visible_end_to_end_practice_and_exam(
     results = authenticated_client.get(session_url)
     assert results.status_code == 200
     assert "Ta réponse" in results.text
-    assert "Document(s) de référence :" in results.text
-    assert f"Document de référence : {escaped_title}" in results.text
-    assert "Voir le document" in results.text
+    # Ticket #149 : même composant que pendant la session, replié sous « Revoir le document ».
+    assert f"Revoir le document — Document de référence : {escaped_title}" in results.text
     assert "/documents/" in results.text
     assert "window.print()" in results.text
     assert "@media print" in results.text

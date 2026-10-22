@@ -53,6 +53,57 @@ classification est un champ explicite `LessonBlock.space` (COURSE/PRACTICE/EXAM,
 déduit du titre ou du type à l'exécution) — voir
 `docs/claude-reports/2026-09-16_ticket-22_separation-cours-practice-exam.md`.
 
+Depuis le ticket #136, la navigation part d'un **parcours** : accueil (« Choisir mon
+parcours » / « Continuer »), assistant Diplôme → Forme → Option (`/parcours`), tableau de
+bord `/mon-parcours` (prochaine étape, reprise, tuiles de matières, progression réelle),
+chemin de cours sur `/modules/{slug}` et cours en séquences courtes. Les routes historiques
+restent servies. Voir `docs/parcours_v1.md`.
+
+Composition des cours sur ordinateur (ticket #148) : la largeur de lecture n'est plus
+portée par la prose (`.jc-prose` sans plafond) mais par la composition — théorie FSE
+« explication + Les mots clés » côte à côte (`.jc-theory-layout`), théorie FSE02 en
+groupes pédagogiques, et carte de texte seul réduite à une largeur de lecture
+(`.jc-card--reading`, détection `app.content.is_text_only_html`). Voir
+`docs/claude-reports/2026-10-21_ticket-148-composition-desktop.md`.
+
+Documents sources composés (ticket #149) : entraînement, examen blanc, quiz, résultats et
+page `/documents/{id}` rendent chaque document selon sa nature (mail, affiche, publication
+de réseau social/groupe, page de média, forum, conversation, note sur papier à en-tête,
+fiches numérotées, tableau, budget, circuit, chaîne de flux, bulletins) via un composant
+unique `app/templates/_document_layouts.html`, alimenté par `app/v1/document_layouts.py`.
+Une mise en page est liée au titre ET à l'empreinte du texte exact de la version (texte
+modifié → rendu générique lisible) ; les 30 documents FSE installés sont couverts. Un
+nouveau document peut être créé directement structuré (`content_json={"layout": {...}}`).
+Les mentions entre crochets deviennent une note discrète, les renvois de cours et les
+annotations-réponses listés dans `omitted` ne sont plus affichés (ils restent dans le texte
+transmis à la correction). Voir `docs/claude-reports/2026-10-21_ticket-149-supports-visuels.md`.
+
+Références documentaires résolvables (ticket #151) : `short_answer`, `long_answer`,
+`classification` et `document_analysis` acceptent `source_document_version_ids` (tous les
+documents du dossier à montrer, document principal inclus) — l'élève et le correcteur
+voient la même liste. Résultats et export reprennent le libellé de session (« Document 3 :
+Réactions des groupes concernés ») ; le correcteur reçoit le numéro réel dans le titre.
+`app/v1/document_references.py` : liste des questions de dossier corrigées
+(`dossier_repairs`), mise à niveau idempotente d'une banque déjà importée par nouvelle
+version (`repair_dossier_references`, appelée par `app.seed`) et audit
+(`audit_document_references`). Voir `docs/claude-reports/2026-10-22_ticket-151-references-documentaires.md`.
+
+Consignes FSE autonomes (ticket #152) : `app/v1/prompt_clarity.py` est la seule liste des
+consignes corrigées (`clarity_repairs`). Les 15 remises en ordre de méthode FSE02–FSE16
+sont annoncées comme « Rappel de méthode (cours FSEnn « … », sans document à analyser) »
+et ne gardent que des étapes à ordre réellement contraint. FSE16 « réactions » classe effet
+attendu / limite ou coût, avec la proposition (document 1) affichée à côté du document 3.
+FSE15 « aide au média » sépare deux actions (a)/(b). FSE09, FSE06 et FSE12 n'ont plus de
+consigne « maintenant / ces trois autres / à présent ». Le document FSE09 servi en
+entraînement/examen/quiz est une version d'examen qui décrit la matière sans nommer le
+niveau de pouvoir (`FSE09_SITUATIONS_EXAM_TEXT`, mise en page dédiée) ; le cours garde le
+texte d'origine. Banque neuve : `apply_clarity` dans chaque import FSE ; banque déjà
+importée : `repair_prompt_clarity` (appelée par `app.seed`, nouvelles versions, idempotent).
+Audit : `audit_prompt_clarity`. Remise en ordre (entraînement/examen) : un ordre n'est
+enregistré que si chaque position 1..n est utilisée une fois ; sinon la question reste sans
+réponse et les choix partiels sont conservés (`positions`). Voir
+`docs/claude-reports/2026-10-22_ticket-152-consignes-fse-contexte.md`.
+
 ---
 
 ## Administration
@@ -66,6 +117,13 @@ Permet notamment :
 - gérer les UAA
 - gérer les blocs de contenu
 - importer des quiz
+- administrer la banque de questions V1 (`/admin/bank`, ticket #46) : statistiques par
+  module, recherche/filtres, versions, modification (= nouvelle version), statuts
+  (archiver/réactiver, invalide, obsolète, à revoir), variante IA, génération
+  ACTIVE/PAUSED par module, signalements des élèves et usage IA estimé — voir
+  `docs/admin.md`, § Banque de questions V1.
+- gérer les visuels de la banque (`/admin/bank/assets`, ticket #48) : marquer un visuel
+  incorrect (ses questions sortent du tirage), demander une régénération, réactiver.
 
 La création complète d'un cours ne passe plus par l'administration.
 
@@ -112,6 +170,15 @@ générateur réel (exercice fixe).
   `docs/claude-reports/2026-09-17_ticket-29_mc01-practice-interactive.md`. Servis sur
   l'espace S'entraîner (`/uaa/{slug}/practice`, ticket #22), jamais dans le flux de
   théorie ; aucune correction visible avant validation explicite.
+- **Longueur de session au choix** (ticket #86) : l'écran de démarrage d'un entraînement
+  ou d'une évaluation (par mini-cours, MC38, FSE17, parcours global AMPCR) propose
+  « Nombre de questions » 10/20/30/40 (+ 50 pour MC38 et le parcours global AMPCR),
+  présélection 10 en entraînement et 20 en évaluation. Sans génération possible
+  (fournisseur absent, module en pause, FSE17), seules les longueurs couvertes par la
+  banque sans doublon sont proposées. Le choix est persisté
+  (`parameters_json["requested_question_count"]`, affiché dans l'historique/export s'il
+  diffère du nombre réel). La génération manquante est découpée en lots de 20 (sessions de 30 à 50) ; la
+  diversité catégories/mini-cours augmente avec la longueur (≥ 3/4/6 valeurs à 10/20/30+).
 
 ---
 
@@ -122,6 +189,37 @@ Disponible.
 Les quiz sont intégrés au contenu pédagogique. Question et explication passent par le
 renderer de contenu riche (voir plus bas) : un tableau ou une formule dans une question de
 quiz s'affiche correctement plutôt qu'en texte brut.
+
+Depuis le ticket #137, un espace **Quiz du parcours** (`/quiz`) propose des parties de 5, 10
+ou 20 questions objectives (QCM, classement, remise en ordre) sur un cours, une matière,
+plusieurs matières ou tout le parcours, avec récapitulatif avant départ, correction et
+explication après chaque réponse validée, reprise exacte, résultat (points forts, cours à
+relire), rejouer et reprise des erreurs. Activité distincte des entraînements et examens
+blancs. Voir `docs/quiz_v1.md`.
+
+Depuis le ticket #75, une page **Mes points faibles** (`/points-faibles`) calcule un niveau
+de fragilité par cours (ou par notion si la question est étiquetée — `Question.concepts`)
+à partir des réponses corrigées des entraînements, examens blancs et renforcements
+(jamais deux fois la même réponse, quiz exclus) ; elle propose un **renforcement ciblé**
+(`SessionMode.REINFORCEMENT`, une question objective à la fois, correction immédiate,
+variante ajoutée après une erreur) et un **examen ciblé** (examen blanc de 10/20 questions
+sur les notions faibles, sans correction avant la fin). Voir `docs/weakness_v1.md`.
+
+Depuis le ticket #150, l'ordre des réponses d'un QCM (et des éléments d'une remise en
+ordre) est tiré au sort pour chaque question servie — quiz, entraînement et examen blanc —
+et persisté dans la session (`SessionQuestion.content_snapshot_json["display_order"]`,
+`app/v1/display_order.py`) : stable à la reprise, banque inchangée, correction toujours
+par identifiant. Les sessions antérieures gardent l'ordre de la banque.
+
+Depuis le ticket #153, une remise en ordre (entraînement, examen blanc, quiz) s'affiche en
+cartes réordonnables : glisser-déposer souris/tactile par la poignée (SortableJS 1.15.7,
+MIT, vendorisé dans `app/static/vendor/sortablejs/`), boutons Monter/Descendre et
+Alt + ↑/↓, annonce accessible. Gabarit partagé `app/templates/_ordering_cards.html`,
+script `app/static/js/ordering_cards.js`. Contrat serveur inchangé (champs
+`position__<id>`) ; l'ordre affiché n'est enregistré qu'après un déplacement ou
+« Conserver cet ordre ». En entraînement/examen, sauvegarde automatique par identifiants
+via `/api/v1/sessions/{id}/answers/{sq}` (permutation complète validée côté serveur) ; en
+quiz, validation volontaire. Sans JavaScript, les listes de positions restent utilisables.
 
 ---
 
@@ -155,6 +253,10 @@ Disponible.
 
 Progression locale de l'étudiant, complétée par une barre de progression de lecture par
 leçon.
+
+Rating adaptatif V1 (ticket #45) : niveau de l'utilisateur par module et difficulté
+empirique des questions, recalculés après chaque questionnaire corrigé ; option
+« Adaptatif » au démarrage d'un entraînement/évaluation. Voir `docs/rating_adaptatif_v1.md`.
 
 ---
 
@@ -201,6 +303,13 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
 
 ## Intégré
 
+- **Questions visuelles Informatique (ticket #48)** : premières questions d'identification
+  de composants dans la banque MC01 (RAM, CPU, alimentation, HDD, SSD, carte mère, carte
+  graphique ; schéma de carte mère à repères A–F). Types `image_identification` et
+  `diagram_labeling` désormais servis en entraînement/examen et corrigés localement. Assets
+  réutilisables (photo réelle / illustration générée / schéma technique) avec source,
+  licence et provenance — voir [docs/assets_visuels_v1.md](assets_visuels_v1.md).
+
 - MB32 UAA1
 - MB32 UAA2 (Géométrie — 6 leçons : Solides, Perspective cavalière, Patrons, Vues
   coordonnées, Aires, Volumes)
@@ -233,11 +342,25 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
   pédagogique borné (`PEDAGOGICAL_CONTEXTS["ampcr-mc03"]`) pour le même moteur IA — aucun
   second moteur.
 
+- **Formation sociale et économique — CESS Professionnel — FSE01 « Communiquer : le
+  schéma de communication »** (ticket #96, 2026-10-01) : nouvelle matière créée
+  (`/subjects/formation-sociale-et-economique`, `/modules/fse`,
+  `/uaa/fse-fse01`), premier mini-cours livré complet en réutilisant intégralement le
+  moteur V1 existant (voir `docs/ampcr_v1_functional.md`/`docs/francais_v1_functional.md`
+  pour le fonctionnement partagé) — théorie (schéma de communication appliqué à un mail,
+  une affiche et une publication sur réseau social), 14 questions de banque, practice avec
+  choix de difficulté, examen avec choix de difficulté ET de sévérité de cotation
+  (paramètres distincts, appliqués et persistés côté serveur), correction hybride,
+  résultats, historique. FSE02 à FSE17 restent au stade de plan documenté (voir
+  [docs/content_plan_fse.md](content_plan_fse.md)), jamais présentés comme disponibles.
+
 ## En attente d'import
 
-- MB32 UAA3, MQ32, MQ34 (derrière Informatique/Français, voir priorité ci-dessous)
+- MB32 UAA3, MQ32, MQ34 (derrière Informatique/Français/FSE, voir priorité ci-dessous)
 - Mini-cours 04 à 38 Informatique AMPCR
-- Français CESS Professionnel (aucun contenu à ce jour)
+- Français FR06 à FR20 CESS Professionnel
+- Formation sociale et économique FSE02 à FSE17 (voir
+  [docs/content_plan_fse.md](content_plan_fse.md))
 
 ---
 

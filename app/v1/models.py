@@ -198,13 +198,14 @@ class Question(Base):
     difficulty_declared: Mapped[QuestionDifficulty | None] = mapped_column(
         Enum(QuestionDifficulty), nullable=True
     )
-    # Difficulté empirique (§ K) : calculée plus tard par l'algorithme du ticket #45.
-    # Valeur/contraintes seulement ici — aucun calcul.
+    # Difficulté empirique (§ K) : calculée par l'algorithme du ticket #45
+    # (`app.v1.rating`), après chaque questionnaire terminé — aucun calcul ici.
     difficulty_rating: Mapped[float | None] = mapped_column(Float, nullable=True)
     rating_sample_size: Mapped[int] = mapped_column(Integer, default=0)
     generation_source: Mapped[GenerationSource] = mapped_column(Enum(GenerationSource))
     # Statistiques de base (§ B) : évitent de ré-agréger SessionAnswer à chaque affichage
-    # de la banque. Mises à jour par les tickets consommateurs (#41/#44), pas ici.
+    # de la banque. Mises à jour à la fin de chaque questionnaire par `app.v1.rating`
+    # (ticket #45), pas ici.
     times_served: Mapped[int] = mapped_column(Integer, default=0)
     times_correct: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
@@ -506,6 +507,16 @@ class SessionMode(str, enum.Enum):
 
     PRACTICE = "practice"
     EXAM = "exam"
+    # Ticket #137 : partie de quiz ludique (une question à la fois, validée et corrigée
+    # côté serveur question par question — `app.v1.quiz_service`). Activité distincte :
+    # jamais comptée comme entraînement ni examen blanc (`app.v1.parcours`), absente de
+    # l'historique « Mes entraînements » et sans effet sur le rating de module. Stockée
+    # comme les autres valeurs (VARCHAR, aucune contrainte CHECK) : aucune migration.
+    QUIZ = "quiz"
+    # Ticket #75 : renforcement ciblé des points faibles — une question à la fois avec
+    # correction immédiate (même cycle que le quiz, `app.v1.weakness`), compté dans le
+    # profil de points faibles mais jamais comme entraînement, examen blanc ni rating.
+    REINFORCEMENT = "reinforcement"
 
 
 class SessionStatus(str, enum.Enum):
@@ -874,6 +885,26 @@ class UserModuleRating(Base):
     )
 
 
+class UserPathway(Base):
+    """Parcours choisi par l'utilisateur (ticket #136) : diplôme → forme → option, chaque
+    clé renvoyant au registre `app.v1.parcours` (jamais un libellé libre). Une seule ligne
+    par utilisateur : changer de parcours met cette ligne à jour sans jamais toucher aux
+    sessions, réponses ni ratings — les acquis restent attachés aux UAA/modules, pas au
+    parcours. Nouvelle table : créée par `Base.metadata.create_all`, aucune migration."""
+
+    __tablename__ = "v1_user_pathways"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("v1_users.id"), unique=True, index=True)
+    diploma_key: Mapped[str] = mapped_column(String(40))
+    form_key: Mapped[str] = mapped_column(String(40))
+    option_key: Mapped[str] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
+    )
+
+
 # =========================================================================================
 # L. Feedback utilisateur
 # =========================================================================================
@@ -908,6 +939,8 @@ class QuestionFeedback(Base):
     feedback_type: Mapped[FeedbackType] = mapped_column(Enum(FeedbackType))
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    # Ticket #46 : signalement traité par l'admin (jamais supprimé) — `None` = à traiter.
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     __table_args__ = (
         Index("ix_v1_question_feedback_question_type", "question_id", "feedback_type"),
@@ -948,6 +981,34 @@ class AIUsage(Base):
         ),
         Index("ix_v1_ai_usage_user_period", "user_id", "period_key"),
     )
+
+
+class AIUsageEvent(Base):
+    """Journal d'usage IA (ticket #46) : une ligne par opération IA (génération d'un lot,
+    correction d'une session, régénération admin), rattachée à un module — `AIUsage`
+    (agrégat mensuel par utilisateur) ne connaît pas le module, nécessaire aux
+    statistiques admin par module. `user_id` vide = action admin (compte `.env`, pas un
+    `User` V1). Jamais de contenu de prompt ni de secret, seulement des compteurs."""
+
+    __tablename__ = "v1_ai_usage_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    module_id: Mapped[int | None] = mapped_column(ForeignKey("modules.id"), nullable=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("v1_users.id"), nullable=True, index=True)
+    session_id: Mapped[int | None] = mapped_column(
+        ForeignKey("v1_questionnaire_sessions.id"), nullable=True
+    )
+    kind: Mapped[str] = mapped_column(String(30))  # generation / correction / admin_variant
+    provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    model: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    calls: Mapped[int] = mapped_column(Integer, default=0)
+    generated_questions: Mapped[int] = mapped_column(Integer, default=0)
+    ai_corrections: Mapped[int] = mapped_column(Integer, default=0)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    estimated_cost: Mapped[float] = mapped_column(Float, default=0.0)
+    failed: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
 
 
 # =========================================================================================

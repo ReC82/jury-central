@@ -168,9 +168,10 @@ def test_fr01_05_course_pages_are_not_stub(client, db_session):
             "Pièges et erreurs fréquentes",
             "Exercices guidés",
             "Corrigés très expliqués",
-            "Fiche mémo",
         ):
             assert required_section in text, f"{slug} : section manquante « {required_section} »"
+        # Ticket #136 : la « Fiche mémo » est reprise dans la séquence finale « À retenir ».
+        assert 'id="a-retenir"' in text, slug
 
 
 def test_fr01_05_hidden_answers_use_details_collapsed_by_default(client, db_session):
