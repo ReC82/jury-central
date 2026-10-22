@@ -29,6 +29,6 @@
 
 {% if needs_plotly %}
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-<script src="{{ url_for('static', path='js/interactive_graph.js') }}"></script>
+<script src="{{ url_for('static', path='js/interactive_graph.js') }}?v={{ asset_version('js/interactive_graph.js') }}"></script>
 {% endif %}
 {% endblock %}

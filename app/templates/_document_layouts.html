@@ -25,6 +25,37 @@ Texte toujours issu de la version exacte du document ; rendu générique lisible
 </div>
 {%- endmacro %}
 
+{% macro web_block(block) -%}
+{% if block.type == "lead" %}<p class="jc-sd-web-lead">{{ block.text }}</p>
+{% elif block.type == "offers" %}
+<section class="jc-sd-web-offers" aria-label="{{ block.title | replace(' :', '') }}">
+    <p class="jc-sd-web-section">{{ block.title }}</p>
+    <ul class="jc-sd-offers">
+        {% for offer in block["items"] %}
+        {% set price = offer_parts(offer.value) %}
+        <li class="jc-sd-offer">
+            <span class="jc-sd-offer-name">{{ offer.label }}</span>{{ " " }}
+            <span class="jc-sd-offer-price"><strong>{{ price.amount }}</strong>{% if price.period %} <span class="jc-sd-offer-period">{{ price.period }}</span>{% endif %}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% elif block.type == "quote" %}<blockquote class="jc-sd-web-quote"><p>{{ block.text }}</p></blockquote>
+{% elif block.type == "paywall" %}<p class="jc-sd-web-paywall"><i class="bi bi-lock-fill" aria-hidden="true"></i> {{ block.text }}</p>
+{% elif block.type == "letters" %}
+<aside class="jc-sd-web-letters"><p class="jc-sd-web-letters-title"><i class="bi bi-envelope-paper" aria-hidden="true"></i> {{ block.title }}</p> <p>{{ block.text }}</p></aside>
+{% elif block.type == "ribbon" %}<p class="jc-sd-web-ribbon">{{ block.text }}</p>
+{% elif block.type == "ad" %}<div class="jc-sd-ad{% if block.slot %} jc-sd-ad--{{ block.slot }}{% endif %}"><span class="jc-sd-ad-tag">Bannière publicitaire</span> <span class="jc-sd-ad-text">{{ block.text }}</span></div>
+{% elif block.type == "headline" %}
+<article class="jc-sd-headline"><p class="jc-sd-headline-kicker">{{ block.kicker }}</p> <p class="jc-sd-headline-title">{{ block.text }}</p>{% if block.features %} <p class="jc-sd-headline-tools"><span class="jc-sd-headline-icons" aria-hidden="true"><i class="bi bi-eye"></i><i class="bi bi-share"></i><i class="bi bi-chat-left-text"></i></span> {{ block.features }}</p>{% endif %}</article>
+{% elif block.type == "row" %}
+<div class="jc-sd-web-row"><div class="jc-sd-web-main">{% for child in block.main %}{{ web_block(child) }}{% endfor %}</div> <div class="jc-sd-web-side">{% for child in block.side %}{{ web_block(child) }}{% endfor %}</div></div>
+{% elif block.type == "about" %}<footer class="jc-sd-web-about"><p>{{ block.text }}</p></footer>
+{% elif block.type == "feature" %}<div class="jc-sd-feature"><i class="bi {{ block.icon }}" aria-hidden="true"></i> <p>{{ block.text }}</p></div>
+{% else %}<p>{{ block.text }}</p>
+{% endif %}
+{%- endmacro %}
+
 {% macro body(doc, layout, focus) -%}
 {% set kind = layout.kind %}
 
@@ -128,22 +159,17 @@ Texte toujours issu de la version exacte du document ; rendu générique lisible
 </div>
 
 {% elif kind == "webpage" %}
+{# Page de média (ticket #149, retour du 22/10) : une vraie fenêtre de site, sans répéter le
+   titre du document. Espaces explicites entre les éléments : même sans feuille de style, le
+   texte ne se colle jamais (« L'HEBDO DU LITTORAL Abonnez-vous »). #}
 <div class="jc-sd-web jc-sd-web--{{ layout.variant }}">
-    <div class="jc-sd-web-bar" aria-hidden="true"><span class="jc-sd-web-dots"><i></i><i></i><i></i></span><span class="jc-sd-web-url">{{ layout.site }} — {{ layout.url }}</span></div>
-    <div class="jc-sd-web-masthead"><strong>{{ layout.site }}</strong><span>{{ layout.tagline }}</span></div>
+    <div class="jc-sd-web-bar" aria-hidden="true"><span class="jc-sd-web-dots"><i></i><i></i><i></i></span> <span class="jc-sd-web-url"><i class="bi bi-lock"></i></span></div>
+    <header class="jc-sd-web-masthead">
+        <p class="jc-sd-web-brand">{{ layout.site }}</p>
+        {% if layout.tagline %} <p class="jc-sd-web-tagline">{{ layout.tagline }}</p>{% endif %}
+    </header>
     <div class="jc-sd-web-content">
-        {% for block in layout.blocks %}
-        {% if block.type == "lead" %}<p class="jc-sd-web-lead">{{ block.text }}</p>
-        {% elif block.type == "offers" %}
-        <p class="jc-sd-web-section">{{ block.title }}</p>
-        <div class="jc-sd-offers">{% for offer in block["items"] %}<div class="jc-sd-offer"><span>{{ offer.label }}</span><strong>{{ offer.value }}</strong></div>{% endfor %}</div>
-        {% elif block.type == "quote" %}<blockquote class="jc-sd-web-quote">{{ block.text }}</blockquote>
-        {% elif block.type == "ad" %}<div class="jc-sd-ad"><span class="jc-sd-ad-tag">Bannière publicitaire</span>{{ block.text }}</div>
-        {% elif block.type == "headline" %}<div class="jc-sd-headline"><span>{{ block.kicker }}</span><p>{{ block.text }}</p></div>
-        {% elif block.type == "feature" %}<div class="jc-sd-feature"><i class="bi {{ block.icon }}" aria-hidden="true"></i><p>{{ block.text }}</p></div>
-        {% else %}<p>{{ block.text }}</p>
-        {% endif %}
-        {% endfor %}
+        {% for block in layout.blocks %}{{ web_block(block) }}{% endfor %}
     </div>
 </div>
 

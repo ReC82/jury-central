@@ -49,6 +49,7 @@ PRESENTATION_KEYS = frozenset(
         "image_alt",
         "chrome",
         "variant",
+        "slot",
         "palette",
         "sheet_label",
         "item_label",
@@ -299,9 +300,14 @@ _register(
                 "de revenus est constituée par nos lecteurs et lectrices. »",
             },
             {
-                "type": "text",
+                "type": "paywall",
                 "text": "Aucun article complet n'est consultable sans abonnement ou achat du "
-                "numéro. Un encadré « Vos lettres » publie chaque semaine une sélection de "
+                "numéro.",
+            },
+            {
+                "type": "letters",
+                "title": "Vos lettres",
+                "text": "Un encadré « Vos lettres » publie chaque semaine une sélection de "
                 "courriers de lecteurs en réaction aux articles parus.",
             },
         ],
@@ -319,21 +325,32 @@ _register(
         "site": "LE FLASH INFOS",
         "tagline": "Toute l'actu, 100 % gratuite",
         "blocks": [
+            {
+                "type": "ribbon",
+                "text": "Tous nos articles sont accessibles gratuitement, sans inscription.",
+            },
             {"type": "ad", "text": "« Soldes chez MégaStore, -40 % cette semaine »"},
             {
-                "type": "headline",
-                "kicker": "À LA UNE",
-                "text": "Travaux sur le pont de la gare, circulation perturbée dès lundi",
+                "type": "row",
+                "main": [
+                    {
+                        "type": "headline",
+                        "kicker": "À LA UNE",
+                        "text": "Travaux sur le pont de la gare, circulation perturbée dès lundi",
+                        "features": "Chaque article affiche un compteur de vues et un bouton « "
+                        "Partager », et permet de laisser un commentaire visible publiquement "
+                        "sous le texte.",
+                    },
+                ],
+                "side": [
+                    {"type": "ad", "slot": "side", "text": "« Assurance auto moins chère avec AutoPlus »"},
+                ],
             },
-            {"type": "ad", "text": "« Assurance auto moins chère avec AutoPlus »"},
             {
-                "type": "text",
-                "text": "Tous nos articles sont accessibles gratuitement, sans inscription. Le "
-                "Flash Infos vit exclusivement des revenus publicitaires générés par les "
-                "annonceurs visibles sur le site : plus un article est consulté, plus il "
-                "génère de revenus publicitaires pour le site. Chaque article affiche un "
-                "compteur de vues et un bouton « Partager », et permet de laisser un "
-                "commentaire visible publiquement sous le texte.",
+                "type": "about",
+                "text": "Le Flash Infos vit exclusivement des revenus publicitaires générés par "
+                "les annonceurs visibles sur le site : plus un article est consulté, plus il "
+                "génère de revenus publicitaires pour le site.",
             },
         ],
     },
@@ -1338,6 +1355,18 @@ def focus_numbers(layout: dict[str, Any] | None, question_text: str | None) -> l
     if not found or len(found) >= len(numbers):
         return []
     return found
+
+
+_OFFER_PRICE = re.compile(r"^(?P<amount>\d[\d\s.,]*\s?€)\s*(?P<period>.*)$")
+
+
+def offer_parts(value: str) -> dict[str, str]:
+    """« 14 € par mois » → montant « 14 € » + périodicité « par mois » (deux extraits exacts
+    du texte, rien d'ajouté) ; une valeur sans montant reste entière."""
+    match = _OFFER_PRICE.match(value.strip())
+    if not match:
+        return {"amount": value, "period": ""}
+    return {"amount": match["amount"].strip(), "period": match["period"].strip()}
 
 
 def course_card_html(ref: str) -> str:

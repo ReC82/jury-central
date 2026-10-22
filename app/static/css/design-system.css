@@ -1182,7 +1182,6 @@ body.jc-zoom-open {
     background: var(--jc-orange-bg);
     border-radius: 999px;
     padding: 0.1rem 0.6rem;
-    margin-bottom: 0.3rem;
 }
 
 .jc-exercise-section p {
@@ -2010,22 +2009,25 @@ details.jc-glossary > .jc-definitions {
 
 .jc-sd-stack { display: flex; flex-direction: column; gap: 1rem; }
 
+/* Retour du 22/10 : le cadre n'est plus une carte. L'en-tête (étiquette, titre, « Ouvrir en
+   grand ») appartient à l'interface ; le support lui-même est une feuille claire autonome
+   (contour et ombre discrets) — pas de carte dans la carte. */
 .jc-sd {
-    background: #fff;
-    border: 1px solid var(--jc-sd-line);
-    border-radius: 0.9rem;
-    box-shadow: 0 1px 3px rgba(31, 41, 51, 0.06);
-    padding: 1rem 1.1rem 0.85rem;
+    --jc-sd-paper: #fffefa;
+    --jc-sd-paper-line: #e4e0d6;
+    --jc-sd-paper-shadow: 0 1px 2px rgba(31, 41, 51, 0.05), 0 6px 18px rgba(31, 41, 51, 0.08);
     color: var(--jc-sd-ink);
+    margin-bottom: 0.4rem;
 }
 .jc-sd-head {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    gap: 0.5rem 1rem;
-    margin-bottom: 0.85rem;
+    gap: 0.4rem 1rem;
+    margin-bottom: 0.55rem;
 }
+.jc-sd-head > div { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; min-width: 0; }
 .jc-sd-label {
     display: inline-block;
     font-size: 0.75rem;
@@ -2038,7 +2040,7 @@ details.jc-glossary > .jc-definitions {
     padding: 0.1rem 0.6rem;
     margin-bottom: 0.3rem;
 }
-.jc-sd-title { font-size: 1.12rem; font-weight: 700; margin: 0; line-height: 1.35; }
+.jc-sd-title { font-size: 0.98rem; font-weight: 600; margin: 0; line-height: 1.35; color: #3b4652; }
 .jc-sd-open {
     font-size: 0.85rem;
     color: var(--jc-sd-muted);
@@ -2049,10 +2051,25 @@ details.jc-glossary > .jc-definitions {
     padding: 0.2rem 0.7rem;
 }
 .jc-sd-open:hover, .jc-sd-open:focus-visible { color: var(--jc-sd-ink); border-color: #b8c1cb; }
-.jc-sd-body { font-size: 0.98rem; line-height: 1.6; }
+.jc-sd-body {
+    font-size: 0.98rem;
+    line-height: 1.6;
+    background: var(--jc-sd-paper);
+    border: 1px solid var(--jc-sd-paper-line);
+    border-radius: 0.6rem;
+    box-shadow: var(--jc-sd-paper-shadow);
+    padding: 1.05rem 1.2rem;
+}
+/* Supports qui sont déjà eux-mêmes un objet complet (fenêtre de site, affiche) : pas de
+   feuille autour. */
+.jc-sd--webpage .jc-sd-body, .jc-sd--poster_sheet .jc-sd-body, .jc-sd--memo .jc-sd-body,
+.jc-sd--forum_post .jc-sd-body, .jc-sd--email_thread .jc-sd-body, .jc-sd--quotes .jc-sd-body { background: transparent; border: 0; box-shadow: none; padding: 0; }
+.jc-sd--social_post .jc-sd-body, .jc-sd--chat .jc-sd-body { max-width: 44rem; }
+.jc-sd--memo .jc-sd-paper { margin: 0; max-width: 46rem; box-shadow: var(--jc-sd-paper-shadow); }
+.jc-sd--forum_post .jc-sd-forum, .jc-sd--email_thread .jc-sd-mail-msg, .jc-sd--quotes .jc-sd-quote { background: #fff; box-shadow: var(--jc-sd-paper-shadow); }
 .jc-sd-body p:last-child { margin-bottom: 0; }
 .jc-sd-notice {
-    margin: 0.85rem 0 0;
+    margin: 0.5rem 0 0;
     font-size: 0.8rem;
     color: var(--jc-sd-muted);
     font-style: italic;
@@ -2161,28 +2178,47 @@ details.jc-glossary > .jc-definitions {
 .jc-sd-comment-badge { font-size: 0.78rem; color: var(--jc-sd-muted); }
 
 /* Page web de média */
-.jc-sd-web { border: 1px solid #cfd6de; border-radius: 0.7rem; overflow: hidden; max-width: 46rem; }
-.jc-sd-web-bar { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.7rem; background: #eef1f5; border-bottom: 1px solid #cfd6de; font-size: 0.78rem; color: var(--jc-sd-muted); }
-.jc-sd-web-dots { display: inline-flex; gap: 0.25rem; }
-.jc-sd-web-dots i { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #c3cbd4; display: inline-block; }
-.jc-sd-web-url { background: #fff; border-radius: 999px; padding: 0.05rem 0.7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.jc-sd-web-masthead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.8rem; padding: 0.8rem 1rem; color: #fff; background: #23395d; }
-.jc-sd-web-masthead strong { font-family: Georgia, "Times New Roman", serif; font-size: 1.35rem; letter-spacing: 0.02em; }
-.jc-sd-web--free .jc-sd-web-masthead { background: #b02a37; }
-.jc-sd-web--free .jc-sd-web-masthead strong { font-family: inherit; font-weight: 900; }
-.jc-sd-web--public .jc-sd-web-masthead { background: #1e7e45; }
-.jc-sd-web-content { padding: 0.9rem 1rem; }
-.jc-sd-web-lead { font-size: 1.05rem; }
-.jc-sd-web-section { font-weight: 700; margin: 0.6rem 0 0.4rem; }
-.jc-sd-offers { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.6rem; margin-bottom: 0.8rem; }
-.jc-sd-offer { border: 1px solid var(--jc-sd-line); border-radius: 0.6rem; padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; }
-.jc-sd-offer strong { font-size: 1.15rem; color: #23395d; }
-.jc-sd-web-quote { border-left: 4px solid #23395d; padding: 0.3rem 0.9rem; font-style: italic; margin: 0.6rem 0 0.8rem; }
-.jc-sd-ad { position: relative; border: 2px dashed #e0a800; background: #fff8e1; border-radius: 0.5rem; padding: 0.7rem 0.8rem 0.6rem; margin: 0.6rem 0; text-align: center; font-weight: 600; }
-.jc-sd-ad-tag { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8a6d00; margin-bottom: 0.2rem; }
-.jc-sd-headline span { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.06em; color: #b02a37; }
-.jc-sd-headline p { font-size: 1.2rem; font-weight: 800; line-height: 1.3; margin: 0.1rem 0 0.6rem; }
-.jc-sd-feature { display: flex; gap: 0.7rem; align-items: flex-start; margin: 0.6rem 0; }
+/* Page de média (retour du 22/10) : une fenêtre de site autonome, fond clair, ombre discrète ;
+   en-tête du média distinct de l'interface ; formules en cartes (formule, prix, périodicité). */
+.jc-sd-web { background: #fff; border: 1px solid #d3d9e0; border-radius: 0.65rem; overflow: hidden; max-width: 50rem; box-shadow: var(--jc-sd-paper-shadow); color: #1d2430; }
+.jc-sd-web p { margin: 0; }
+.jc-sd-web-bar { display: flex; align-items: center; gap: 0.7rem; padding: 0.45rem 0.75rem; background: #eef1f4; border-bottom: 1px solid #d3d9e0; font-size: 0.75rem; color: #7a8590; }
+.jc-sd-web-dots { display: inline-flex; gap: 0.3rem; }
+.jc-sd-web-dots i { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: #c6cdd5; display: inline-block; }
+.jc-sd-web-url { flex: 0 1 18rem; height: 1.35rem; display: inline-flex; align-items: center; background: #fff; border: 1px solid #dde2e8; border-radius: 999px; padding: 0 0.6rem; }
+.jc-sd-web-masthead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.2rem 1.2rem; padding: 1rem 1.25rem 0.9rem; color: #fff; background: #1f3354; border-bottom: 4px solid #c9a227; }
+.jc-sd-web-brand { font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 1.7rem; line-height: 1.1; letter-spacing: 0.03em; }
+.jc-sd-web-tagline { font-size: 0.95rem; font-weight: 600; opacity: 0.92; }
+.jc-sd-web--paid .jc-sd-web-tagline { background: #c9a227; color: #1f2933; border-radius: 999px; padding: 0.15rem 0.8rem; opacity: 1; }
+.jc-sd-web--free .jc-sd-web-masthead { background: #c4202f; border-bottom-color: #1d2430; }
+.jc-sd-web--free .jc-sd-web-brand { font-family: inherit; font-weight: 900; font-size: 1.6rem; letter-spacing: 0.01em; }
+.jc-sd-web--public .jc-sd-web-masthead { background: #1e6f43; border-bottom-color: #9fd3b4; }
+.jc-sd-web-content { padding: 1.1rem 1.25rem 1.2rem; display: flex; flex-direction: column; gap: 0.9rem; font-size: 0.97rem; line-height: 1.55; }
+.jc-sd-web-lead { font-size: 1.1rem; font-family: Georgia, "Times New Roman", serif; }
+.jc-sd-web-section { font-weight: 700; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: #55606b; margin-bottom: 0.5rem !important; }
+.jc-sd-offers { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: 0.7rem; }
+.jc-sd-offer { border: 1px solid #d6dce3; border-top: 4px solid #1f3354; border-radius: 0.55rem; padding: 0.75rem 0.85rem 0.85rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.6rem; background: #fbfcfd; }
+.jc-sd-offer-name { font-weight: 600; font-size: 0.92rem; line-height: 1.35; }
+.jc-sd-offer-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.4rem; }
+.jc-sd-offer-price strong { font-size: 1.65rem; line-height: 1; color: #1f3354; font-weight: 800; }
+.jc-sd-offer-period { font-size: 0.85rem; color: #55606b; }
+.jc-sd-web-quote { margin: 0; border-left: 4px solid #c9a227; background: #faf7ef; border-radius: 0 0.45rem 0.45rem 0; padding: 0.7rem 1rem; font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 1.02rem; }
+.jc-sd-web-paywall { display: flex; gap: 0.55rem; align-items: baseline; font-size: 0.92rem; color: #3b4652; }
+.jc-sd-web-paywall i { color: #1f3354; }
+.jc-sd-web-letters { border: 1px solid #e2dccb; background: #fdfbf5; border-radius: 0.5rem; padding: 0.7rem 0.9rem; }
+.jc-sd-web-letters-title { font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 1.05rem; color: #1f3354; margin-bottom: 0.2rem !important; }
+.jc-sd-web-ribbon { align-self: flex-start; background: #fdecee; color: #8f1622; font-weight: 700; font-size: 0.88rem; border-radius: 999px; padding: 0.2rem 0.8rem; }
+.jc-sd-ad { position: relative; border: 2px dashed #e0a800; background: #fff8e1; border-radius: 0.5rem; padding: 0.6rem 0.8rem; text-align: center; font-weight: 600; }
+.jc-sd-ad-tag { display: block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8a6d00; margin-bottom: 0.2rem; }
+.jc-sd-ad--side { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+.jc-sd-web-row { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 0.9rem; align-items: stretch; }
+.jc-sd-headline { border-left: 4px solid #c4202f; padding: 0.1rem 0 0.1rem 0.85rem; }
+.jc-sd-headline-kicker { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; color: #c4202f; }
+.jc-sd-headline-title { font-size: 1.35rem; font-weight: 800; line-height: 1.25; margin: 0.15rem 0 0.55rem !important; }
+.jc-sd-headline-tools { font-size: 0.88rem; color: #55606b; }
+.jc-sd-headline-icons { display: inline-flex; gap: 0.45rem; margin-right: 0.35rem; color: #1d2430; }
+.jc-sd-web-about { border-top: 1px solid #e3e7ec; padding-top: 0.75rem; font-size: 0.9rem; color: #3b4652; }
+.jc-sd-feature { display: flex; gap: 0.7rem; align-items: flex-start; }
 .jc-sd-feature i { font-size: 1.3rem; color: #1e7e45; margin-top: 0.1rem; }
 
 /* Éléments retrouvés (fiches avec vignette) */
@@ -2304,7 +2340,14 @@ details.jc-glossary > .jc-definitions {
 .jc-q-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.6rem; }
 
 @media (max-width: 575.98px) {
-    .jc-sd { padding: 0.85rem 0.8rem 0.7rem; border-radius: 0.7rem; }
+    .jc-sd-body { padding: 0.85rem 0.85rem; }
+    .jc-sd-web-masthead { padding: 0.8rem 0.9rem 0.7rem; }
+    .jc-sd-web-brand { font-size: 1.35rem; }
+    .jc-sd-web-content { padding: 0.9rem 0.9rem 1rem; }
+    .jc-sd-offers { grid-template-columns: 1fr; }
+    .jc-sd-offer { flex-direction: row; align-items: center; }
+    .jc-sd-offer-price { flex-direction: column; align-items: flex-end; text-align: right; flex: 0 0 auto; }
+    .jc-sd-web-row { grid-template-columns: 1fr; }
     .jc-sd-mail-msg + .jc-sd-mail-msg { margin-left: 0; }
     .jc-sd-mail-head { flex-wrap: wrap; }
     .jc-sd-comment--reply { margin-left: 1.2rem; }
@@ -2325,7 +2368,9 @@ details.jc-glossary > .jc-definitions {
 }
 
 @media print {
-    .jc-sd { box-shadow: none; border-color: #999; break-inside: auto; }
+    .jc-sd-body, .jc-sd-web { box-shadow: none !important; border-color: #999 !important; background: #fff !important; }
+    .jc-sd-web-masthead, .jc-sd-web-tagline, .jc-sd-web-ribbon, .jc-sd-ad { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .jc-sd-web, .jc-sd-offer, .jc-sd-web-row { break-inside: avoid; }
     .jc-sd-card, .jc-sd-quote, .jc-sd-mail-msg, .jc-sd-chat-msg, .jc-sd-ballot, .jc-sd-agent { break-inside: avoid; }
     .jc-sd-open, .jc-sd-more > summary { display: none !important; }
     .jc-sd-psheet { break-inside: avoid; box-shadow: none; max-width: 16cm; }
