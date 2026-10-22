@@ -1,9 +1,15 @@
 # Ticket #152 — Clarifier les consignes FSE et fournir le contexte des questions extraites de dossiers
 
 - Ticket : https://github.com/ReC82/jury-central/issues/152 (P0, coordonné avec #149, #150, #151, #153, #129)
-- Branche : `fix/152-consignes-fse-contexte` — PR #165 (fusionnée dans `develop`)
+- Branche : `fix/152-consignes-fse-contexte` — PR #165 et #166 (21/10), **PR #190 (22/10, retour du propriétaire)**, toutes fusionnées dans `develop`
 - **État réel : Installé — à tester**
-- **SHA installé** : `9900ca141cc514f7e6254da651720a8612609ea2` (PR #165, + commit de ce rapport, sans redémarrage)
+- **SHA installé** : `bd633c1f16155e54bf2b3d49fe60d44c994c0a92` (PR #190 ; + commit de ce rapport, sans redémarrage)
+- Synthèse du 22/10 : la question « D'après le document 3… » vue sans le document 1 venait
+  d'un examen blanc **créé avant** la correction du 21/10 et repris ensuite (version 1 figée).
+  Les nouvelles sessions servaient déjà la bonne version. Les anciennes sessions affichent
+  maintenant elles aussi le document 1 avant le document 3, marqué « ajouté », et la
+  correction reçoit les mêmes documents. La note budgétaire FSE16 n'est plus servie sans la
+  proposition. Détail : section « Mise à jour du 22/10 » en fin de rapport.
 
 ## 1. Diagnostic (base réelle, lecture seule)
 
@@ -224,3 +230,135 @@ Aucune décision utilisateur nécessaire.
   Pas d'autre consigne trop facile repérée.
 - Les 10 questions de l'ancien pilote Français C01 (décision 1 de #151) ne sont pas
   concernées.
+
+
+---
+
+## Mise à jour du 22/10 — retour du propriétaire (examen blanc, question 1/20 sans document 1)
+
+### Cause établie (base réelle, lecture seule, sans donnée personnelle)
+
+| Élément | Constat |
+|---|---|
+| Session concernée | Examen blanc FSE17 n° 70 (périmètre `fse17_transversal`, 20 questions, **en cours**, 8 réponses enregistrées). C'est la seule session qui a servi une version des questions 610/611. C'est aussi la session des captures du 21/10. |
+| Date de création | **21/10/2026 19:29 UTC** |
+| Question 1/20 | Question 611, **version 1** (version 611) : consigne « D'après le document 3, quelle limite… » (texte exact du retour), document 61 (document 3) seul |
+| Correction #152 | Version 2 le 21/10 à 22:45 UTC, version 3 (documents 59 puis 61, soit document 1 puis document 3) le 21/10 à 23:18 UTC, **après** la création de la session |
+| Nouvelles sessions | Une seule fonction crée les questions servies (`add_session_question`) et elle prend toujours la version courante. Les sessions 71 à 77 (quiz, entraînement, renforcement) n'ont servi aucune ancienne version de 610/611. |
+
+Cause : **ancienne session reprise, qui conserve la version 1** (règle de versionnement :
+une session garde la version qu'elle a servie). Ce n'est ni une nouvelle session qui aurait
+servi une ancienne version, ni un rendu qui ignorerait les documents supplémentaires. Le
+même cas touchait la question 2/20 (610 v1). La correction aurait aussi reçu uniquement le
+document 3, comme l'élève.
+
+### Changements (PR #190)
+
+1. **Anciennes sessions : contexte restauré explicitement, rien modifié en base.**
+   `session_question_document_ids` (`app/v1/session_service.py`) : si la version courante
+   de la **même** question est du même type, conserve **tous** les documents de la version
+   figée et en ajoute seulement d'autres, alors la question affiche les documents dans l'ordre
+   de la version courante (document 1 puis document 3). Les documents ajoutés portent le badge
+   « ajouté », sous un message « Contexte complété : … ta réponse et la question restent
+   celles de ta session, et la correction tiendra compte des mêmes documents ». Dans tous les
+   autres cas (document retiré ou remplacé, type changé), seuls les documents figés sont
+   utilisés : deux versions incompatibles ne sont jamais mélangées. La même liste sert à
+   l'écran de question (entraînement, examen, quiz, renforcement), à la **correction IA**
+   (`_document_contexts_for`), aux résultats et à l'export (`_build_results_rows`, badge
+   « ajouté depuis le début de la session »). La session 70 garde sa version 611 et ses
+   réponses. Les notes et les versions ne sont pas touchées.
+2. **Audit « cette aide / la subvention / la proposition » (dossiers FSE).** Nouvelle règle
+   dans `audit_prompt_clarity` : un document affiché qui parle de « la subvention », de « la
+   proposition », de « cette mesure »… doit être accompagné d'un texte qui l'**introduit**
+   (« propose de… », « une aide… »). Répéter le mot ne suffit plus. Sur la base réelle, elle
+   a repéré **2 questions** : FSE16 609 et 614, où la note budgétaire (document 2, qui commence
+   par « La subvention serait financée… ») était servie seule. Elles montrent maintenant le
+   **document 1 (proposition) puis le document 2**, avec une consigne qui le dit. La règle est
+   limitée aux dossiers FSE (un texte Français complet introduit autrement sa décision).
+3. **FSE09 (cas #129, permanence)** : « Et pour ces trois autres demandes… » (dépendait de la
+   question précédente) devient « D'après les fiches de la permanence, quel niveau de pouvoir
+   est compétent pour les demandes 1, 6 et 7 ? ».
+4. Mise à jour par **nouvelles versions** (seed idempotent sur le site : 3 questions, 0
+   document, 0 non résolue). Les sessions existantes sont intactes.
+
+Le document 1 affiché est le texte source existant : un gouvernement régional fictif propose
+de subventionner une partie du prix des abonnements de transport collectif (bus, train
+régional) pour les travailleurs à revenus modestes, financée par le budget régional, avec ses
+deux objectifs. Rien n'a été inventé ou paraphrasé. Ce document ne contient pas la réponse
+attendue (la capacité du réseau).
+
+### SHA installé et liens pour tester
+
+SHA : `bd633c1f16155e54bf2b3d49fe60d44c994c0a92`.
+
+1. **Ta session n° 70** (Mes entraînements → examen blanc FSE17 en cours, ou
+   https://jury-central.lodylands.com/sessions/70?q=1) : la question 1/20 affiche
+   « Contexte complété », puis DOCUMENT 1 (badge « ajouté »), puis DOCUMENT 3. La question 2
+   s'affiche de la même façon. Tes 8 réponses sont toujours là.
+2. **Nouvel examen blanc** : https://jury-central.lodylands.com/uaa/fse-fse17 (la question
+   apparaît selon le tirage, sans message « ajouté » puisque la version est déjà à jour).
+3. **FSE16** : https://jury-central.lodylands.com/uaa/fse-fse16 (questions sur la note
+   budgétaire : document 1 puis document 2).
+4. FSE09 : https://jury-central.lodylands.com/uaa/fse-fse09.
+
+### Vérifications effectuées
+
+- Tests : 8 nouveaux tests (`tests/test_ticket152_context_restored.py`) : ancienne session
+  avec document 1 puis 3 et badge, correction et résultats avec les mêmes documents, page
+  HTML, aucun mélange si un document est remplacé, nouvelles sessions FSE17/FSE16 toujours en
+  version courante avec document 1 en tête, note budgétaire, règle d'audit, FSE09. Les tests
+  #152 existants ont été adaptés : les cas #129 sont importés comme en production, 31 versions
+  au lieu de 29.
+- **Suite complète, une fois** (moteur de sessions et de correction touché) : 2147 passés,
+  1 échec (`test_ticket94_french_fr06_10` : la nouvelle règle d'audit signalait des textes
+  Français complets). La règle a été limitée aux dossiers FSE, puis les tests concernés ont
+  été relancés : 52 passés (#152, #151, Français FR06-10). ruff propre sur les fichiers
+  modifiés.
+- **Copie de la base réelle** (`/tmp`, jamais la base du site) : réparation idempotente
+  (3 puis 0), audit FSE vide. La session 70 donne les documents [59, 61], ajouté [59], et la
+  correction reçoit bien le document 59. Sur **40 nouvelles sessions** (30 examens blancs
+  FSE17 à difficultés variées et 10 FSE16), **0 version obsolète** servie ; 609, 610, 611,
+  613, 614 et 615 montrent toujours le document 1 en premier.
+- **Parcours navigateur connecté** (Chromium headless, code de la PR sur la copie de la base,
+  compte local de vérification créé dans la copie uniquement) :
+  - nouvel examen blanc FSE17, question 13/20 = 611 → « DOCUMENT 1 | Proposition — carte de
+    transport collectif subventionnée », puis « DOCUMENT 3 | Réactions des groupes concernés »,
+    sans badge ;
+  - copie exacte des versions figées de la session 70 (q=1 et q=2) → message « Contexte
+    complété », 1 badge « ajouté », DOCUMENT 1 puis DOCUMENT 3, consigne d'origine.
+- **Après installation** : services actifs, `/health` OK en local et en public, pages
+  FSE16, FSE17 et FSE09 en 200. Compteurs utilisateurs/sessions/réponses 18/77/631
+  inchangés. Session 70 relue en lecture seule avec le code installé : documents [59, 61],
+  ajouté [59], correction avec le document 59. Sauvegarde :
+  `~/.local/state/jury-central-orch/backups/jury_central-pre-ticket152-20261022-123021.db`.
+- Non fait : parcours navigateur sur le site public avec ton compte (je n'utilise pas tes
+  identifiants et je n'ai pas créé de compte sur la base réelle). Je n'ai pas non plus
+  vérifié le quiz et le renforcement dans un navigateur : ils utilisent la même fonction
+  d'affichage, couverte par les tests.
+
+### Choix techniques faits seul
+
+- **Pas de copie ni de modification de la session 70.** Le contexte est restauré à
+  l'affichage, signalé explicitement, et repris à l'identique par la correction. Une
+  « reprise » qui recréerait la session aurait perdu tes réponses ou changé les versions.
+- Restauration **limitée aux ajouts de documents**, jamais à un changement de consigne ou de
+  barème : la consigne et la correction attendue restent celles de la version servie. Pour
+  610 v1 (« classe chaque réaction selon l'agent »), l'ancienne consigne reste affichée, avec
+  le document 1 en plus.
+- Le seed a aussi créé 52 blocs de cours déjà présents dans `develop` (tickets précédents),
+  sans lien avec #152 (opération idempotente).
+- Les signalements de l'audit sur les textes Français FR02 (« Cette décision » après « a fait
+  installer ») sont de faux positifs connus, exclus comme avant.
+
+### Décisions demandées au propriétaire
+
+Aucune décision utilisateur nécessaire. Option possible si tu la préfères : au lieu
+d'afficher le contexte dans l'ancienne session, proposer un bouton « recommencer cet examen
+avec les versions à jour » (nouvelle session, l'ancienne restant consultable). Ma
+recommandation est de garder l'affichage actuel, qui ne fait perdre aucune réponse.
+
+### Reste à faire
+
+Rien pour ce retour. Hors périmètre, signalé seulement : l'audit des renvois documentaires
+signale encore des questions de l'ancien pilote C01 (« d'après le texte » sans document), qui
+existaient déjà avant ce ticket.
