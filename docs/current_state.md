@@ -358,7 +358,6 @@ L'objectif est que Claude puisse intégrer automatiquement une UAA complète.
 
 - MB32 UAA3, MQ32, MQ34 (derrière Informatique/Français/FSE, voir priorité ci-dessous)
 - Mini-cours 04 à 38 Informatique AMPCR
-- Français FR16 à FR20 CESS Professionnel (FR01→FR15 livrés, ticket #94 phases A, B et C)
 - Formation sociale et économique FSE02 à FSE17 (voir
   [docs/content_plan_fse.md](content_plan_fse.md))
 
@@ -386,9 +385,9 @@ Les mini-cours 01 (ticket #10), 02 (ticket #12) et 03 (ticket #14) Informatique 
 livrés directement depuis un cahier des charges pédagogique fourni par ChatGPT dans chaque
 ticket GitHub, sans fichier source déposé dans `docs/sources_cours/` (voir
 `docs/content_workflow.md`, section « Contenu rédigé à partir d'un cahier des charges »).
-Français CESS Professionnel : FR01→FR15 rédigés et seedés (ticket #94, phases A–C,
-voir [docs/francais_v1_functional.md](francais_v1_functional.md)) ; FR16→FR20 restent à
-écrire (phase D, dont FR20 = examen blanc transversal). Voir
+Français CESS Professionnel : les 20 cours FR01→FR20 sont rédigés et seedés (ticket #94,
+phases A–D, FR20 = examen blanc transversal ; voir
+[docs/francais_v1_functional.md](francais_v1_functional.md)). Voir
 [docs/content_plan_informatique_francais.md](content_plan_informatique_francais.md) pour
 l'inventaire, la cartographie et le découpage en tickets restants.
 

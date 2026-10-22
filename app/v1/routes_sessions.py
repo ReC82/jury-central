@@ -52,7 +52,13 @@ from app.v1.francais_fr11_15_bank import (
     import_francais_fr14_to_bank,
     import_francais_fr15_to_bank,
 )
-from app.v1.francais_plan import get_francais_plan_by_slug
+from app.v1.francais_fr16_20_bank import (
+    import_francais_fr16_to_bank,
+    import_francais_fr17_to_bank,
+    import_francais_fr18_to_bank,
+    import_francais_fr19_to_bank,
+)
+from app.v1.francais_plan import FR20_CODE, FR20_SESSION_SCOPE, get_francais_plan_by_slug
 from app.v1.fse_bank import (
     import_fse01_to_bank,
     import_fse02_to_bank,
@@ -183,6 +189,12 @@ _FRANCAIS_BANK_IMPORTERS = {
     "francais-fr13": import_francais_fr13_to_bank,
     "francais-fr14": import_francais_fr14_to_bank,
     "francais-fr15": import_francais_fr15_to_bank,
+    "francais-fr16": import_francais_fr16_to_bank,
+    "francais-fr17": import_francais_fr17_to_bank,
+    "francais-fr18": import_francais_fr18_to_bank,
+    "francais-fr19": import_francais_fr19_to_bank,
+    # FR20 (ticket #94, phase D) volontairement ABSENT : examen blanc transversal sans
+    # banque propre — `_ensure_bank_seeded` amorce à sa place les banques FR01→FR19.
 }
 
 # Ticket #96/#97/#98 : même mécanisme que `_FRANCAIS_BANK_IMPORTERS` ci-dessus, pour la
@@ -227,6 +239,13 @@ def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
     elif uaa.slug in _FRANCAIS_BANK_IMPORTERS:
         _FRANCAIS_BANK_IMPORTERS[uaa.slug](db, module, uaa)
         db.commit()
+    elif uaa.slug == f"francais-{FR20_CODE.lower()}":
+        # FR20 tire dans FR01→FR19 : leurs banques doivent exister même si l'élève n'a
+        # encore ouvert aucun de ces cours (import idempotent, jamais de doublon).
+        for course in module.uaas:
+            if course.slug in _FRANCAIS_BANK_IMPORTERS:
+                _FRANCAIS_BANK_IMPORTERS[course.slug](db, module, course)
+        db.commit()
     elif uaa.slug in _FSE_BANK_IMPORTERS:
         _FSE_BANK_IMPORTERS[uaa.slug](db, module, uaa)
         db.commit()
@@ -250,6 +269,11 @@ def _resumable_session_for_uaa(db, *, user_id: int, module_id: int, mode: Sessio
     if fse_plan is not None and fse_plan.code == FSE17_CODE:
         return get_in_progress_session(
             db, user_id=user_id, module_id=module_id, mode=mode, scope=FSE17_SESSION_SCOPE
+        )
+    francais_plan = get_francais_plan_by_slug(uaa.slug)
+    if francais_plan is not None and francais_plan.code == FR20_CODE:
+        return get_in_progress_session(
+            db, user_id=user_id, module_id=module_id, mode=mode, scope=FR20_SESSION_SCOPE
         )
     return get_in_progress_session(db, user_id=user_id, module_id=module_id, mode=mode, uaa_id=uaa.id)
 
@@ -403,7 +427,7 @@ def _enqueue_build_for_uaa(
     # difficile = le sélecteur de difficulté déjà existant sur cette même page).
     legacy_count = (
         GLOBAL_EXAM_QUESTION_COUNT
-        if mode == SessionMode.EXAM and uaa_code in ("MC38", "C01", FSE17_CODE)
+        if mode == SessionMode.EXAM and uaa_code in ("MC38", "C01", FSE17_CODE, FR20_CODE)
         else DEFAULT_QUESTION_COUNT
     )
     # Ticket #86 : le nombre choisi sur l'écran de démarrage prime ; le volume ci-dessus
@@ -1276,6 +1300,8 @@ def _export_slug(session: QuestionnaireSession) -> str:
         return next(iter(uaa_codes)).lower()
     if (session.parameters_json or {}).get("scope") == MC38_SESSION_SCOPE:
         return "mc38-transversal"
+    if (session.parameters_json or {}).get("scope") == FR20_SESSION_SCOPE:
+        return "fr20-examen-blanc"
     if len(uaa_codes) > 1:
         return "global"
     return session.module.code.lower() if session.module else "session"

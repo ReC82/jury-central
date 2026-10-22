@@ -288,6 +288,78 @@ FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
             "Analyser la voix, l'attitude et la structure d'une prise de parole",
             "Répondre calmement à une objection en la reformulant",
         ),
+    ),    # Ticket #94 PHASE D : FR16→FR20 (FR20 = méthode de l'épreuve + examen blanc transversal,
+    # sans banque propre — voir `FR20_CODE` ci-dessous).
+    FrancaisUAAPlan(
+        code="FR16", title="Discuter et négocier",
+        allowed_notions=(
+            "discussion, négociation, décision commune",
+            "position et besoin (intérêt)",
+            "écoute active, reformulation, question ouverte, message en « je »",
+            "proposition conditionnelle, concession, compromis, solution gagnant-gagnant, récapitulation de l'accord",
+            "comportements qui bloquent un échange : accusation, généralisation, attaque personnelle, menace",
+        ),
+        competencies=(
+            "Distinguer la position et le besoin des interlocuteurs",
+            "Utiliser la reformulation, les questions ouvertes et le message en « je »",
+            "Proposer un compromis ou une solution gagnant-gagnant qui respecte les contraintes",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR17", title="Comprendre et transformer une œuvre culturelle",
+        allowed_notions=(
+            "auteur et narrateur, narrateur interne/externe",
+            "point de vue interne, externe, omniscient",
+            "personnage principal et secondaires, cadre spatio-temporel",
+            "schéma narratif : situation initiale, élément perturbateur, péripéties, élément de résolution, situation finale",
+            "transformation d'un récit (point de vue, suite, dialogue) et cohérence avec l'original",
+        ),
+        competencies=(
+            "Identifier le narrateur, le point de vue, les personnages et le cadre d'un récit",
+            "Découper un récit selon le schéma narratif",
+            "Transformer un récit de manière cohérente avec l'original",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR18", title="Amplifier, recomposer et transposer",
+        allowed_notions=(
+            "éléments essentiels d'un texte (qui, quoi, où, quand, comment)",
+            "amplification : description, portrait, dialogue, pensées, précisions",
+            "recomposition : in medias res, fin d'abord, retour en arrière",
+            "transposition : genre (théâtre : répliques, didascalies ; presse : titre, chapeau), point de vue, époque, lieu, registre",
+        ),
+        competencies=(
+            "Relever les éléments essentiels d'un texte source",
+            "Amplifier, recomposer ou transposer un texte selon une consigne précise",
+            "Respecter les codes du genre visé sans contredire le texte source",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR19", title="Relater une expérience culturelle et motiver son appréciation",
+        allowed_notions=(
+            "relater : quoi, où, quand, avec qui, contenu",
+            "goût personnel et appréciation motivée",
+            "critères : histoire/thème, interprétation, mise en scène, émotion, accessibilité",
+            "vocabulaire mélioratif/péjoratif, modalisateurs, nuance, recommandation",
+        ),
+        competencies=(
+            "Relater une expérience culturelle de façon précise",
+            "Motiver une appréciation par des critères et des exemples précis",
+            "Nuancer son jugement et formuler une recommandation adaptée",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR20", title="Méthodologie complète de l'épreuve et examen final",
+        allowed_notions=(
+            "lecture complète du sujet, verbes de consigne, contraintes, barème",
+            "gestion du temps, brouillon, grille de relecture",
+            "méthodes des cours FR01 à FR19",
+        ),
+        competencies=(
+            "Organiser son travail sur une épreuve complète de français",
+            "Mobiliser la méthode adaptée à chaque type de tâche",
+            "Relire sa copie avec une grille en plusieurs passages",
+        ),
     ),
 )
 
@@ -325,3 +397,15 @@ FRANCAIS_CONTEXTS: dict[str, PedagogicalContext] = {
 
 def get_francais_context(course_key: str) -> PedagogicalContext | None:
     return FRANCAIS_CONTEXTS.get(course_key)
+
+
+# Ticket #94 (PHASE D) : FR20 = examen blanc transversal du parcours, sans banque propre —
+# ses sessions tirent dans FR01→FR19 (jamais dans C01, pilote historique, ni dans FR20),
+# même principe que FSE17 (`app.v1.fse_plan.FSE17_SESSION_SCOPE`). Utilisé par
+# `app.v1.session_service._start_francais_transversal_session`.
+FR20_CODE = "FR20"
+FR20_SESSION_SCOPE = "fr20_transversal"
+
+
+def fr01_to_fr19_codes() -> list[str]:
+    return [plan.code for plan in FRANCAIS_PLAN if plan.code.startswith("FR") and plan.code != FR20_CODE]

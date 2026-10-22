@@ -22,6 +22,7 @@ from fastapi import Request
 from sqlalchemy.orm import Session as DBSession
 
 from app import models
+from app.v1.francais_plan import FR20_SESSION_SCOPE
 from app.v1.fse_plan import FSE17_SESSION_SCOPE
 from app.v1.mc38_transversal import MC38_SESSION_SCOPE
 from app.v1.models import (
@@ -42,8 +43,10 @@ SESSION_KEY = "jc_pathway"
 EXAM_PASS_RATIO = 0.5
 
 # Sessions transversales dont les questions couvrent plusieurs UAA : attribuées à l'UAA de
-# révision qui les porte (MC38, FSE17), pas éclatées sur les cours couverts.
-_SCOPE_TO_UAA_CODE = {MC38_SESSION_SCOPE: "MC38", FSE17_SESSION_SCOPE: "FSE17"}
+# révision qui les porte (MC38, FSE17, FR20), pas éclatées sur les cours couverts.
+_SCOPE_TO_UAA_CODE = {
+    MC38_SESSION_SCOPE: "MC38", FSE17_SESSION_SCOPE: "FSE17", FR20_SESSION_SCOPE: "FR20",
+}
 
 
 @dataclass(frozen=True)

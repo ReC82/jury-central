@@ -184,14 +184,15 @@ appartiennent à ChatGPT :
 
 # 9. Parcours des 20 mini-cours (ticket #94)
 
-État au 22/10/2026 : **FR01→FR15 publiés** (cours, entraînement, évaluation) ; FR16→FR20
-à écrire (phase D ; FR20 = examen blanc transversal, à composer comme MC38).
+État au 22/10/2026 : **les 20 cours FR01→FR20 sont publiés** (cours, entraînement,
+évaluation). FR20 = méthode de l'épreuve + examen blanc final transversal.
 
 | Phase | Cours | Fichiers |
 |---|---|---|
 | A | FR01→FR05 | `app/v1/francais_fr01_05_{content,bank,courses}.py` |
 | B | FR06→FR10 | `app/v1/francais_fr06_10_{content,bank,courses}.py` |
 | C | FR11→FR15 | `app/v1/francais_fr11_15_{content,bank,courses}.py` |
+| D | FR16→FR20 | `app/v1/francais_fr16_20_{content,bank,courses}.py` |
 
 - Un cours = un bloc « Cours complet » en 10 sections (savoir-faire, théorie, définitions,
   méthode, exemples commentés, mauvaises/bonnes réponses, pièges, exercices guidés à
@@ -204,3 +205,11 @@ appartiennent à ChatGPT :
   un document cité par numéro porte ce numéro en tête de titre (« Document 3 — … »,
   #151). Audits : `tests/test_ticket94_french_fr06_10.py::test_fr01_10_document_references_and_prompts_are_resolvable`
   (FR01→FR15) et `tests/test_ticket94_french_fr11_15.py`.
+- **FR20 (examen blanc final)** : pas de banque propre. Entraînement (10 questions par
+  défaut) et évaluation (20 par défaut, 10 à 40 au choix) tirent dans les banques FR01→FR19
+  (`select_francais_transversal_bank_questions`, scope `fr20_transversal`), strictement
+  banque comme FSE17 (`_start_bank_transversal_session`, commun aux deux) — jamais de
+  génération IA, jamais C01. L'ouverture de FR20 amorce au besoin les banques FR01→FR19.
+  La session est attribuée à FR20 dans le parcours et l'historique (« FR20 — Examen blanc
+  final (FR01→FR19) ») ; les recommandations « cours à relire » pointent vers les cours
+  d'origine des questions.
