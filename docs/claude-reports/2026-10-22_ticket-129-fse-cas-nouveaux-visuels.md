@@ -1,9 +1,9 @@
 # Ticket #129 — FSE : varier les questions et afficher de vrais supports visuels
 
 - **Ticket** : [#129 — FSE — varier les questions et afficher de vrais supports visuels en entraînement et examen blanc](https://github.com/ReC82/jury-central/issues/129)
-- **État réel** : **Partiel — installé, reste à faire** (mécanisme commun + cas nouveaux FSE01 à FSE04 ; FSE05 à FSE16 restent à enrichir)
+- **État réel** : **Partiel — installé, reste à faire** (mécanisme commun + cas nouveaux FSE01 à FSE08 ; FSE09 à FSE16 restent à enrichir)
 - **Branche** : `feature/129-fse-variantes-visuels`
-- **SHA installé** : `1b15c71ae42155f4876180b349214b8bbdf7c525` (PR #181)
+- **SHA installé** : `8f651d531d74449aae71e4716fd6091c20686504` (PR #183, lot 2 FSE05→FSE08 ; lot 1 : PR #181)
 - **Date** : 2026-10-22
 
 ## 1. Diagnostic
@@ -158,7 +158,7 @@ colonne.
 
 ## 7. Restant à réaliser
 
-- Cas nouveaux pour FSE05 à FSE16 (lots suivants), même mécanisme.
+- Cas nouveaux pour FSE09 à FSE16 (lots suivants : FSE09→FSE12 puis FSE13→FSE16), même mécanisme.
 - Génération d'illustrations raster via l'API quand la clé sera valide (si souhaité).
 
 ## 8. Installation (2026-10-22)
@@ -171,3 +171,76 @@ colonne.
   `/health` local et public : `ok` ; pages FSE01/FSE17 : 303 (connexion requise, normal) ;
   illustration et feuille de style servies (200).
 - Compteurs utilisateurs/sessions/réponses : 18 / 71 / 584 avant et après.
+
+## 9. Lot 2 — FSE05 à FSE08 (2026-10-22)
+
+### Livré
+
+| Cours | Cas nouveaux (supports) | Questions | Facile / moyen / difficile |
+|---|---|---|---|
+| FSE05 | Conversation du groupe des parents d'une équipe U11 après un tournoi (photos et vidéo à publier, autorisation signée pour le seul trombinoscope du vestiaire, enfant de 10 ans qui refuse, « terrain public donc tout est permis ») ; fiche d'inscription en ligne d'une salle d'escalade (but annoncé, données excessives, case pré-cochée pour des partenaires, inscrit de 16 ans) ; 2 mini-situations (vidéo de vacances envoyée aux seuls grands-parents, passante photographiée pour une publicité) | 12 | 4 / 5 / 3 |
+| FSE06 | Publication d'une maison de quartier qui change ses horaires et ses 7 commentaires (critique argumentée, injure, accusation sans preuve, menace, discrimination, faux compte « officiel » démenti par l'animateur) ; fiche de signalement d'une stagiaire (compte piraté, photos privées publiées « pour qu'elle ait honte », messages moqueurs répétés) ; 2 mini-situations (application qui copie les contacts, critique d'une vidéo) | 11 | 3 / 5 / 3 |
+| FSE07 | Dossier en trois documents sur la vidéo d'un chauffeur de bus : communiqué signé et daté de la société de transport, publication virale mêlant faits, interprétation et opinion, message transféré anonyme et non daté (et contredit) ; 2 mini-situations (capture d'écran sans source, interprétation dans un article) | 8 | 3 / 3 / 2 |
+| FSE08 | Huit brèves d'actualité « qui a décidé ? » (Parlement wallon, Parlement bruxellois, Parlement de la Communauté française, Chambre, conseil communal, tribunal, gouvernement wallon, signature du Roi) ; 1 mini-situation (carte d'identité à la commune) | 7 | 2 / 3 / 2 |
+
+Total lot 2 : 38 questions, 5 documents. Cumul FSE01→FSE08 : 85 questions nouvelles,
+15 documents. Exemples du cours déclarés (dépriorisés) : FSE05 (six situations, Nabil,
+Chloé…), FSE06 (dix scénarios, Sarah…), FSE07 (Athénée du Parc, 5e B, forum anonyme),
+FSE08 (tableau des niveaux de pouvoir et ses affirmations).
+
+Les trois documents du dossier FSE07 sont réunis dans un seul support à trois fiches
+numérotées : les questions qui les comparent s'appuient exactement sur le document que voit
+l'élève et que reçoit la correction (aucun « document 3 » introuvable, cf. #151).
+
+Aucune illustration nouvelle dans ce lot : les notions de FSE05→FSE08 se travaillent sur
+des conversations, formulaires, publications, dossiers et brèves (HTML/CSS), pas sur des
+affiches. Je n'ai volontairement pas mis de « photo » décrite en texte.
+
+### Tester (lot 2)
+
+- Entraînement FSE05 : https://jury-central.lodylands.com/uaa/fse-fse05/practice
+- Entraînement FSE06 : https://jury-central.lodylands.com/uaa/fse-fse06/practice
+- Entraînement FSE07 : https://jury-central.lodylands.com/uaa/fse-fse07/practice
+- Entraînement FSE08 : https://jury-central.lodylands.com/uaa/fse-fse08/practice
+- Examens : remplacer `practice` par `exam` ; examen blanc : https://jury-central.lodylands.com/uaa/fse-fse17/exam
+
+Procédure : démarrer un entraînement de 10 questions dans chaque cours ; vérifier que les
+documents sont les nouveaux supports (parents des Aiglons, salle d'escalade, maison de
+quartier « Le Préau », fiche d'Amina, dossier de la ligne 12, brèves) et non plus les
+exemples du cours ; regarder le rendu sur téléphone ; démarrer un deuxième entraînement
+(aucune question répétée).
+
+### Vérifications (lot 2)
+
+- `tests/test_ticket129_fse_cases.py` : 72 passed (nouveaux : import réel par cours
+  FSE05→FSE08, idempotence, cas nouveaux classés « jamais vus », exemples du cours
+  reconnus, première session de 10 sans aucun exemple du cours, rendu HTML de chaque
+  nouveau document contenant tout son texte exact et aucune description entre crochets ;
+  texte mot pour mot et couverture du document ; difficultés réparties dans chaque cours).
+  Le test « matière sans exemples déclarés » utilise désormais FSE09 (FSE05 en a).
+- Tests FSE liés : `test_ticket98_fse05_08`, `test_ticket101_fse17`,
+  `test_ticket149_document_layouts`, `test_ticket131…`, `test_ticket133…`,
+  `test_ticket97…` : 177 passed. Pas de suite complète (aucun moteur partagé modifié dans
+  ce lot : contenu + registre).
+- `ruff check` des fichiers modifiés : aucune erreur.
+- Essai à blanc sur une copie de la base réelle (fichier temporaire supprimé) : 12 / 11 / 8
+  / 7 questions importées, second passage 0.
+- Captures headless (desktop 1100 px, mobile 390 px) des 5 nouveaux documents avec les
+  vraies feuilles de style, examinées. Validation sur le site réel : à faire par toi.
+- Installation : `6edfc11` → `8f651d5` (avance rapide), sauvegarde de la base avant
+  installation, services redémarrés et actifs, `/health` local et public `ok`, pages FSE05,
+  FSE08, FSE17 : 303 (connexion requise, normal), compteurs 18 / 71 / 584 avant et après.
+  Pas de seed (import à l'ouverture du cours ou de FSE17).
+
+### Choix faits seul (lot 2)
+
+1. **Pas d'affiche ni d'image dans ce lot** : aucune notion de FSE05→FSE08 ne demande
+   d'analyser une affiche ; une photo décrite en texte serait justement ce que le ticket
+   interdit. Supports HTML/CSS (conversation, formulaire, publication, fiche, brèves).
+2. **Dossier FSE07 en un seul document à trois fiches**, pour que comparaison, élève et
+   correcteur partagent exactement le même support.
+3. **FSE08 : brèves fictives** décrivant des décisions plausibles, limitées aux
+   compétences du cours (défense, logement, environnement, enseignement, proximité) et
+   aux trois noms de normes ; rien sur des textes réellement votés.
+4. **Nom de la maison de quartier FSE06 (« Le Préau »)** différent de celui de l'affiche
+   FSE01 (« des Tilleuls ») pour éviter toute confusion entre cours.
