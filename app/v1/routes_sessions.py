@@ -100,13 +100,6 @@ from app.v1.session_service import (
     SEVERITY_UI_LEVELS,
     CorrectionJobNotRetryableError,
     SessionBuildJobNotFailedError,
-    # Ticket #77 : seule source de vérité pour « quel(s) document(s) une question
-    # référence », dérivée du payload public — jamais du `content_json` brut. Importé ici
-    # malgré le préfixe privé pour que les résultats/export (§ 6 du ticket) utilisent
-    # EXACTEMENT la même résolution que l'élève pendant la session
-    # (`build_question_display`) et que le correcteur IA (`_document_contexts_for`),
-    # plutôt que d'en réimplémenter une troisième copie qui pourrait diverger.
-    _referenced_document_ids,
     available_session_lengths,
     build_question_display,
     describe_session_scope,
@@ -867,7 +860,7 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
 
     `source_documents` (ticket #77 § 6, #79 § 8-9) : le(s) document(s) référencé(s) par
     cette question — {id, label, title, content_text} — résolus via le même payload
-    public que l'élève a vu pendant la session (`_referenced_document_ids` +
+    public que l'élève a vu pendant la session (`session_question_document_ids` +
     `resolve_documents_in_order`, jamais un tri par id qui casserait l'étiquetage A/B).
     Le texte complet est inclus (relecture possible depuis les résultats, § 8 du ticket
     #79) mais jamais dupliqué plusieurs fois : une seule résolution par document distinct.
@@ -879,7 +872,14 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     from app.v1.display_order import apply_display_order
     from app.v1.document_layouts import display_heading, resolve_layout
     from app.v1.question_engine import public_payload
-    from app.v1.session_service import document_label, resolve_documents_in_order
+
+    # Ticket #77 puis #152 : même résolution des documents que l'élève pendant la session
+    # (`build_question_display`) et que le correcteur IA (`_document_contexts_for`).
+    from app.v1.session_service import (
+        document_label,
+        resolve_documents_in_order,
+        session_question_document_ids,
+    )
 
     payloads = {
         sq.position: apply_display_order(
@@ -891,9 +891,13 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
         )
         for sq in session_questions
     }
+    # Ticket #152 : mêmes documents que pendant la session (contexte ajouté compris).
+    doc_ids_by_position = {
+        sq.position: session_question_document_ids(sq, payloads[sq.position]) for sq in session_questions
+    }
     all_doc_ids: set[int] = set()
-    for payload in payloads.values():
-        all_doc_ids.update(_referenced_document_ids(payload))
+    for doc_ids, _added in doc_ids_by_position.values():
+        all_doc_ids.update(doc_ids)
     documents_by_id = {
         document.id: document for document in resolve_documents_in_order(db, sorted(all_doc_ids))
     }
@@ -904,7 +908,7 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
     rows = []
     for sq in session_questions:
         question_type = sq.question_version.question_type
-        doc_ids = _referenced_document_ids(payloads[sq.position])
+        doc_ids, added_ids = doc_ids_by_position[sq.position]
         source_documents = []
         for index, doc_id in enumerate(doc_ids):
             if doc_id not in documents_by_id:
@@ -923,6 +927,7 @@ def _build_results_rows(db, session_questions: list) -> list[dict]:
                     # Ticket #149 : la version exacte, rendue par les mêmes composants que
                     # pendant la session (`_document_layouts.html`).
                     "document": document,
+                    "added_context": doc_id in added_ids,
                 }
             )
         uaa = sq.question_version.question.uaa if sq.question_version.question else None

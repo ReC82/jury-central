@@ -107,7 +107,9 @@ _DESK_QUESTIONS = (
     (
         "classification",
         {
-            "prompt": "Et pour ces trois autres demandes, quel niveau de pouvoir est compétent ?",
+            # Ticket #152 : consigne autonome (servie seule, sans la question des demandes
+            # 2 à 5) — les demandes visées sont nommées.
+            "prompt": "D'après les fiches de la permanence, quel niveau de pouvoir est compétent pour les demandes 1, 6 et 7 ?",
             "source_document_version_id": DOC,
             "categories": ["Fédéral", "Région", "Communauté", "Commune"],
             "elements": [

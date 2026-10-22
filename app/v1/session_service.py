@@ -192,6 +192,9 @@ class QuestionDisplay:
     answer_json: dict
     source_documents: list[SourceDocumentVersion]
     source_document_labels: list[str]
+    # Ticket #152 (retour du 22/10) : documents de contexte AJOUTÉS depuis la création
+    # d'une ancienne session (voir `session_question_document_ids`), signalés comme tels.
+    added_context_document_ids: list[int] = field(default_factory=list)
     # Ticket #48 : visuels de la question (`app.v1.assets.asset_display`), dans l'ordre
     # de rattachement à la QuestionVersion figée de la session.
     assets: list[dict] = field(default_factory=list)
@@ -1190,6 +1193,33 @@ def _referenced_document_ids(payload: dict) -> list[int]:
     return doc_ids
 
 
+def session_question_document_ids(session_question: SessionQuestion, payload: dict) -> tuple[list[int], list[int]]:
+    """Documents à montrer (et à transmettre au correcteur) pour une question servie :
+    `(identifiants dans l'ordre, identifiants ajoutés depuis la version figée)`.
+
+    Ticket #152 (retour du 22/10) : une session créée avant une mise à jour garde sa
+    `QuestionVersion` figée (réponses, notes et versions préservées). Quand la version
+    courante de la MÊME question ne fait qu'ajouter des documents de contexte (même type,
+    tous les documents figés conservés — ex. FSE16 611 : document 3 seul en v1, documents
+    1 puis 3 en v3), ces documents sont affichés dans l'ordre de la version courante et
+    signalés comme ajoutés ; la session et sa version ne sont jamais modifiées. Dans tout
+    autre cas (consigne changée de type, document retiré ou remplacé), seuls les documents
+    de la version figée sont utilisés — jamais un mélange de deux versions incompatibles."""
+    frozen_ids = _referenced_document_ids(payload)
+    version = session_question.question_version
+    question = version.question if version else None
+    current = question.current_version if question else None
+    if current is None or current.id == version.id or current.question_type != version.question_type:
+        return frozen_ids, []
+    from app.v1.question_engine import public_payload
+
+    current_payload = public_payload(current.question_type, current.schema_version, current.content_json)
+    current_ids = _referenced_document_ids(current_payload)
+    if not frozen_ids or not set(frozen_ids) < set(current_ids):
+        return frozen_ids, []
+    return current_ids, [doc_id for doc_id in current_ids if doc_id not in frozen_ids]
+
+
 def document_label(question_type: str, index: int) -> str:
     """Étiquette d'un document référencé par position (ticket #79, § 9) : « Document A »/
     « Document B » pour `source_comparison` (jamais mélangés — voir
@@ -1228,7 +1258,7 @@ def build_question_display(db: DBSession, session_question: SessionQuestion) -> 
     # (jamais le texte dupliqué dans content_json, voir #40) — résolus ici pour le
     # panneau/accordéon de lecture du template, une seule requête, jamais par question
     # dans une boucle ailleurs.
-    doc_ids = _referenced_document_ids(payload)
+    doc_ids, added_ids = session_question_document_ids(session_question, payload)
     source_documents = resolve_documents_in_order(db, doc_ids)
     source_document_labels = [document_label(version.question_type, index) for index in range(len(source_documents))]
 
@@ -1240,6 +1270,7 @@ def build_question_display(db: DBSession, session_question: SessionQuestion) -> 
         answer_json=(answer.answer_json if answer else {}) or {},
         source_documents=source_documents,
         source_document_labels=source_document_labels,
+        added_context_document_ids=[doc_id for doc_id in added_ids if doc_id in {d.id for d in source_documents}],
         assets=[asset_display(asset) for asset in assets_for_version(db, version.id)],
     )
 
@@ -1276,7 +1307,8 @@ def _document_contexts_for(db: DBSession, session_questions: list[SessionQuestio
     for session_question in session_questions:
         version = session_question.question_version
         payload = public_payload(version.question_type, version.schema_version, version.content_json)
-        doc_ids.update(_referenced_document_ids(payload))
+        # Ticket #152 : mêmes documents que ceux montrés à l'élève, contexte ajouté compris.
+        doc_ids.update(session_question_document_ids(session_question, payload)[0])
     if not doc_ids:
         return ()
 

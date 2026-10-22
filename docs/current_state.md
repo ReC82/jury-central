@@ -103,6 +103,10 @@ Audit : `audit_prompt_clarity`. Remise en ordre (entraînement/examen) : un ordr
 enregistré que si chaque position 1..n est utilisée une fois ; sinon la question reste sans
 réponse et les choix partiels sont conservés (`positions`). Voir
 `docs/claude-reports/2026-10-22_ticket-152-consignes-fse-contexte.md`.
+Ancienne session (retour du 22/10) : `session_question_document_ids` (`session_service`)
+garde la version figée mais ajoute, signalés « ajouté », les documents de contexte que la
+version courante de la même question montre en plus (documents figés tous conservés, même
+type) ; élève, correction IA et résultats utilisent cette même liste.
 
 Cas nouveaux FSE (ticket #129, lots 1-2 : FSE01→FSE08) : `app/v1/fse_cases.py` (mécanisme
 commun) + `app/v1/fse01_cases.py` à `fse08_cases.py` (contenu). Chaque cas ajoute un document structuré

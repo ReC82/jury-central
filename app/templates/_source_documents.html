@@ -7,8 +7,18 @@ optionnel. Attend `display` (QuestionDisplay). #}
         {% if display.source_documents %}
         {% set question = display.public_payload %}
         {% set question_text = (question.prompt or "") ~ " " ~ ((question.elements or []) | join(" ")) %}
+        {% if display.added_context_document_ids %}
+        <div class="alert alert-info small mb-2" role="note" data-context-restored>
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            Contexte complété : cette question a été mise à jour après le début de cette session
+            pour afficher aussi le document qui présente la situation. Il est montré ci-dessous,
+            marqué « ajouté » ; ta réponse et la question restent celles de ta session, et la
+            correction tiendra compte des mêmes documents.
+        </div>
+        {% endif %}
         <div class="jc-sd-stack mb-3">
             {% for doc in display.source_documents %}
+            {% if doc.id in display.added_context_document_ids %}<p class="small text-muted mb-1" data-context-added><span class="badge text-bg-info">ajouté</span> Document de contexte ajouté depuis le début de cette session</p>{% endif %}
             {{ sd.render(doc, display.source_document_labels[loop.index0], question_text=question_text, uid="q") }}
             {% endfor %}
         </div>
