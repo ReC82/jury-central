@@ -170,6 +170,15 @@ générateur réel (exercice fixe).
   `docs/claude-reports/2026-09-17_ticket-29_mc01-practice-interactive.md`. Servis sur
   l'espace S'entraîner (`/uaa/{slug}/practice`, ticket #22), jamais dans le flux de
   théorie ; aucune correction visible avant validation explicite.
+- **Longueur de session au choix** (ticket #86) : l'écran de démarrage d'un entraînement
+  ou d'une évaluation (par mini-cours, MC38, FSE17, parcours global AMPCR) propose
+  « Nombre de questions » 10/20/30/40 (+ 50 pour MC38 et le parcours global AMPCR),
+  présélection 10 en entraînement et 20 en évaluation. Sans génération possible
+  (fournisseur absent, module en pause, FSE17), seules les longueurs couvertes par la
+  banque sans doublon sont proposées. Le choix est persisté
+  (`parameters_json["requested_question_count"]`, affiché dans l'historique/export s'il
+  diffère du nombre réel). La génération manquante est découpée en lots de 20 (sessions de 30 à 50) ; la
+  diversité catégories/mini-cours augmente avec la longueur (≥ 3/4/6 valeurs à 10/20/30+).
 
 ---
 

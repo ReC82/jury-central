@@ -71,6 +71,8 @@
                     </p>
                     <p class="small text-muted mb-0">
                         {{ session.question_count }} question(s)
+                        {% set requested_count = (session.parameters_json or {}).get('requested_question_count') %}
+                        {% if requested_count and requested_count != session.question_count %}(sur {{ requested_count }} choisies){% endif %}
                         {% if session.status.value == 'completed' %}
                         — score : {{ session.score }} / {{ session.question_count }}
                         {% if row.severity_label %} — sévérité : {{ row.severity_label }}{% endif %}
