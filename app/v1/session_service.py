@@ -44,13 +44,19 @@ from app.v1.bank import (
     persist_generated_questions,
     recent_seen_prompts,
     select_bank_questions,
+    select_francais_transversal_bank_questions,
     select_fse_transversal_bank_questions,
     select_transversal_bank_questions,
 )
 from app.v1.dedup import is_near_duplicate, question_signature
 from app.v1.display_order import SNAPSHOT_KEY as DISPLAY_ORDER_KEY
 from app.v1.display_order import apply_display_order, build_display_order
-from app.v1.francais_plan import FRANCAIS_PLAN_BY_CODE, get_francais_context
+from app.v1.francais_plan import (
+    FR20_CODE,
+    FR20_SESSION_SCOPE,
+    FRANCAIS_PLAN_BY_CODE,
+    get_francais_context,
+)
 from app.v1.fse_plan import FSE17_CODE, FSE17_SESSION_SCOPE, FSE_PLAN_BY_CODE, get_fse_context
 from app.v1.generation_control import is_generation_paused
 from app.v1.hybrid_correction import correct_session_hybrid, correct_session_hybrid_resumable
@@ -547,7 +553,7 @@ def available_session_lengths(
     toujours au moins la plus courte (session éventuellement plus courte, comme avant)."""
     options = session_length_options(uaa_id=uaa_id, uaa_code=uaa_code)
     can_generate = (
-        uaa_code != FSE17_CODE
+        uaa_code not in (FSE17_CODE, FR20_CODE)
         and bool(settings.openai_api_key)
         and not is_generation_paused(db, module_id)
     )
@@ -558,6 +564,8 @@ def available_session_lengths(
         pool = select_transversal_bank_questions(db, user_id=user.id, module_id=module_id, limit=limit)
     elif uaa_code == FSE17_CODE:
         pool = select_fse_transversal_bank_questions(db, user_id=user.id, module_id=module_id, limit=limit)
+    elif uaa_code == FR20_CODE:
+        pool = select_francais_transversal_bank_questions(db, user_id=user.id, module_id=module_id, limit=limit)
     else:
         pool = select_bank_questions(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=limit)
     distinct = len(deduplicate_intra_session(pool))
@@ -602,7 +610,9 @@ def get_in_progress_session(
         # caractéristique « plusieurs mini-cours » sans être une vraie session globale
         # /modules/ampcr/... — même classe de bug que ci-dessus, à ne pas réintroduire.
         for candidate in sessions:
-            if (candidate.parameters_json or {}).get("scope") in (MC38_SESSION_SCOPE, WEAKNESS_EXAM_SCOPE):
+            if (candidate.parameters_json or {}).get("scope") in (
+                MC38_SESSION_SCOPE, WEAKNESS_EXAM_SCOPE, FR20_SESSION_SCOPE
+            ):
                 continue
             uaa_ids = {
                 sq.question_version.question.uaa_id
@@ -862,7 +872,51 @@ def _start_fse_transversal_session(
     le pool par difficulté (comme le fait déjà `compose_selection` en interne), balance
     CHAQUE sous-pool par UAA séparément, puis ne laisse `compose_selection` qu'ordonner
     par type — jamais l'inverse."""
-    raw_pool = select_fse_transversal_bank_questions(
+    return _start_bank_transversal_session(
+        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty,
+        question_count=question_count, select_pool=select_fse_transversal_bank_questions,
+        scope=FSE17_SESSION_SCOPE,
+        empty_message="Aucune question disponible pour la révision transversale FSE17 (banque FSE01-16 vide).",
+    )
+
+
+def _start_francais_transversal_session(
+    db: DBSession,
+    *,
+    user: User,
+    module_id: int,
+    mode: SessionMode,
+    difficulty: SessionDifficultyRequest,
+    question_count: int,
+) -> QuestionnaireSession:
+    """FR20 (ticket #94, phase D) : examen blanc final Français, même composition que FSE17
+    (`_start_fse_transversal_session`) — strictement BANQUE, tirée dans FR01→FR19 (19 cours
+    × 8-9 questions hand-authored, plus les questions générées déjà validées pour ces
+    cours), jamais de génération IA dans le contexte « méthode » de FR20 (même risque de
+    questions méta que celui constaté pour MC38)."""
+    return _start_bank_transversal_session(
+        db, user=user, module_id=module_id, mode=mode, difficulty=difficulty,
+        question_count=question_count, select_pool=select_francais_transversal_bank_questions,
+        scope=FR20_SESSION_SCOPE,
+        empty_message="Aucune question disponible pour l'examen blanc FR20 (banques FR01-FR19 vides).",
+    )
+
+
+def _start_bank_transversal_session(
+    db: DBSession,
+    *,
+    user: User,
+    module_id: int,
+    mode: SessionMode,
+    difficulty: SessionDifficultyRequest,
+    question_count: int,
+    select_pool,
+    scope: str,
+    empty_message: str,
+) -> QuestionnaireSession:
+    """Composition commune des révisions transversales strictement banque (FSE17, FR20) —
+    voir la docstring de `_start_fse_transversal_session` pour l'ordre difficulté → UAA."""
+    raw_pool = select_pool(
         db, user_id=user.id, module_id=module_id, limit=question_count * 12, only_unseen=True
     )
     target_rating = _adaptive_target(db, user_id=user.id, module_id=module_id, difficulty=difficulty)
@@ -882,22 +936,19 @@ def _start_fse_transversal_session(
     )
 
     if len(selected) < question_count:
-        # Jamais de génération IA pour FSE (voir docstring) : passe directement au dernier
+        # Jamais de génération IA (voir `_start_fse_transversal_session`) : passe directement au dernier
         # recours banque (questions déjà vues autorisées), même principe que
         # `_start_mc38_transversal_session` après l'étape de génération (ici absente).
-        fallback_pool = select_fse_transversal_bank_questions(
+        fallback_pool = select_pool(
             db, user_id=user.id, module_id=module_id, limit=question_count * 5
         )
         if not fallback_pool and not selected:
-            raise SessionCreationError(
-                "Aucune question disponible pour la révision transversale FSE17 (banque "
-                "FSE01-16 vide)."
-            )
+            raise SessionCreationError(empty_message)
         selected = _extend_selection_without_duplicates(selected, fallback_pool, question_count)
 
     return _finalize_session(
         db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=selected,
-        parameters_json={"scope": FSE17_SESSION_SCOPE}, requested_question_count=question_count,
+        parameters_json={"scope": scope}, requested_question_count=question_count,
     )
 
 
@@ -921,7 +972,8 @@ def start_session(
     n'est pas une matière propre, ses sessions tirent exclusivement dans MC01→MC37 (jamais
     dans son propre contexte « révision/mémorisation », source du bug de questions méta
     constaté en validation staging). FSE17 (ticket #101) est délégué de la même façon à
-    `_start_fse_transversal_session`, strictement banque (FSE01→FSE16)."""
+    `_start_fse_transversal_session`, strictement banque (FSE01→FSE16), et FR20 (ticket #94)
+    à `_start_francais_transversal_session` (FR01→FR19)."""
     if uaa_code == MC38_CODE:
         return _start_mc38_transversal_session(
             db, user=user, module_id=module_id, mc38_uaa_id=uaa_id, mode=mode, difficulty=difficulty,
@@ -929,6 +981,11 @@ def start_session(
         )
     if uaa_code == FSE17_CODE:
         return _start_fse_transversal_session(
+            db, user=user, module_id=module_id, mode=mode, difficulty=difficulty,
+            question_count=question_count,
+        )
+    if uaa_code == FR20_CODE:
+        return _start_francais_transversal_session(
             db, user=user, module_id=module_id, mode=mode, difficulty=difficulty,
             question_count=question_count,
         )
@@ -1040,6 +1097,8 @@ def describe_session_scope(session: QuestionnaireSession) -> str:
         return "MC38 — Révision transversale (MC01→MC37)"
     if (session.parameters_json or {}).get("scope") == FSE17_SESSION_SCOPE:
         return "FSE17 — Révision transversale (FSE01→FSE16)"
+    if (session.parameters_json or {}).get("scope") == FR20_SESSION_SCOPE:
+        return "FR20 — Examen blanc final (FR01→FR19)"
     if (session.parameters_json or {}).get("scope") == WEAKNESS_EXAM_SCOPE:
         return "Examen ciblé — mes points faibles"
 

@@ -464,14 +464,38 @@ def select_fse_transversal_bank_questions(
     peut jamais y être produite.
 
     `only_unseen` : voir `select_bank_questions`, même contrat (ticket #64 § 1)."""
-    from app.models import UAA
     from app.v1.fse_plan import fse01_to_fse16_codes
+
+    return _select_courses_bank_questions(
+        db, user_id=user_id, module_id=module_id, codes=fse01_to_fse16_codes(), limit=limit,
+        only_unseen=only_unseen,
+    )
+
+
+def select_francais_transversal_bank_questions(
+    db: Session, *, user_id: int, module_id: int, limit: int, only_unseen: bool = False
+) -> list[Question]:
+    """Sélection dédiée à FR20 (ticket #94, examen blanc final Français), même principe que
+    `select_fse_transversal_bank_questions` (FSE17) : strictement BANQUE, exclusivement les
+    mini-cours FR01→FR19 — jamais FR20 (sans banque propre) ni C01 (pilote historique)."""
+    from app.v1.francais_plan import fr01_to_fr19_codes
+
+    return _select_courses_bank_questions(
+        db, user_id=user_id, module_id=module_id, codes=fr01_to_fr19_codes(), limit=limit,
+        only_unseen=only_unseen,
+    )
+
+
+def _select_courses_bank_questions(
+    db: Session, *, user_id: int, module_id: int, codes: list[str], limit: int, only_unseen: bool
+) -> list[Question]:
+    """Questions de banque actives des cours `codes` d'un module, jamais vues d'abord puis
+    déjà vues (même contrat que `select_bank_questions`, ticket #64 § 1)."""
+    from app.models import UAA
 
     uaa_ids = [
         row[0]
-        for row in db.query(UAA.id).filter(
-            UAA.module_id == module_id, UAA.code.in_(fse01_to_fse16_codes())
-        )
+        for row in db.query(UAA.id).filter(UAA.module_id == module_id, UAA.code.in_(codes))
     ]
     if not uaa_ids:
         return []

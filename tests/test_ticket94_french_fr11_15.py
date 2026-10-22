@@ -72,7 +72,7 @@ def test_fr11_to_fr15_registered_with_bare_titles_and_context():
         context = get_francais_context(plan.course_key)
         assert context is not None and context.course_title == plan.title
         assert _pedagogical_context_for(code) is not None
-    assert list(routes_sessions._FRANCAIS_BANK_IMPORTERS)[-5:] == FR11_15_SLUGS
+    assert set(FR11_15_SLUGS) <= set(routes_sessions._FRANCAIS_BANK_IMPORTERS)
 
 
 def test_fr11_15_seeded_published_and_listed_in_order(client, db_session):
@@ -83,7 +83,7 @@ def test_fr11_15_seeded_published_and_listed_in_order(client, db_session):
         assert by_code[code].is_published and not by_code[code].hidden_from_listing
     response = client.get("/modules/francais")
     links = list(dict.fromkeys(re.findall(r'href="/uaa/(francais-fr\d\d)"', response.text)))
-    assert links == [f"francais-fr{n:02d}" for n in range(1, 16)]
+    assert links[:15] == [f"francais-fr{n:02d}" for n in range(1, 16)]
 
 
 def test_seed_is_idempotent_for_fr11_15(db_session):

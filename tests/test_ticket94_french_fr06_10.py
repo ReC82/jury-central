@@ -498,7 +498,7 @@ def test_fr01_10_document_references_and_prompts_are_resolvable(db_session):
         uaa = db_session.query(UAA).filter_by(slug=slug).first()
         importer(db_session, uaa.module, uaa)
     db_session.commit()
-    codes = tuple(f"FR{n:02d}" for n in range(1, 16))
+    codes = tuple(f"FR{n:02d}" for n in range(1, 20))
     references = audit_document_references(db_session, uaa_codes=codes)
     assert references["audited"] >= 80
     assert references["unresolved"] == []
