@@ -39,6 +39,10 @@ from app.v1.fse_bank import (
     import_fse07_to_bank,
     import_fse08_to_bank,
     import_fse09_to_bank,
+    import_fse10_to_bank,
+    import_fse11_to_bank,
+    import_fse12_to_bank,
+    import_fse13_to_bank,
 )
 from app.v1.fse_cases import (
     COURSE_EXAMPLE,
@@ -153,7 +157,7 @@ def test_new_cases_do_not_reuse_course_examples(case):
 
 
 def test_every_course_with_cases_spreads_difficulties():
-    for code in ("FSE01", "FSE02", "FSE03", "FSE04", "FSE05", "FSE06", "FSE07", "FSE08"):
+    for code in [f"FSE{n:02d}" for n in range(1, 13)]:
         levels = {d for case in fse_cases.cases_for(code) for _t, _c, d in case.questions}
         assert levels == set(QuestionDifficulty), code
 
@@ -303,8 +307,8 @@ def test_rank_is_a_strict_no_op_when_all_ranks_are_equal(db_session):
 def test_subjects_without_declared_examples_rank_everything_fresh(db_session):
     seed()
     module = db_session.query(Module).filter_by(code=FSE_MODULE_CODE).first()
-    uaa = db_session.query(UAA).filter_by(slug="fse-fse09").first()
-    import_fse09_to_bank(db_session, module, uaa)
+    uaa = db_session.query(UAA).filter_by(slug="fse-fse13").first()
+    import_fse13_to_bank(db_session, module, uaa)
     rank = case_ranker(db_session, user_id=1)
     assert {rank(q) for q in db_session.query(Question).filter_by(uaa_id=uaa.id)} == {FRESH}
 
@@ -386,11 +390,13 @@ def test_fse17_mock_exam_reuses_new_cases_and_covers_several_courses(authenticat
     assert not [q for q in fse01 if is_course_example(q)]
 
 
-# --- Lot FSE05→FSE08 -----------------------------------------------------------------------
+# --- Lots FSE05→FSE08 et FSE09→FSE12 -------------------------------------------------------
 
 _BANK_IMPORTERS = {
     "FSE05": import_fse05_to_bank, "FSE06": import_fse06_to_bank,
     "FSE07": import_fse07_to_bank, "FSE08": import_fse08_to_bank,
+    "FSE09": import_fse09_to_bank, "FSE10": import_fse10_to_bank,
+    "FSE11": import_fse11_to_bank, "FSE12": import_fse12_to_bank,
 }
 
 
