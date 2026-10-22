@@ -5,7 +5,11 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-12 col-md-10 col-lg-8">
-        <h1 class="h4 mb-3">Mes entraînements / évaluations</h1>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h1 class="h4 mb-0">Mes entraînements / évaluations</h1>
+            {# Ticket #75 : points faibles et renforcement ciblé. #}
+            <a href="/points-faibles" class="btn btn-outline-dark btn-sm">Mes points faibles</a>
+        </div>
 
         {% if not rows and not build_job_rows %}
         <p class="text-muted">Aucune session pour l'instant — commence un entraînement depuis une matière.</p>

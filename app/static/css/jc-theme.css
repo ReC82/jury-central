@@ -411,6 +411,8 @@ button.jc-choice:hover {
 .jc-pill-success { background: var(--jc-success-soft); color: var(--jc-success); border-color: #bfe5cd; }
 .jc-pill-primary { background: var(--jc-primary-soft); color: var(--jc-primary-strong); border-color: #d6dafc; }
 .jc-pill-warn { background: var(--jc-warn-soft); color: var(--jc-warn); border-color: #f6d9b0; }
+/* Ticket #75 : niveau « Prioritaire » des points faibles (toujours accompagné du texte). */
+.jc-pill-danger { background: #fdecec; color: #a3262a; border-color: #f3c4c4; }
 
 /* --- Tableau de bord --- */
 

@@ -15,4 +15,4 @@ Si la tâche concerne...
 - plan des 17 mini-cours Formation sociale et économique (FSE), périmètre officiel → content_plan_fse.md
 - déploiement staging, script de déploiement, diagnostic serveur → deployment_staging.md
 - génération d'exercices par IA, correction IA, sécurité (clé API, injection) → ai_exercise_engine.md
-- exercices éditoriaux interactifs (single_choice/true_false/short_answer, correction locale) → editorial_exercise_engine.md
+- exercices éditoriaux interactifs (single_choice/true_false/short_answer, correction locale) → editorial_exercise_engine.md- points faibles, renforcement ciblé, examen ciblé → weakness_v1.md
