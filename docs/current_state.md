@@ -188,6 +188,14 @@ explication après chaque réponse validée, reprise exacte, résultat (points f
 relire), rejouer et reprise des erreurs. Activité distincte des entraînements et examens
 blancs. Voir `docs/quiz_v1.md`.
 
+Depuis le ticket #75, une page **Mes points faibles** (`/points-faibles`) calcule un niveau
+de fragilité par cours (ou par notion si la question est étiquetée — `Question.concepts`)
+à partir des réponses corrigées des entraînements, examens blancs et renforcements
+(jamais deux fois la même réponse, quiz exclus) ; elle propose un **renforcement ciblé**
+(`SessionMode.REINFORCEMENT`, une question objective à la fois, correction immédiate,
+variante ajoutée après une erreur) et un **examen ciblé** (examen blanc de 10/20 questions
+sur les notions faibles, sans correction avant la fin). Voir `docs/weakness_v1.md`.
+
 Depuis le ticket #150, l'ordre des réponses d'un QCM (et des éléments d'une remise en
 ordre) est tiré au sort pour chaque question servie — quiz, entraînement et examen blanc —
 et persisté dans la session (`SessionQuestion.content_snapshot_json["display_order"]`,

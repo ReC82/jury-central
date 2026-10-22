@@ -513,6 +513,10 @@ class SessionMode(str, enum.Enum):
     # l'historique « Mes entraînements » et sans effet sur le rating de module. Stockée
     # comme les autres valeurs (VARCHAR, aucune contrainte CHECK) : aucune migration.
     QUIZ = "quiz"
+    # Ticket #75 : renforcement ciblé des points faibles — une question à la fois avec
+    # correction immédiate (même cycle que le quiz, `app.v1.weakness`), compté dans le
+    # profil de points faibles mais jamais comme entraînement, examen blanc ni rating.
+    REINFORCEMENT = "reinforcement"
 
 
 class SessionStatus(str, enum.Enum):

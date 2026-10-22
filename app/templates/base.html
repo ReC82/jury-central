@@ -88,6 +88,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link{% if nav_path.startswith('/points-faibles') or nav_path.startswith('/renforcement') %} active{% endif %}" href="/points-faibles">
+                            <i class="bi bi-bullseye" aria-hidden="true"></i> Points faibles
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link{% if nav_path.startswith('/account') %} active{% endif %}" href="/account">
                             <i class="bi bi-person-circle" aria-hidden="true"></i>
                             {{ current_user.display_name or current_user.email }}

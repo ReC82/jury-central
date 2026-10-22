@@ -30,6 +30,7 @@ avant les déjà vues, puis la difficulté demandée avant les autres (même pri
 `app.v1.bank.select_bank_questions`)."""
 
 import random
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
@@ -608,6 +609,23 @@ def parse_quiz_answer(question_type: str, content: dict, form) -> dict:
     raise IncompleteAnswerError("Format de question non pris en charge par le quiz.")
 
 
+def incomplete_answer_echo(content: dict, form) -> dict:
+    """Choix déjà faits d'une réponse incomplète, réaffichés tels quels (rien n'est
+    enregistré) — partagé par le quiz et le renforcement ciblé (ticket #75)."""
+    return {
+        "selected_option_ids": form.getlist("option_id"),
+        "assignments": [
+            int(v) if str(v).isdigit() else -1
+            for v in (form.get(f"category__{i}", "") for i in range(len(content.get("elements") or [])))
+        ],
+        "positions": {
+            item["id"]: int(raw) if str(raw).isdigit() else 0
+            for item in content.get("items") or []
+            for raw in [form.get(f"position__{item['id']}", "0")]
+        },
+    }
+
+
 def _correct(session_question: SessionQuestion, answer_json: dict) -> dict:
     version = session_question.question_version
     content = version.content_json
@@ -635,12 +653,20 @@ def _correct(session_question: SessionQuestion, answer_json: dict) -> dict:
 
 
 def validate_quiz_answer(
-    db: DBSession, *, session: QuestionnaireSession, session_question: SessionQuestion, answer_json: dict
+    db: DBSession,
+    *,
+    session: QuestionnaireSession,
+    session_question: SessionQuestion,
+    answer_json: dict,
+    on_validated: Callable[[SessionAnswer], None] | None = None,
 ) -> SessionAnswer:
     """Valide UNE réponse : correction immédiate côté serveur, réponse verrouillée.
     Idempotent (double clic, deux onglets) : une question déjà validée n'est jamais
     recorrigée ni modifiée. Si la correction échoue techniquement, la réponse est gardée
-    en `FAILED` — exclue du score, jamais une mauvaise réponse."""
+    en `FAILED` — exclue du score, jamais une mauvaise réponse.
+
+    `on_validated` (ticket #75) : appelé après l'enregistrement de la correction, avant le
+    test de fin de partie — le renforcement ciblé y ajoute une variante après une erreur."""
     if is_validated(session_question):
         return session_question.answer
     try:
@@ -669,6 +695,8 @@ def validate_quiz_answer(
         db.refresh(session_question)
         return session_question.answer
 
+    if on_validated is not None:
+        on_validated(answer)
     if current_position(session) is None:
         _complete(session)
     db.commit()

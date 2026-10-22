@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Bilan du renforcement — Jury Central{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-12 col-lg-9">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/points-faibles">Mes points faibles</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Bilan</li>
+        </ol>
+    </nav>
+
+    <span class="jc-eyebrow"><i class="bi bi-bullseye" aria-hidden="true"></i> {{ params.label }}</span>
+    <h1 class="h2 mt-3 mb-1">Renforcement terminé</h1>
+    <p class="text-muted mb-3">
+        {{ summary.correct_total }} bonne{{ 's' if summary.correct_total > 1 }} réponse{{ 's' if summary.correct_total > 1 }}
+        sur {{ summary.counted_total }}
+        {% if summary.added_variants %}— dont {{ summary.added_variants }} question{{ 's' if summary.added_variants > 1 }} ajoutée{{ 's' if summary.added_variants > 1 }} après une erreur{% endif %}
+        — {{ session.completed_at.strftime('%d/%m/%Y à %H:%M') if session.completed_at else '' }}
+    </p>
+
+    <h2 class="h5 mb-2">Où en sont ces notions&nbsp;?</h2>
+    <div class="table-responsive mb-4">
+        <table class="table align-middle bg-white rounded shadow-sm mb-0">
+            <thead><tr><th scope="col">Notion / cours</th><th scope="col">Réussite</th><th scope="col">Avant</th><th scope="col">Maintenant</th><th scope="col"></th></tr></thead>
+            <tbody>
+            {% for target in summary.targets %}
+            {% set pill = level_pills.get(target.level_now_key, ("", "bi-dot")) %}
+            <tr>
+                <td>{{ target.label }}</td>
+                <td>{{ target.correct }}/{{ target.asked }}</td>
+                <td class="small">{{ target.level_before }}</td>
+                <td><span class="jc-pill {{ pill[0] }}"><i class="bi {{ pill[1] }}" aria-hidden="true"></i> {{ target.level_now }}</span></td>
+                <td class="text-end">{% if target.entry %}<a class="small" href="/uaa/{{ target.entry.uaa.slug }}">Relire le cours</a>{% endif %}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="small text-muted">Une notion ne redevient « Fort » qu'après plusieurs bonnes réponses : refais un renforcement plus tard,
+        puis vérifie avec un examen ciblé (sans correction avant la fin).</p>
+
+    <h2 class="h5 mb-2">Revoir une question</h2>
+    <ol class="mb-4">
+        {% for row in summary.rows %}
+        <li><a href="/renforcement/{{ session.id }}?vu={{ row.session_question.position }}">Question {{ row.session_question.position }}</a>
+            {% if not row.counted %}<span class="small text-muted">— non comptée (erreur technique)</span>
+            {% elif row.correct %}<span class="small text-success"><i class="bi bi-check-lg" aria-hidden="true"></i> juste</span>
+            {% else %}<span class="small text-danger"><i class="bi bi-x-lg" aria-hidden="true"></i> à revoir</span>{% endif %}
+            {% if row.uaa %}<span class="small text-muted">— {{ row.uaa.code }}</span>{% endif %}</li>
+        {% endfor %}
+    </ol>
+
+    <div class="d-flex flex-wrap gap-2">
+        <a class="jc-btn jc-btn-primary" href="/points-faibles"><i class="bi bi-bullseye" aria-hidden="true"></i> Mes points faibles</a>
+    </div>
+</div>
+</div>
+{% endblock %}

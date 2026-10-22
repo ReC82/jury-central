@@ -44,6 +44,7 @@ from app.v1.routes_parcours import router as v1_parcours_router
 from app.v1.routes_quiz import router as v1_quiz_router
 from app.v1.routes_sessions import render_exam_landing, render_practice_landing
 from app.v1.routes_sessions import router as v1_sessions_router
+from app.v1.routes_weakness import router as v1_weakness_router
 from app.value_table import value_table_public_dict
 from generators.base import GeneratedExercise
 from generators.exercise_types import InteractiveExercise
@@ -71,6 +72,7 @@ app.include_router(v1_sessions_router)
 app.include_router(v1_lexicon_router)
 app.include_router(v1_parcours_router)
 app.include_router(v1_quiz_router)
+app.include_router(v1_weakness_router)
 
 
 @app.get("/health")

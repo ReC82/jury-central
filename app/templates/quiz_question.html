@@ -1,23 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Quiz — question {{ position }}/{{ total }} — Jury Central{% endblock %}
+{% block title %}{{ activity_title | default("Quiz") }} — question {{ position }}/{{ total }} — Jury Central{% endblock %}
 
 {% block content %}
 {% set payload = display.public_payload %}
 {% set qtype = display.question_type %}
+{% set play_url = play_url | default("/quiz/parties/" ~ session.id) %}
 {% set theme = {"AMPCR": "info", "FRANCAIS": "fr", "FSE": "fse"}.get(uaa.module.code if uaa else "", "neutral") %}
 <div class="row justify-content-center">
 <div class="col-12 col-md-10 col-lg-8 jc-theme-{{ theme }}">
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-        <span class="jc-eyebrow"><i class="bi bi-controller" aria-hidden="true"></i> {{ params.label }}</span>
-        <a class="small text-muted" href="/quiz"><i class="bi bi-pause-circle" aria-hidden="true"></i> Faire une pause (ta partie est enregistrée)</a>
+        <span class="jc-eyebrow"><i class="bi bi-{{ activity_icon | default('controller') }}" aria-hidden="true"></i> {{ params.label }}</span>
+        <a class="small text-muted" href="{{ pause_url | default('/quiz') }}"><i class="bi bi-pause-circle" aria-hidden="true"></i> Faire une pause ({{ pause_note | default('ta partie est enregistrée') }})</a>
     </div>
     <div class="d-flex justify-content-between align-items-center mb-1 mt-3">
         <h1 class="h4 mb-0">Question {{ position }} / {{ total }}</h1>
         <span class="text-muted small">{{ done }} validée{{ 's' if done > 1 }}</span>
     </div>
-    <div class="jc-meter mb-3" role="progressbar" aria-label="Progression de la partie"
+    <div class="jc-meter mb-3" role="progressbar" aria-label="Progression"
          aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ done }}">
         <span style="width: {{ (done / total * 100) | round }}%"></span>
     </div>
@@ -34,6 +35,10 @@
         {% endif %}
     </div>
 
+    {% if intro_note and not validated %}
+    <p class="small text-muted"><i class="bi bi-info-circle" aria-hidden="true"></i> {{ intro_note }}</p>
+    {% endif %}
+
     {% include "_source_documents.html" %}
 
     <div class="jc-quiz-card mb-3">
@@ -43,7 +48,7 @@
         {% if error %}
         <div class="alert alert-warning py-2" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ error }}</div>
         {% endif %}
-        <form method="post" action="/quiz/parties/{{ session.id }}/valider" data-quiz-once>
+        <form method="post" action="{{ play_url }}/valider" data-quiz-once>
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="position" value="{{ position }}">
 
@@ -177,9 +182,18 @@
         </p>
         {% endif %}
 
-        <div class="d-flex justify-content-end mt-4">
-            <a class="jc-btn jc-btn-primary" href="/quiz/parties/{{ session.id }}" autofocus>
-                {% if is_last %}<i class="bi bi-flag-fill" aria-hidden="true"></i> Voir mon résultat
+        {% if variant_note %}
+        <p class="mt-3 mb-0 small"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> {{ variant_note }}</p>
+        {% endif %}
+
+        <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+            {% if reread_button and uaa %}
+            <a class="jc-btn jc-btn-ghost" href="/uaa/{{ uaa.slug }}" target="_blank" rel="noopener">
+                <i class="bi bi-book" aria-hidden="true"></i> Relire le cours
+            </a>
+            {% endif %}
+            <a class="jc-btn jc-btn-primary" href="{{ play_url }}" autofocus>
+                {% if is_last %}<i class="bi bi-flag-fill" aria-hidden="true"></i> {{ last_label | default("Voir mon résultat") }}
                 {% else %}Question suivante <i class="bi bi-arrow-right" aria-hidden="true"></i>{% endif %}
             </a>
         </div>

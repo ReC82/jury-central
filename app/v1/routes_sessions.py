@@ -655,6 +655,8 @@ async def view_session(
         raise HTTPException(status_code=404, detail="Session introuvable")
     if session.mode == SessionMode.QUIZ:
         return RedirectResponse(url=f"/quiz/parties/{session.id}", status_code=303)
+    if session.mode == SessionMode.REINFORCEMENT:
+        return RedirectResponse(url=f"/renforcement/{session.id}", status_code=303)
 
     session_questions = sorted(session.session_questions, key=lambda sq: sq.position)
 

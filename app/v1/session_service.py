@@ -89,6 +89,9 @@ DEFAULT_QUESTION_COUNT = 10
 GLOBAL_EXAM_QUESTION_COUNT = 20
 LONG_SEMANTIC_TYPES = frozenset({"long_answer", "diagnostic", "procedure", "troubleshooting"}) | DOCUMENT_TYPES
 MAX_LONG_SEMANTIC_PER_SESSION = 3
+# Ticket #75 : marqueur `parameters_json["scope"]` d'un examen ciblé « points faibles »
+# (questions de plusieurs cours d'un module, composées par `app.v1.weakness`).
+WEAKNESS_EXAM_SCOPE = "weakness_exam"
 
 # Ticket #68 § 15 : « priorité qualité > économie de tokens » — si la validation métier
 # (`app.v1.domain_validation`) rejette une partie d'un lot généré (ex. une question IPv4
@@ -495,7 +498,7 @@ def get_in_progress_session(
         # caractéristique « plusieurs mini-cours » sans être une vraie session globale
         # /modules/ampcr/... — même classe de bug que ci-dessus, à ne pas réintroduire.
         for candidate in sessions:
-            if (candidate.parameters_json or {}).get("scope") == MC38_SESSION_SCOPE:
+            if (candidate.parameters_json or {}).get("scope") in (MC38_SESSION_SCOPE, WEAKNESS_EXAM_SCOPE):
                 continue
             uaa_ids = {
                 sq.question_version.question.uaa_id
@@ -506,6 +509,9 @@ def get_in_progress_session(
                 return candidate
         return None
     for candidate in sessions:
+        # Ticket #75 : un examen ciblé « points faibles » n'est jamais l'examen d'un cours.
+        if (candidate.parameters_json or {}).get("scope") == WEAKNESS_EXAM_SCOPE:
+            continue
         first_question = candidate.session_questions[0] if candidate.session_questions else None
         if first_question and first_question.question_version.question.uaa_id == uaa_id:
             return candidate
@@ -576,31 +582,41 @@ def _finalize_session(
     db.flush()
 
     for position, question in enumerate(selected, start=1):
-        # Snapshot optionnel (§ H du modèle #38) : uniquement pour document_analysis
-        # (UN document) — jamais requis pour la relecture (résolue à l'affichage depuis
-        # content_json, voir `build_question_display`), simple dénormalisation utile.
-        # source_comparison référence plusieurs documents, non représentable par ce
-        # champ FK unique : laissé à None, sans conséquence fonctionnelle.
-        content = question.current_version.content_json or {}
-        source_document_version_id = content.get("source_document_version_id")
-        session_question = SessionQuestion(
-            session_id=session.id,
-            question_version_id=question.current_version_id,
-            position=position,
-            points_max=1.0,
-            source_document_version_id=source_document_version_id,
-        )
-        # Ticket #150 : ordre d'affichage des réponses propre à cette question servie,
-        # persisté (stable à la reprise) — la banque n'est jamais modifiée.
-        display_order = build_display_order(question.current_version.question_type, content)
-        if display_order:
-            session_question.content_snapshot_json = {DISPLAY_ORDER_KEY: display_order}
-        db.add(session_question)
-        record_question_seen(
-            db, user_id=user.id, question_version=question.current_version, session_id=session.id
-        )
+        add_session_question(db, session=session, question=question, position=position, user_id=user.id)
     db.commit()
     return session
+
+
+def add_session_question(
+    db: DBSession, *, session: QuestionnaireSession, question: Question, position: int, user_id: int
+) -> SessionQuestion:
+    """Sert la version courante de `question` à la position donnée (sans commit) — utilisé
+    par `_finalize_session` et par le renforcement ciblé (ticket #75), qui ajoute une
+    variante en cours de session après une erreur."""
+    # Snapshot optionnel (§ H du modèle #38) : uniquement pour document_analysis
+    # (UN document) — jamais requis pour la relecture (résolue à l'affichage depuis
+    # content_json, voir `build_question_display`), simple dénormalisation utile.
+    # source_comparison référence plusieurs documents, non représentable par ce
+    # champ FK unique : laissé à None, sans conséquence fonctionnelle.
+    content = question.current_version.content_json or {}
+    source_document_version_id = content.get("source_document_version_id")
+    session_question = SessionQuestion(
+        session=session,
+        question_version_id=question.current_version_id,
+        position=position,
+        points_max=1.0,
+        source_document_version_id=source_document_version_id,
+    )
+    # Ticket #150 : ordre d'affichage des réponses propre à cette question servie,
+    # persisté (stable à la reprise) — la banque n'est jamais modifiée.
+    display_order = build_display_order(question.current_version.question_type, content)
+    if display_order:
+        session_question.content_snapshot_json = {DISPLAY_ORDER_KEY: display_order}
+    db.add(session_question)
+    record_question_seen(
+        db, user_id=user_id, question_version=question.current_version, session_id=session.id
+    )
+    return session_question
 
 
 def _start_mc38_transversal_session(
@@ -898,7 +914,8 @@ def get_owned_session(
     session = db.get(QuestionnaireSession, session_id)
     if session is None or session.user_id != user_id:
         return None
-    if session.mode == SessionMode.QUIZ and not include_quiz:
+    # Ticket #75 : le renforcement ciblé suit le même cycle question par question.
+    if session.mode in (SessionMode.QUIZ, SessionMode.REINFORCEMENT) and not include_quiz:
         return None
     return session
 
@@ -912,6 +929,8 @@ def describe_session_scope(session: QuestionnaireSession) -> str:
         return "MC38 — Révision transversale (MC01→MC37)"
     if (session.parameters_json or {}).get("scope") == FSE17_SESSION_SCOPE:
         return "FSE17 — Révision transversale (FSE01→FSE16)"
+    if (session.parameters_json or {}).get("scope") == WEAKNESS_EXAM_SCOPE:
+        return "Examen ciblé — mes points faibles"
 
     uaa_titles: list[str] = []
     seen_ids: set[int] = set()
@@ -935,8 +954,9 @@ def list_user_sessions(db: DBSession, *, user_id: int) -> list[QuestionnaireSess
     return (
         db.query(QuestionnaireSession)
         .filter_by(user_id=user_id)
-        # Ticket #137 : les parties de quiz ont leur propre historique (`/quiz`).
-        .filter(QuestionnaireSession.mode != SessionMode.QUIZ)
+        # Ticket #137 : les parties de quiz ont leur propre historique (`/quiz`) ; ticket
+        # #75 : les renforcements ciblés, le leur (`/points-faibles`).
+        .filter(QuestionnaireSession.mode.notin_((SessionMode.QUIZ, SessionMode.REINFORCEMENT)))
         .order_by(QuestionnaireSession.created_at.desc())
         .all()
     )

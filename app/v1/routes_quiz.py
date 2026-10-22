@@ -23,6 +23,7 @@ from app.v1.quiz_service import (
     current_position,
     feedback_view,
     get_owned_quiz,
+    incomplete_answer_echo,
     is_validated,
     ordered_questions,
     parse_quiz_answer,
@@ -258,18 +259,7 @@ async def quiz_validate(
     try:
         answer_json = parse_quiz_answer(version.question_type, version.content_json, form)
     except IncompleteAnswerError as exc:
-        partial = {
-            "selected_option_ids": form.getlist("option_id"),
-            "assignments": [
-                int(v) if str(v).isdigit() else -1
-                for v in (form.get(f"category__{i}", "") for i in range(len(version.content_json.get("elements") or [])))
-            ],
-            "positions": {
-                item["id"]: int(raw) if str(raw).isdigit() else 0
-                for item in version.content_json.get("items") or []
-                for raw in [form.get(f"position__{item['id']}", "0")]
-            },
-        }
+        partial = incomplete_answer_echo(version.content_json, form)
         return _render_question(request, db, session, target, error=str(exc), answer_json=partial, status_code=422)
     validate_quiz_answer(db, session=session, session_question=target, answer_json=answer_json)
     return RedirectResponse(url=f"/quiz/parties/{session.id}?vu={position}", status_code=303)
