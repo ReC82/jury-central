@@ -255,7 +255,8 @@ def import_francais_fr07_to_bank(db: Session, module: Module, uaa: UAA) -> int:
         (
             "classification",
             {
-                "prompt": "Classe chaque extrait des sources selon sa nature dominante.",
+                "prompt": "Classe chaque extrait des sources A, B et C selon sa nature dominante.",
+                "source_document_version_ids": [a_id, b_id, c_id],
                 "categories": ["Fait/donnée vérifiable", "Opinion/témoignage personnel", "Argument publicitaire"],
                 "elements": [
                     "Différence de 23 points de pourcentage entre les deux groupes d'adolescents (Source A)",
@@ -543,7 +544,8 @@ def import_francais_fr10_to_bank(db: Session, module: Module, uaa: UAA) -> int:
         (
             "classification",
             {
-                "prompt": "Classe chaque élément du dossier mini-test selon sa nature argumentative.",
+                "prompt": "Classe chaque argument du texte mini-test sur l'interdiction du téléphone au travail selon sa nature argumentative.",
+                "source_document_version_id": mt_id,
                 "categories": ["Argument appuyé sur une donnée précise", "Argument faible (impression, jugement moral)"],
                 "elements": [
                     "Plusieurs accidents du travail recensés par un organisme de prévention",

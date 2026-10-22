@@ -218,6 +218,76 @@ FRANCAIS_PLAN: tuple[FrancaisUAAPlan, ...] = (
             "Distinguer argument, exemple et preuve",
             "Évaluer la solidité d'un argument et repérer ses faiblesses",
         ),
+    ),    # Ticket #94 PHASE C : FR11→FR15.
+    FrancaisUAAPlan(
+        code="FR11", title="Construire un argument développé",
+        allowed_notions=(
+            "opinion, thèse, argument, affirmation gratuite",
+            "argument développé : idée annoncée, explication, exemple/preuve, lien avec la thèse",
+            "connecteurs logiques : addition, cause, conséquence, opposition, concession, illustration, conclusion",
+            "objection, réfutation, concession (« certes… mais »)",
+        ),
+        competencies=(
+            "Développer une idée en argument complet (idée, explication, exemple ou preuve, lien avec la thèse)",
+            "Employer des connecteurs logiques adaptés à la relation entre les idées",
+            "Tenir compte d'une objection par une concession ou une réfutation",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR12", title="Rédiger un texte argumentatif",
+        allowed_notions=(
+            "situation de communication : émetteur, destinataire, but, genre, longueur",
+            "registre de langue adapté au destinataire",
+            "introduction (amorce, sujet, thèse, annonce du plan), développement, conclusion (bilan, ouverture)",
+            "codes de la lettre, du courriel et de la lettre ouverte (objet, formule d'appel, formule de politesse, signature)",
+        ),
+        competencies=(
+            "Analyser la situation de communication imposée par une consigne",
+            "Construire un texte argumentatif structuré en introduction, développement et conclusion",
+            "Respecter les codes du genre, le registre et la longueur demandés",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR13", title="Utiliser un dossier documentaire dans son argumentation",
+        allowed_notions=(
+            "dossier documentaire, tri pour / contre / nuance",
+            "citation (guillemets, introduite, sourcée) et reformulation (mots personnels, sourcée)",
+            "indication de la source, copier-coller à éviter, déformation d'un document",
+            "document contraire utilisé comme objection, connaissances personnelles",
+        ),
+        competencies=(
+            "Sélectionner dans un dossier les informations utiles à sa thèse",
+            "Intégrer une information par citation ou reformulation en indiquant sa source",
+            "Utiliser les documents fidèlement, y compris celui qui contredit sa thèse",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR14", title="Réclamation et adaptation au destinataire",
+        allowed_notions=(
+            "réclamation : objet, formule d'appel, exposé des faits, justification, demande précise, pièces jointes, formule de politesse",
+            "références, dates et montants exacts",
+            "ton ferme mais courtois",
+            "adaptation du registre et du contenu au destinataire et au but",
+        ),
+        competencies=(
+            "Rédiger une réclamation structurée qui expose des faits précis et une demande claire",
+            "Adopter un ton ferme mais courtois, sans insulte ni menace",
+            "Adapter un message à son destinataire et à son but",
+        ),
+    ),
+    FrancaisUAAPlan(
+        code="FR15", title="Défendre une opinion oralement",
+        allowed_notions=(
+            "intervention orale, temps de parole, fiche aide-mémoire en mots-clés",
+            "ouverture, marqueurs oraux, prise en compte de l'objection, clôture",
+            "communication non verbale (regard, posture, gestes) et voix (volume, débit, articulation, pauses)",
+            "répondre à une objection (écouter, reformuler, répondre), attaque personnelle à éviter",
+        ),
+        competencies=(
+            "Préparer une intervention orale structurée à partir d'une fiche en mots-clés",
+            "Analyser la voix, l'attitude et la structure d'une prise de parole",
+            "Répondre calmement à une objection en la reformulant",
+        ),
     ),
 )
 

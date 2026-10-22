@@ -213,7 +213,8 @@ def test_francais_public_listing_now_shows_ten_courses(client, db_session):
     links = re.findall(r'href="/uaa/(francais-[a-z0-9]+)"', response.text)
     assert "francais-c01" not in links
     expected = {f"francais-{c.lower()}" for c in ("FR01", "FR02", "FR03", "FR04", "FR05", *FR06_10_CODES)}
-    assert set(links) == expected, f"attendu exactement 10 cours publics, trouvé : {links}"
+    # Phases suivantes (FR11→…) : FR01→FR10 restent publics, d'autres cours s'y ajoutent.
+    assert expected <= set(links), f"FR01→FR10 attendus parmi les cours publics, trouvé : {links}"
 
 
 # =============================================================================================
@@ -497,7 +498,7 @@ def test_fr01_10_document_references_and_prompts_are_resolvable(db_session):
         uaa = db_session.query(UAA).filter_by(slug=slug).first()
         importer(db_session, uaa.module, uaa)
     db_session.commit()
-    codes = tuple(f"FR{n:02d}" for n in range(1, 11))
+    codes = tuple(f"FR{n:02d}" for n in range(1, 16))
     references = audit_document_references(db_session, uaa_codes=codes)
     assert references["audited"] >= 80
     assert references["unresolved"] == []

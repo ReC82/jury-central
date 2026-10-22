@@ -24,6 +24,13 @@ from app.v1.francais_fr06_10_courses import (
     fr09_course_markdown,
     fr10_course_markdown,
 )
+from app.v1.francais_fr11_15_courses import (
+    fr11_course_markdown,
+    fr12_course_markdown,
+    fr13_course_markdown,
+    fr14_course_markdown,
+    fr15_course_markdown,
+)
 from app.v1.francais_plan import FRANCAIS_MODULE_CODE, FRANCAIS_SUBJECT_NAME
 from app.v1.fse01_course import fse01_course_sections
 from app.v1.fse02_course import fse02_course_sections
@@ -4690,6 +4697,63 @@ FRANCAIS_FR10_BLOCKS = [
     }
 ]
 
+# Ticket #94 (PHASE C) : FR11→FR15, même pattern que FR06→FR10 ci-dessus.
+FRANCAIS_FR11_TITLE = "Construire un argument développé"
+FRANCAIS_FR12_TITLE = "Rédiger un texte argumentatif"
+FRANCAIS_FR13_TITLE = "Utiliser un dossier documentaire dans son argumentation"
+FRANCAIS_FR14_TITLE = "Réclamation et adaptation au destinataire"
+FRANCAIS_FR15_TITLE = "Défendre une opinion oralement"
+FRANCAIS_FR11_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr11_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR12_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr12_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR13_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr13_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR14_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr14_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+FRANCAIS_FR15_BLOCKS = [
+    {
+        "title": "Cours complet",
+        "type": BlockType.MARKDOWN,
+        "content": fr15_course_markdown(),
+        "position": 1,
+        "is_published": True,
+        "space": BlockSpace.COURSE,
+    }
+]
+
 
 # =========================================================================================
 # Formation sociale et économique (FSE) — CESS Professionnel (ticket #96 : FSE01 ;
@@ -5186,6 +5250,12 @@ def seed() -> None:
         _seed_uaa(db, cessp, "FR08", FRANCAIS_FR08_TITLE, 9, FRANCAIS_FR08_BLOCKS, created, kept)
         _seed_uaa(db, cessp, "FR09", FRANCAIS_FR09_TITLE, 10, FRANCAIS_FR09_BLOCKS, created, kept)
         _seed_uaa(db, cessp, "FR10", FRANCAIS_FR10_TITLE, 11, FRANCAIS_FR10_BLOCKS, created, kept)
+        # Ticket #94 (PHASE C) : FR11→FR15, purement additif.
+        _seed_uaa(db, cessp, "FR11", FRANCAIS_FR11_TITLE, 12, FRANCAIS_FR11_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR12", FRANCAIS_FR12_TITLE, 13, FRANCAIS_FR12_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR13", FRANCAIS_FR13_TITLE, 14, FRANCAIS_FR13_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR14", FRANCAIS_FR14_TITLE, 15, FRANCAIS_FR14_BLOCKS, created, kept)
+        _seed_uaa(db, cessp, "FR15", FRANCAIS_FR15_TITLE, 16, FRANCAIS_FR15_BLOCKS, created, kept)
 
         # Formation sociale et économique (tickets #96-#101, FSE01-FSE17) : même mécanisme
         # générique, purement additif — ne touche jamais Mathématiques/Informatique/
