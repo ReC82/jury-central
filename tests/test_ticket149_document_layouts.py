@@ -251,3 +251,54 @@ def test_document_page_and_results_use_the_same_component(authenticated_client, 
     assert "Revoir le document" in results.text
     assert "jc-sd--quotes" in results.text
     assert db_session.get(SourceDocumentVersion, doc_id) is not None
+
+
+# --- Retour du propriétaire du 22/10 : pages de média FSE02 et feuilles périmées ----------
+
+
+def _fse02(title_start: str):
+    title, text = next((t, x) for t, x in FSE_DOCUMENTS if t.startswith(title_start))
+    return _render(_doc(title, text))
+
+
+def _visible_text(html: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+
+
+def test_offer_price_is_split_into_amount_and_period_without_adding_anything():
+    assert dl.offer_parts("14 € par mois") == {"amount": "14 €", "period": "par mois"}
+    assert dl.offer_parts("2,50 €") == {"amount": "2,50 €", "period": ""}
+    assert dl.offer_parts("65 %") == {"amount": "65 %", "period": ""}
+
+
+def test_subscription_page_has_offer_cards_editorial_and_letters_zone():
+    html = _fse02("L'Hebdo du Littoral")
+    assert html.count('class="jc-sd-offer"') == 3
+    assert '<strong>14 €</strong> <span class="jc-sd-offer-period">par mois</span>' in html
+    assert 'class="jc-sd-web-quote"' in html and 'class="jc-sd-web-paywall"' in html
+    assert 'class="jc-sd-web-letters"' in html and "Vos lettres" in html
+    # Titre non répété : la barre du navigateur ne recopie ni le média ni la page.
+    bar = re.search(r'<div class="jc-sd-web-bar".*?</div>', html, re.DOTALL).group(0)
+    assert "Abonnement" not in bar and "abonnement" not in bar and "HEBDO" not in bar
+    # Même sans feuille de style, les éléments ne se collent jamais.
+    text = _visible_text(html)
+    assert "L'HEBDO DU LITTORAL Abonnez-vous" in text.replace("&#39;", "'")
+    assert "numérique 14 € par mois" in text and "seule 9 € par mois" in text
+
+
+def test_free_news_homepage_is_composed_like_a_news_site():
+    html = _fse02("Le Flash Infos")
+    for part in ("jc-sd-web-ribbon", "jc-sd-web-row", "jc-sd-headline-title", "jc-sd-ad--side", "jc-sd-web-about"):
+        assert part in html, part
+    assert html.count('<span class="jc-sd-ad-tag">') == 2
+    assert "LE FLASH INFOS Toute l" in _visible_text(html).replace("&#39;", "'")
+
+
+def test_local_assets_are_versioned_by_content_hash(client):
+    page = client.get("/login").text
+    for asset in ("css/design-system.css", "css/jc-theme.css", "js/design_system.js"):
+        match = re.search(rf"/static/{re.escape(asset)}\?v=([0-9a-f]{{10}})", page)
+        assert match, asset
+        from app.templating import asset_version
+
+        assert match.group(1) == asset_version(asset)

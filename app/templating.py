@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 
 from fastapi import Request
@@ -48,6 +49,28 @@ def static_exists(path: str) -> bool:
 templates.env.globals["static_exists"] = static_exists
 
 
+_ASSET_VERSIONS: dict[tuple[str, int], str] = {}
+
+
+def asset_version(path: str) -> str:
+    """Ticket #149 : empreinte courte du contenu d'une feuille de style ou d'un script local,
+    ajoutée à son URL (`?v=`). Les fichiers statiques sont servis sans `Cache-Control` : un
+    navigateur peut alors réutiliser une ancienne copie pendant des jours (cache heuristique)
+    et appliquer une feuille périmée à des pages récentes. Une URL qui change avec le contenu
+    force le chargement de la bonne version après chaque installation."""
+    file = BASE_DIR / "static" / path
+    try:
+        key = (path, file.stat().st_mtime_ns)
+    except OSError:
+        return "0"
+    if key not in _ASSET_VERSIONS:
+        _ASSET_VERSIONS[key] = hashlib.sha256(file.read_bytes()).hexdigest()[:10]
+    return _ASSET_VERSIONS[key]
+
+
+templates.env.globals["asset_version"] = asset_version
+
+
 def _register_document_layouts() -> None:
     """Ticket #149 : composants des documents sources (`_document_layouts.html`)."""
     from app.v1 import document_layouts
@@ -57,6 +80,7 @@ def _register_document_layouts() -> None:
     templates.env.globals["doc_focus"] = document_layouts.focus_numbers
     templates.env.globals["doc_generic"] = document_layouts.generic_parts
     templates.env.globals["course_card_html"] = document_layouts.course_card_html
+    templates.env.globals["offer_parts"] = document_layouts.offer_parts
 
 
 _register_document_layouts()

@@ -207,8 +207,8 @@
 
 {% block scripts %}
 {% if display.question_type == "ordering" and not feedback %}
-<script src="{{ url_for('static', path='vendor/sortablejs/Sortable.min.js') }}"></script>
-<script src="{{ url_for('static', path='js/ordering_cards.js') }}"></script>
+<script src="{{ url_for('static', path='vendor/sortablejs/Sortable.min.js') }}?v={{ asset_version('vendor/sortablejs/Sortable.min.js') }}"></script>
+<script src="{{ url_for('static', path='js/ordering_cards.js') }}?v={{ asset_version('js/ordering_cards.js') }}"></script>
 {% endif %}
 <script>
     document.querySelectorAll("form[data-quiz-once]").forEach(function (form) {

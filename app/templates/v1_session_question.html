@@ -173,7 +173,7 @@ confortable des supports composés) ; la zone de réponse garde une largeur de l
 
 {% block scripts %}
 {% if display.question_type == "ordering" %}
-<script src="{{ url_for('static', path='vendor/sortablejs/Sortable.min.js') }}"></script>
-<script src="{{ url_for('static', path='js/ordering_cards.js') }}"></script>
+<script src="{{ url_for('static', path='vendor/sortablejs/Sortable.min.js') }}?v={{ asset_version('vendor/sortablejs/Sortable.min.js') }}"></script>
+<script src="{{ url_for('static', path='js/ordering_cards.js') }}?v={{ asset_version('js/ordering_cards.js') }}"></script>
 {% endif %}
 {% endblock %}
