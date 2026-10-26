@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06, PR11, PR15, PR16 et PR20),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06, PR11, PR15, PR16, PR20 et PR24),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -186,6 +186,20 @@ d'adressage sont faits par code** (`ipaddress` : `subnet_facts`, `same_subnet`, 
 `plan_errors`…) et recalculés indépendamment par les tests. 5 cas résolus, 20 exercices
 (7 calculs, 5 diagnostics, 4 configurations, 4 comptes rendus/procédures), mini-examen 10
 questions /20 (`app/v1/ampcr_pratique_pr20_*.py`). Aucune image générée.
+
+**Sixième cours publié (ticket #200) : PR24 « Dépannage réseau et Internet — dossiers
+d'intervention écrits »** (`/uaa/ampcr-pratique-pr24`), même intégration. 18 blocs (matière 1-15
+du ticket : méthode en couches, physique et liaison, configuration IP, DHCP, DNS, passerelle et
+routage, switch et VLAN, Wi-Fi, partages et imprimantes, outils Windows et Linux, procédure
+ordonnée, pannes combinées, sécurité, rapport ; mémo et glossaire). Réseau de référence fictif
+« l'atelier » (192.168.20.0/24, box, switch administrable, serveur DHCP/DNS dnsmasq, NAS,
+imprimante, point d'accès PoE) ; 13 figures SVG (réseau, ports du switch, couches, arbres
+général / Wi-Fi / partage, 7 documents : APIPA, ping, tracert, nslookup, journal DHCP, Wi-Fi,
+Linux). **Tous les relevés sont produits par code** (`app/v1/ampcr_pratique_pr24_figures.py`)
+et relus par les tests (statistiques, premier saut, réponses DNS, largeur mobile ≤ 56
+caractères). 6 cas résolus, 6 tableaux symptôme → test discriminant → action, 20 exercices
+(8 analyses de relevés, 5 arbres/procédures, 4 dossiers multi-postes, 3 rapports), mini-examen
+10 questions /20 (`app/v1/ampcr_pratique_pr24_*.py`). Aucune image générée.
 
 ## Administration
 

@@ -2,6 +2,18 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : cours PR24 « Dépannage réseau et Internet » (ticket #200)
+
+Sixième cours du parcours pratique (UAA PR24 du module `AMPCR-PRATIQUE`, 18 blocs) : matière
+1-15 du ticket (méthode en couches, physique/liaison, IP, DHCP, DNS, passerelle/routage,
+switch/VLAN, Wi-Fi, partages, outils Windows et Linux, procédure, pannes combinées, sécurité,
+rapport), 13 figures SVG (réseau de référence de l'atelier, ports du switch, procédure en
+couches, 3 arbres de diagnostic, 7 documents de diagnostic fictifs) ; relevés (ping, tracert,
+nslookup, dig, journal DHCP, Wi-Fi, ARP, routes) produits par code depuis le réseau de
+référence ; 6 cas résolus, 6 tableaux symptôme → test discriminant → action, 20 exercices,
+mini-examen 10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr24_*.py`,
+`tests/test_ticket200_ampcr_pratique_pr24.py`).
+
 ## 2026-10-26 — AMPCR pratique écrite : cours PR20 « IPv4, MAC, masques et passerelles » (ticket #199)
 
 Cinquième cours du parcours pratique (UAA PR20 du module `AMPCR-PRATIQUE`, 16 blocs) : matière
