@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06, PR11, PR15 et PR16),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06, PR11, PR15, PR16 et PR20),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -174,6 +174,18 @@ figures SVG dont le bus 10BASE2 et ses versions fautives **dessinés depuis un m
 (`bus_errors`, `ohmmeter_reading`, `tdr_distance_m` testés), 4 exemples corrigés, 16 exercices
 (5 schémas, 4 choix, 3 procédures, 4 diagnostics), mini-examen 10 questions /20
 (`app/v1/ampcr_pratique_pr16_*.py`). Aucune image générée.
+
+**Cinquième cours publié (ticket #199) : PR20 « IPv4, MAC, masques et passerelles — configuration
+et diagnostics écrits »** (`/uaa/ampcr-pratique-pr20`), même intégration. 16 blocs (matière 1-15
+du ticket : réseau local, MAC, IPv4 et plages particulières, masque/CIDR, passerelle, DNS, DHCP,
+commandes Windows et Linux, plan d'adressage, connexion directe, diagnostic, cas d'erreur,
+compte rendu ; mémo et glossaire), 13 figures SVG (réseau de référence 4 postes + switch +
+routeur + DHCP/DNS, MAC, bits /24 /26 /27, DORA, `ipconfig /all`, `ip addr`/`ip route`,
+fenêtre IPv4 fictive, démarche de ping, 3 arbres de diagnostic). **Tous les calculs
+d'adressage sont faits par code** (`ipaddress` : `subnet_facts`, `same_subnet`, `host_errors`,
+`plan_errors`…) et recalculés indépendamment par les tests. 5 cas résolus, 20 exercices
+(7 calculs, 5 diagnostics, 4 configurations, 4 comptes rendus/procédures), mini-examen 10
+questions /20 (`app/v1/ampcr_pratique_pr20_*.py`). Aucune image générée.
 
 ## Administration
 
