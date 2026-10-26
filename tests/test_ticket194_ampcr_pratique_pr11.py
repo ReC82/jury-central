@@ -395,3 +395,17 @@ def test_practice_session_with_ordering_and_classification_submits(authenticated
         session_url = _start_session(authenticated_client, db_session, SLUG, "practice")
         _answer_all_and_submit(authenticated_client, session_url, db_session, fake)
         assert authenticated_client.get(session_url).status_code == 200
+
+
+def test_obsolete_block_title_is_replaced_on_reseed(db_session):
+    from app.models import LessonBlock
+    from app.v1.ampcr_pratique_pr11_course import PR11_OBSOLETE_TITLES
+
+    _module, uaa = _pr11(db_session)
+    old_title = next(iter(PR11_OBSOLETE_TITLES))
+    db_session.add(LessonBlock(uaa_id=uaa.id, title=old_title, type="markdown", content="ancien", position=2))
+    db_session.commit()
+    seed()
+    db_session.expire_all()
+    titles = [b.title for b in db_session.get(UAA, uaa.id).lesson_blocks]
+    assert old_title not in titles and len(titles) == len(pr11_course_sections())

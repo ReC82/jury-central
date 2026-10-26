@@ -11,7 +11,7 @@ from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V
 from app.v1.ampcr_plan import AMPCR_PLAN
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr06_course import PR06_TITLE, pr06_course_sections
-from app.v1.ampcr_pratique_pr11_course import PR11_TITLE, pr11_course_sections
+from app.v1.ampcr_pratique_pr11_course import PR11_OBSOLETE_TITLES, PR11_TITLE, pr11_course_sections
 from app.v1.document_references import repair_dossier_references
 from app.v1.francais_fr01_05_courses import (
     fr01_course_markdown,
@@ -5797,7 +5797,10 @@ def seed() -> None:
         _ensure_modules(db, informatique, [PRACTICAL_MODULE_CODE], created, kept)
         practical_module = next(m for m in informatique.modules if m.code == PRACTICAL_MODULE_CODE)
         _seed_uaa(db, practical_module, "PR06", PR06_TITLE, 6, PR06_BLOCKS, created, kept)
-        _seed_uaa(db, practical_module, "PR11", PR11_TITLE, 11, PR11_BLOCKS, created, kept)
+        _seed_uaa(
+            db, practical_module, "PR11", PR11_TITLE, 11, PR11_BLOCKS, created, kept,
+            obsolete_titles=PR11_OBSOLETE_TITLES,
+        )
 
         # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
         # n'était pas résolvable → nouvelle version (idempotent, sessions existantes
