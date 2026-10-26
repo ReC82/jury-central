@@ -10,10 +10,10 @@ réduits à un seul) — jamais reformulés. Le programme 345/2007/249 (`PROGRAM
 un complément : les consignes ne le remplacent pas, mais il n'est pas transcrit ici.
 
 Ce module ne crée **aucun contenu** en base. Les emplacements PR01–PR30 (cours) et
-EX01–EX06 (exercices pratiques écrits) sont un plan : un emplacement n'est « publié » que
-si une UAA de même code existe en base et est publiée (`published_codes`). Les 6 modules,
-les titres des emplacements et leur rattachement aux exigences sont une proposition de
-découpage (ticket #192), à confirmer ou ajuster par les tickets de cours.
+EX01–EX06 (examens blancs écrits) sont un plan : un emplacement n'est « publié » que si une
+UAA de même code existe en base et est publiée (`published_uaas`). Depuis l'audit #236, codes,
+titres et matières sont ceux des 36 tickets GitHub (qui font foi) ; les 5 modules et le
+rattachement aux exigences AP en sont déduits.
 
 Statut d'une exigence (`requirement_status`) :
 - « non traité » : aucun cours ni exercice lié publié ;
@@ -232,7 +232,7 @@ _OFFICIAL_ROWS: tuple[tuple[str, int, tuple[str, ...], str], ...] = (
     ),
     ("Montage, démontage et reconditionnement d’un PC.", 5, ("MC06",), ""),
     ("Dépannage sur les dysfonctionnements courants (hardware ou software).", 5, ("MC29", "MC30"), ""),
-    ("Vocabulaire technique.", 5, (), "Transversal : lexique AMPCR existant."),
+    ("Vocabulaire technique.", 5, (), "Transversal : aucun cours dédié ; travaillé en rédaction (PR26, PR29) et dans le lexique AMPCR."),
     ("Notion de compatibilité.", 5, ("MC04", "MC12"), ""),
     ("Les différents types de câbles : UTP, FTP, STP, Coax.", 5, ("MC15",), "FTP et coaxial absents de la théorie actuelle."),
     ("Les débits binaires des câbles.", 6, ("MC15",), ""),
@@ -302,6 +302,17 @@ COMPLEMENT_REQUIREMENTS: tuple[Requirement, ...] = (
         theory_codes=("MC05",),
         note="Prérequis des interventions de montage/démontage (AP-14).",
     ),
+    Requirement(
+        id="AP-C03",
+        text=(
+            "Protéger les données du client : sauvegarde préalable, confidentialité et "
+            "autorisation avant tout effacement ou toute réinstallation."
+        ),
+        page=None,
+        kind=KIND_COMPLEMENT,
+        theory_codes=("MC32",),
+        note="Ajouté à l'audit #236 : matière commune des tickets PR04, PR12 et PR28.",
+    ),
 )
 
 ALL_REQUIREMENTS: tuple[Requirement, ...] = OFFICIAL_REQUIREMENTS + COMPLEMENT_REQUIREMENTS
@@ -310,89 +321,122 @@ REQUIREMENTS_BY_ID: dict[str, Requirement] = {r.id: r for r in ALL_REQUIREMENTS}
 
 # --- Modules, cours PR01-PR30 et exercices EX01-EX06 ---------------------------------------
 
+# Dépôt GitHub des tickets de cours et d'examens (un ticket par emplacement).
+TICKETS_REPO_URL = "https://github.com/ReC82/jury-central/issues"
+
 
 @dataclass(frozen=True)
 class CourseSlot:
     code: str  # PR01..PR30
-    title: str
+    title: str  # titre du ticket GitHub (sans le préfixe « [Px][AMPCR pratique PRxx] »)
     module_key: str
     requirement_ids: tuple[str, ...]
+    ticket: int  # numéro du ticket GitHub qui fait foi pour le code, la matière et le contenu
 
 
 @dataclass(frozen=True)
 class ExerciseSlot:
     code: str  # EX01..EX06
-    title: str
+    title: str  # titre du ticket GitHub
     module_key: str
+    requirement_ids: tuple[str, ...]  # exigences évaluées, d'après la matière du ticket
+    ticket: int
+    is_global: bool = False  # examen blanc global : porte sur tout le parcours
 
 
 @dataclass(frozen=True)
 class PracticalModule:
-    key: str  # P1..P6
+    key: str  # P1..P5
     title: str
     summary: str
     icon: str  # Bootstrap Icons
     course_codes: tuple[str, ...]
-    exercise_code: str
+    exercise_codes: tuple[str, ...]
 
 
-# Numérotation alignée sur les tickets de cours déjà rédigés par le propriétaire (26/10/2026) :
-# #193 = PR06 (diagnostic des pannes matérielles), #194 = PR11 (messages d'erreur),
-# #197 = PR15 (câblage RJ45). Le reste du découpage est une proposition (voir
-# docs/ampcr_pratique_v1.md § 5) ; un ticket de cours qui fixe un code et un titre fait foi.
-_COURSE_ROWS: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
-    ("PR01", "Structure d'un ordinateur, composants et périphériques", "P1", ("AP-01", "AP-02")),
-    ("PR02", "Carte mère, processeur, mémoire RAM-ROM, BIOS et UEFI", "P1", ("AP-02", "AP-07")),
-    ("PR03", "Disques, unités de stockage, formatage et défragmentation", "P1", ("AP-03",)),
-    ("PR04", "Caractéristiques d'une alimentation PC", "P1", ("AP-04",)),
-    ("PR05", "Branchements, interfaces, connexions et compatibilité", "P1", ("AP-06", "AP-17")),
-    ("PR06", "Diagnostic des pannes matérielles", "P2", ("AP-15", "AP-17", "AP-C02")),
-    ("PR07", "Montage et démontage d'un PC en sécurité", "P2", ("AP-14", "AP-C02")),
-    ("PR08", "Reconditionnement d'un PC", "P2", ("AP-14", "AP-17")),
-    ("PR09", "Systèmes d'exploitation actuellement sur le marché", "P3", ("AP-08",)),
-    ("PR10", "Installation complète d'un système d'exploitation courant", "P3", ("AP-10",)),
-    ("PR11", "Messages d'erreur Windows/Linux et démarches d'intervention", "P3", ("AP-09", "AP-13", "AP-15")),
-    ("PR12", "Paramètres et commandes de base", "P3", ("AP-11",)),
-    ("PR13", "Interface graphique et interface de ligne de commande", "P3", ("AP-12",)),
-    ("PR14", "Périphériques d'entrée et de sortie, rôle d'un pilote", "P3", ("AP-05", "AP-17")),
-    ("PR15", "Câblage RJ45, normes T568A/B, réalisation et tests", "P4", ("AP-18", "AP-20", "AP-34")),
-    ("PR16", "Types de câbles et débits : UTP, FTP, STP, coaxial", "P4", ("AP-18", "AP-19")),
-    ("PR17", "Caractéristiques des câbles : atténuation, impédance, parasites, longueurs", "P4", ("AP-20",)),
-    ("PR18", "La fibre optique et sa comparaison avec les câbles", "P4", ("AP-21", "AP-22")),
-    ("PR19", "Réaliser un câble à connecteurs BNC", "P4", ("AP-35",)),
-    ("PR20", "Topologies, câblage et installation physique d'un réseau", "P5", ("AP-23", "AP-36")),
-    ("PR21", "Notions de base sur les protocoles", "P5", ("AP-29",)),
-    ("PR22", "Adressage IP et adresses MAC", "P5", ("AP-30",)),
-    ("PR23", "Hub, switch, passerelle, routeur, modem", "P5", ("AP-31",)),
-    ("PR24", "Wi-Fi : principe, sécurisation, cryptage, répéteur", "P5", ("AP-33",)),
-    ("PR25", "Domaine, groupe de travail, comptes et groupes", "P6", ("AP-24",)),
-    ("PR26", "Partages, droits et permissions", "P6", ("AP-25", "AP-26", "AP-27")),
-    ("PR27", "Connexion directe et mini réseau entre plusieurs machines", "P6", ("AP-28", "AP-38")),
-    ("PR28", "Panne internet : connexions et interventions", "P6", ("AP-32",)),
-    ("PR29", "Dépannage de problèmes simples d'accès au réseau", "P6", ("AP-37",)),
-    ("PR30", "Vocabulaire technique et rédaction d'une intervention", "P6", ("AP-16", "AP-C01")),
+# Ticket #236 (audit du 26/10/2026) : les 30 tickets PR et 6 tickets EX existent sur GitHub et
+# FONT FOI (décision du propriétaire) — code, matière et titre ci-dessous sont ceux des
+# tickets ; les exigences AP sont rattachées d'après la matière obligatoire de chaque ticket.
+# Le test `tests/test_ticket236_ampcr_pratique_numerotation.py` fige cette correspondance.
+_COURSE_ROWS: tuple[tuple[str, int, str, str, tuple[str, ...]], ...] = (
+    ("PR01", 202, "Structure d'un PC et identification des composants", "P1", ("AP-01", "AP-02", "AP-05", "AP-07", "AP-17")),
+    ("PR02", 203, "Alimentation, connectique, compatibilité et sécurité", "P1", ("AP-04", "AP-06", "AP-17", "AP-C02")),
+    ("PR03", 204, "Montage et démontage d'un PC — procédure écrite", "P1", ("AP-14", "AP-C02")),
+    ("PR04", 205, "Reconditionnement, entretien et contrôles après intervention", "P1", ("AP-14", "AP-C03")),
+    ("PR05", 206, "Stockage, partitions, formatage et défragmentation", "P1", ("AP-03",)),
+    ("PR06", 193, "Diagnostic des pannes matérielles", "P1", ("AP-15", "AP-17", "AP-C02")),
+    ("PR07", 207, "Systèmes d'exploitation, GUI/CLI et prérequis d'installation", "P2", ("AP-08", "AP-12")),
+    ("PR08", 208, "Installation complète de Windows — préparation et dépannage", "P2", ("AP-10",)),
+    ("PR09", 209, "Installation complète de Linux — préparation et dépannage", "P2", ("AP-10",)),
+    ("PR10", 214, "Comptes, pilotes, paramètres et commandes", "P2", ("AP-05", "AP-11", "AP-12")),
+    ("PR11", 194, "Messages d'erreur Windows/Linux — diagnostic et interventions écrites", "P2", ("AP-09", "AP-13", "AP-15")),
+    ("PR12", 215, "Dépannage logiciel et restauration du système", "P2", ("AP-15", "AP-C03")),
+    ("PR13", 216, "Câbles UTP, FTP, STP et coaxial — choix et pose", "P3", ("AP-18", "AP-20")),
+    ("PR14", 217, "Débits, distances, atténuation et impédance", "P3", ("AP-19", "AP-20")),
+    ("PR15", 197, "Câblage RJ45 T568A/B — fabrication, schémas et tests", "P3", ("AP-18", "AP-20", "AP-34")),
+    ("PR16", 198, "Câble coaxial et BNC — impédance, fabrication et diagnostic écrit", "P3", ("AP-18", "AP-20", "AP-35")),
+    ("PR17", 218, "Fibre optique — choix, raccordement et diagnostic", "P3", ("AP-21", "AP-22")),
+    ("PR18", 219, "Installation physique d'un mini-réseau", "P4", ("AP-36", "AP-38")),
+    ("PR19", 220, "Topologies, OSI, TCP/IP, NetBEUI et équipements", "P4", ("AP-23", "AP-29", "AP-31")),
+    ("PR20", 199, "IPv4, MAC, masques et passerelles — configuration et diagnostics écrits", "P4", ("AP-30",)),
+    ("PR21", 221, "Connexion directe de deux PC et mini-réseau", "P4", ("AP-28", "AP-38")),
+    ("PR22", 222, "Domaine, groupe de travail, comptes et groupes", "P4", ("AP-24",)),
+    ("PR23", 223, "Partage de dossiers, imprimantes et permissions", "P4", ("AP-25", "AP-26", "AP-27")),
+    ("PR24", 200, "Dépannage réseau et Internet — dossiers d'intervention écrits", "P4", ("AP-32", "AP-37")),
+    ("PR25", 224, "Wi-Fi : configuration, couverture, sécurité et diagnostic", "P4", ("AP-33",)),
+    ("PR26", 225, "Analyser une demande d'intervention technique", "P5", ("AP-16", "AP-C01")),
+    ("PR27", 226, "Construire et justifier une procédure de diagnostic", "P5", ("AP-15", "AP-C01")),
+    ("PR28", 227, "Outillage, sécurité et protection des données", "P5", ("AP-C02", "AP-C03")),
+    ("PR29", 228, "Contrôles finaux et rapport professionnel d'intervention", "P5", ("AP-16", "AP-C01")),
+    ("PR30", 229, "Grand laboratoire écrit — installation et dépannage d'un réseau complet", "P5", ("AP-36", "AP-37", "AP-38")),
 )
 
 COURSE_SLOTS: tuple[CourseSlot, ...] = tuple(
-    CourseSlot(code=code, title=title, module_key=module_key, requirement_ids=reqs)
-    for code, title, module_key, reqs in _COURSE_ROWS
+    CourseSlot(code=code, title=title, module_key=module_key, requirement_ids=reqs, ticket=ticket)
+    for code, ticket, title, module_key, reqs in _COURSE_ROWS
 )
 COURSE_SLOTS_BY_CODE: dict[str, CourseSlot] = {c.code: c for c in COURSE_SLOTS}
 
-_MODULE_ROWS: tuple[tuple[str, str, str, str], ...] = (
-    ("P1", "Matériel du PC", "Composants, carte mère, stockage, alimentation et connexions.", "cpu"),
-    ("P2", "Intervention et dépannage matériel", "Diagnostic des pannes, montage, démontage et reconditionnement.", "tools"),
-    ("P3", "Systèmes d'exploitation et messages d'erreur", "Systèmes du marché, installation, erreurs, paramètres, interfaces et pilotes.", "windows"),
-    ("P4", "Câbles et supports de transmission", "RJ45, types et caractéristiques des câbles, fibre optique, BNC.", "plug"),
-    ("P5", "Réseau : architecture et adressage", "Topologies, protocoles, adressage, équipements et Wi-Fi.", "diagram-3"),
-    ("P6", "Partages, comptes et dépannage réseau", "Comptes, partages, droits, mini réseau et pannes d'accès.", "share"),
+# EX01-EX04 : examen blanc écrit d'un module ; EX05-EX06 : examens blancs globaux (tickets).
+_EXERCISE_ROWS: tuple[tuple[str, int, str, str, bool, tuple[str, ...]], ...] = (
+    ("EX01", 230, "Examen blanc écrit — maintenance et dépannage matériel", "P1", False,
+     ("AP-01", "AP-02", "AP-03", "AP-04", "AP-06", "AP-07", "AP-14", "AP-15", "AP-17", "AP-C02")),
+    ("EX02", 231, "Examen blanc écrit — installation et dépannage des systèmes", "P2", False,
+     ("AP-03", "AP-05", "AP-08", "AP-09", "AP-10", "AP-11", "AP-12", "AP-13", "AP-15", "AP-24",
+      "AP-27", "AP-C03")),
+    ("EX03", 232, "Examen blanc écrit — câblage RJ45, BNC et fibre", "P3", False,
+     ("AP-18", "AP-19", "AP-20", "AP-21", "AP-22", "AP-34", "AP-35")),
+    ("EX04", 233, "Examen blanc écrit — réseau, configuration et dépannage", "P4", False,
+     ("AP-23", "AP-25", "AP-26", "AP-27", "AP-28", "AP-29", "AP-30", "AP-31", "AP-32", "AP-33",
+      "AP-37", "AP-38")),
+    ("EX05", 201, "Examen blanc global standard — épreuve pratique écrite", "P5", True,
+     ("AP-01", "AP-10", "AP-15", "AP-16", "AP-25", "AP-30", "AP-34", "AP-35", "AP-36", "AP-37",
+      "AP-C01")),
+    ("EX06", 234, "Examen blanc global avancé — dossiers complexes", "P5", True,
+     ("AP-03", "AP-10", "AP-15", "AP-16", "AP-17", "AP-25", "AP-27", "AP-30", "AP-33", "AP-34",
+      "AP-35", "AP-C01", "AP-C03")),
 )
 
 EXERCISE_SLOTS: tuple[ExerciseSlot, ...] = tuple(
-    ExerciseSlot(code=f"EX0{index}", title=f"Exercices pratiques écrits — {title}", module_key=key)
-    for index, (key, title, _summary, _icon) in enumerate(_MODULE_ROWS, start=1)
+    ExerciseSlot(code=code, title=title, module_key=module_key, requirement_ids=reqs,
+                 ticket=ticket, is_global=is_global)
+    for code, ticket, title, module_key, is_global, reqs in _EXERCISE_ROWS
 )
 EXERCISE_SLOTS_BY_CODE: dict[str, ExerciseSlot] = {e.code: e for e in EXERCISE_SLOTS}
+
+_MODULE_ROWS: tuple[tuple[str, str, str, str], ...] = (
+    ("P1", "Matériel du PC : composants, montage et diagnostic",
+     "Structure, alimentation et connectique, montage, reconditionnement, stockage, pannes matérielles.", "cpu"),
+    ("P2", "Systèmes d'exploitation : installation et dépannage",
+     "Choix d'OS, installation Windows et Linux, comptes, pilotes, commandes, messages d'erreur, restauration.", "windows"),
+    ("P3", "Câblage : cuivre, coaxial et fibre optique",
+     "Types de câbles, débits et distances, RJ45 T568A/B, coaxial BNC, fibre optique.", "plug"),
+    ("P4", "Réseau : installation, configuration et dépannage",
+     "Installation physique, modèles et équipements, adressage IPv4, mini-réseau, domaine, partages, pannes, Wi-Fi.", "diagram-3"),
+    ("P5", "Méthode d'intervention et examens blancs globaux",
+     ("Analyse d'une demande, procédure de diagnostic, sécurité et données, rapport, grand "
+      "laboratoire ; EX05 et EX06 portent sur tout le parcours."), "clipboard-check"),
+)
 
 MODULES: tuple[PracticalModule, ...] = tuple(
     PracticalModule(
@@ -401,11 +445,21 @@ MODULES: tuple[PracticalModule, ...] = tuple(
         summary=summary,
         icon=icon,
         course_codes=tuple(c.code for c in COURSE_SLOTS if c.module_key == key),
-        exercise_code=next(e.code for e in EXERCISE_SLOTS if e.module_key == key),
+        exercise_codes=tuple(e.code for e in EXERCISE_SLOTS if e.module_key == key),
     )
     for key, title, summary, icon in _MODULE_ROWS
 )
 MODULES_BY_KEY: dict[str, PracticalModule] = {m.key: m for m in MODULES}
+
+# Tickets annexes du parcours (ni cours ni examen).
+SOCLE_TICKET = 192
+NUMBERING_AUDIT_TICKET = 236
+FINAL_AUDIT_TICKET = 235
+
+
+def ticket_url(number: int) -> str:
+    return f"{TICKETS_REPO_URL}/{number}"
+
 
 # Exigences explicitement validées (cours ET exercice relus) par un ticket de cours.
 # Vide au ticket #192 : aucun cours pratique n'existe encore.
@@ -421,8 +475,7 @@ def courses_for_requirement(requirement_id: str) -> tuple[CourseSlot, ...]:
 
 
 def exercises_for_requirement(requirement_id: str) -> tuple[ExerciseSlot, ...]:
-    module_keys = {c.module_key for c in courses_for_requirement(requirement_id)}
-    return tuple(e for e in EXERCISE_SLOTS if e.module_key in module_keys)
+    return tuple(e for e in EXERCISE_SLOTS if requirement_id in e.requirement_ids)
 
 
 def requirement_status(requirement_id: str, published: frozenset[str] | set[str]) -> str:

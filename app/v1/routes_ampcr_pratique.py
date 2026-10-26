@@ -38,7 +38,7 @@ async def practical_home(request: Request, db=Depends(get_db)):  # noqa: B008
     modules = []
     for module in plan.MODULES:
         courses = [plan.COURSE_SLOTS_BY_CODE[code] for code in module.course_codes]
-        exercise = plan.EXERCISE_SLOTS_BY_CODE[module.exercise_code]
+        exercises = [plan.EXERCISE_SLOTS_BY_CODE[code] for code in module.exercise_codes]
         requirement_ids = sorted({r for c in courses for r in c.requirement_ids})
         theory_codes = sorted(
             {t for r in requirement_ids for t in plan.REQUIREMENTS_BY_ID[r].theory_codes}
@@ -47,7 +47,7 @@ async def practical_home(request: Request, db=Depends(get_db)):  # noqa: B008
             {
                 "module": module,
                 "courses": courses,
-                "exercise": exercise,
+                "exercises": exercises,
                 "requirement_ids": requirement_ids,
                 "theory_codes": theory_codes,
                 "published_count": sum(1 for c in courses if c.code in published),

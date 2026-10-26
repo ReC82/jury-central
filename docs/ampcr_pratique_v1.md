@@ -28,7 +28,7 @@ le texte.**
 
 | URL | Contenu |
 |---|---|
-| `/ampcr-pratique` | accueil : consignes du jour (pp. 2-4), 6 modules, emplacements PR01–PR30 et EX01–EX06 (« À venir » tant qu'ils n'existent pas), liens vers la théorie MC déjà publiée, état de la couverture |
+| `/ampcr-pratique` | accueil : consignes du jour (pp. 2-4), 5 modules, emplacements PR01–PR30 et examens blancs EX01–EX06 (« À venir » tant qu'ils n'existent pas), liens vers la théorie MC déjà publiée, état de la couverture |
 | `/ampcr-pratique/matrice` | matrice de traçabilité, une ligne par exigence, imprimable |
 | `/ampcr-pratique/format-exercice` | format d'un exercice pratique écrit + exemple **non officiel**, imprimable A4 (corrigé sur une page séparée) |
 
@@ -60,89 +60,93 @@ Intégration d'un cours pratique (modèle posé par PR06, à réutiliser par PR1
 
 - **non traité** : aucun cours ni exercice lié publié ;
 - **partiel** : au moins un élément lié publié, mais pas tous, ou pas encore validé ;
-- **validé** : tous les cours PR **et** l'exercice EX liés sont publiés **et** l'id figure
+- **validé** : tous les cours PR **et** les examens blancs EX liés sont publiés **et** l'id figure
   dans `VALIDATED_REQUIREMENT_IDS` (ajouté par le ticket qui relit cours + exercice).
 
 « Publié » = UAA `is_published` du module `AMPCR-PRATIQUE` portant le code de l'emplacement.
 Les liens « théorie » (MCxx) indiquent seulement qu'un mini-cours existant aborde la notion
 (contrôle textuel au ticket #192) ; ils ne valent jamais couverture de l'épreuve pratique.
 
-## 4. Matrice (état au ticket #192)
+## 4. Matrice (état à l'audit #236 du 2026-10-26 ; seul PR06 est publié)
 
-| Id | Exigence (texte officiel) | Page | Nature | Cours prévus | Exercice | Théorie existante | Statut |
+| Id | Exigence (texte officiel) | Page | Nature | Cours prévus | Examens blancs | Théorie existante | Statut |
 |---|---|---|---|---|---|---|---|
-| AP-01 | La structure d’un ordinateur, ses composants et ses périphériques. | 5 | officiel | PR01 | EX01 | MC01 | non traité |
-| AP-02 | Les différents éléments qui peuvent constituer un ordinateur (Processeur, mémoire RAM-ROM, carte mère, BIOS, UEFI, etc.). | 5 | officiel | PR01, PR02 | EX01 | MC01, MC02, MC03, MC07 | non traité |
-| AP-03 | Les différents types de disque dur et unités de stockage, le formatage, la défragmentation. | 5 | officiel | PR03 | EX01 | MC04, MC08 | non traité |
-| AP-04 | Les caractéristiques d’une alimentation PC. | 5 | officiel | PR04 | EX01 | MC05 | non traité |
-| AP-05 | Les périphériques d’entrée et de sortie et le rôle d'un pilote. | 5 | officiel | PR14 | EX03 | MC12 | non traité |
-| AP-06 | Branchements, interfaces et connexions. | 5 | officiel | PR05 | EX01 | MC02 | non traité |
-| AP-07 | La carte mère et ses éléments constitutifs. | 5 | officiel | PR02 | EX01 | MC02 | non traité |
-| AP-08 | Les différents systèmes d’exploitation actuellement sur le marché. | 5 | officiel | PR09 | EX03 | MC09, MC11 | non traité |
-| AP-09 | Les principaux messages d’erreurs, l’interprétation et les démarches d’intervention y afférant. *(Proche de AP-13 (les deux puces figurent au PDF).)* | 5 | officiel | PR11 | EX03 | MC07, MC29, MC30 | non traité |
-| AP-10 | Installation complète des différents systèmes d’exploitation courants. | 5 | officiel | PR10 | EX03 | MC08, MC09 | non traité |
-| AP-11 | Paramètres et commandes de base des systèmes d'exploitation courants. | 5 | officiel | PR12 | EX03 | MC10, MC11 | non traité |
-| AP-12 | Interface graphique et interface de ligne de commande. | 5 | officiel | PR13 | EX03 | MC10, MC11 | non traité |
-| AP-13 | Connaître les principaux messages d’erreurs, comment interpréter ceux-ci et comment intervenir si possible. *(Proche de AP-09 (les deux puces figurent au PDF).)* | 5 | officiel | PR11 | EX03 | MC29, MC30 | non traité |
-| AP-14 | Montage, démontage et reconditionnement d’un PC. | 5 | officiel | PR07, PR08 | EX02 | MC06 | non traité |
-| AP-15 | Dépannage sur les dysfonctionnements courants (hardware ou software). | 5 | officiel | PR06, PR11 | EX02, EX03 | MC29, MC30 | non traité |
-| AP-16 | Vocabulaire technique. *(Transversal : lexique AMPCR existant.)* | 5 | officiel | PR30 | EX06 | aucune | non traité |
-| AP-17 | Notion de compatibilité. | 5 | officiel | PR05, PR06, PR08, PR14 | EX01, EX02, EX03 | MC04, MC12 | non traité |
-| AP-18 | Les différents types de câbles : UTP, FTP, STP, Coax. *(FTP et coaxial absents de la théorie actuelle.)* | 5 | officiel | PR15, PR16 | EX04 | MC15 | non traité |
-| AP-19 | Les débits binaires des câbles. | 6 | officiel | PR16 | EX04 | MC15 | non traité |
-| AP-20 | Les caractéristiques des câbles : atténuation, notion d’impédance, sensibilité aux parasites, blindage, précautions d’utilisation, les avantages, les inconvénients des uns par rapport aux autres, la longueur maximale d’un tronçon suivant le débit, les connecteurs, etc. *(Atténuation et impédance absentes de la théorie actuelle.)* | 6 | officiel | PR15, PR17 | EX04 | MC15 | non traité |
-| AP-21 | La fibre optique et ses caractéristiques : support d’information, débit binaire, longueur d’un tronçon, notion d’atténuation, connexion, avantages et inconvénients, etc. *(La théorie actuelle ne fait que citer la fibre.)* | 6 | officiel | PR18 | EX04 | MC14 | non traité |
-| AP-22 | Comparaison entre la fibre optique et les autres types de câbles. *(Aucune théorie existante.)* | 6 | officiel | PR18 | EX04 | aucune | non traité |
-| AP-23 | Topologies de réseaux. | 6 | officiel | PR20 | EX05 | MC23 | non traité |
-| AP-24 | Notions de domaine, groupe de travail, comptes utilisateurs et groupes d’utilisateurs. *(Domaine / groupe de travail absents de la théorie actuelle.)* | 6 | officiel | PR25 | EX06 | MC33 | non traité |
-| AP-25 | Partage de ressources (imprimantes, disques, répertoires…). | 6 | officiel | PR26 | EX06 | MC33 | non traité |
-| AP-26 | Mise en partage sur un réseau informatique de documents et applications. | 6 | officiel | PR26 | EX06 | MC33 | non traité |
-| AP-27 | Les notions de droit et de permission. | 6 | officiel | PR26 | EX06 | MC33, MC10 | non traité |
-| AP-28 | Connexion de deux machines en direct. | 6 | officiel | PR27 | EX06 | MC15 | non traité |
-| AP-29 | Notions de base sur les protocoles (TCP/IP, OSI, NETBEUI…). *(NetBEUI absent de la théorie actuelle.)* | 6 | officiel | PR21 | EX05 | MC13, MC21 | non traité |
-| AP-30 | L’adressage IP, les adresses MAC, l’identification d’une adresse MAC et d’une adresse IP. | 6 | officiel | PR22 | EX05 | MC16, MC20 | non traité |
-| AP-31 | Hub, switch, passerelle, routeur, modem. *(Hub absent de la théorie actuelle.)* | 6 | officiel | PR23 | EX05 | MC14 | non traité |
-| AP-32 | Connexions et interventions en cas de panne internet. | 6 | officiel | PR28 | EX06 | MC22, MC31 | non traité |
-| AP-33 | WIFI : principe, sécurisation, cryptage, répéteur. *(Répéteur absent de la théorie actuelle.)* | 6 | officiel | PR24 | EX05 | MC25, MC26 | non traité |
-| AP-34 | Description de la réalisation d’un câble avec connecteurs RJ45 (code des couleurs). | 6 | officiel | PR15 | EX04 | MC15 | non traité |
-| AP-35 | Description de la réalisation d’un câble avec connecteurs BNC. *(Aucune théorie existante.)* | 6 | officiel | PR19 | EX04 | aucune | non traité |
-| AP-36 | Câblage et installation physique d’un réseau informatique. | 6 | officiel | PR20 | EX05 | MC15, MC23 | non traité |
-| AP-37 | Dépannage de problèmes simples d’accès au réseau. | 6 | officiel | PR29 | EX06 | MC31 | non traité |
-| AP-38 | Création d’un mini réseau entre plusieurs machines. | 6 | officiel | PR27 | EX06 | MC16, MC37 | non traité |
-| AP-C01 | Rédiger une réponse écrite de technicien : décrire une intervention étape par étape et justifier chaque choix. *(Méthode : l'épreuve pratique se fait uniquement par écrit (p. 3).)* | — | complément pédagogique | PR30 | EX06 | MC36 | non traité |
-| AP-C02 | Sécurité électrique et protection ESD lors d'une intervention sur un PC. *(Prérequis des interventions de montage/démontage (AP-14).)* | — | complément pédagogique | PR06, PR07 | EX02 | MC05 | non traité |
+| AP-01 | La structure d’un ordinateur, ses composants et ses périphériques. | 5 | officiel | PR01 | EX01, EX05 | MC01 | non traité |
+| AP-02 | Les différents éléments qui peuvent constituer un ordinateur (Processeur, mémoire RAM-ROM, carte mère, BIOS, UEFI, etc.). | 5 | officiel | PR01 | EX01 | MC01, MC02, MC03, MC07 | non traité |
+| AP-03 | Les différents types de disque dur et unités de stockage, le formatage, la défragmentation. | 5 | officiel | PR05 | EX01, EX02, EX06 | MC04, MC08 | non traité |
+| AP-04 | Les caractéristiques d’une alimentation PC. | 5 | officiel | PR02 | EX01 | MC05 | non traité |
+| AP-05 | Les périphériques d’entrée et de sortie et le rôle d'un pilote. | 5 | officiel | PR01, PR10 | EX02 | MC12 | non traité |
+| AP-06 | Branchements, interfaces et connexions. | 5 | officiel | PR02 | EX01 | MC02 | non traité |
+| AP-07 | La carte mère et ses éléments constitutifs. | 5 | officiel | PR01 | EX01 | MC02 | non traité |
+| AP-08 | Les différents systèmes d’exploitation actuellement sur le marché. | 5 | officiel | PR07 | EX02 | MC09, MC11 | non traité |
+| AP-09 | Les principaux messages d’erreurs, l’interprétation et les démarches d’intervention y afférant. *(Proche de AP-13 (les deux puces figurent au PDF).)* | 5 | officiel | PR11 | EX02 | MC07, MC29, MC30 | non traité |
+| AP-10 | Installation complète des différents systèmes d’exploitation courants. | 5 | officiel | PR08, PR09 | EX02, EX05, EX06 | MC08, MC09 | non traité |
+| AP-11 | Paramètres et commandes de base des systèmes d'exploitation courants. | 5 | officiel | PR10 | EX02 | MC10, MC11 | non traité |
+| AP-12 | Interface graphique et interface de ligne de commande. | 5 | officiel | PR07, PR10 | EX02 | MC10, MC11 | non traité |
+| AP-13 | Connaître les principaux messages d’erreurs, comment interpréter ceux-ci et comment intervenir si possible. *(Proche de AP-09 (les deux puces figurent au PDF).)* | 5 | officiel | PR11 | EX02 | MC29, MC30 | non traité |
+| AP-14 | Montage, démontage et reconditionnement d’un PC. | 5 | officiel | PR03, PR04 | EX01 | MC06 | non traité |
+| AP-15 | Dépannage sur les dysfonctionnements courants (hardware ou software). | 5 | officiel | PR06, PR11, PR12, PR27 | EX01, EX02, EX05, EX06 | MC29, MC30 | non traité |
+| AP-16 | Vocabulaire technique. *(Transversal : aucun cours dédié ; travaillé en rédaction (PR26, PR29) et dans le lexique AMPCR.)* | 5 | officiel | PR26, PR29 | EX05, EX06 | aucune | non traité |
+| AP-17 | Notion de compatibilité. | 5 | officiel | PR01, PR02, PR06 | EX01, EX06 | MC04, MC12 | non traité |
+| AP-18 | Les différents types de câbles : UTP, FTP, STP, Coax. *(FTP et coaxial absents de la théorie actuelle.)* | 5 | officiel | PR13, PR15, PR16 | EX03 | MC15 | non traité |
+| AP-19 | Les débits binaires des câbles. | 6 | officiel | PR14 | EX03 | MC15 | non traité |
+| AP-20 | Les caractéristiques des câbles : atténuation, notion d’impédance, sensibilité aux parasites, blindage, précautions d’utilisation, les avantages, les inconvénients des uns par rapport aux autres, la longueur maximale d’un tronçon suivant le débit, les connecteurs, etc. *(Atténuation et impédance absentes de la théorie actuelle.)* | 6 | officiel | PR13, PR14, PR15, PR16 | EX03 | MC15 | non traité |
+| AP-21 | La fibre optique et ses caractéristiques : support d’information, débit binaire, longueur d’un tronçon, notion d’atténuation, connexion, avantages et inconvénients, etc. *(La théorie actuelle ne fait que citer la fibre.)* | 6 | officiel | PR17 | EX03 | MC14 | non traité |
+| AP-22 | Comparaison entre la fibre optique et les autres types de câbles. *(Aucune théorie existante.)* | 6 | officiel | PR17 | EX03 | aucune | non traité |
+| AP-23 | Topologies de réseaux. | 6 | officiel | PR19 | EX04 | MC23 | non traité |
+| AP-24 | Notions de domaine, groupe de travail, comptes utilisateurs et groupes d’utilisateurs. *(Domaine / groupe de travail absents de la théorie actuelle.)* | 6 | officiel | PR22 | EX02 | MC33 | non traité |
+| AP-25 | Partage de ressources (imprimantes, disques, répertoires…). | 6 | officiel | PR23 | EX04, EX05, EX06 | MC33 | non traité |
+| AP-26 | Mise en partage sur un réseau informatique de documents et applications. | 6 | officiel | PR23 | EX04 | MC33 | non traité |
+| AP-27 | Les notions de droit et de permission. | 6 | officiel | PR23 | EX02, EX04, EX06 | MC33, MC10 | non traité |
+| AP-28 | Connexion de deux machines en direct. | 6 | officiel | PR21 | EX04 | MC15 | non traité |
+| AP-29 | Notions de base sur les protocoles (TCP/IP, OSI, NETBEUI…). *(NetBEUI absent de la théorie actuelle.)* | 6 | officiel | PR19 | EX04 | MC13, MC21 | non traité |
+| AP-30 | L’adressage IP, les adresses MAC, l’identification d’une adresse MAC et d’une adresse IP. | 6 | officiel | PR20 | EX04, EX05, EX06 | MC16, MC20 | non traité |
+| AP-31 | Hub, switch, passerelle, routeur, modem. *(Hub absent de la théorie actuelle.)* | 6 | officiel | PR19 | EX04 | MC14 | non traité |
+| AP-32 | Connexions et interventions en cas de panne internet. | 6 | officiel | PR24 | EX04 | MC22, MC31 | non traité |
+| AP-33 | WIFI : principe, sécurisation, cryptage, répéteur. *(Répéteur absent de la théorie actuelle.)* | 6 | officiel | PR25 | EX04, EX06 | MC25, MC26 | non traité |
+| AP-34 | Description de la réalisation d’un câble avec connecteurs RJ45 (code des couleurs). | 6 | officiel | PR15 | EX03, EX05, EX06 | MC15 | non traité |
+| AP-35 | Description de la réalisation d’un câble avec connecteurs BNC. *(Aucune théorie existante.)* | 6 | officiel | PR16 | EX03, EX05, EX06 | aucune | non traité |
+| AP-36 | Câblage et installation physique d’un réseau informatique. | 6 | officiel | PR18, PR30 | EX05 | MC15, MC23 | non traité |
+| AP-37 | Dépannage de problèmes simples d’accès au réseau. | 6 | officiel | PR24, PR30 | EX04, EX05 | MC31 | non traité |
+| AP-38 | Création d’un mini réseau entre plusieurs machines. | 6 | officiel | PR18, PR21, PR30 | EX04 | MC16, MC37 | non traité |
+| AP-C01 | Rédiger une réponse écrite de technicien : décrire une intervention étape par étape et justifier chaque choix. *(Méthode : l'épreuve pratique se fait uniquement par écrit (p. 3).)* | — | complément pédagogique | PR26, PR27, PR29 | EX05, EX06 | MC36 | non traité |
+| AP-C02 | Sécurité électrique et protection ESD lors d'une intervention sur un PC. *(Prérequis des interventions de montage/démontage (AP-14).)* | — | complément pédagogique | PR02, PR03, PR06, PR28 | EX01 | MC05 | non traité |
+| AP-C03 | Protéger les données du client : sauvegarde préalable, confidentialité et autorisation avant tout effacement ou toute réinstallation. *(Ajouté à l'audit #236 : matière commune des tickets PR04, PR12 et PR28.)* | — | complément pédagogique | PR04, PR12, PR28 | EX02, EX06 | MC32 | non traité |
 
 AP-01 → AP-18 : page 5 (18 puces) ; AP-19 → AP-38 : page 6 (20 puces). AP-09 et AP-13 sont
-deux puces proches du PDF, conservées toutes les deux. AP-C01/AP-C02 sont des **compléments
+deux puces proches du PDF, conservées toutes les deux. AP-C01/AP-C02/AP-C03 sont des **compléments
 pédagogiques** (absents des pp. 5-6), toujours affichés comme tels.
 
 **Écarts de la théorie existante** relevés par l'audit (notion absente des MC publiés) :
 FTP, câble coaxial et BNC, atténuation, impédance, comparaison fibre/cuivre (la fibre n'est
 que citée en MC14), domaine / groupe de travail, NetBEUI, hub, répéteur Wi-Fi.
 
-## 5. Modules et emplacements (proposition de découpage)
+## 5. Modules, cours et examens blancs (alignés sur les tickets GitHub — audit #236)
 
-Numérotation réalignée le 2026-10-26 sur les tickets de cours déjà rédigés par le
-propriétaire : **#193 = PR06** (diagnostic des pannes matérielles), **#194 = PR11**
-(messages d'erreur Windows/Linux), **#197 = PR15** (câblage RJ45 T568A/B). Les modules
-n'ont donc plus tous 5 cours (P2 : 3, P3 : 6). Le reste reste une proposition : **un ticket
-de cours qui fixe un code, un titre ou un périmètre fait foi**, la session réaligne alors
-`_COURSE_ROWS` et cette page dans la même PR.
+Audit du 2026-10-26 (ticket #236) : les 30 tickets PR et les 6 tickets EX existent sur GitHub et
+**font foi** (décision du propriétaire) pour le code, le titre et la matière. Le plan installé
+jusqu'alors (proposition #192) ne plaçait le même sujet que pour PR01, PR06, PR11 et PR15 ;
+`_COURSE_ROWS` / `_EXERCISE_ROWS` reprennent désormais les tickets, et les exigences AP sont
+rattachées d'après la matière obligatoire de chaque ticket. Correspondance figée par
+`tests/test_ticket236_ampcr_pratique_numerotation.py`. Seul PR06 (#193) est publié : code,
+sujet et UAA inchangés, aucune progression déplacée.
 
-| Module | Cours | Exercice |
+| Module | Cours (ticket) | Examens blancs (ticket) |
 |---|---|---|
-| P1 — Matériel du PC | PR01 — Structure d'un ordinateur, composants et périphériques<br>PR02 — Carte mère, processeur, mémoire RAM-ROM, BIOS et UEFI<br>PR03 — Disques, unités de stockage, formatage et défragmentation<br>PR04 — Caractéristiques d'une alimentation PC<br>PR05 — Branchements, interfaces, connexions et compatibilité | EX01 |
-| P2 — Intervention et dépannage matériel | PR06 — Diagnostic des pannes matérielles<br>PR07 — Montage et démontage d'un PC en sécurité<br>PR08 — Reconditionnement d'un PC | EX02 |
-| P3 — Systèmes d'exploitation et messages d'erreur | PR09 — Systèmes d'exploitation actuellement sur le marché<br>PR10 — Installation complète d'un système d'exploitation courant<br>PR11 — Messages d'erreur Windows/Linux et démarches d'intervention<br>PR12 — Paramètres et commandes de base<br>PR13 — Interface graphique et interface de ligne de commande<br>PR14 — Périphériques d'entrée et de sortie, rôle d'un pilote | EX03 |
-| P4 — Câbles et supports de transmission | PR15 — Câblage RJ45, normes T568A/B, réalisation et tests<br>PR16 — Types de câbles et débits : UTP, FTP, STP, coaxial<br>PR17 — Caractéristiques des câbles : atténuation, impédance, parasites, longueurs<br>PR18 — La fibre optique et sa comparaison avec les câbles<br>PR19 — Réaliser un câble à connecteurs BNC | EX04 |
-| P5 — Réseau : architecture et adressage | PR20 — Topologies, câblage et installation physique d'un réseau<br>PR21 — Notions de base sur les protocoles<br>PR22 — Adressage IP et adresses MAC<br>PR23 — Hub, switch, passerelle, routeur, modem<br>PR24 — Wi-Fi : principe, sécurisation, cryptage, répéteur | EX05 |
-| P6 — Partages, comptes et dépannage réseau | PR25 — Domaine, groupe de travail, comptes et groupes<br>PR26 — Partages, droits et permissions<br>PR27 — Connexion directe et mini réseau entre plusieurs machines<br>PR28 — Panne internet : connexions et interventions<br>PR29 — Dépannage de problèmes simples d'accès au réseau<br>PR30 — Vocabulaire technique et rédaction d'une intervention | EX06 |
+| P1 — Matériel du PC : composants, montage et diagnostic | PR01 — Structure d'un PC et identification des composants (#202)<br>PR02 — Alimentation, connectique, compatibilité et sécurité (#203)<br>PR03 — Montage et démontage d'un PC — procédure écrite (#204)<br>PR04 — Reconditionnement, entretien et contrôles après intervention (#205)<br>PR05 — Stockage, partitions, formatage et défragmentation (#206)<br>PR06 — Diagnostic des pannes matérielles (#193) | EX01 — Examen blanc écrit — maintenance et dépannage matériel (#230) |
+| P2 — Systèmes d'exploitation : installation et dépannage | PR07 — Systèmes d'exploitation, GUI/CLI et prérequis d'installation (#207)<br>PR08 — Installation complète de Windows — préparation et dépannage (#208)<br>PR09 — Installation complète de Linux — préparation et dépannage (#209)<br>PR10 — Comptes, pilotes, paramètres et commandes (#214)<br>PR11 — Messages d'erreur Windows/Linux — diagnostic et interventions écrites (#194)<br>PR12 — Dépannage logiciel et restauration du système (#215) | EX02 — Examen blanc écrit — installation et dépannage des systèmes (#231) |
+| P3 — Câblage : cuivre, coaxial et fibre optique | PR13 — Câbles UTP, FTP, STP et coaxial — choix et pose (#216)<br>PR14 — Débits, distances, atténuation et impédance (#217)<br>PR15 — Câblage RJ45 T568A/B — fabrication, schémas et tests (#197)<br>PR16 — Câble coaxial et BNC — impédance, fabrication et diagnostic écrit (#198)<br>PR17 — Fibre optique — choix, raccordement et diagnostic (#218) | EX03 — Examen blanc écrit — câblage RJ45, BNC et fibre (#232) |
+| P4 — Réseau : installation, configuration et dépannage | PR18 — Installation physique d'un mini-réseau (#219)<br>PR19 — Topologies, OSI, TCP/IP, NetBEUI et équipements (#220)<br>PR20 — IPv4, MAC, masques et passerelles — configuration et diagnostics écrits (#199)<br>PR21 — Connexion directe de deux PC et mini-réseau (#221)<br>PR22 — Domaine, groupe de travail, comptes et groupes (#222)<br>PR23 — Partage de dossiers, imprimantes et permissions (#223)<br>PR24 — Dépannage réseau et Internet — dossiers d'intervention écrits (#200)<br>PR25 — Wi-Fi : configuration, couverture, sécurité et diagnostic (#224) | EX04 — Examen blanc écrit — réseau, configuration et dépannage (#233) |
+| P5 — Méthode d'intervention et examens blancs globaux | PR26 — Analyser une demande d'intervention technique (#225)<br>PR27 — Construire et justifier une procédure de diagnostic (#226)<br>PR28 — Outillage, sécurité et protection des données (#227)<br>PR29 — Contrôles finaux et rapport professionnel d'intervention (#228)<br>PR30 — Grand laboratoire écrit — installation et dépannage d'un réseau complet (#229) | EX05 — Examen blanc global standard — épreuve pratique écrite (#201) — global<br>EX06 — Examen blanc global avancé — dossiers complexes (#234) — global |
+
+Exigences rattachées à chaque cours et examen : fiches de `docs/ampcr_pratique_tickets.md` § 4
+et matrice `/ampcr-pratique/matrice`. Audit final de couverture : ticket #235.
 
 ## 6. Conventions pour les tickets de cours PR / d'exercices EX
 
 1. **Un ticket par emplacement** (ou petit lot cohérent d'un même module), citant les ids
    d'exigences couverts. Toute exigence ajoutée/retirée d'un emplacement se fait dans
-   `_COURSE_ROWS` (le test `test_every_requirement_has_a_planned_course_and_exercise` garde
+   `_COURSE_ROWS` / `_EXERCISE_ROWS` (le test `test_every_requirement_has_a_planned_course_and_exercise` garde
    l'exhaustivité).
 2. **Base** : le premier ticket crée le module `AMPCR-PRATIQUE` (sujet Informatique) dans
    `app/seed.py` de façon idempotente. Une UAA par emplacement : code `PR01`…, slug
@@ -169,7 +173,7 @@ de cours qui fixe un code, un titre ou un périmètre fait foi**, la session ré
    exigences s'appliquent à tout ticket PR/EX, même si son texte ne les recopie pas.
 7. **Visuels** (§ 7) : schéma technique = SVG construit depuis des données vérifiées et
    testées ; image générée = scène ou geste uniquement.
-8. **Validation** : quand cours ET exercice d'une exigence sont publiés et relus, ajouter
+8. **Validation** : quand tous les cours ET examens blancs d'une exigence sont publiés et relus, ajouter
    son id à `VALIDATED_REQUIREMENT_IDS`. La couverture n'est complète que si les 38 ids
    officiels y sont.
 

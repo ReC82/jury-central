@@ -162,15 +162,18 @@ def test_every_course_and_exam_skeleton_carries_exact_requirements_and_contract(
         assert "Contrat de fin de ticket" in text and "Email de fin de ticket" in text
         assert "SVG construit à partir de données" in text
     for module in plan.MODULES:
-        text = tickets.exam_ticket(module.exercise_code)
-        assert ", ".join(module.course_codes) in text
-        assert "Aucune durée inventée" in text
-        assert "Contrat de fin de ticket" in text
+        for code in module.exercise_codes:
+            exercise = plan.EXERCISE_SLOTS_BY_CODE[code]
+            text = tickets.exam_ticket(code)
+            assert ("PR01–PR30" if exercise.is_global else ", ".join(module.course_codes)) in text
+            assert f"#{exercise.ticket}" in text
+            assert "Aucune durée inventée" in text
+            assert "Contrat de fin de ticket" in text
     assert "Ticket déjà rédigé : #193" in tickets.course_ticket("PR06")
 
 
 def test_ticket_document_lists_36_skeletons_and_checklist():
     text = tickets.render_document()
-    assert len(re.findall(r"^#### \[P0\]\[AMPCR pratique (?:PR|EX)\d\d\]", text, re.MULTILINE)) == 36
+    assert len(re.findall(r"^#### \[AMPCR pratique (?:PR|EX)\d\d\]", text, re.MULTILINE)) == 36
     assert "Checklist de validation éditoriale et visuelle" in text
     assert text.count("- [ ]") >= 15
