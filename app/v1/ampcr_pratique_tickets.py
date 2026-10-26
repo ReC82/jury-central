@@ -62,7 +62,8 @@ EXAM_SECTIONS: tuple[tuple[str, str], ...] = (
 TRANSVERSAL_RULES = """\
 ### Exigences transversales (ticket socle #192 — rappel obligatoire)
 - **Programme** : enseigner la matière ci-dessus, sans l'improviser ni la réduire ; recouper
-  avec le PDF officiel (`docs/ampcr_pratique_v1.md` § 1). Distinguer théorie et compétence
+  avec le PDF officiel versionné (`docs/references-officielles/ampcr/2026-2027-1/`, PDF +
+  transcription). Distinguer théorie et compétence
   d'intervention écrite. Ne jamais inventer de modalité d'examen, de question officielle, de
   durée ou de valeur technique.
 - **Visuels** : schémas techniques (brochages, couleurs, topologies, plans d'adressage,
