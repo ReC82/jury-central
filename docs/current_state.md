@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06, PR11 et PR15),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06, PR11, PR15 et PR16),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -165,6 +165,15 @@ dépannage, contexte professionnel), 14 figures SVG **calculées depuis `T568A`/
 anatomie de fiche, sertissage, 4 affichages de testeur fictifs, chaîne baie → PC), 4 exemples
 corrigés, 16 exercices (6 brochage, 4 testeur, 3 choix, 3 procédures), mini-examen 10 questions
 /20 (`app/v1/ampcr_pratique_pr15_*.py`). Aucune image générée.
+
+**Quatrième cours publié (ticket #198) : PR16 « Câble coaxial et BNC — impédance, fabrication et
+diagnostic écrit »** (`/uaa/ampcr-pratique-pr16`), même intégration. 15 blocs (matière 1-12 du
+ticket : structure du coax, impédance 50/75 Ω et réflexions, BNC/T/terminateurs, 10BASE2,
+10BASE5, vidéo 75 Ω, fabrication et outils, schémas, diagnostic, sécurité et rapport), 14
+figures SVG dont le bus 10BASE2 et ses versions fautives **dessinés depuis un modèle `Bus`**
+(`bus_errors`, `ohmmeter_reading`, `tdr_distance_m` testés), 4 exemples corrigés, 16 exercices
+(5 schémas, 4 choix, 3 procédures, 4 diagnostics), mini-examen 10 questions /20
+(`app/v1/ampcr_pratique_pr16_*.py`). Aucune image générée.
 
 ## Administration
 

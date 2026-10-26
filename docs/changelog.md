@@ -2,6 +2,16 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : cours PR16 « Câble coaxial et BNC » (ticket #198)
+
+Quatrième cours du parcours pratique (UAA PR16 du module `AMPCR-PRATIQUE`, 15 blocs) : matière
+1-12 du ticket, 14 figures SVG (coupe du coax, BNC éclaté, bus 10BASE2 conforme et 4 versions
+fautives, comparaison 10BASE2/10BASE5/vidéo 75 Ω, cotes « de la notice », montage et contrôle
+du BNC, lectures d'ohmmètre, 2 traces de réflectomètre) ; non-conformités, lectures et
+distances calculées depuis un modèle de bus testé ; 4 exemples corrigés, 16 exercices,
+mini-examen 10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr16_*.py`,
+`tests/test_ticket198_ampcr_pratique_pr16.py`).
+
 ## 2026-10-26 — AMPCR pratique écrite : cours PR15 « Câblage RJ45 T568A/B » (ticket #197)
 
 Troisième cours du parcours pratique (UAA PR15 du module `AMPCR-PRATIQUE`, 13 blocs) : matière
