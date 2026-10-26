@@ -8,7 +8,8 @@ from fastapi.responses import HTMLResponse
 from app.database import get_db
 from app.templating import templates
 from app.v1 import ampcr_pratique_plan as plan
-from app.v1.ampcr_pratique_format import EXAMPLE_EXERCISE, build_rubric
+from app.v1.ampcr_pratique_format import EXAMPLE_EXERCISE, EXAMPLE_FIGURES, build_rubric
+from app.v1.ampcr_pratique_visuals import DIAGNOSTIC_METHOD_FIGURE, render_figure
 from app.v1.auth import get_current_user
 from app.v1.parcours import uaa_state, user_uaa_progress
 
@@ -79,5 +80,8 @@ async def practical_exercise_format(request: Request):
             "plan": plan,
             "exercise": EXAMPLE_EXERCISE,
             "rubric": build_rubric(EXAMPLE_EXERCISE),
+            "figures": EXAMPLE_FIGURES,
+            "method_figure": DIAGNOSTIC_METHOD_FIGURE,
+            "render_figure": render_figure,
         },
     )
