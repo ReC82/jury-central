@@ -43,6 +43,7 @@ le plan est du code (`app/v1/ampcr_pratique_plan.py`), lu en lecture seule.
 | PR01 — Structure d'un PC et identification des composants (#202) | `/uaa/ampcr-pratique-pr01` | 16 exercices (entraînement, dont 2 classements et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |
 | PR02 — Alimentation, connectique, compatibilité et sécurité (#203) | `/uaa/ampcr-pratique-pr02` | 16 exercices (entraînement, dont 2 classements et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |
 | PR03 — Montage et démontage d'un PC — procédure écrite (#204) | `/uaa/ampcr-pratique-pr03` | 16 exercices (entraînement, dont 4 remises en ordre et 2 classements) + 10 questions de mini-examen /20 (examen blanc) |
+| PR04 — Reconditionnement, entretien et contrôles après intervention (#205) | `/uaa/ampcr-pratique-pr04` | 16 exercices (entraînement, dont 3 remises en ordre et 4 classements) + 10 questions de mini-examen /20 (examen blanc) |
 | PR06 — Diagnostic des pannes matérielles (#193) | `/uaa/ampcr-pratique-pr06` | 12 exercices (entraînement) + 10 questions de mini-examen /20 (examen blanc) |
 | PR11 — Messages d'erreur Windows/Linux — diagnostic et interventions écrites (#194) | `/uaa/ampcr-pratique-pr11` | 16 exercices (entraînement, dont 2 remises en ordre) + 10 questions de mini-examen /20 (examen blanc) |
 | PR15 — Câblage RJ45 T568A/B — fabrication, schémas et tests (#197) | `/uaa/ampcr-pratique-pr15` | 16 exercices (entraînement, dont 3 classements et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |

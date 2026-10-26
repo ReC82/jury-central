@@ -1,5 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
-#197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03).
+#197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
+#205 : PR04).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -30,6 +31,7 @@ from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
 from app.v1.ampcr_pratique_pr02_bank import ALL_ITEMS as PR02_ITEMS
 from app.v1.ampcr_pratique_pr03_bank import ALL_ITEMS as PR03_ITEMS
+from app.v1.ampcr_pratique_pr04_bank import ALL_ITEMS as PR04_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
@@ -475,6 +477,54 @@ _PR03_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR04_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr04",
+    course_title="AMPCR pratique écrite — PR04 Reconditionnement, entretien et contrôles après intervention",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : procédures rédigées de technicien, décisions de protection des données, "
+        "lecture de relevés (SMART, batterie, températures) et formulaires à partir de fiches "
+        "et de situations fictives"
+    ),
+    allowed_notions=[
+        "quatre opérations : réparation (une panne, même client, données conservées), reconditionnement (PC complet remis en état pour un nouvel utilisateur : diagnostic, nettoyage, pièces, mises à jour, tests, étiquette), remise à zéro (« Réinitialiser ce PC », réinstallation : données supprimées mais pas forcément illisibles), effacement sécurisé (données rendues illisibles par une technique adaptée, vérifiée, certificat)",
+        "réception : propriétaire, marque, modèle, numéro de série, étiquette d'inventaire, accessoires, état initial précis et photos datées, mots de passe (tests seulement), demande précise, données et accord écrit, signatures et copie",
+        "diagnostic avant intervention : démarrage, UEFI, état SMART, test mémoire, batterie, ports, poussière ; ne pas réinstaller ni nettoyer avant de savoir si le disque est sain",
+        "protection des données : seul le propriétaire décide, par écrit (pas un proche ni un vendeur) ; sauvegarde vérifiée (copie relue) ou refus signé avant toute opération risquée ; confidentialité (ne pas ouvrir les fichiers) ; même client : conserver ; PC qui change de main : effacement sécurisé ; recyclage : effacement ou destruction physique avec trace",
+        "effacement : formatage rapide, suppression des fichiers ou des partitions et remise à zéro n'effacent pas ; NIST SP 800-88 effacer / purger / détruire ; disque dur : écrasement complet (une passe suffit sur un disque récent) ou ATA Secure Erase ; SSD SATA/NVMe : commande d'effacement sécurisé, Sanitize ou NVMe Format via l'outil du fabricant ou le firmware, effacement cryptographique si chiffré ; passes d'écrasement et défragmentation insuffisantes sur SSD (répartition de l'usure, cellules de réserve) ; support hors d'usage : destruction par filière agréée ; vérification et certificat (support, numéro de série, technique, date, technicien)",
+        "nettoyage non destructif : PC débranché (batterie déconnectée si la notice le prévoit), bracelet, local aéré, filtres, pales bloquées, air sec par courtes impulsions bombe droite, pinceau antistatique, alcool isopropylique sur contacts et pâte ; ni aspirateur ménager ni eau ; bloc d'alimentation soufflé par ses grilles, jamais ouvert",
+        "refroidissement : poussière et pâte sèche → chaleur → baisse de fréquence puis arrêt ; pâte neuve à chaque démontage ; mesures avant/après avec la même charge ; convention du cours : à surveiller à moins de 10 °C de la limite de la fiche, anormal à la limite",
+        "pièces : mesure qui justifie l'échange, compatibilité sur fiche (SATA/NVMe, M.2 2280, DDR4/DDR5, DIMM/SO-DIMM, batterie de référence exacte, pile CR2032), accord, hors tension, test, références et numéros de série des pièces posées et retirées",
+        "mises à jour : firmware seulement si utile (sécurité, stabilité, compatibilité), modèle et révision exacts, fichier du fabricant, notes lues, réglages UEFI notés, BitLocker suspendu (sinon clé de récupération demandée) puis repris, alimentation stable, portable sur chargeur, ne jamais couper ; système et pilotes à jour, point de restauration, pilotes du fabricant",
+        "tests : RAM (MemTest86, Diagnostic de mémoire Windows), SMART (attributs, pas le résumé PASSED : HDD secteurs en attente ou illisibles > 0 → à remplacer, réalloués > 0 → à surveiller ; NVMe usure ≥ 100 %, erreurs du support ou réserve sous le seuil → à remplacer, usure ≥ 80 % → à surveiller), températures repos/charge, chaque port, 30 minutes de stabilité, rapport de batterie powercfg /batteryreport (capacité à pleine charge / capacité d'origine ; sous 80 % → à remplacer, convention du cours ; batterie gonflée remplacée)",
+        "remise : check-list (tests chiffrés, système propre et à jour, données restaurées ou effacement certifié, propreté, accessoires, pièces, conseils, signature), démonstration au client",
+        "déchets : DEEE (poubelle barrée, directive 2012/19/UE, Recupel en Belgique : recyparc, point de collecte, reprise en magasin), piles et batteries à part (Bebat), disque effacé ou détruit avant dépôt ; batterie lithium gonflée : ne plus charger, ne jamais percer ni écraser, isoler dans un contenant non inflammable, déposer rapidement",
+        "rapport et traçabilité : identification et numéro de série, accord et certificat d'effacement, diagnostic initial, actions, pièces (numéros de série), valeurs des tests, déchets, conclusion signée, étiquette de reconditionnement, registre de l'atelier",
+    ],
+    competencies=[
+        "Distinguer réparation, reconditionnement, remise à zéro et effacement sécurisé, et en déduire accord, sort des données et trace",
+        "Décider du sort des données d'un PC confié et choisir une technique d'effacement adaptée au support (HDD, SSD SATA, SSD NVMe)",
+        "Rédiger les procédures de reconditionnement, de nettoyage et de mise à jour, interpréter les contrôles après intervention et rédiger check-list et rapport",
+    ],
+    vocabulary=[
+        "reconditionnement", "remise à zéro", "effacement sécurisé", "Sanitize", "effacement cryptographique",
+        "certificat d'effacement", "SMART", "BitLocker", "UEFI", "pâte thermique", "DEEE", "Recupel", "Bebat",
+        "numéro de série", "traçabilité",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si le geste ou la "
+        "décision est clair ; suivre le barème de la question. Ne jamais valider « le formatage "
+        "rapide efface les données », « une remise à zéro suffit avant revente », « plusieurs "
+        "passes d'écrasement effacent un SSD », « défragmenter efface », « PASSED donc disque "
+        "sain », un effacement sur la demande d'un tiers ou sans accord écrit du propriétaire, "
+        "une réinstallation sans sauvegarde vérifiée ni refus signé, l'ouverture d'un bloc "
+        "d'alimentation, l'aspirateur dans le boîtier, une mise à jour du firmware sur batterie "
+        "faible ou interrompue, ni une batterie percée ou jetée à la poubelle. Pénaliser "
+        "l'absence de mise hors tension ou de protection antistatique et un rapport sans valeurs."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -493,6 +543,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Montage et démontage d'un PC — procédure écrite",
         items=PR03_ITEMS,
         context=_PR03_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR04",
+        title="Reconditionnement, entretien et contrôles après intervention",
+        items=PR04_ITEMS,
+        context=_PR04_CONTEXT,
     ),
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT

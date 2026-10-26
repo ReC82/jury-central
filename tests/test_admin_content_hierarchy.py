@@ -45,6 +45,7 @@ from app.seed import (
     PR01_BLOCKS,
     PR02_BLOCKS,
     PR03_BLOCKS,
+    PR04_BLOCKS,
     PR06_BLOCKS,
     PR11_BLOCKS,
     PR15_BLOCKS,
@@ -316,8 +317,8 @@ def test_seed_is_idempotent(db_session):
     # Ticket #193 : 1 module (AMPCR-PRATIQUE) et 1 UAA (PR06) supplémentaires, additif.
     assert db_session.query(Module).count() == 7
     # Ticket #194 : 1 UAA (PR11) de plus dans le même module ; ticket #197 : PR15 ; #198 : PR16 ;
-    # #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03.
-    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 20 + 17 + 9
+    # #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ; #205 : PR04.
+    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 20 + 17 + 10
     assert db_session.query(LessonBlock).count() == (
         len(UAA1_BLOCKS) + len(UAA2_BLOCKS) + len(MC01_BLOCKS) + len(MC02_BLOCKS)
         + len(MC03_BLOCKS)
@@ -334,6 +335,7 @@ def test_seed_is_idempotent(db_session):
         + len(PR01_BLOCKS)
         + len(PR02_BLOCKS)
         + len(PR03_BLOCKS)
+        + len(PR04_BLOCKS)
     )
 
 
