@@ -2,6 +2,20 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR04 « Reconditionnement, entretien et contrôles après intervention » (ticket #205)
+
+Dixième cours du parcours pratique et quatrième dans l'ordre pédagogique (UAA PR04 du module
+`AMPCR-PRATIQUE`, 20 blocs) : réparation / reconditionnement / remise à zéro / effacement
+sécurisé, réception (état initial, inventaire, numéros de série), diagnostic avant
+intervention, protection des données (accord écrit, sauvegarde vérifiée, confidentialité),
+effacement adapté au support (HDD, SSD SATA, SSD NVMe ; certificat), nettoyage non destructif,
+poussière et refroidissement, remplacement de pièces, mises à jour firmware/système avec
+précautions (BitLocker), tests RAM/SMART/températures/ports/stabilité/batterie, check-lists de
+réception et de remise, déchets DEEE et batteries, rapport et traçabilité ; 5 procédures
+illustrées et 9 figures SVG depuis des données testées (dont une vue annotée) ; 4 cas résolus,
+16 exercices, mini-examen 10 questions /20 sans génération IA
+(`app/v1/ampcr_pratique_pr04_*.py`, `tests/test_ticket205_ampcr_pratique_pr04.py`).
+
 ## 2026-10-26 — AMPCR pratique écrite : cours PR03 « Montage et démontage d'un PC — procédure écrite » (ticket #204)
 
 Neuvième cours du parcours pratique et troisième dans l'ordre pédagogique (UAA PR03 du module

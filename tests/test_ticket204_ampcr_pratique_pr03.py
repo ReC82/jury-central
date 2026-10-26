@@ -416,7 +416,7 @@ def test_course_page_renders_figures_and_exercises(client, db_session):
 def test_practical_home_and_matrix_show_pr03(client, db_session):
     _pr03(db_session)
     home = client.get("/ampcr-pratique").text
-    assert f'href="/uaa/{SLUG}"' in home and "9 cours publiés" in home
+    assert f'href="/uaa/{SLUG}"' in home and "cours publiés" in home  # PR04 (#205) publié ensuite
     for req in REQ:
         assert plan.requirement_status(req, {"PR03"}) == plan.STATUS_PARTIAL
     assert plan.VALIDATED_REQUIREMENT_IDS == frozenset()

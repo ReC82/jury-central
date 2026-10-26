@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR06, PR11, PR15, PR16, PR20 et PR24),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR06, PR11, PR15, PR16, PR20 et PR24),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -235,6 +235,16 @@ remplacement, pannes au premier démarrage ; cas, pièges, exercices, mini-exame
 d'inventaire et seuils de température **définis par code** (`app/v1/ampcr_pratique_pr03_figures.py`)
 et contrôlés par les tests. 4 cas résolus, 16 exercices, mini-examen 10 questions /20.
 Situations fictives ; aucune image générée.
+
+**Dixième cours publié (ticket #205) : PR04 « Reconditionnement, entretien et contrôles après
+intervention »** (`/uaa/ampcr-pratique-pr04`), même intégration, quatrième cours de l'ordre
+pédagogique. 20 blocs (13 chapitres : quatre opérations, réception, diagnostic, protection des
+données, effacement HDD/SSD, nettoyage, refroidissement, pièces, mises à jour, tests, remise,
+déchets, rapport ; cas, pièges, exercices, mini-examen, mémo, sources). 5 procédures illustrées,
+9 figures SVG ; décision sur les données, techniques d'effacement par support, verdicts SMART,
+batterie et températures, tri des déchets **définis par code**
+(`app/v1/ampcr_pratique_pr04_figures.py`) et contrôlés par les tests. 4 cas résolus,
+16 exercices, mini-examen 10 questions /20. Situations fictives ; aucune image générée.
 
 ## Administration
 
