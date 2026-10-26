@@ -448,12 +448,12 @@ PRACTICE_ITEMS: tuple[PR06Item, ...] = (
         documents=(
             _table(
                 "Document 1 — Extrait de catalogue (fictif)",
-                ("Réf.", "Désignation", "Impédance", "Câble prévu"),
-                ("C1", "BNC mâle à sertir", "50 Ω", "RG-58"),
-                ("C2", "BNC mâle à sertir", "75 Ω", "RG-59"),
-                ("C3", "BNC mâle à visser (« twist-on »)", "non indiquée", "RG-58 / RG-59"),
-                ("C4", "T BNC mâle/femelle/femelle", "50 Ω", "—"),
-                ("C5", "Fiche F à compression", "75 Ω", "RG-6"),
+                ("Réf.", "Désignation — impédance — câble prévu"),
+                ("C1", "BNC mâle à sertir — 50 Ω — RG-58"),
+                ("C2", "BNC mâle à sertir — 75 Ω — RG-59"),
+                ("C3", "BNC mâle à visser (« twist-on ») — impédance non indiquée — RG-58 / RG-59"),
+                ("C4", "T BNC mâle/femelle/femelle — 50 Ω"),
+                ("C5", "Fiche F à compression — 75 Ω — RG-6"),
             ),
         ),
         criteria=(

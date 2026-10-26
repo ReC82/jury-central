@@ -271,7 +271,7 @@ def test_no_false_technical_claims_anywhere():
         "dire que tous les bnc sont à 50 ω", "").replace("« tous les bnc sont à 50 ω »", "")
     # 185 m / 500 m jamais inversés : chaque tableau porte sa propre limite.
     sections = dict(pr16_course_sections())
-    ethernet = sections["PR16 — 5-7. Ethernet 10BASE2, 10BASE5 et liaisons vidéo 75 Ω"]
+    ethernet = sections["PR16 — 5-7. Ethernet coaxial 10BASE2, 10BASE5 et liaisons vidéo 75 Ω"]
     thin, thick = ethernet.split("## 6. Ethernet épais")[0], ethernet.split("## 6. Ethernet épais")[1].split("## 7.")[0]
     assert f"**{THIN['segment_m']} m au plus**" in thin and "500 m" not in thin
     assert f"**{THICK['segment_m']} m au plus**" in thick and f"**{THICK['transceivers']} au plus**" in thick
@@ -281,7 +281,7 @@ def test_no_false_technical_claims_anywhere():
     assert not re.search(r"dénud\w*[^.]{0,40}\d+\s*mm", everything)
     # Le 10BASE2 n'est jamais présenté à 75 Ω.
     assert not re.search(r"10base2 (?:est|fonctionne|utilise)[^.]{0,30}75 ω", everything)
-    assert "| impédance | 50 ω | 50 ω | **75 ω** |" in everything
+    assert "**10base2** : **50 ω**" in everything and "**vidéo (analogique, sdi)** : **75 ω**" in everything
 
 
 def test_no_acronym_question_and_full_context():
@@ -383,6 +383,9 @@ def test_plan_slot_and_requirements():
 
 
 def test_seed_publishes_pr16_in_practical_module_idempotently(db_session):
+    from app.v1.ampcr_pratique_pr16_course import PR16_OBSOLETE_TITLES
+
+    assert not PR16_OBSOLETE_TITLES & {t for t, _c in pr16_course_sections()}
     module, uaa = _pr16(db_session)
     assert uaa.slug == SLUG and uaa.is_published and uaa.title == PR16_TITLE
     blocks = len(uaa.lesson_blocks)
