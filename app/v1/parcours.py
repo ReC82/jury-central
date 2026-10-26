@@ -422,6 +422,7 @@ def track_for_module(module_code: str) -> SubjectTrack | None:
 def has_v1_sessions(uaa: models.UAA) -> bool:
     """Entraînement/examen blanc V1 réellement branchés (mêmes gardes que `app.main`)."""
     from app.v1.ampcr_plan import get_plan_by_slug
+    from app.v1.ampcr_pratique_bank import get_practical_course_by_slug
     from app.v1.francais_plan import get_francais_plan_by_slug
     from app.v1.fse_plan import get_fse_plan_by_slug
 
@@ -429,4 +430,5 @@ def has_v1_sessions(uaa: models.UAA) -> bool:
         get_plan_by_slug(uaa.slug) is not None
         or get_francais_plan_by_slug(uaa.slug) is not None
         or get_fse_plan_by_slug(uaa.slug) is not None
+        or get_practical_course_by_slug(uaa.slug) is not None
     )

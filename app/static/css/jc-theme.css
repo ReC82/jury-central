@@ -1420,3 +1420,19 @@ a.jc-quiz-row:hover { border-color: var(--jc-primary); color: var(--jc-ink); }
     .jc-matrix { font-size: 9pt; }
     .jc-matrix .jc-pill { border: 0; padding: 0; background: none; }
 }
+
+/* --- Schémas techniques et documents des cours pratiques (tickets #192, #193) ---------- */
+.jc-tech-figure { margin: 0 0 1rem; break-inside: avoid; page-break-inside: avoid; }
+.jc-tech-figure svg { display: block; width: 100%; height: auto; max-width: 22rem; }
+.jc-tech-figure--wide svg { max-width: 30rem; }
+.jc-tech-figure figcaption { font-size: .875rem; margin-top: .35rem; }
+.jc-tech-figure-row { display: flex; flex-wrap: wrap; gap: 1rem; }
+.jc-tech-figure-row .jc-tech-figure { flex: 1 1 15rem; }
+.jc-pr-doc { border: 1px solid #c9d1e3; border-radius: var(--jc-radius-sm); padding: .6rem .75rem; margin: .75rem 0; background: #fafbfe; }
+.jc-pr-doc-title { font-weight: 700; font-size: .9rem; margin-bottom: .4rem; }
+.jc-pr-doc-table { font-size: .875rem; margin-bottom: 0; }
+.jc-pr-doc-table th { background: #eef1f8; }
+@media print {
+    .jc-pr-doc, .jc-exercise-card { break-inside: avoid; }
+    .jc-exercise-correction[open] { break-before: auto; }
+}

@@ -129,8 +129,16 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
 (consignes du jour, 6 modules, emplacements PR01–PR30 / EX01–EX06 encore « à venir »),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 2 compléments, toutes
-« non traité » à ce stade) et `/ampcr-pratique/format-exercice`. Aucun cours pratique publié.
-Voir `ampcr_pratique_v1.md`.
+« non traité » à ce stade) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
+
+**Premier cours publié (ticket #193) : PR06 « Diagnostic des pannes matérielles »**
+(`/uaa/ampcr-pratique-pr06`), module `AMPCR-PRATIQUE` de la matière Informatique, séparé du
+module théorique `AMPCR` (cours, banque, sessions et progression distincts). Cours en 15 blocs
+(matière A-D du ticket, 8 schémas SVG construits sur données vérifiées, 4 cas résolus,
+12 exercices corrigés) ; « S'entraîner » = les 12 exercices, « Examen blanc » = mini-examen de
+10 questions à réponse libre (2 points chacune, note affichée sur 20). Réserves séparées par
+`QuestionVersion.prompt_version` (`ampcr-pratique-pr06:practice|exam`), strictement banque
+(aucune génération IA). Voir `app/v1/ampcr_pratique_bank.py`.
 
 ## Administration
 

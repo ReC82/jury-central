@@ -9,6 +9,8 @@ from app.quiz import QuizConfig
 from app.slugify import slugify
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.v1.ampcr_plan import AMPCR_PLAN
+from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
+from app.v1.ampcr_pratique_pr06_course import PR06_TITLE, pr06_course_sections
 from app.v1.document_references import repair_dossier_references
 from app.v1.francais_fr01_05_courses import (
     fr01_course_markdown,
@@ -4975,6 +4977,19 @@ FSE17_TITLE = "Révision générale et méthode d'examen"
 FSE17_BLOCKS = _fse_course_blocks(fse17_course_sections())
 
 
+# =========================================================================================
+# AMPCR — Pratique écrite (ticket #192 : socle, plan en code ; ticket #193 : premier cours)
+# =========================================================================================
+#
+# Parcours distinct de la théorie MC01-MC38 (décision du propriétaire, 26/10/2026) : module
+# propre `AMPCR-PRATIQUE` de la matière Informatique, jamais mélangé au module `AMPCR`
+# (cours, banques, sessions et progression séparés). Seuls les cours réellement rédigés sont
+# seedés (`app.v1.ampcr_pratique_bank.PRACTICAL_COURSES`) ; les autres emplacements
+# PR01-PR30 / EX01-EX06 restent « à venir » sur /ampcr-pratique. Contenu piloté par le code :
+# pour mettre à jour un bloc déjà seedé, changer son titre ou l'ajouter à `obsolete_titles`.
+PR06_BLOCKS = _fse_course_blocks(pr06_course_sections())
+
+
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
     """Crée une matière si elle n'existe pas encore, sans jamais la modifier sinon.
 
@@ -5775,6 +5790,12 @@ def seed() -> None:
             obsolete_titles=frozenset({"Cours complet"}),
         )
 
+        # AMPCR — Pratique écrite (ticket #193) : module séparé de la théorie, purement
+        # additif (voir le commentaire de `PR06_BLOCKS`).
+        _ensure_modules(db, informatique, [PRACTICAL_MODULE_CODE], created, kept)
+        practical_module = next(m for m in informatique.modules if m.code == PRACTICAL_MODULE_CODE)
+        _seed_uaa(db, practical_module, "PR06", PR06_TITLE, 6, PR06_BLOCKS, created, kept)
+
         # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
         # n'était pas résolvable → nouvelle version (idempotent, sessions existantes
         # intactes, voir `app.v1.document_references`).
@@ -5793,7 +5814,7 @@ def seed() -> None:
 
         all_subjects = (
             f"{SUBJECT_NAME} ({', '.join(MODULE_CODES)}), "
-            f"{INFORMATIQUE_SUBJECT_NAME} ({', '.join(INFORMATIQUE_MODULE_CODES)}), "
+            f"{INFORMATIQUE_SUBJECT_NAME} ({', '.join([*INFORMATIQUE_MODULE_CODES, PRACTICAL_MODULE_CODE])}), "
             f"{FRANCAIS_SUBJECT_NAME} ({FRANCAIS_MODULE_CODE}), "
             f"{FSE_SUBJECT_NAME} ({FSE_MODULE_CODE})"
         )

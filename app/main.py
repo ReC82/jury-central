@@ -23,6 +23,7 @@ from app.templating import templates
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.v1 import question_types as v1_question_types  # noqa: F401 — enregistre les 26 types (#40)
 from app.v1.ampcr_plan import get_plan_by_slug
+from app.v1.ampcr_pratique_bank import get_practical_course_by_slug
 from app.v1.auth import get_current_user, require_user
 from app.v1.course_memo import apply_course_memo
 from app.v1.francais_plan import get_francais_plan_by_slug
@@ -365,6 +366,7 @@ async def uaa_practice(
         get_plan_by_slug(uaa.slug) is not None
         or get_francais_plan_by_slug(uaa.slug) is not None
         or get_fse_plan_by_slug(uaa.slug) is not None
+        or get_practical_course_by_slug(uaa.slug) is not None
     ):
         return render_practice_landing(request, db, uaa, user)
 
@@ -397,6 +399,7 @@ async def uaa_exam(
         get_plan_by_slug(uaa.slug) is not None
         or get_francais_plan_by_slug(uaa.slug) is not None
         or get_fse_plan_by_slug(uaa.slug) is not None
+        or get_practical_course_by_slug(uaa.slug) is not None
     ):
         return render_exam_landing(request, db, uaa, user)
 

@@ -39,6 +39,7 @@ from app.v1.ai_bridge import (
 )
 from app.v1.ai_usage import KIND_CORRECTION, KIND_GENERATION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
+from app.v1.ampcr_pratique_bank import get_practical_context, is_practical_code
 from app.v1.assets import asset_display, assets_for_version
 from app.v1.bank import (
     persist_generated_questions,
@@ -577,16 +578,19 @@ def session_length_options(*, uaa_id: int | None, uaa_code: str | None) -> tuple
 
 
 def available_session_lengths(
-    db: DBSession, *, user: User, module_id: int, uaa_id: int | None, uaa_code: str | None
+    db: DBSession, *, user: User, module_id: int, uaa_id: int | None, uaa_code: str | None,
+    mode: SessionMode | None = None,
 ) -> tuple[int, ...]:
     """Ticket #86 § A : « ne pas afficher des choix impossibles ». Si la génération peut
     compléter la banque (fournisseur configuré, module non en pause, parcours autre que
     FSE17 — strictement banque), toutes les longueurs sont proposées : `start_session`
     génère le manque. Sinon, seules celles que la banque couvre SANS doublon (#82) —
-    toujours au moins la plus courte (session éventuellement plus courte, comme avant)."""
+    toujours au moins la plus courte (session éventuellement plus courte, comme avant).
+    Ticket #193 : les cours AMPCR pratique sont strictement banque, réserve du `mode`."""
     options = session_length_options(uaa_id=uaa_id, uaa_code=uaa_code)
     can_generate = (
         uaa_code not in (FSE17_CODE, FR20_CODE)
+        and not is_practical_code(uaa_code)
         and bool(settings.openai_api_key)
         and not is_generation_paused(db, module_id)
     )
@@ -600,7 +604,10 @@ def available_session_lengths(
     elif uaa_code == FR20_CODE:
         pool = select_francais_transversal_bank_questions(db, user_id=user.id, module_id=module_id, limit=limit)
     else:
-        pool = select_bank_questions(db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=limit)
+        pool = select_bank_questions(
+            db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=limit,
+            mode=mode.value if mode is not None and is_practical_code(uaa_code) else None,
+        )
     distinct = len(deduplicate_intra_session(pool))
     return tuple(n for n in options if n <= distinct) or options[:1]
 
@@ -681,6 +688,10 @@ def _pedagogical_context_for(uaa_code: str | None) -> PedagogicalContext:
         context = get_fse_context(plan.course_key)
         if context is not None:
             return context
+    # Ticket #193 : cours du parcours AMPCR pratique écrite (PR06…).
+    practical_context = get_practical_context(uaa_code)
+    if practical_context is not None:
+        return practical_context
     # Parcours global : contexte générique couvrant l'ensemble du programme AMPCR.
     return PedagogicalContext(
         course_key="ampcr-global",
@@ -1029,9 +1040,13 @@ def start_session(
     # questions jamais vues — une question déjà vue n'est reprise qu'en tout dernier
     # recours, plus bas, après tentative de génération.
     target_rating = _adaptive_target(db, user_id=user.id, module_id=module_id, difficulty=difficulty)
+    # Ticket #193 : cours AMPCR pratique = réserve du mode (exercices / mini-examen), sans
+    # génération IA (questions vérifiées et barémées uniquement).
+    practical = is_practical_code(uaa_code)
+    pool_mode = mode.value if practical else None
     oversample = select_bank_questions(
         db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 3,
-        only_unseen=True, difficulty=difficulty, target_rating=target_rating,
+        only_unseen=True, difficulty=difficulty, target_rating=target_rating, mode=pool_mode,
     )
     if uaa_id is None:
         # Parcours global/examen blanc AMPCR (§ 8 du ticket #64) : plusieurs mini-cours
@@ -1044,7 +1059,7 @@ def start_session(
     )
 
     # Ticket #46 : génération en pause pour ce module (admin) → banque uniquement.
-    if len(selected) < question_count and not is_generation_paused(db, module_id):
+    if len(selected) < question_count and not practical and not is_generation_paused(db, module_id):
         missing = question_count - len(selected)
         long_count = sum(
             1 for q in selected if q.current_version.question_type in LONG_SEMANTIC_TYPES
@@ -1093,7 +1108,7 @@ def start_session(
         # acceptable, un doublon intra-session ne l'est jamais).
         fallback_pool = select_bank_questions(
             db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 5,
-            difficulty=difficulty, target_rating=target_rating,
+            difficulty=difficulty, target_rating=target_rating, mode=pool_mode,
         )
         if not fallback_pool and not selected:
             raise SessionCreationError(

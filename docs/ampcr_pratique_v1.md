@@ -36,6 +36,26 @@ Accès : tuile « AMPCR — Pratique écrite » de `/mon-parcours` (option AMPCR
 « Pratique écrite » de `/modules/ampcr`. Aucune table, aucun seed, aucune migration :
 le plan est du code (`app/v1/ampcr_pratique_plan.py`), lu en lecture seule.
 
+### Cours publiés (ticket #193 et suivants)
+
+| Cours | URL | Banque |
+|---|---|---|
+| PR06 — Diagnostic des pannes matérielles (#193) | `/uaa/ampcr-pratique-pr06` | 12 exercices (entraînement) + 10 questions de mini-examen /20 (examen blanc) |
+
+Intégration d'un cours pratique (modèle posé par PR06, à réutiliser par PR11, PR15…) :
+
+1. Contenu dans `app/v1/ampcr_pratique_prXX_course.py` (blocs titrés), schémas dans
+   `…_figures.py` (SVG depuis des données testées), exercices et mini-examen dans `…_bank.py`
+   (une seule source pour le cours et la banque).
+2. Déclarer le cours dans `PRACTICAL_COURSES` (`app/v1/ampcr_pratique_bank.py`) avec son
+   `PedagogicalContext` de correction : il devient automatiquement routable (S'entraîner /
+   Examen blanc), importable et corrigé avec son contexte.
+3. Seed : `_seed_uaa(db, practical_module, "PRxx", …)` dans `app/seed.py` (module
+   `AMPCR-PRATIQUE`, jamais le module théorique `AMPCR`).
+4. Réserves : `prompt_version = ampcr-pratique-prxx:practice|exam` ; la sélection banque
+   (`select_bank_questions(mode=…)`) ne mélange jamais les deux ; aucune génération IA pour ces
+   cours ; note ramenée sur 20 sur la page de résultats.
+
 ## 3. Statut d'une exigence
 
 - **non traité** : aucun cours ni exercice lié publié ;
