@@ -334,7 +334,7 @@ def test_course_page_renders_figures_exercises_and_consoles(client, db_session):
 def test_practical_home_and_matrix_show_pr11(client, db_session):
     _pr11(db_session)
     home = client.get("/ampcr-pratique").text
-    assert f'href="/uaa/{SLUG}"' in home and "2 cours publiés" in home
+    assert f'href="/uaa/{SLUG}"' in home and "cours publiés" in home  # PR15 (#197) publié ensuite
     matrix = _text(client.get("/ampcr-pratique/matrice").text)
     assert "partiel" in matrix
     assert plan.VALIDATED_REQUIREMENT_IDS == frozenset()
