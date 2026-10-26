@@ -3,7 +3,15 @@
 {% block title %}Format d'un exercice pratique écrit — AMPCR — Jury Central{% endblock %}
 
 {% block content %}
-<style>@media print { @page { size: A4; margin: 15mm; } }</style>
+<style>
+@media print { @page { size: A4; margin: 15mm; } }
+.jc-tech-figure { margin: 0 0 1rem; break-inside: avoid; page-break-inside: avoid; }
+.jc-tech-figure svg { display: block; width: 100%; height: auto; max-width: 22rem; }
+.jc-tech-figure figcaption { font-size: .875rem; margin-top: .35rem; }
+.jc-tech-figure-row { display: flex; flex-wrap: wrap; gap: 1rem; }
+.jc-tech-figure-row .jc-tech-figure { flex: 1 1 15rem; }
+@media print { .jc-practical-method { break-before: page; } }
+</style>
 <nav aria-label="breadcrumb" class="d-print-none">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/mon-parcours">Mon parcours</a></li>
@@ -64,6 +72,15 @@
     </section>
     {% endfor %}
 
+    {% if figures %}
+    <section class="mb-3 jc-practical-doc">
+        <h3 class="h6">Document 2 — Schéma des deux connecteurs</h3>
+        <div class="jc-tech-figure-row">
+            {% for figure in figures %}{{ render_figure(figure) }}{% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <section class="mb-3">
         <h3 class="h6">Consignes</h3>
         <ol>
@@ -94,6 +111,11 @@
         <p><strong>Correction justifiée.</strong> {{ exercise.justified_correction }}</p>
     </section>
 </article>
+
+<section class="mt-4 jc-practical-method" aria-labelledby="method-title">
+    <h2 id="method-title" class="h5">Démarche attendue dans une réponse écrite</h2>
+    {{ render_figure(method_figure) }}
+</section>
 
 <section class="d-print-none mt-4" aria-labelledby="tech-title">
     <h2 id="tech-title" class="h5">Côté technique</h2>

@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass
 
 from app.v1.ampcr_pratique_plan import REQUIREMENTS_BY_ID
+from app.v1.ampcr_pratique_visuals import T568B, Figure, connector_pins_svg
 from app.v1.question_types import QUESTION_TYPE_REGISTRY
 
 
@@ -139,6 +140,11 @@ def to_question_content(
 
 # --- Exemple de format (non officiel, jamais importé dans la banque) ---------------------
 
+# Données du schéma de l'exemple : côté prise murale conforme à T568B, côté PC avec les fils
+# des broches 4 et 6 inversés (vert en 4, bleu en 6). Tableau et schéma en dérivent tous deux.
+EXAMPLE_WALL_SIDE: tuple[str, ...] = T568B
+EXAMPLE_PC_SIDE: tuple[str, ...] = T568B[:3] + (T568B[5], T568B[4], T568B[3]) + T568B[6:]
+
 EXAMPLE_EXERCISE = PracticalExercise(
     code="EXEMPLE",
     title="Exemple de format — poste sans réseau après un déplacement de bureau",
@@ -158,10 +164,8 @@ EXAMPLE_EXERCISE = PracticalExercise(
                 "|---|---|\n"
                 "| Voyant du port réseau du PC | éteint |\n"
                 "| Testeur de câble | fils 4 et 6 signalés croisés |\n"
-                "| Connecteur côté prise murale (broches 1 → 8) | blanc-orange, orange, "
-                "blanc-vert, bleu, blanc-bleu, vert, blanc-marron, marron |\n"
-                "| Connecteur côté PC (broches 1 → 8) | blanc-orange, orange, blanc-vert, vert, "
-                "blanc-bleu, bleu, blanc-marron, marron |"
+                f"| Connecteur côté prise murale (broches 1 → 8) | {', '.join(EXAMPLE_WALL_SIDE)} |\n"
+                f"| Connecteur côté PC (broches 1 → 8) | {', '.join(EXAMPLE_PC_SIDE)} |"
             ),
         ),
     ),
@@ -209,5 +213,32 @@ EXAMPLE_EXERCISE = PracticalExercise(
         "n'est plus sur les broches 3 et 6, d'où le croisement 4/6 détecté et l'absence de "
         "liaison. On refait donc le connecteur côté PC en T568B ; les deux extrémités étant "
         "dans la même norme, on obtient un câble droit, adapté entre une prise murale et un PC."
+    ),
+)
+
+
+EXAMPLE_FIGURES: tuple[Figure, ...] = (
+    Figure(
+        key="exemple-rj45-prise",
+        title="Document 2a — Connecteur côté prise murale",
+        alt=(
+            "Fiche RJ45 côté prise murale, broches 1 à 8 : "
+            + ", ".join(EXAMPLE_WALL_SIDE) + "."
+        ),
+        caption=(
+            "Document 2a — Connecteur côté prise murale, tel que relevé. Fiche vue côté "
+            "contacts, languette dessous : broche 1 à gauche. Fils rayés = fils blancs à bande."
+        ),
+        svg=connector_pins_svg(EXAMPLE_WALL_SIDE, label="Côté prise murale"),
+    ),
+    Figure(
+        key="exemple-rj45-pc",
+        title="Document 2b — Connecteur côté PC",
+        alt="Fiche RJ45 côté PC, broches 1 à 8 : " + ", ".join(EXAMPLE_PC_SIDE) + ".",
+        caption=(
+            "Document 2b — Connecteur côté PC, tel que relevé. Même orientation que le "
+            "document 2a."
+        ),
+        svg=connector_pins_svg(EXAMPLE_PC_SIDE, label="Côté PC"),
     ),
 )
