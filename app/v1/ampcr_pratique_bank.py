@@ -1,5 +1,5 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
-#197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01).
+#197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -28,6 +28,7 @@ from app.v1 import question_types  # noqa: F401 — enregistre les types (#40) a
 from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
+from app.v1.ampcr_pratique_pr02_bank import ALL_ITEMS as PR02_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
@@ -379,12 +380,67 @@ _PR01_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR02_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr02",
+    course_title="AMPCR pratique écrite — PR02 Alimentation, connectique, compatibilité et sécurité",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : réponses rédigées de technicien à partir d'étiquettes de bloc, fiches "
+        "produits fictives, devis, relevés de mesures et descriptions de montage"
+    ),
+    allowed_notions=[
+        "secteur 230 V alternatif 50 Hz ; le bloc redresse, découpe et régule ; tensions continues +12 V (CPU par EPS et VRM, GPU, ventilateurs, moteurs), +5 V, +3,3 V, −12 V ; +5 VSB présente dès que le bloc est branché, PC éteint ; PS_ON# (vert) met en marche, PWR_OK (gris) signale des tensions stables",
+        "tolérances ATX : ±5 % sur +12 V (11,40-12,60 V), +5 V et +5 VSB (4,75-5,25 V), +3,3 V (3,135-3,465 V) ; ±10 % sur −12 V ; testeur à vide ne prouve pas la tenue en charge ; bloc connu bon = test décisif",
+        "puissance nominale = maximum fourni en continu, le bloc ne fournit que ce qui est demandé ; +12 V : P = 12 × I ; +3,3 V et +5 V combinés ; mono ou multi-rails ; rendement = fourni / absorbé, absorbée = fournie / rendement, pertes en chaleur ; 80 PLUS (115 V interne) Bronze 82/85/82, Gold 87/90/87, Platinum 90/92/89, Titanium 92/94/90 ; meilleur vers 50 % de charge",
+        "connecteurs : ATX 24 (20+4) carte mère ; EPS 8 (4+4) « CPU » et ATX12V 4 broches processeur ; PCIe 6 broches 75 W, 8 broches (6+2) 150 W, emplacement x16 75 W ; 12V-2x6 (12VHPWR) 16 broches jusqu'à 600 W, enfoncé à fond ; SATA 15 broches (+3,3/+5/+12 V) ; Molex 4 broches (+12 V jaune, +5 V rouge) ; câble de données SATA 7 contacts sans alimentation",
+        "interdits : EPS ↔ PCIe 8 broches (court-circuit), câbles modulaires d'un autre bloc, adaptateurs Molex/SATA → PCIe pour une carte puissante, forcer un connecteur ; formats de bloc ATX et SFX",
+        "budget : somme des puissances maximales des fiches + marge 20-30 % → palier commercial supérieur → jamais sous la recommandation du fabricant de la carte graphique ; vérifier +12 V et connecteurs ; surdimensionnement inutile (prix, rendement)",
+        "refroidissement : flux façade/bas → arrière/haut, flèche sur le cadre ; filtres ; CPU_FAN surveillé, SYS_FAN/CHA_FAN, AIO_PUMP ; 3 broches réglé en tension (DC), 4 broches en PWM ; répartiteur limité par le connecteur ; ventilateur de bloc semi-passif arrêté à faible charge = normal",
+        "protections du bloc OVP, UVP, OCP, OPP, SCP, OTP (arrêt brutal) ; terre, différentiel, parafoudre (surtensions, pas coupures), onduleur off-line / line-interactive / on-line choisi en watts avec marge et autonomie",
+        "sécurité : jamais ouvrir un bloc (condensateurs chargés) ; arrêter, interrupteur sur 0, débrancher, appuyer sur le bouton, bracelet antistatique au châssis, tapis, sachet, tenir par les bords ; batterie lithium-ion gonflée : ne plus charger, ne pas percer ni presser, outils non coupants, bac métallique ou sable, collecte (Bebat) ; outils : tournevis PH1/PH2, testeur, multimètre sur connecteurs, air sec en bloquant les ventilateurs",
+        "USB : USB 2.0 480 Mbit/s, 3.2 Gen 1 5 Gbit/s, Gen 2 10 Gbit/s, Gen 2x2 20 Gbit/s, USB4 40 Gbit/s ; USB-C = forme, pas vitesse ; alimentation 2,5 W (USB 2.0), 4,5 W (USB 3), 15 W (USB-C 3 A), PD 100 W et 240 W (EPR) ; concentrateur non alimenté",
+        "vidéo : HDMI 1.4 10,2 Gbit/s (4K 30 Hz), 2.0 18 Gbit/s (4K 60 Hz), 2.1 48 Gbit/s (4K 120 Hz) ; câbles High Speed / Premium High Speed / Ultra High Speed ; DisplayPort 1.2 (4K 60), 1.4 (4K 120), 2.1 (80 Gbit/s) ; son transporté ; DP++ vers HDMI passif, HDMI vers DP actif ; écran sur la carte graphique",
+        "interne : SATA 6 Gbit/s ≈ 600 Mo/s, données + alimentation ; PCIe taille mécanique et lignes, rétrocompatible ; M.2 longueur (2280), clé (M, B+M, E) et interface NVMe/SATA ; M.2 SATA non détecté dans un emplacement NVMe uniquement ; port SATA désactivé par un M.2 en SATA",
+        "compatibilité : DDR3/DDR4/DDR5 non interchangeables, DIMM/SO-DIMM ; AM4 DDR4, AM5 DDR5, LGA1700 DDR4 ou DDR5 selon la carte, LGA1851 DDR5 ; même socket ≠ compatible sans liste des processeurs et firmware ; ATX/microATX/Mini-ITX ; longueur GPU, hauteur ventirad ; « ça rentre » ≠ compatible ; ne rien supposer hors fiche",
+        "symptômes : rien du tout, démarre une seconde puis s'arrête (EPS, court-circuit), s'éteint sous charge (bloc insuffisant, adaptateur), redémarrages, odeur de brûlé (débrancher) ; hypothèse ≠ preuve ; remplacement sûr : choisir format/puissance/connecteurs, couper, décharger, ESD, repérer, câbles du nouveau bloc, contrôler tensions et charge, compte rendu",
+    ],
+    competencies=[
+        "Identifier les connecteurs d'alimentation et de données et lire les caractéristiques d'un bloc (puissance, +12 V, rendement)",
+        "Calculer un budget de puissance avec marge et déterminer la compatibilité d'une configuration critère par critère",
+        "Repérer un mauvais branchement, évaluer des symptômes d'alimentation et rédiger une procédure de remplacement sûre",
+    ],
+    vocabulary=[
+        "AC", "DC", "+5 VSB", "PS_ON#", "PWR_OK", "ATX 24", "EPS", "PCIe 8 broches", "12V-2x6",
+        "SATA", "Molex", "rendement", "80 PLUS", "OCP", "onduleur", "ESD", "PWM", "USB-C", "HDMI",
+        "DisplayPort", "M.2", "NVMe", "DDR5", "socket",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et toute "
+        "démarche techniquement justes, sans exiger de mot-clé ni de sigle développé si le rôle "
+        "est clair ; suivre le barème de la question. Un calcul faux (P = U × I, rendement, "
+        "tolérance, marge) ou un connecteur mal identifié est toujours une erreur ; un résultat "
+        "juste avec une erreur d'arrondi minime reste juste. Ne jamais valider « on peut ouvrir "
+        "le bloc », « éteint donc sans tension », « EPS et PCIe 8 broches sont interchangeables », "
+        "« USB-C garantit la vitesse », « même socket donc compatible », « le plus gros bloc est "
+        "le meilleur choix » ni une mesure à vide présentée comme une preuve. Pénaliser "
+        "l'absence de mise hors tension ou de protection antistatique, un adaptateur Molex → "
+        "PCIe, des câbles modulaires d'un autre bloc et toute manipulation dangereuse d'une "
+        "batterie gonflée."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
         title="Structure d'un PC et identification des composants",
         items=PR01_ITEMS,
         context=_PR01_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR02",
+        title="Alimentation, connectique, compatibilité et sécurité",
+        items=PR02_ITEMS,
+        context=_PR02_CONTEXT,
     ),
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT

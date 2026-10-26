@@ -2,6 +2,18 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : cours PR02 « Alimentation, connectique, compatibilité et sécurité » (ticket #203)
+
+Huitième cours du parcours pratique et deuxième dans l'ordre pédagogique (UAA PR02 du module
+`AMPCR-PRATIQUE`, 19 blocs) : courant alternatif/continu et tensions du bloc (+5 VSB, PS_ON#,
+PWR_OK, tolérances ATX), puissance, +12 V et rendement 80 PLUS, connecteurs ATX 24, EPS 4+4,
+PCIe 6/8, 12V-2x6, SATA, Molex, budget de puissance et marges, ventilateurs et flux d'air,
+protections et onduleur, sécurité électrique (mise hors tension, ESD, batteries gonflées,
+interdiction d'ouvrir un bloc, outils), USB/HDMI/DisplayPort, SATA/PCIe/M.2, compatibilité
+(DDR, socket, formats), symptômes d'alimentation et procédure de remplacement sûre ; 8 figures
+SVG depuis des données testées ; 4 cas résolus, 16 exercices, mini-examen 10 questions /20 sans
+génération IA (`app/v1/ampcr_pratique_pr02_*.py`, `tests/test_ticket203_ampcr_pratique_pr02.py`).
+
 ## 2026-10-26 — AMPCR pratique écrite : cours PR01 « Structure d'un PC et identification des composants » (ticket #202)
 
 Septième cours du parcours pratique et premier dans l'ordre pédagogique (UAA PR01 du module
