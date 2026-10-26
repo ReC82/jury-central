@@ -438,7 +438,7 @@ def test_course_page_renders_figures_and_exercises(client, db_session):
 def test_practical_home_and_matrix_show_pr16(client, db_session):
     _pr16(db_session)
     home = client.get("/ampcr-pratique").text
-    assert f'href="/uaa/{SLUG}"' in home and "4 cours publiés" in home
+    assert f'href="/uaa/{SLUG}"' in home and "cours publiés" in home  # PR20 (#199) publié ensuite
     assert plan.requirement_status("AP-35", {"PR16"}) == plan.STATUS_PARTIAL
     assert plan.VALIDATED_REQUIREMENT_IDS == frozenset()
     assert client.get("/ampcr-pratique/matrice").status_code == 200
