@@ -2,6 +2,17 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : cours PR06 « Diagnostic des pannes matérielles » (ticket #193)
+
+Premier cours du parcours pratique : module `AMPCR-PRATIQUE` (matière Informatique) seedé avec
+l'UAA PR06 (15 blocs, 8 schémas SVG vérifiés : chaîne de démarrage, arbre « PC ne démarre
+pas », ATX 24, EPS 8, plan de carte mère, écran firmware fictif, courbe de températures,
+configuration minimale ; 4 cas résolus ; 12 exercices corrigés). Banque : 12 exercices
+(entraînement) + 10 questions de mini-examen (examen blanc, /20), réserves séparées par
+`prompt_version`, sans génération IA (`app/v1/ampcr_pratique_bank.py`). Moteur : paramètre
+`mode` de `select_bank_questions`/`available_session_lengths`, contexte de correction PR06,
+note sur 20 dans les résultats du parcours pratique.
+
 ## 2026-10-26 — AMPCR pratique écrite : socle et matrice de couverture officielle (ticket #192)
 
 Nouveau parcours distinct du théorique : `app/v1/ampcr_pratique_plan.py` (sources officielles

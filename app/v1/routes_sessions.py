@@ -26,6 +26,7 @@ from app.models import UAA, Module
 from app.templating import templates
 from app.v1.ai_usage import KIND_CORRECTION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_MODULE_CODE, get_plan_by_slug
+from app.v1.ampcr_pratique_bank import PRACTICAL_BANK_IMPORTERS, get_practical_course_by_slug
 from app.v1.ampcr_visual_bank import import_mc01_visual_questions
 from app.v1.auth import require_user, require_user_api, validate_csrf_token
 from app.v1.bank import get_uaa_by_slug, import_mc01_legacy_to_bank
@@ -245,6 +246,10 @@ def _ensure_bank_seeded(db, module: Module, uaa: UAA) -> None:
         # Ticket #129 : cas nouveaux (documents, visuels, questions), ajout idempotent.
         import_fse_cases(db, module, uaa)
         db.commit()
+    elif uaa.slug in PRACTICAL_BANK_IMPORTERS:
+        # Ticket #193 : cours du parcours AMPCR pratique écrite (exercices + mini-examen).
+        PRACTICAL_BANK_IMPORTERS[uaa.slug](db, module, uaa)
+        db.commit()
     elif uaa.slug == f"fse-{FSE17_CODE.lower()}":
         # FSE17 tire dans FSE01→FSE16 : leurs banques et leurs cas nouveaux doivent exister
         # même si l'élève n'a ouvert aucun de ces cours (même principe que FR20).
@@ -303,7 +308,11 @@ def _uaa_code_for(uaa: UAA) -> str | None:
     # Ticket #96-#101 : Formation sociale et économique, même résolution que
     # Français ci-dessus — FSE01-FSE17 sont tous enregistrés.
     fse_plan = get_fse_plan_by_slug(uaa.slug)
-    return fse_plan.code if fse_plan else None
+    if fse_plan is not None:
+        return fse_plan.code
+    # Ticket #193 : AMPCR pratique écrite (PR06…).
+    practical = get_practical_course_by_slug(uaa.slug)
+    return practical.code if practical else None
 
 
 # Ticket #86 § F : indication NON officielle, jamais une durée d'épreuve.
@@ -319,7 +328,7 @@ def _length_context(
     présélectionnée : 10 en entraînement, 20 en évaluation (la plus proche disponible
     en dessous si la banque seule ne suffit pas)."""
     available = available_session_lengths(
-        db, user=user, module_id=module_id, uaa_id=uaa_id, uaa_code=uaa_code
+        db, user=user, module_id=module_id, uaa_id=uaa_id, uaa_code=uaa_code, mode=mode
     )
     recommended = GLOBAL_EXAM_QUESTION_COUNT if mode == SessionMode.EXAM else DEFAULT_QUESTION_COUNT
     default = max((n for n in available if n <= recommended), default=available[0])

@@ -10,7 +10,8 @@
             <a href="/subjects/{{ uaa.module.subject.slug }}">{{ uaa.module.subject.name }}</a>
         </li>
         <li class="breadcrumb-item">
-            <a href="/modules/{{ uaa.module.slug }}">{{ uaa.module.code }}</a>
+            {% if uaa.module.code == "AMPCR-PRATIQUE" %}<a href="/ampcr-pratique">AMPCR — Pratique écrite</a>
+            {% else %}<a href="/modules/{{ uaa.module.slug }}">{{ uaa.module.code }}</a>{% endif %}
         </li>
         <li class="breadcrumb-item active" aria-current="page">{{ uaa.code }}</li>
     </ol>
@@ -54,7 +55,8 @@ ou à l'impression, le cours complet reste affiché tel quel. #}
         <i class="bi bi-arrow-left" aria-hidden="true"></i> {{ prev_uaa.code }} — {{ prev_uaa.title | truncate(40) }}
     </a>
     {% else %}<span></span>{% endif %}
-    <a class="jc-btn jc-btn-ghost jc-btn-sm" href="/modules/{{ uaa.module.slug }}">
+    {# Ticket #193 : un cours du parcours pratique renvoie à l'accueil de son parcours. #}
+    <a class="jc-btn jc-btn-ghost jc-btn-sm" href="{{ '/ampcr-pratique' if uaa.module.code == 'AMPCR-PRATIQUE' else '/modules/' ~ uaa.module.slug }}">
         <i class="bi bi-signpost" aria-hidden="true"></i> Tous les cours
     </a>
     {% if next_uaa %}

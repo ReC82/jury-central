@@ -313,6 +313,7 @@ def select_bank_questions(
     only_unseen: bool = False,
     difficulty: SessionDifficultyRequest | None = None,
     target_rating: float | None = None,
+    mode: str | None = None,
 ) -> list[Question]:
     """Sélectionne jusqu'à `limit` questions ACTIVE, en excluant celles déjà vues par
     l'utilisateur — par identité exacte ET par quasi-doublon structurel (voir
@@ -339,7 +340,14 @@ def select_bank_questions(
 
     `target_rating` (ticket #45, uniquement avec `ADAPTIVE`) : trie les questions par
     proximité de leur rating avec le niveau de l'utilisateur dans le module (tri stable
-    par tranches, `app.v1.rating.order_by_proximity`) — là encore sans rien exclure."""
+    par tranches, `app.v1.rating.order_by_proximity`) — là encore sans rien exclure.
+
+    `mode` (ticket #193, valeur de `SessionMode`) : pour les seuls cours du parcours AMPCR
+    pratique écrite, ne garde que la réserve de ce mode (exercices du cours en
+    entraînement, mini-examen en évaluation — `app.v1.ampcr_pratique_bank.restrict_to_mode`).
+    No-op pour toute autre question."""
+    from app.v1.ampcr_pratique_bank import restrict_to_mode
+
     seen_question_ids = {
         row[0]
         for row in db.query(UserQuestionHistory.question_id).filter_by(user_id=user_id).distinct()
@@ -350,6 +358,7 @@ def select_bank_questions(
     query = query.filter_by(uaa_id=uaa_id) if uaa_id is not None else query.filter(Question.uaa_id.is_not(None))
     query = _exclude_unusable_assets(db, query)
     all_active = query.order_by(func.random()).all()
+    all_active = restrict_to_mode(all_active, mode)
     all_active = _prioritize_by_difficulty(all_active, difficulty)
     if difficulty == SessionDifficultyRequest.ADAPTIVE and target_rating is not None:
         all_active = order_by_proximity(all_active, target_rating)
