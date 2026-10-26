@@ -28,6 +28,9 @@ from app.v1.ampcr_pratique_pr11_figures import (
 
 PR11_TITLE = "Messages d'erreur Windows/Linux — diagnostic et interventions écrites"
 PR11_SLUG = "ampcr-pratique-pr11"
+# Anciens titres de blocs déjà seedés (contenu remplacé : le bloc est recréé sous son nouveau
+# titre au prochain seed, voir `app.seed._seed_uaa`).
+PR11_OBSOLETE_TITLES = frozenset({"PR11 — 1. Méthode universelle face à un message d'erreur"})
 
 
 def _exercises_html() -> str:
@@ -950,7 +953,7 @@ def pr11_course_sections() -> list[tuple[str, str]]:
     """Blocs du cours (titre, contenu), dans l'ordre d'affichage."""
     return [
         ("PR11 — Objectifs et place dans l'épreuve", _objectives()),
-        ("PR11 — 1. Méthode universelle face à un message d'erreur", _method()),
+        ("PR11 — 1. Méthode universelle : lire un message d'erreur", _method()),
         ("PR11 — 2. Démarrage et partitions : firmware, Windows Boot Manager, WinRE", _boot_windows()),
         ("PR11 — 2. Démarrage et partitions : GRUB, initramfs, fstab, MBR/GPT", _boot_linux()),
         ("PR11 — 3. Windows : écrans bleus, périphériques, journaux", _windows_symptoms()),

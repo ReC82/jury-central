@@ -45,7 +45,7 @@ STAGE_TREE: tuple[tuple[str, str], ...] = (
         "Stade firmware / POST : matériel, bips, LED (manuel du fabricant), voir PR06.",
     ),
     (
-        "Le chargeur (Windows Boot Manager, GRUB) démarre-t-il sans message ?",
+        "Le chargeur démarre-t-il sans message ? (Windows Boot Manager, GRUB)",
         "Stade chargeur : disque détecté, ordre et mode UEFI/Legacy, partition EFI, BCD ou GRUB.",
     ),
     (
@@ -73,7 +73,7 @@ STAGE_TREE: tuple[tuple[str, str], ...] = (
         "Stade stockage : espace et inodes, lecture seule, erreurs de disque ; données d'abord.",
     ),
     (
-        "Le réseau répond-il ? (adresse, passerelle, DNS)",
+        "Le réseau répond-il (adresse, passerelle, DNS) ?",
         "Stade réseau : ipconfig / ip addr, ping de la passerelle, puis d'une IP publique, puis d'un nom.",
     ),
 )
