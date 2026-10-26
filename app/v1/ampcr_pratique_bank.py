@@ -1,5 +1,5 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
-#197 : PR15).
+#197 : PR15 ; #198 : PR16).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -31,6 +31,7 @@ from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
+from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -189,6 +190,51 @@ _PR15_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR16_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr16",
+    course_title="AMPCR pratique écrite — PR16 Câble coaxial et BNC",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : réponses rédigées de technicien à partir de schémas de bus, de mesures et "
+        "de situations de câblage coaxial fictifs"
+    ),
+    allowed_notions=[
+        "câble coaxial : âme, diélectrique, blindage (feuille et/ou tresse), gaine ; protection EMI, atténuation selon longueur et fréquence, bande passante, souplesse, rayon de courbure, écrasement",
+        "impédance caractéristique : dépend de la géométrie et de l'isolant, pas de la longueur ; ne se mesure pas à l'ohmmètre ; RG-58 50 Ω, coaxial épais 50 Ω, RG-59 et RG-6 75 Ω, RG-62 93 Ω ; lire le marquage",
+        "50 Ω : 10BASE2, 10BASE5, radiofréquence ; 75 Ω : vidéo analogique, SDI, télévision, satellite ; câble, connecteur, terminaison et équipement de même impédance",
+        "réflexions : Γ = (Zc − Z0)/(Zc + Z0) ; extrémité ouverte +1, court-circuit −1, adapté 0, 75 Ω sur 50 Ω 0,2 ; terminaison absente ou erronée, rupture, connecteur défectueux, câble écrasé ; collisions et erreurs sur un bus",
+        "BNC : baïonnette quart de tour, mâle/femelle, T, terminateur, raccord ; variantes 50 Ω et 75 Ω qui s'emboîtent ; à sertir, à compression, à souder, à visser déconseillé ; connecteur prévu pour le câble",
+        "10BASE2 : bus, 10 Mb/s, RG-58 A/U ou C/U 50 Ω, segment 185 m, 30 postes, 0,5 m entre T, T directement sur la carte, terminateur 50 Ω aux deux extrémités, terre en un seul point, répéteurs (5-4-3)",
+        "10BASE5 : coaxial épais 50 Ω ≈ 10 mm, 10 Mb/s, segment 500 m, 100 transceivers, repères tous les 2,5 m, prise vampire, transceiver, câble AUI 15 broches ≤ 50 m, terminateurs 50 Ω sur connecteurs N ; distinct du 10BASE2",
+        "liaisons vidéo 75 Ω point à point (caméra, SDI, RG-59, BNC 75 Ω), TV et satellite (RG-6, fiche F) ; la forme du connecteur ne définit ni le protocole ni l'impédance",
+        "fabrication : matériel cohérent, notice et cotes du fabricant (pas de cotes universelles), manchon et bague d'abord, dénudage sans entailler, contact central serti en butée, corps, tresse sans brin vers l'âme, bague sertie",
+        "contrôles : visuel, traction, continuité âme et blindage, âme/blindage infini, bus refermé ≈ 25 Ω réseau arrêté ; outils : coupe-câble, dénudeur coaxial calibré, pince et matrice adaptées, multimètre, testeur coaxial, réflectomètre",
+        "lectures d'ohmmètre au T, réseau arrêté : 25 Ω normal, 50 Ω un seul terminateur vu (absent ou coupure), 0 Ω court-circuit, infini bus ouvert, 30 ou 37,5 Ω terminateur de mauvaise valeur ; écrasement et mauvais sertissage souvent invisibles",
+        "diagnostic : perte totale, intermittence, réflexions, connecteur desserré, blindage rompu, câble écrasé, terminaison manquante ; dichotomie, réflectomètre (même sens = ouvert, inversé = court-circuit, d = VF × c × t / 2), réparation, vérification",
+        "sécurité : réseau arrêté pour mesurer, prévenir avant d'ouvrir un bus, TV/satellite débranché ; rapport : demande, constats, hypothèses, tests et valeurs, cause, action, validation, recommandation dont migration",
+    ],
+    competencies=[
+        "Lire, vérifier et corriger un schéma de bus coaxial 10BASE2 (T, terminaisons, impédance, limites)",
+        "Choisir câble, connecteurs et terminaisons de même impédance selon l'usage (50 Ω / 75 Ω)",
+        "Rédiger la fabrication d'une liaison BNC et un diagnostic avec mesures, réparation et compte rendu",
+    ],
+    vocabulary=[
+        "coaxial", "âme", "diélectrique", "tresse", "impédance caractéristique", "BNC", "T BNC",
+        "terminateur", "10BASE2", "10BASE5", "RG-58", "RG-59", "RG-6", "prise vampire",
+        "transceiver", "AUI", "SDI", "réflexion", "réflectomètre", "TDR", "facteur de vélocité",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation "
+        "techniquement juste, sans exiger de mot-clé ; suivre le barème de la question. Une "
+        "impédance fausse (75 Ω pour le 10BASE2, 50 Ω pour la vidéo SDI), un bus sans deux "
+        "terminateurs 50 Ω, un T relié à la carte par un câble ou un câblage en étoile sont "
+        "toujours des erreurs. Ne jamais valider « tous les BNC sont à 50 Ω », « l'ohmmètre "
+        "mesure l'impédance du câble », des cotes de dénudage universelles, ni la confusion "
+        "entre 10BASE5 et 10BASE2 ; pénaliser une mesure sur réseau en service ou l'ouverture "
+        "d'un bus sans prévenir."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT
@@ -204,6 +250,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Câblage RJ45 T568A/B — fabrication, schémas et tests",
         items=PR15_ITEMS,
         context=_PR15_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR16",
+        title="Câble coaxial et BNC — impédance, fabrication et diagnostic écrit",
+        items=PR16_ITEMS,
+        context=_PR16_CONTEXT,
     ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}

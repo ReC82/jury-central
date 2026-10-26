@@ -13,6 +13,7 @@ from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr06_course import PR06_TITLE, pr06_course_sections
 from app.v1.ampcr_pratique_pr11_course import PR11_OBSOLETE_TITLES, PR11_TITLE, pr11_course_sections
 from app.v1.ampcr_pratique_pr15_course import PR15_TITLE, pr15_course_sections
+from app.v1.ampcr_pratique_pr16_course import PR16_TITLE, pr16_course_sections
 from app.v1.document_references import repair_dossier_references
 from app.v1.francais_fr01_05_courses import (
     fr01_course_markdown,
@@ -4992,6 +4993,7 @@ FSE17_BLOCKS = _fse_course_blocks(fse17_course_sections())
 PR06_BLOCKS = _fse_course_blocks(pr06_course_sections())
 PR11_BLOCKS = _fse_course_blocks(pr11_course_sections())  # ticket #194
 PR15_BLOCKS = _fse_course_blocks(pr15_course_sections())  # ticket #197
+PR16_BLOCKS = _fse_course_blocks(pr16_course_sections())  # ticket #198
 
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
@@ -5804,6 +5806,7 @@ def seed() -> None:
             obsolete_titles=PR11_OBSOLETE_TITLES,
         )
         _seed_uaa(db, practical_module, "PR15", PR15_TITLE, 15, PR15_BLOCKS, created, kept)  # ticket #197
+        _seed_uaa(db, practical_module, "PR16", PR16_TITLE, 16, PR16_BLOCKS, created, kept)  # ticket #198
 
         # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
         # n'était pas résolvable → nouvelle version (idempotent, sessions existantes
