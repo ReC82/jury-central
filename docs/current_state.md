@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06 et PR11),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06, PR11 et PR15),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -156,6 +156,15 @@ Gestionnaire de périphériques, terminaux Linux), 5 cas résolus, 16 exercices 
 croisés), mini-examen de 10 questions /20. Nouveautés partagées : documents d'exercice
 « console » (mise en page `console` de `_document_layouts.html`, police à chasse fixe) et
 questions `ordering` dans la banque pratique (`Ordering`, `item_content`).
+
+**Troisième cours publié (ticket #197) : PR15 « Câblage RJ45 T568A/B — fabrication, schémas et
+tests »** (`/uaa/ampcr-pratique-pr15`), même intégration. 13 blocs (matière 1-6 du ticket :
+supports et connecteurs, brochage et paires, droit/croisé et Auto MDI-X, fabrication, tests et
+dépannage, contexte professionnel), 14 figures SVG **calculées depuis `T568A`/`T568B`**
+(brochages orientés, comparaison A/B, ordre faux et paires séparées, câbles droit et croisé,
+anatomie de fiche, sertissage, 4 affichages de testeur fictifs, chaîne baie → PC), 4 exemples
+corrigés, 16 exercices (6 brochage, 4 testeur, 3 choix, 3 procédures), mini-examen 10 questions
+/20 (`app/v1/ampcr_pratique_pr15_*.py`). Aucune image générée.
 
 ## Administration
 

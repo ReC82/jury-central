@@ -2,6 +2,14 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : cours PR15 « Câblage RJ45 T568A/B » (ticket #197)
+
+Troisième cours du parcours pratique (UAA PR15 du module `AMPCR-PRATIQUE`, 13 blocs) : matière
+1-6 du ticket, 14 figures SVG calculées depuis les brochages T568A/T568B testés (aucune image
+générée), 4 exemples corrigés, 16 exercices, mini-examen 10 questions /20 sans génération IA ;
+tout ordre de couleurs cité dans le cours ou un corrigé est vérifié par test
+(`app/v1/ampcr_pratique_pr15_*.py`, `tests/test_ticket197_ampcr_pratique_pr15.py`).
+
 ## 2026-10-26 — AMPCR pratique écrite : cours PR11 « Messages d'erreur Windows/Linux » (ticket #194)
 
 Deuxième cours du parcours pratique (UAA PR11 du module `AMPCR-PRATIQUE`, 16 blocs) : matière
