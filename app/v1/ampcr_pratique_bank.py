@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04).
+#205 : PR04 ; #206 : PR05).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -32,6 +32,7 @@ from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
 from app.v1.ampcr_pratique_pr02_bank import ALL_ITEMS as PR02_ITEMS
 from app.v1.ampcr_pratique_pr03_bank import ALL_ITEMS as PR03_ITEMS
 from app.v1.ampcr_pratique_pr04_bank import ALL_ITEMS as PR04_ITEMS
+from app.v1.ampcr_pratique_pr05_bank import ALL_ITEMS as PR05_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
@@ -525,6 +526,55 @@ _PR04_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR05_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr05",
+    course_title="AMPCR pratique écrite — PR05 Stockage, partitions, formatage et défragmentation",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : choix justifiés (support, table de partitions, système de fichiers, "
+        "entretien), plans de partitions chiffrés, procédures non destructives rédigées et "
+        "lecture de captures et de relevés fictifs"
+    ),
+    allowed_notions=[
+        "disque dur (plateaux, têtes, 5 400/7 200 tr/min, 100 à 250 Mo/s, temps d'accès de plusieurs ms, sensible aux chocs, grande capacité à bas prix) ; SSD SATA (flash NAND, environ 550 Mo/s, limite de l'interface SATA 6 Gbit/s) ; SSD NVMe (PCI Express, environ 3 500 Mo/s en PCIe 3.0 x4, 7 000 Mo/s en PCIe 4.0 x4) ; système sur SSD, données volumineuses et sauvegardes sur disque dur",
+        "interfaces : SATA (câble de données 7 broches, alimentation 15 broches, 2,5 ou 3,5 pouces) ; M.2 est un format (2280 = 22 × 80 mm) qui parle SATA ou NVMe ; l'emplacement M.2 peut n'accepter que SATA ou que NVMe et peut désactiver des ports SATA : la notice fait foi",
+        "secteur 512 ou 4 096 octets ; cluster (unité d'allocation) 4 Kio par défaut en NTFS et ext4, un fichier occupe des clusters entiers ; SSD : écriture par pages, effacement par blocs, cycles d'écriture limités, endurance en TBW, répartition de l'usure (wear leveling) par le contrôleur, cellules de réserve, TRIM",
+        "unités : 1 Go = 10^9 octets (fabricant), 1 Gio = 2^30 = 1 073 741 824 octets ; Windows affiche des Gio écrits « Go » ; 1 To ≈ 931,32 Gio, 500 Go ≈ 465,66 Gio, 2 To ≈ 1 862,65 Gio ; Gestion des disques demande des Mo qui sont des Mio (300 Gio = 307 200)",
+        "MBR : 4 partitions principales ou 3 + 1 étendue, 2 Tio au plus (2^32 × 512 octets), démarrage BIOS hérité ; GPT : 128 partitions sous Windows, table de secours en fin de disque, démarrage UEFI, obligatoire pour Windows 11 ; Windows lit un disque de données GPT même sur un ancien PC ; conversion avec Gestion des disques ou diskpart sur disque vide (mbr2gpt pour un disque système)",
+        "démarrage : UEFI + GPT → partition EFI (ESP, FAT32) contenant le chargeur ; BIOS + MBR → partition active ; le mode du firmware doit correspondre à la table (mode hérité/CSM sur un Windows GPT → « No bootable device ») ; plans : Windows UEFI = EFI 100 Mo FAT32, MSR 16 Mo, C: NTFS, récupération ≈ 750 Mo ; Windows BIOS = Réservé au système ≈ 500 Mo NTFS active + C: ; Linux UEFI = ESP 512 Mo /boot/efi, / ext4, swap (ou fichier d'échange)",
+        "partition, volume (partition formatée avec lettre ou point de montage), initialiser = écrire une table vide ; formatage logique = système de fichiers vide ; rapide (structures seulement) ou complet (zéros et recherche des secteurs défectueux) ; formatage de bas niveau fait en usine ; formater n'efface pas de façon sûre (effacement sécurisé : PR04)",
+        "NTFS (Windows, journal, droits, grands fichiers, macOS en lecture seule) ; FAT32 (fichier de 4 Gio moins 1 octet au plus, ESP, appareils anciens, l'outil graphique de Windows ne le propose que jusqu'à 32 Go) ; exFAT (échange Windows/macOS/Linux, grands fichiers, pas de journal ni de droits) ; ext4 (Linux, journal, droits, non lu par Windows sans outil)",
+        "Windows : Gestion des disques (initialiser, nouveau volume simple, étendre si l'espace non alloué suit immédiatement, réduire, modifier la lettre, supprimer) ; diskpart (list disk, select disk, detail disk, convert gpt, create partition primary, format fs=ntfs quick, assign letter ; clean efface la table de tout le disque sélectionné)",
+        "Linux : /dev/sdX, /dev/nvme0n1pN, lsblk -f, parted mklabel gpt, mkpart, mkfs.ext4 -L, mount, blkid, /etc/fstab par UUID (UUID=… point ext4 defaults 0 2), mount -a, df -h ; fdisk, gdisk et GParted équivalents",
+        "avant toute opération : identifier le disque, lire SMART, sauvegarde sur un autre support (jamais le même disque), copie vérifiée, accord écrit, relevé de l'état, une opération à la fois, contrôle ; disque avec données non initialisé ou RAW : ne pas initialiser ni formater, récupérer d'abord (image si le disque faiblit)",
+        "SMART : lire les attributs, pas le résumé PASSED ; secteurs en attente ou illisibles > 0 → à remplacer ; réalloués seuls → à surveiller (suivre l'évolution) ; UDMA_CRC_Error_Count > 0 → câble ou connecteur SATA ; NVMe usure ≥ 80 % surveiller, ≥ 100 % remplacer ; un bon relevé ne garantit pas l'absence de panne, la sauvegarde reste indispensable ; seuils = conventions du cours",
+        "entretien : disque dur → défragmentation (optimisation planifiée de Windows, manuelle au-delà de 10 % fragmenté, convention du cours ; espace libre nécessaire ; jamais sur un disque qui a des secteurs en attente) ; SSD → TRIM (« découpage » dans Optimiser les lecteurs, fstrim.timer sous Linux), jamais de défragmentation ; ext4 se défragmente rarement",
+        "symptômes : absent de l'UEFI → câbles, port, M.2 incompatible, disque mort ; non initialisé (neuf : initialiser ; avec données : récupérer) ; sans lettre → attribuer une lettre ; RAW → refuser le formatage, récupérer ; C: plein → mesurer (Stockage), corbeille, Nettoyage de disque, déplacer les données, jamais supprimer dans C:\\Windows ; démarrage impossible → détection, ordre de démarrage, mode UEFI/hérité, mode SATA (INACCESSIBLE_BOOT_DEVICE), réparation en PR11",
+    ],
+    competencies=[
+        "Choisir et justifier un support, une table de partitions et un système de fichiers selon l'usage et la compatibilité du PC",
+        "Établir un plan de partitions chiffré (Go/Gio) et rédiger les procédures Windows et Linux de création, formatage et montage",
+        "Travailler de façon non destructive : sauvegarde vérifiée, lecture prudente de SMART, entretien adapté (défragmentation ou TRIM), diagnostic d'un disque absent, non initialisé, RAW, plein ou d'un démarrage impossible",
+    ],
+    vocabulary=[
+        "HDD", "SSD", "NVMe", "M.2", "SATA", "secteur", "cluster", "TRIM", "wear leveling", "TBW", "Gio",
+        "MBR", "GPT", "ESP", "UEFI", "NTFS", "FAT32", "exFAT", "ext4", "volume", "SMART", "défragmentation",
+        "fstab", "UUID", "RAW",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si le choix ou le "
+        "geste est clair ; accepter les arrondis raisonnables des calculs Go/Gio ; suivre le "
+        "barème de la question. Ne jamais valider « le formatage rapide efface les données », "
+        "« défragmenter un SSD », FAT32 pour un fichier de plus de 4 Gio, MBR pour un disque de "
+        "plus de 2 To ou le disque système d'un PC UEFI, l'initialisation ou le formatage d'un "
+        "disque qui contenait des données avant récupération, une sauvegarde sur le même disque, "
+        "« PASSED donc disque sain », la suppression de la partition EFI ou de fichiers de "
+        "C:\\Windows, ni une commande diskpart clean ou parted sans identification du disque. "
+        "Pénaliser l'absence de sauvegarde vérifiée avant une opération sur les partitions."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -549,6 +599,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Reconditionnement, entretien et contrôles après intervention",
         items=PR04_ITEMS,
         context=_PR04_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR05",
+        title="Stockage, partitions, formatage et défragmentation",
+        items=PR05_ITEMS,
+        context=_PR05_CONTEXT,
     ),
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT
