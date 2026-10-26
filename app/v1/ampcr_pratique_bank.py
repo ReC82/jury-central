@@ -1,5 +1,5 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
-#197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24).
+#197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -27,6 +27,7 @@ from app.models import UAA, Module
 from app.v1 import question_types  # noqa: F401 — enregistre les types (#40) au chargement
 from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
+from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
@@ -332,7 +333,59 @@ _PR24_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR01_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr01",
+    course_title="AMPCR pratique écrite — PR01 Structure d'un PC et identification des composants",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : réponses rédigées de technicien à partir de descriptions, schémas, fiches "
+        "produits fictives et relevés d'inventaire"
+    ),
+    allowed_notions=[
+        "structure : unité centrale, composants internes, périphériques ; processeur, mémoire vive, stockage, carte mère, chipset, bloc d'alimentation (aucune donnée transportée)",
+        "cheminement des données : RAM, PCIe x16 principal et souvent le premier M.2 reliés au processeur ; SATA, USB, réseau, audio, M.2 et PCIe secondaires par le chipset et sa liaison partagée",
+        "formats ATX 305 × 244 mm (7 emplacements), microATX 244 × 244 mm (4), Mini-ITX 170 × 170 mm (1) ; carte plus petite dans un boîtier plus grand, jamais l'inverse ; limites du boîtier (longueur de carte graphique, hauteur de ventirad, bloc ATX/SFX) ; flux d'air",
+        "carte mère : socket LGA/PGA (AM4 PGA DDR4, AM5 LGA DDR5, LGA1700 DDR4 ou DDR5 selon la carte, LGA1851), liste des processeurs pris en charge et version du firmware ; chipset ; VRM (+12 V de l'EPS vers la tension du processeur) ; emplacements DIMM, PCIe (taille mécanique et lignes électriques, rétrocompatibilité), M.2 (clé, NVMe/SATA, 2280), SATA 7 contacts ; connecteurs internes USB 2.0 9 broches, USB 3.x 19 broches, HD_AUDIO, CPU_FAN, façade, pile CMOS, puce du firmware",
+        "processeur : socket, cœurs, fréquence, puissance thermique, mémoire prise en charge, partie graphique intégrée parfois absente ; cache volatile ; ventirad (socket, puissance dissipée, hauteur), pâte thermique, CPU_FAN",
+        "mémoires : RAM volatile ; ROM = puce flash du firmware, non volatile, réinscriptible par mise à jour, ne contient ni système ni fichiers ; stockage de masse non volatile (SSD, HDD, clé) ; DIMM 133,35 mm / SO-DIMM ; DDR3 240/204, DDR4 288/260, DDR5 288/262 contacts ; encoches et tensions différentes ; capacité maximale ; double canal selon le manuel ; ECC",
+        "firmware BIOS/UEFI (GPT, Secure Boot, CSM), POST, bips et LED selon le fabricant, pile CMOS (horloge, parfois réglages), effacement du CMOS sans perte de données, mise à jour sans coupure",
+        "stockage : HDD 3,5/2,5 pouces SATA, SSD SATA 2,5 pouces, M.2 SATA, M.2 NVMe (PCIe) ; SATA 6 Gbit/s ≈ 600 Mo/s utiles, PCIe 3.0 x4 ≈ 3,9 Go/s, 4.0 x4 ≈ 7,9 Go/s ; M.2 SATA non détecté dans un M.2 NVMe seul ; port SATA désactivé par un M.2 en SATA ; unités décimales et binaires (500 Go = 465,7G)",
+        "connecteurs du bloc : ATX 24 (20+4), EPS 8 (4+4) CPU, PCIe 6/8 (6+2), 16 broches 12V-2x6, SATA 15, Molex 4 ; EPS et PCIe 8 broches non interchangeables ; câbles modulaires d'origine uniquement",
+        "carte graphique : PCIe x16, 75 W par l'emplacement, connecteurs PCIe, longueur, épaisseur, puissance recommandée, sorties ; écran sur la carte graphique, sorties de la carte mère seulement avec partie graphique intégrée",
+        "ports : USB 2.0 480 Mbit/s, USB 3.2 Gen 1 5 Gbit/s, Gen 2 10 Gbit/s, Gen 2x2 20 Gbit/s, USB4 40 Gbit/s ; USB-C = forme, pas débit ; HDMI, DisplayPort, DVI, VGA ; RJ45 ; jacks vert sortie, rose micro, bleu clair entrée ligne ; PS/2",
+        "périphériques d'entrée, de sortie, d'entrée et de sortie ; pilote : logiciel qui fait dialoguer le système et le matériel, propre au système et à l'architecture 32/64 bits, site du fabricant ou Windows Update, Gestionnaire de périphériques, lspci, lsusb",
+        "compatibilité : physique, connecteur et détrompeur, interface électrique, alimentation, firmware/pilote/système ; « ça rentre » n'est pas « compatible » ; ne jamais inventer une caractéristique absente de la fiche",
+        "démarche écrite : observer, nommer, rôle, relier, vérifier, noter l'inventaire ; comparer installé et détecté ; précautions : secteur débranché, décharge, bracelet antistatique, sachet, bords, ne jamais forcer, ne jamais ouvrir un bloc",
+    ],
+    competencies=[
+        "Identifier et nommer exactement les composants et connecteurs d'un PC sur un schéma, une photo ou une description, et expliquer leur rôle et leurs liaisons",
+        "Interpréter un inventaire (fiche, relevé de commande) et un symptôme simple",
+        "Sélectionner une pièce compatible en justifiant chaque critère, et justifier le montage et les précautions ESD",
+    ],
+    vocabulary=[
+        "ATX", "microATX", "Mini-ITX", "socket", "LGA", "PGA", "chipset", "VRM", "EPS", "DIMM",
+        "SO-DIMM", "DDR4", "DDR5", "ROM", "UEFI", "POST", "CMOS", "SATA", "M.2", "NVMe", "PCIe",
+        "USB-C", "pilote", "ESD",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation techniquement "
+        "juste, sans exiger de mot-clé ni de sigle développé si le rôle est clair ; suivre le "
+        "barème de la question. Une identification fausse (ROM confondue avec le stockage, DIMM "
+        "avec SO-DIMM, EPS avec PCIe, USB-C présenté comme une vitesse) est toujours une erreur. "
+        "Ne jamais valider « même socket donc compatible » sans la liste des processeurs et le "
+        "firmware, « ça rentre donc c'est compatible », ni une caractéristique inventée absente "
+        "de la fiche. Pénaliser une manipulation sous tension, l'absence de précaution "
+        "antistatique et un composant forcé."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
+    PracticalCourse(
+        code="PR01",
+        title="Structure d'un PC et identification des composants",
+        items=PR01_ITEMS,
+        context=_PR01_CONTEXT,
+    ),
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT
     ),

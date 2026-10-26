@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : cours PR01 « Structure d'un PC et identification des composants » (ticket #202)
+
+Septième cours du parcours pratique et premier dans l'ordre pédagogique (UAA PR01 du module
+`AMPCR-PRATIQUE`, 19 blocs) : structure et cheminement des données, formats ATX/microATX/Mini-ITX,
+carte mère (socket, chipset, VRM, emplacements, connecteurs internes), processeur et
+refroidissement, RAM/ROM/stockage et barrettes DIMM/SO-DIMM, firmware BIOS/UEFI/POST/pile CMOS,
+stockage HDD/SSD SATA/NVMe, connecteurs du bloc et carte graphique, ports, périphériques et
+pilotes, grille de compatibilité, démarche écrite et précautions ESD ; 8 figures SVG (démarche,
+schéma-bloc des liaisons, formats à l'échelle, tour, plan de carte numéroté, barrettes à
+l'échelle, panneau arrière, arbre de compatibilité), tableaux de valeurs normalisées produits
+depuis des données testées ; 4 cas résolus, 16 exercices, mini-examen 10 questions /20 sans
+génération IA (`app/v1/ampcr_pratique_pr01_*.py`, `tests/test_ticket202_ampcr_pratique_pr01.py`).
+
 ## 2026-10-26 — AMPCR pratique écrite : cours PR24 « Dépannage réseau et Internet » (ticket #200)
 
 Sixième cours du parcours pratique (UAA PR24 du module `AMPCR-PRATIQUE`, 18 blocs) : matière
