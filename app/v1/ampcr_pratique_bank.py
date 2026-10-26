@@ -1,5 +1,5 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
-#197 : PR15 ; #198 : PR16).
+#197 : PR15 ; #198 : PR16 ; #199 : PR20).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -32,6 +32,7 @@ from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
+from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -235,6 +236,53 @@ _PR16_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR20_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr20",
+    course_title="AMPCR pratique écrite — PR20 IPv4, MAC, masques et passerelles",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : réponses rédigées de technicien à partir de plans d'adressage, de relevés "
+        "de commandes (ipconfig, ip addr, ip route) et de situations réseau fictifs"
+    ),
+    allowed_notions=[
+        "réseau local : carte réseau (interface), liaison Ethernet ou Wi-Fi, switch (MAC), routeur, passerelle, serveur DHCP, serveur DNS, box ; connectivité physique puis logique",
+        "adresse MAC : 48 bits, 12 chiffres hexadécimaux, OUI du fabricant + numéro de carte, rôle sur le lien local, unicité administrative, MAC aléatoires ou virtuelles (bit U/L à 1), modifiable ; MAC ≠ IP, MAC ≠ identité fiable, filtrage MAC ≠ sécurité ; ipconfig /all, getmac, ip link, arp -a, ip neigh",
+        "IPv4 : 32 bits, 4 octets 0-255, notation décimale pointée, partie réseau / hôte, unicast, adresse de réseau, diffusion ; privées 10.0.0.0/8, 172.16.0.0/12 (jusqu'à 172.31.255.255), 192.168.0.0/16 ; 127.0.0.1 bouclage ; 169.254.0.0/16 APIPA ; 0.0.0.0 non spécifiée",
+        "masque contigu, préfixe CIDR : /24 255.255.255.0 (254 hôtes), /25 .128 (126), /26 .192 (62), /27 .224 (30), /28 .240 (14), /30 .252 (2) ; réseau = IP ET masque, diffusion = bits d'hôte à 1, hôtes usuels = 2^(32−n) − 2 ; /31 et /32 en complément",
+        "même sous-réseau (même réseau et même masque) = communication directe ; sinon routeur ; masques différents = vues incohérentes",
+        "passerelle par défaut : routeur, dans le réseau du poste, sert à sortir du réseau ; route locale vs route par défaut 0.0.0.0/0 ; passerelle ≠ DNS",
+        "DNS : nom → IP ; ping par IP OK et par nom KO = résolution de noms, pas panne Internet ; nslookup, ipconfig /flushdns",
+        "DHCP : Discover, Offer, Request, Acknowledge ; bail ; options masque, passerelle, DNS ; statique vs dynamique ; réservation par MAC ; adresses fixes hors de l'étendue ; APIPA = aucun bail, indice et non preuve unique",
+        "Windows : ipconfig, ipconfig /all, /release, /renew, ping, tracert, nslookup, arp -a, route print ; lecture vs modification ; fenêtre Protocole Internet version 4",
+        "Linux : ip addr, ip route, ip neigh, ping -c, resolvectl si présent ; ip addr add / ip route add temporaires ; persistant via NetworkManager (nmcli), Netplan ou outil de la distribution, pas de commande universelle",
+        "plan d'adressage de 2 à 6 postes et équipements : même masque, passerelle, DNS ; pas de doublon, ni adresse de réseau ou de diffusion, adresses fixes hors étendue ou réservations ; connexion directe de deux PC dans le même réseau, sans passerelle, Auto MDI-X",
+        "diagnostic : lien, relevé, ping 127.0.0.1, propre IP, voisin ou passerelle, IP distante, nom ; ICMP parfois filtré par le pare-feu ; arp, routes, DHCP ; constat, hypothèse, test, résultat, action ; IP dupliquée, mauvais masque, mauvaise passerelle, DNS erroné, DHCP absent, APIPA, sous-réseaux incompatibles, câble débranché, carte désactivée, mauvaise interface",
+        "compte rendu : contexte, plan avant/après, commandes et observations, hypothèses, cause, corrections, tests de validation, risques et recommandations",
+    ],
+    competencies=[
+        "Calculer réseau, diffusion, plage et nombre d'hôtes ; convertir masque et préfixe ; dire si deux postes sont dans le même sous-réseau",
+        "Relever et interpréter MAC, IP, masque, passerelle et DNS (Windows, Linux) ; configurer un poste et rédiger un plan d'adressage cohérent",
+        "Diagnostiquer un défaut d'adressage en justifiant chaque test et rédiger le compte rendu",
+    ],
+    vocabulary=[
+        "adresse MAC", "OUI", "IPv4", "masque", "préfixe", "CIDR", "adresse de réseau",
+        "diffusion", "passerelle par défaut", "route par défaut", "DNS", "DHCP", "bail",
+        "réservation", "étendue", "APIPA", "bouclage", "RFC 1918", "ARP", "ICMP",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation "
+        "techniquement juste, sans exiger de mot-clé ; suivre le barème de la question ; "
+        "accepter toute autre adresse libre et cohérente quand plusieurs choix sont possibles. "
+        "Un calcul faux (réseau, diffusion, plage, nombre d'hôtes, masque ↔ préfixe), une "
+        "passerelle hors du réseau du poste, une adresse de réseau ou de diffusion attribuée à "
+        "un poste ou une adresse fixe placée dans l'étendue DHCP sont toujours des erreurs. Ne "
+        "jamais valider « 172.32.x.x est privée », « l'APIPA prouve que le serveur DHCP est en "
+        "panne », « ping par nom KO donc Internet en panne », « le filtrage MAC sécurise le "
+        "réseau » ni une commande Linux présentée comme universelle pour une configuration "
+        "persistante."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT
@@ -256,6 +304,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Câble coaxial et BNC — impédance, fabrication et diagnostic écrit",
         items=PR16_ITEMS,
         context=_PR16_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR20",
+        title="IPv4, MAC, masques et passerelles — configuration et diagnostics écrits",
+        items=PR20_ITEMS,
+        context=_PR20_CONTEXT,
     ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}

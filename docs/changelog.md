@@ -2,6 +2,15 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : cours PR20 « IPv4, MAC, masques et passerelles » (ticket #199)
+
+Cinquième cours du parcours pratique (UAA PR20 du module `AMPCR-PRATIQUE`, 16 blocs) : matière
+1-15 du ticket, 13 figures SVG (réseau de référence, MAC, bits /24 /26 /27, DORA, captures
+fictives `ipconfig /all`, `ip addr`/`ip route` et fenêtre IPv4, démarche de ping, 3 arbres de
+diagnostic) ; calculs d'adressage, plans et sorties de commandes produits par un modèle testé
+(`ipaddress`) ; 5 cas résolus, 20 exercices, mini-examen 10 questions /20 sans génération IA
+(`app/v1/ampcr_pratique_pr20_*.py`, `tests/test_ticket199_ampcr_pratique_pr20.py`).
+
 ## 2026-10-26 — AMPCR pratique écrite : cours PR16 « Câble coaxial et BNC » (ticket #198)
 
 Quatrième cours du parcours pratique (UAA PR16 du module `AMPCR-PRATIQUE`, 15 blocs) : matière
