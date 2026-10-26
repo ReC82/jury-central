@@ -4,7 +4,99 @@ Ticket : [#192 — [P0][AMPCR pratique] Socle du parcours écrit 2026-2027/1 et 
 
 **État réel : Installé — à tester** (socle livré ; les cours PR01–PR30 et exercices EX01–EX06 relèvent de tickets séparés, comme prévu par le ticket).
 
-**SHA installé : `f9ae4a4` (merge de la PR #210, reprise du 26/10 au soir)** — première livraison : `bc806b3` (PR #195).
+**SHA installé : `a31857a` (merge de la PR #212 — PDF officiel versionné, 26/10 vers 17 h UTC)** — livraisons précédentes : `f9ae4a4` (PR #210), `bc806b3` (PR #195).
+
+**Référence officielle accessible aux agents** : le PDF des consignes est versionné dans
+[`docs/references-officielles/ampcr/2026-2027-1/`](https://github.com/ReC82/jury-central/tree/develop/docs/references-officielles/ampcr/2026-2027-1)
+(copie identique, 6 pages vérifiées, empreinte contrôlée par test). La matrice de couverture
+s'appuie sur ce fichier.
+
+## Mise à jour du 2026-10-26 (fin d'après-midi) — PDF officiel mis à disposition des agents
+
+Suite au [commentaire du propriétaire](https://github.com/ReC82/jury-central/issues/192#issuecomment-6420503299)
+et à la section « P0 — Mettre le PDF officiel à disposition des agents » du ticket.
+**État réel : Installé — à tester.**
+
+### Constat avant intervention
+
+Le PDF **n'était pas dans le dépôt** : les livraisons précédentes ne gardaient que l'URL
+officielle et l'empreinte SHA-256, sans copie versionnée.
+
+### Ce qui a été fait
+
+- PDF retéléchargé depuis la source officielle des Jurys ; empreinte identique à celle
+  relevée le matin (`7a93c3858ffd67b42620bc5364aa9b8e964a379bdf255bbcd126b50c4df095e1`,
+  337 687 octets, PDF 1.7 créé le 2026-07-13).
+- **Les 6 pages ont été vérifiées** (texte extrait page par page, rendu de chaque page) :
+  p. 1 titre (cycle 2026-2027/1, CESS P, option AMPCR, examen pratique, Laboratoire + T.P.
+  méthodes) ; p. 2 grille horaire, programme 345/2007/249, titre visé ; p. 3 examen
+  **uniquement écrit**, épreuve commune, dispense à 10/20 sans dispense partielle,
+  présence à l'épreuve théorique requise ; p. 4 matériel autorisé/refusé, calculatrice
+  non programmable sur annonce, objets connectés ; p. 5 18 puces ; p. 6 20 puces.
+- **Matrice recoupée avec le PDF** : les 38 exigences AP-01…AP-38 figurent mot pour mot à
+  la page indiquée (18 p. 5 + 20 p. 6, aucune puce oubliée ni ajoutée). Deux écarts de
+  mise en forme seulement, sans effet sur le sens : « RAM-ROM » coupé en fin de ligne
+  dans le PDF, et la liste « T.P. ET MÉTHODES / LABORATOIRE » de la p. 3 rendue sur une
+  ligne dans les consignes du jour. Les compléments AP-C01/AP-C02 restent marqués
+  « complément pédagogique », hors liste officielle.
+- Fichiers ajoutés dans `docs/references-officielles/ampcr/2026-2027-1/` :
+  le PDF (nom officiel inchangé), `README.md` (source, empreinte, pages, contenu page par
+  page et usage dans le code, droits de redistribution, procédure pour un nouveau cycle)
+  et `transcription.md` (texte brut des 6 pages, le PDF fait foi).
+- `app/v1/ampcr_pratique_plan.py` : `OFFICIAL_SOURCE.repo_path` et
+  `OFFICIAL_SOURCE_REPO_URL` ; lien « copie versionnée » ajouté sur `/ampcr-pratique` et
+  `/ampcr-pratique/matrice`.
+- Modèles de tickets PR/EX (`app/v1/ampcr_pratique_tickets.py`, doc régénérée
+  `docs/ampcr_pratique_tickets.md`) : l'exigence transversale « Programme » renvoie au
+  chemin versionné. `docs/ampcr_pratique_v1.md` § 1 mis à jour.
+- Nouveau test `tests/test_ticket192_ampcr_pratique_reference.py` (6 tests) : empreinte du
+  fichier versionné, 6 pages (structure PDF et transcription), README complet, chaque
+  exigence officielle citée à sa page, 18 + 20 puces, consignes du jour présentes à leur
+  page, liens vers la copie sur les deux pages.
+
+### Droits de redistribution (choix documenté)
+
+Le site des Jurys ne publie aucune condition de réutilisation (l'adresse « Mentions
+légales » affichait « Page non trouvée » le 26/10). Le PDF est reproduit à l'identique
+dans le dépôt (public) pour trois raisons : document administratif officiel librement
+téléchargeable ; les actes officiels de l'autorité sont exclus du droit d'auteur (art.
+XI.172, § 2, du Code de droit économique belge) ; le dépôt versionne déjà des sources
+officielles (`docs/sources_cours/`). Le README précise la non-affiliation et la conduite à
+tenir en cas de demande de retrait (garder URL, empreinte et transcription structurée).
+Ce n'est pas un avis juridique : si vous préférez ne pas redistribuer le PDF, il suffit de
+le retirer, tout le reste fonctionne avec l'URL et l'empreinte.
+
+### Vérifications
+
+- 45 tests #192 réussis (6 nouveaux) ; `ruff check` propre sur les fichiers Python touchés.
+- Installation : base sauvegardée avant, fast-forward `e344258` → `a31857a`, aucun
+  changement de `pyproject.toml` ni de contenu seedé (pas de seed), services
+  `jury-central` et `jury-central-correction-worker` actifs, `/health` OK en local et en
+  public, `/ampcr-pratique`, `/ampcr-pratique/matrice`, `/ampcr-pratique/format-exercice`,
+  `/modules/ampcr`, `/` en HTTP 200, lien vers la copie versionnée servi sur les deux pages,
+  compteurs inchangés (18 comptes / 79 sessions / 636 réponses), dossier GitHub en HTTP 200.
+- Non fait : aucun contrôle visuel du rendu (seuls deux liens textuels ont été ajoutés).
+
+### Email de notification
+
+Les sessions de travail n'ont pas accès au SMTP (interdit par les règles du projet) :
+l'email de fin de ticket est envoyé par l'orchestrateur `jcorch`, avec ce rapport en pièce
+jointe. Cette session ne peut donc pas certifier elle-même l'envoi.
+
+### Décisions demandées au propriétaire
+
+1. **Redistribution du PDF** dans le dépôt public : la conserver ? Recommandation : oui
+   (document officiel public, reproduit à l'identique, retrait possible à tout moment).
+2. **Découpage PR01–PR30** et 3. **examen blanc transversal** : questions précédentes
+   toujours ouvertes (voir section suivante).
+
+### Pour tester
+
+- Dossier de référence : https://github.com/ReC82/jury-central/tree/develop/docs/references-officielles/ampcr/2026-2027-1
+- Matrice (lien « Copie versionnée dans le dépôt » sous le titre) : https://jury-central.lodylands.com/ampcr-pratique/matrice
+- Accueil (lien « copie versionnée » dans les consignes du jour) : https://jury-central.lodylands.com/ampcr-pratique
+
+
 
 ## Mise à jour du 2026-10-26 (soir) — exigences pédagogiques et visuelles du propriétaire
 
