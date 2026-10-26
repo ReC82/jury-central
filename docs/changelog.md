@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR05 « Stockage, partitions, formatage et défragmentation » (ticket #206)
+
+Onzième cours du parcours pratique et cinquième dans l'ordre pédagogique (UAA PR05 du module
+`AMPCR-PRATIQUE`, 21 blocs) : disque dur, SSD SATA et NVMe, interfaces SATA et M.2,
+secteurs/clusters/pages et usure, unités Go/Gio, partitions et volumes, MBR/GPT, démarrage UEFI
+et partition EFI, trois plans de partitions exacts, formatage logique et NTFS/FAT32/exFAT/ext4,
+choix selon l'usage, Gestion des disques et diskpart, lsblk/parted/mkfs/fstab, sauvegarde
+préalable et opérations non destructives, SMART interprété prudemment (dont erreurs CRC),
+défragmentation contre TRIM, symptômes (disque absent, non initialisé, RAW, plein, démarrage
+impossible) ; 5 procédures illustrées et 11 figures SVG depuis des données testées ; 4 cas
+résolus, 16 exercices, mini-examen 10 questions /20 sans génération IA
+(`app/v1/ampcr_pratique_pr05_*.py`, `tests/test_ticket206_ampcr_pratique_pr05.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR04 « Reconditionnement, entretien et contrôles après intervention » (ticket #205)
 
 Dixième cours du parcours pratique et quatrième dans l'ordre pédagogique (UAA PR04 du module

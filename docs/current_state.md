@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR06, PR11, PR15, PR16, PR20 et PR24),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR11, PR15, PR16, PR20 et PR24),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -245,6 +245,18 @@ déchets, rapport ; cas, pièges, exercices, mini-examen, mémo, sources). 5 pro
 batterie et températures, tri des déchets **définis par code**
 (`app/v1/ampcr_pratique_pr04_figures.py`) et contrôlés par les tests. 4 cas résolus,
 16 exercices, mini-examen 10 questions /20. Situations fictives ; aucune image générée.
+
+**Onzième cours publié (ticket #206) : PR05 « Stockage, partitions, formatage et
+défragmentation »** (`/uaa/ampcr-pratique-pr05`), même intégration, cinquième cours de l'ordre
+pédagogique. 21 blocs (14 chapitres : supports HDD/SSD SATA/NVMe, interfaces SATA et M.2,
+secteurs/clusters/usure, Go et Gio, MBR/GPT, démarrage UEFI et plans de partitions, formatage et
+systèmes de fichiers, choix selon l'usage, partitions sous Windows et Linux, sauvegarde et
+opérations non destructives, SMART prudent, défragmentation et TRIM, symptômes ; cas, pièges,
+exercices, mini-examen, mémo, sources). 5 procédures illustrées, 11 figures SVG (dont 4 plans de
+partitions exacts) ; conversions d'unités, choix MBR/GPT, système de fichiers, entretien et
+lecture SMART (câble) **définis par code** (`app/v1/ampcr_pratique_pr05_figures.py`) et contrôlés
+par les tests. 4 cas résolus, 16 exercices, mini-examen 10 questions /20. Situations fictives ;
+aucune image générée.
 
 ## Administration
 
