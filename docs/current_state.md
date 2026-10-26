@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06 et PR11),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -144,6 +144,18 @@ module théorique `AMPCR` (cours, banque, sessions et progression distincts). Co
 10 questions à réponse libre (2 points chacune, note affichée sur 20). Réserves séparées par
 `QuestionVersion.prompt_version` (`ampcr-pratique-pr06:practice|exam`), strictement banque
 (aucune génération IA). Voir `app/v1/ampcr_pratique_bank.py`.
+
+**Deuxième cours publié (ticket #194) : PR11 « Messages d'erreur Windows/Linux — diagnostic et
+interventions écrites »** (`/uaa/ampcr-pratique-pr11`), même module et même intégration que
+PR06. 16 blocs (matière 1-6 du ticket : méthode universelle, démarrage et partitions, Windows,
+Linux, réseau et pannes intermittentes, compte rendu), 11 figures SVG construites sur données
+testées (arbre « à quelle étape l'erreur survient-elle ? », flux lire → valider, plan GPT,
+8 captures fictives : Windows Boot Manager, WinRE, écran bleu, Observateur d'événements,
+Gestionnaire de périphériques, terminaux Linux), 5 cas résolus, 16 exercices corrigés
+(6 analyses de captures/journaux, 6 procédures dont 2 remises en ordre `ordering`, 4 cas
+croisés), mini-examen de 10 questions /20. Nouveautés partagées : documents d'exercice
+« console » (mise en page `console` de `_document_layouts.html`, police à chasse fixe) et
+questions `ordering` dans la banque pratique (`Ordering`, `item_content`).
 
 ## Administration
 

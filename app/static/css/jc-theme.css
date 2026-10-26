@@ -1432,6 +1432,9 @@ a.jc-quiz-row:hover { border-color: var(--jc-primary); color: var(--jc-ink); }
 .jc-pr-doc-title { font-weight: 700; font-size: .9rem; margin-bottom: .4rem; }
 .jc-pr-doc-table { font-size: .875rem; margin-bottom: 0; }
 .jc-pr-doc-table th { background: #eef1f8; }
+/* Ticket #194 : captures de terminal et extraits de journaux (cours et sessions PR11). */
+.jc-sd-console, .jc-pr-console { font-family: ui-monospace, "DejaVu Sans Mono", Consolas, monospace; font-size: .8rem; line-height: 1.45; background: #111827; color: #e5e7eb; border-radius: var(--jc-radius-sm); padding: .6rem .75rem; margin: 0; white-space: pre; overflow-x: auto; }
+@media print { .jc-sd-console, .jc-pr-console { background: #fff; color: #000; border: 1px solid #555; white-space: pre-wrap; } }
 @media print {
     .jc-pr-doc, .jc-exercise-card { break-inside: avoid; }
     .jc-exercise-correction[open] { break-before: auto; }

@@ -1,4 +1,4 @@
-"""Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193, premier cours PR06).
+"""Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -28,6 +28,7 @@ from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
+from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -93,9 +94,63 @@ _PR06_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR11_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr11",
+    course_title="AMPCR pratique écrite — PR11 Messages d'erreur Windows/Linux",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : réponses rédigées de technicien à partir de captures et de journaux fictifs"
+    ),
+    allowed_notions=[
+        "recueil : texte exact, code, contexte, date, déclencheur, changements récents, périmètre, criticité, données à préserver",
+        "stades : firmware/POST, chargeur, noyau/système, session, service, application, pilote, périphérique, stockage, réseau",
+        "code d'erreur, cause probable, hypothèse, test de confirmation, résultat attendu, action corrective ; documentation fiable, pas de cause unique tirée d'un code ambigu",
+        "ordre : sauvegarde, preuves, tests simples, réparation réversible, opération invasive avec autorisation, validation",
+        "No bootable device / Operating system not found / Reboot and Select proper Boot device : détection, UEFI/GPT ou hérité/MBR, ordre de démarrage, câblage, partition EFI, chargeur",
+        "Windows Boot Manager, BCD (0xc000000f), WinRE (réparation du démarrage, restauration, désinstallation de mises à jour, mode sans échec), prudence avec bootrec, bcdboot, diskpart",
+        "GRUB rescue, initramfs (UUID introuvable), emergency mode, /etc/fstab, UUID, nofail, mount -a",
+        "écrans bleus : code d'arrêt, fichier cité, BugCheck 1001, Kernel-Power 41, 6008, redémarrage automatique ; pilotes, RAM, disque, mise à jour, température comme hypothèses",
+        "Gestionnaire de périphériques : périphérique inconnu, triangle, désactivé, Codes 10, 22, 28, 43, restaurer le pilote",
+        "Observateur d'événements : Système, Application, niveau, source, ID, heure ; corrélation n'est pas causalité",
+        "Gestion des disques (hors ligne, non initialisé, sans lettre, RAW, plein), services (statut, type de démarrage, compte, dépendances)",
+        "ipconfig /all, ping, nslookup, tracert, sfc /scannow, DISM /RestoreHealth, chkdsk (lecture seule, /f, /r), gestionnaire des tâches, msconfig ; diagnostic ou modification",
+        "Windows Update (0x80070070 espace insuffisant), profil temporaire (1511), droits, applications",
+        "Linux : systemctl status/start/restart/enable, journalctl -b -u -p, dmesg, df -h, df -i, du, lsblk, mount, ip addr, ip route, ss, resolvectl/dig, lsof +L1",
+        "droits rwx, propriétaire, groupe, chmod, chown, jamais chmod 777 ; apt et dnf selon la distribution",
+        "réseau : APIPA 169.254, passerelle, DNS, conflit IP, imprimante hors ligne ; un poste ou tous",
+        "pannes intermittentes : chronologie, conditions, changements, preuves, répétition",
+        "compte rendu : demande, environnement, symptômes, preuves, hypothèses, tests, résultats, cause (ou non déterminée), action et autorisation, validation, risques, recommandation, clôture",
+    ],
+    competencies=[
+        "Interpréter un message d'erreur, une capture ou un journal fictif et situer le stade de l'erreur",
+        "Rédiger une procédure de diagnostic ordonnée et non destructive sous Windows et sous Linux",
+        "Proposer une réparation réversible d'abord, avec sauvegarde et autorisation, sa validation et un compte rendu",
+    ],
+    vocabulary=[
+        "BCD", "WinRE", "UEFI", "CSM", "GPT", "MBR", "ESP", "STOP code", "BugCheck",
+        "Kernel-Power 41", "Code 43", "SFC", "DISM", "chkdsk", "GRUB", "initramfs", "fstab",
+        "UUID", "systemd", "journalctl", "inode", "APIPA",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation "
+        "techniquement juste, sans exiger de mot-clé ni l'orthographe exacte d'une commande si "
+        "l'outil et son rôle sont clairs ; suivre le barème de la question ; valoriser la "
+        "méthode, la sécurité des données, les tests et la justification ; pénaliser un "
+        "formatage, une réinstallation, une initialisation de disque, un chkdsk /r, un fsck sur "
+        "un volume monté ou un chmod 777 proposés sans précaution ; ne jamais valider une cause "
+        "unique affirmée à partir d'un seul code ou d'une simple coïncidence."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT
+    ),
+    PracticalCourse(
+        code="PR11",
+        title="Messages d'erreur Windows/Linux — diagnostic et interventions écrites",
+        items=PR11_ITEMS,
+        context=_PR11_CONTEXT,
     ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}
@@ -128,6 +183,14 @@ def restrict_to_mode(questions: list[Question], mode_value: str | None) -> list[
 
 
 def _document_layout(document: ExerciseDocument) -> dict | None:
+    if document.kind == "console":
+        # Ticket #194 : capture de terminal ou extrait de journal, affiché en police à chasse
+        # fixe, ligne à ligne (`_document_layouts.html`, mise en page « console »).
+        return {
+            "kind": "console",
+            "lines": document.content_text.splitlines(),
+            "notice": "Extrait fictif reconstitué pour l'exercice (messages au format réel).",
+        }
     if document.kind != "tableau":
         return None
     rows = document.table_rows()
@@ -159,6 +222,14 @@ def item_content(item: PR06Item, document_version_ids: list[int]) -> dict:
             categories=list(item.classification.categories),
             elements=list(item.classification.elements),
             correct_categories=list(item.classification.correct),
+            explanation=" ".join(item.correction),
+        )
+    elif item.question_type == "ordering":
+        assert item.ordering is not None
+        ids = [f"etape-{i + 1}" for i in range(len(item.ordering.steps))]
+        content.update(
+            items=[{"id": ids[i], "label": step} for i, step in enumerate(item.ordering.steps)],
+            correct_order=[ids[i] for i in item.ordering.correct],
             explanation=" ".join(item.correction),
         )
     else:

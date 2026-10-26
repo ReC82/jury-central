@@ -41,6 +41,7 @@ le plan est du code (`app/v1/ampcr_pratique_plan.py`), lu en lecture seule.
 | Cours | URL | Banque |
 |---|---|---|
 | PR06 — Diagnostic des pannes matérielles (#193) | `/uaa/ampcr-pratique-pr06` | 12 exercices (entraînement) + 10 questions de mini-examen /20 (examen blanc) |
+| PR11 — Messages d'erreur Windows/Linux — diagnostic et interventions écrites (#194) | `/uaa/ampcr-pratique-pr11` | 16 exercices (entraînement, dont 2 remises en ordre) + 10 questions de mini-examen /20 (examen blanc) |
 
 Intégration d'un cours pratique (modèle posé par PR06, à réutiliser par PR11, PR15…) :
 
@@ -55,6 +56,11 @@ Intégration d'un cours pratique (modèle posé par PR06, à réutiliser par PR1
 4. Réserves : `prompt_version = ampcr-pratique-prxx:practice|exam` ; la sélection banque
    (`select_bank_questions(mode=…)`) ne mélange jamais les deux ; aucune génération IA pour ces
    cours ; note ramenée sur 20 sur la page de résultats.
+5. Documents d'exercice : `ExerciseDocument(kind="tableau")` (tableau), `kind="console"`
+   (capture de terminal ou extrait de journal, affiché ligne à ligne en police à chasse fixe,
+   mention « extrait fictif » — ticket #194) ou texte. Remise en ordre d'une procédure :
+   `question_type="ordering"` + `Ordering(steps, correct)` (jamais affichée dans l'ordre
+   attendu, correction locale).
 
 ## 3. Statut d'une exigence
 

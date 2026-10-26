@@ -479,3 +479,48 @@ def board_plan_svg(parts_data: tuple[BoardPart, ...], *, width: int = 380, heigh
                 f'font-weight="700" text-anchor="middle">{escape(line)}</text>'
             )
     return _svg(width, height, parts)
+
+
+# --- Helper ajouté au ticket #194 (PR11) ----------------------------------------------------
+
+
+@dataclass(frozen=True)
+class PartitionSegment:
+    key: str
+    lines: tuple[str, ...]  # libellés affichés dans la case (nom, système de fichiers, taille)
+    weight: int  # largeur relative de la case (lisibilité, pas à l'échelle)
+
+
+def partition_map_svg(disks: tuple[tuple[str, tuple[PartitionSegment, ...]], ...]) -> str:
+    """Plan de partitionnement : une barre par disque (titre au-dessus), une case par
+    partition, de gauche (début du disque) à droite. Chaque case porte son texte ; la
+    largeur n'est pas à l'échelle (petites partitions lisibles)."""
+    width, bar_h, left = 380, 62, 4
+    usable = width - 2 * left
+    parts: list[str] = []
+    y = 6
+    for title, segments in disks:
+        parts.append(_text_lines(left, y + 12, [title], size=12.5, weight="700"))
+        y += 20
+        total = sum(s.weight for s in segments)
+        x = float(left)
+        for segment in segments:
+            seg_w = usable * segment.weight / total
+            parts.append(
+                f'<rect data-partition="{escape(segment.key)}" x="{x:.1f}" y="{y}" width="{seg_w:.1f}" '
+                f'height="{bar_h}" fill="#f4f6fb" stroke="#33415c" stroke-width="1.5"/>'
+            )
+            cx = x + seg_w / 2
+            for i, line in enumerate(segment.lines):
+                parts.append(
+                    f'<text x="{cx:.1f}" y="{y + 18 + 15 * i}" font-size="11" '
+                    f'font-weight="{"700" if i == 0 else "400"}" text-anchor="middle">{escape(line)}</text>'
+                )
+            x += seg_w
+        y += bar_h + 8
+        parts.append(
+            f'<text x="{left}" y="{y + 4}" font-size="10">début du disque</text>'
+            f'<text x="{width - left}" y="{y + 4}" font-size="10" text-anchor="end">fin du disque</text>'
+        )
+        y += 18
+    return _svg(width, y, parts)

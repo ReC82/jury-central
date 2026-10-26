@@ -280,6 +280,10 @@ Texte toujours issu de la version exacte du document ; rendu générique lisible
 {{ card_grid(layout.after["items"]) }}
 {% endif %}
 
+{% elif kind == "console" %}
+{# Ticket #194 : capture de terminal / extrait de journal (AMPCR pratique), ligne à ligne. #}
+<pre class="jc-sd-console" tabindex="0">{{ layout.lines | join("\n") }}</pre>
+
 {% elif kind == "budget" %}
 <div class="jc-sd-budget">
     {% for section in layout.sections %}
