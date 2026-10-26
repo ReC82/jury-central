@@ -2,6 +2,15 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : cours PR11 « Messages d'erreur Windows/Linux » (ticket #194)
+
+Deuxième cours du parcours pratique (UAA PR11 du module `AMPCR-PRATIQUE`, 16 blocs) : matière
+1-6 du ticket, 11 figures SVG sur données testées (arbre de décision par stade, flux
+d'intervention, partitionnement GPT, 8 captures fictives Windows/Linux), 5 cas résolus,
+16 exercices corrigés, mini-examen 10 questions /20 sans génération IA. Banque pratique :
+documents « console » (nouvelle mise en page `console`) et remises en ordre `ordering`
+(`app/v1/ampcr_pratique_pr11_*.py`, `app/v1/ampcr_pratique_bank.py`).
+
 ## 2026-10-26 — AMPCR pratique écrite : numérotation PR01–PR30 / EX01–EX06 alignée sur les tickets (ticket #236)
 
 Audit des 36 tickets GitHub contre le plan installé : seuls PR01, PR06, PR11 et PR15 portaient

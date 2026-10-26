@@ -245,9 +245,9 @@ def test_seed_creates_separate_practical_module_idempotently(db_session):
     blocks = len(uaa.lesson_blocks)
     seed()
     db_session.expire_all()
-    assert len(db_session.query(UAA).filter_by(module_id=module.id).all()) == 1
+    assert db_session.query(UAA).filter_by(module_id=module.id, code="PR06").count() == 1
     assert len(db_session.get(UAA, uaa.id).lesson_blocks) == blocks == len(pr06_course_sections())
-    assert set(plan.published_uaas(db_session)) == {"PR06"}
+    assert "PR06" in set(plan.published_uaas(db_session))  # PR11 (#194) publié ensuite
 
 
 def test_bank_import_reserves_and_documents(db_session):
@@ -309,7 +309,7 @@ def test_course_page_renders_figures_exercises_and_navigation(client, db_session
 def test_practical_home_and_matrix_show_pr06_published(client, db_session):
     _pr06(db_session)
     home = client.get("/ampcr-pratique").text
-    assert f'href="/uaa/{SLUG}"' in home and "1 cours publiés" in home
+    assert f'href="/uaa/{SLUG}"' in home and "cours publiés" in home
     matrix = _text(client.get("/ampcr-pratique/matrice").text)
     assert "partiel" in matrix
     # Aucune exigence n'est déclarée validée sans validation explicite.

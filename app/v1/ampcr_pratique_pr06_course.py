@@ -48,6 +48,8 @@ def _req(req_id: str) -> str:
 
 
 def _table_html(document: ExerciseDocument) -> str:
+    if document.kind == "console":  # ticket #194 : terminal / journal, ligne à ligne
+        return f'<pre class="jc-pr-console" tabindex="0">{escape(document.content_text)}</pre>'
     if document.kind != "tableau":
         return f'<p class="jc-pr-doc-text">{escape(document.content_text)}</p>'
     header, *rows = document.table_rows()
@@ -69,7 +71,7 @@ def _document_html(document: ExerciseDocument) -> str:
     )
 
 
-def _exercise_card(number: int, item: PR06Item) -> str:
+def _exercise_card(number: int, item: PR06Item, anchor_prefix: str = "pr06") -> str:
     reqs = ", ".join(item.requirement_ids)
     documents = "".join(_document_html(d) for d in item.documents)
     elements = ""
@@ -80,6 +82,12 @@ def _exercise_card(number: int, item: PR06Item) -> str:
             + "".join(f"<li>{escape(e)}</li>" for e in item.classification.elements)
             + "</ol>"
         )
+    if item.ordering is not None:  # ticket #194 : procédure à remettre en ordre
+        elements = (
+            '<p class="small mb-1"><strong>Étapes à remettre en ordre :</strong></p><ul>'
+            + "".join(f"<li>{escape(step)}</li>" for step in item.ordering.steps)
+            + "</ul>"
+        )
     instructions = "".join(f"<li>{escape(text)}</li>" for text in item.instructions)
     criteria = "".join(
         f"<tr><td>{escape(c.label)}</td><td>{c.points:g}</td><td>{escape(c.expected)}</td></tr>"
@@ -87,7 +95,7 @@ def _exercise_card(number: int, item: PR06Item) -> str:
     )
     correction = "".join(f"<p>{escape(step)}</p>" for step in item.correction)
     return (
-        f'<div class="jc-exercise-card" id="pr06-{item.key.lower()}">\n'
+        f'<div class="jc-exercise-card" id="{anchor_prefix}-{item.key.lower()}">\n'
         f'<div class="jc-exercise-card-header"><span class="jc-exercise-number" aria-hidden="true">{number}</span>'
         f'<h4 class="jc-exercise-title">{escape(item.title)}</h4></div>\n'
         f'<p class="small text-muted mb-2">{escape(item.key)} · {escape(item.kind)} · exigences {escape(reqs)} · '

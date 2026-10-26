@@ -46,11 +46,20 @@ class Classification:
 
 
 @dataclass(frozen=True)
+class Ordering:
+    """Remise en ordre d'une procédure (ticket #194, PR11) : `steps` dans l'ordre affiché
+    (jamais l'ordre attendu), `correct` = indices de `steps` dans l'ordre attendu."""
+
+    steps: tuple[str, ...]
+    correct: tuple[int, ...]
+
+
+@dataclass(frozen=True)
 class PR06Item:
     key: str  # E01..E12 (exercices) / X01..X10 (mini-examen)
     usage: str
     title: str
-    question_type: str  # short_answer | long_answer | document_analysis | classification
+    question_type: str  # short_answer | long_answer | document_analysis | classification | ordering
     requirement_ids: tuple[str, ...]
     kind: str  # « scénario » | « analyse de document »
     context: str
@@ -59,6 +68,7 @@ class PR06Item:
     correction: tuple[str, ...]  # corrigé étape par étape
     documents: tuple[ExerciseDocument, ...] = ()
     classification: Classification | None = None
+    ordering: Ordering | None = None
 
     @property
     def total_points(self) -> float:
@@ -860,6 +870,12 @@ def validate_items() -> list[str]:
         errors += [f"{item.key} : {e}" for e in validate_exercise(item.as_exercise())]
         if item.question_type == "classification" and item.classification is None:
             errors.append(f"{item.key} : classification sans données.")
+        if item.question_type == "ordering" and (
+            item.ordering is None
+            or sorted(item.ordering.correct) != list(range(len(item.ordering.steps)))
+            or list(item.ordering.correct) == list(range(len(item.ordering.steps)))
+        ):
+            errors.append(f"{item.key} : remise en ordre invalide ou déjà dans l'ordre attendu.")
         if item.question_type == "document_analysis" and not item.documents:
             errors.append(f"{item.key} : analyse de document sans document.")
     for item in EXAM_ITEMS:

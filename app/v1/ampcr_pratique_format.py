@@ -25,7 +25,7 @@ from app.v1.question_types import QUESTION_TYPE_REGISTRY
 @dataclass(frozen=True)
 class ExerciseDocument:
     title: str
-    kind: str  # "texte" | "tableau" | "schéma"
+    kind: str  # "texte" | "tableau" | "schéma" | "console" (terminal, journal — ticket #194)
     content_text: str
 
     def table_rows(self) -> list[list[str]]:
