@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06, PR11, PR15, PR16, PR20 et PR24),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR06, PR11, PR15, PR16, PR20 et PR24),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -200,6 +200,19 @@ et relus par les tests (statistiques, premier saut, réponses DNS, largeur mobil
 caractères). 6 cas résolus, 6 tableaux symptôme → test discriminant → action, 20 exercices
 (8 analyses de relevés, 5 arbres/procédures, 4 dossiers multi-postes, 3 rapports), mini-examen
 10 questions /20 (`app/v1/ampcr_pratique_pr24_*.py`). Aucune image générée.
+
+**Septième cours publié (ticket #202) : PR01 « Structure d'un PC et identification des
+composants »** (`/uaa/ampcr-pratique-pr01`), même intégration, premier cours de l'ordre
+pédagogique PR01 → PR30 demandé par le propriétaire. 19 blocs (13 chapitres : structure et
+cheminement des données, formats et boîtier, carte mère, processeur et refroidissement,
+RAM/ROM/stockage et barrettes, firmware, stockage, connecteurs du bloc et carte graphique, ports,
+périphériques et pilotes, compatibilité, démarche écrite et ESD ; cas, pièges, exercices,
+mini-examen, mémo, sources). 8 figures SVG ; valeurs normalisées (formats, contacts des
+barrettes, débits PCIe/USB/SATA) et relevés d'inventaire fictifs (`lsblk`, `Get-CimInstance`)
+**produits par code** (`app/v1/ampcr_pratique_pr01_figures.py`) et recalculés par les tests.
+4 cas résolus, 16 exercices (identifications, inventaires, choix de pièces compatibles,
+scénarios, procédures), mini-examen 10 questions /20 (`app/v1/ampcr_pratique_pr01_*.py`).
+Fiches produits fictives ; aucune image générée.
 
 ## Administration
 
