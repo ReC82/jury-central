@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : cours PR03 « Montage et démontage d'un PC — procédure écrite » (ticket #204)
+
+Neuvième cours du parcours pratique et troisième dans l'ordre pédagogique (UAA PR03 du module
+`AMPCR-PRATIQUE`, 20 blocs) : préparation du poste (outillage, ESD, inventaire, photos),
+sauvegarde, autorisation et état initial, compatibilité avant montage, ordre de montage
+justifié, processeur LGA/PGA, pâte thermique et ventirad, mémoire et M.2, entretoises et plaque
+d'E/S, bloc, disques et carte graphique, câblage et connecteur de façade, contrôle visuel,
+premier démarrage (POST, UEFI, tests mémoire/températures/SMART), câbles et flux d'air,
+démontage documenté (visserie, pièces fragiles), remplacement d'un composant et pannes au
+premier démarrage ; 5 procédures illustrées et 9 figures SVG depuis des données testées ;
+4 cas résolus, 16 exercices, mini-examen 10 questions /20 sans génération IA
+(`app/v1/ampcr_pratique_pr03_*.py`, `tests/test_ticket204_ampcr_pratique_pr03.py`).
+
 ## 2026-10-26 — AMPCR pratique écrite : cours PR02 « Alimentation, connectique, compatibilité et sécurité » (ticket #203)
 
 Huitième cours du parcours pratique et deuxième dans l'ordre pédagogique (UAA PR02 du module
