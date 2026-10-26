@@ -4,13 +4,97 @@ Ticket : [#192 — [P0][AMPCR pratique] Socle du parcours écrit 2026-2027/1 et 
 
 **État réel : Installé — à tester** (socle livré ; les cours PR01–PR30 et exercices EX01–EX06 relèvent de tickets séparés, comme prévu par le ticket).
 
-**SHA installé : `bc806b3` (merge de la PR #195)**
+**SHA installé : `f9ae4a4` (merge de la PR #210, reprise du 26/10 au soir)** — première livraison : `bc806b3` (PR #195).
+
+## Mise à jour du 2026-10-26 (soir) — exigences pédagogiques et visuelles du propriétaire
+
+Suite au [commentaire du propriétaire](https://github.com/ReC82/jury-central/issues/192#issuecomment-6420068023)
+et au corps du ticket complété (directives pédagogiques et visuelles, contrat de fin de
+ticket). **État réel : Installé — à tester.**
+
+### Ce qui a changé
+
+1. **Numérotation réalignée sur les tickets déjà rédigés** : le plan livré plaçait le
+   diagnostic matériel en PR14 et le RJ45 en PR19, alors que #193 = **PR06**, #194 = **PR11**,
+   #197 = **PR15**. Nouveau découpage (`app/v1/ampcr_pratique_plan.py`) : P1 Matériel
+   PR01–PR05 ; P2 Intervention et dépannage matériel PR06–PR08 ; P3 Systèmes d'exploitation
+   et messages d'erreur PR09–PR14 ; P4 Câbles PR15–PR19 (RJ45, types/débits,
+   caractéristiques, fibre, BNC) ; P5 Réseau PR20–PR24 ; P6 Partages et dépannage réseau
+   PR25–PR30. Les 38 exigences restent toutes rattachées à un cours et un examen ; matrice
+   et `docs/ampcr_pratique_v1.md` régénérées. Les sections ci-dessous qui citent l'ancienne
+   numérotation sont remplacées par celle-ci.
+2. **Modèle de ticket détaillé pour les 30 cours et 6 examens** :
+   [`docs/ampcr_pratique_tickets.md`](https://github.com/ReC82/jury-central/blob/develop/docs/ampcr_pratique_tickets.md)
+   — mode d'emploi, gabarit commun, exigences transversales (programme non improvisé,
+   compléments signalés, visuels, évaluation, intégration), **contrat de fin de ticket**
+   (rapport, email, commentaire), **checklist de validation éditoriale et visuelle**, et
+   l'amorce des 36 tickets (titre, module, examen, exigences officielles en texte exact,
+   théorie MC à réutiliser, écarts connus, sections « À compléter » pour la matière que vous
+   rédigez). Généré depuis le plan (`python -m app.v1.ampcr_pratique_tickets`, ou `… PR07`
+   pour un ticket complet prêt à coller) ; un test garantit qu'il reste synchronisé.
+3. **Schémas techniques vérifiables** : `app/v1/ampcr_pratique_visuals.py` — figures SVG
+   construites depuis des données (codes T568A/T568B testés, démarche en étapes, rangée de
+   broches 8P8C avec fils blancs rayés pour le noir et blanc), accessibles (`role="img"`,
+   titre, description, légende, mention « schéma non officiel »), fluides sur mobile et non
+   coupées à l'impression. `validate_figure` refuse un schéma sans texte alternatif, sans
+   légende, sans `viewBox`, avec script, ressource externe ou faux « officiel ».
+   Démonstration : `/ampcr-pratique/format-exercice` (document 2 = schémas des deux
+   connecteurs de l'exemple, tirés des mêmes données que le tableau ; démarche
+   d'intervention en 6 étapes).
+4. **Audit des capacités visuelles** (`docs/ampcr_pratique_v1.md` § 7) : génération d'images
+   par API déjà en place (#108/#136 : commande manuelle, ≤ 2 essais, fichier statique + JSON
+   du prompt, jamais à la consultation) — réservée aux scènes/gestes, jamais aux broches,
+   textes ou valeurs ; aucune bibliothèque de diagrammes installée ; Mermaid et Graphviz
+   écartés à ce stade (poids JS / binaire système = infrastructure).
+
+### Vérifications
+
+- 39 tests #192 verts (19 existants + 20 nouveaux : numérotation #193/#194/#197, codes
+  T568A/B, ordre des broches dessinées, cohérence schéma/tableau/correction de l'exemple,
+  garde-fous des figures, page format, synchronisation et contenu des 36 amorces).
+- `ruff check` sans erreur sur les fichiers touchés. Suite complète non relancée (aucun
+  changement du moteur partagé, modèles, sessions, seed ou `app/main.py`).
+- Rendu réel contrôlé en Chromium headless : schémas à 360-390 px de large (lisibles, cadre
+  corrigé), page complète en mobile ; impression A4 = 3 pages (fiche, corrigé, démarche),
+  aperçu PDF non inspecté visuellement page par page.
+- Après installation : services actifs, `/health` OK (local et public), `/ampcr-pratique`,
+  `/matrice`, `/format-exercice` en 200 (3 figures servies), `/mon-parcours` 303 (connexion),
+  compteurs inchangés 18/79/636, base sauvegardée avant installation.
+- Email de la première livraison #192 : envoyé par l'orchestrateur le 2026-10-26 à 15:50:02Z
+  avec le rapport joint (journal de notifications consulté en lecture seule).
+
+### Choix faits seul
+
+- Le code et le titre d'un ticket rédigé par le propriétaire font foi ; le plan s'adapte
+  (modules de taille inégale plutôt que renuméroter vos tickets).
+- PR06 couvre AP-15 (côté matériel), AP-17 et le complément AP-C02 ; PR11 couvre AP-09,
+  AP-13 et AP-15 (côté logiciel) ; PR15 couvre AP-18 (paire torsadée), AP-20 et AP-34, comme
+  le contenu de #197.
+- Pas de nouvelle dépendance : SVG écrit en Python, comme les schémas FSE existants.
+- Les blocs transversaux et le contrat ne sont écrits qu'une fois dans le document (§ 2) ;
+  chaque amorce y renvoie, la commande produit un ticket complet.
+- L'email de fin de ticket reste envoyé par l'orchestrateur (configuration SMTP existante) ;
+  les sessions ne touchent pas au SMTP.
+
+### Décisions demandées au propriétaire
+
+1. **Nouveau découpage PR01–PR30** (aligné sur #193/#194/#197) : le valider ? Options : le
+   garder ; ou fournir votre propre liste de 30 titres, que la prochaine session reprendra.
+   Recommandation : le garder, il respecte vos trois tickets et couvre les 38 exigences.
+2. **Examen blanc transversal** en plus des EX01–EX06 ? Recommandation inchangée : trancher
+   lors des tickets EX.
+
+### Reste à réaliser
+
+Les tickets de cours et d'examens (rédigés à partir des amorces), dont #193, #194 et #197
+déjà ouverts ; la création du module `AMPCR-PRATIQUE` en base revient au premier d'entre eux.
 
 ## Liens pour tester
 
 - Accueil du parcours : https://jury-central.lodylands.com/ampcr-pratique
 - Matrice de couverture : https://jury-central.lodylands.com/ampcr-pratique/matrice
 - Format d'exercice (exemple non officiel, imprimable A4) : https://jury-central.lodylands.com/ampcr-pratique/format-exercice
+- Modèles des 36 tickets PR/EX : https://github.com/ReC82/jury-central/blob/develop/docs/ampcr_pratique_tickets.md
 - Accès depuis le tableau de bord : https://jury-central.lodylands.com/mon-parcours (tuile « AMPCR — Pratique écrite » sous « Mes matières »)
 - Accès depuis la théorie : https://jury-central.lodylands.com/modules/ampcr (bouton « Pratique écrite (Laboratoire + T.P.) »)
 
