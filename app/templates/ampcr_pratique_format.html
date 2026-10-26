@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Format d'un exercice pratique écrit — AMPCR — Jury Central{% endblock %}
+
+{% block content %}
+<style>@media print { @page { size: A4; margin: 15mm; } }</style>
+<nav aria-label="breadcrumb" class="d-print-none">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/mon-parcours">Mon parcours</a></li>
+        <li class="breadcrumb-item"><a href="{{ plan.PRACTICAL_PATH_URL }}">AMPCR — Pratique écrite</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Format d'un exercice</li>
+    </ol>
+</nav>
+
+<div class="d-print-none">
+    <h1 class="h2 mb-2">Format d'un exercice pratique écrit</h1>
+    <p class="text-muted">
+        Chaque exercice EX01–EX06 suivra ce format&nbsp;: une situation de technicien, les documents
+        utiles, des consignes numérotées, une réponse rédigée, un barème et une correction justifiée.
+    </p>
+    <div class="jc-honest mb-3">
+        <p class="mb-0"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+            <strong>Exemple de format, non officiel.</strong> Ce n'est ni un sujet du Jury ni un extrait
+            d'examen&nbsp;: il montre seulement la présentation retenue. Aucune durée n'est indiquée, les
+            consignes officielles n'en fixent pas.
+        </p>
+    </div>
+    <button type="button" class="jc-btn jc-btn-ghost jc-btn-sm mb-3" onclick="window.print()">
+        <i class="bi bi-printer" aria-hidden="true"></i> Imprimer (A4)
+    </button>
+</div>
+
+<article class="jc-practical-sheet" aria-labelledby="sheet-title">
+    <header class="mb-3">
+        <p class="small text-muted mb-1">Jury Central — AMPCR pratique écrite — exemple de format (non officiel)</p>
+        <h2 id="sheet-title" class="h4 mb-1">{{ exercise.title }}</h2>
+        <p class="small mb-0">
+            Exigences&nbsp;: {{ exercise.requirement_ids | join(', ') }} · Total&nbsp;: {{ '%g' | format(exercise.total_points) }} points
+            · Calculatrice&nbsp;: {{ 'oui (non programmable)' if exercise.calculator_needed else 'non' }}
+        </p>
+    </header>
+
+    <section class="mb-3">
+        <h3 class="h6">Situation</h3>
+        <p>{{ exercise.context }}</p>
+    </section>
+
+    {% for document in exercise.documents %}
+    <section class="mb-3 jc-practical-doc">
+        <h3 class="h6">{{ document.title }}</h3>
+        {% if document.kind == "tableau" %}
+        {% set table = document.table_rows() %}
+        <table class="table table-sm table-bordered">
+            <thead><tr>{% for cell in table[0] %}<th scope="col">{{ cell }}</th>{% endfor %}</tr></thead>
+            <tbody>
+                {% for line in table[1:] %}
+                <tr>{% for cell in line %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <pre class="small">{{ document.content_text }}</pre>
+        {% endif %}
+    </section>
+    {% endfor %}
+
+    <section class="mb-3">
+        <h3 class="h6">Consignes</h3>
+        <ol>
+            {% for instruction in exercise.instructions %}
+            <li>{{ instruction }}</li>
+            {% endfor %}
+        </ol>
+    </section>
+
+    <section class="mb-3">
+        <h3 class="h6">Réponse</h3>
+        <p class="small text-muted d-print-none">En ligne, la réponse se rédige dans une zone de texte libre (entraînement ou examen blanc).</p>
+        <div class="jc-answer-lines" aria-hidden="true">
+            {% for _ in range(12) %}<div></div>{% endfor %}
+        </div>
+    </section>
+
+    <section class="jc-practical-correction">
+        <h3 class="h6">Barème et correction justifiée</h3>
+        <table class="table table-sm table-bordered">
+            <thead><tr><th scope="col">Critère</th><th scope="col">Points</th><th scope="col">Attendu</th></tr></thead>
+            <tbody>
+                {% for criterion in exercise.criteria %}
+                <tr><th scope="row">{{ criterion.label }}</th><td>{{ '%g' | format(criterion.points) }}</td><td>{{ criterion.expected }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p><strong>Correction justifiée.</strong> {{ exercise.justified_correction }}</p>
+    </section>
+</article>
+
+<section class="d-print-none mt-4" aria-labelledby="tech-title">
+    <h2 id="tech-title" class="h5">Côté technique</h2>
+    <p class="small">
+        Un exercice devient une question <code>{{ exercise.question_type }}</code> du moteur existant
+        (documents enregistrés comme documents sources, barème transmis au correcteur)&nbsp;: mêmes
+        sessions, sauvegarde automatique, correction et historique que les autres cours.
+    </p>
+    <pre class="small border rounded p-2 bg-light">{{ rubric }}</pre>
+</section>
+{% endblock %}

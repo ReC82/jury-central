@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Matrice de couverture — AMPCR pratique écrite — Jury Central{% endblock %}
+{% block main_class %}jc-wide{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="d-print-none">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/mon-parcours">Mon parcours</a></li>
+        <li class="breadcrumb-item"><a href="{{ plan.PRACTICAL_PATH_URL }}">AMPCR — Pratique écrite</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Matrice de couverture</li>
+    </ol>
+</nav>
+
+<h1 class="h2 mb-2">Matrice de couverture officielle — AMPCR pratique écrite</h1>
+<p class="text-muted mb-3">
+    Une ligne par exigence des pages 5–6 des consignes officielles (cycle {{ plan.CYCLE_LABEL }}),
+    texte recopié tel quel, puis les compléments pédagogiques, signalés comme tels.
+</p>
+
+<div class="jc-honest mb-3">
+    <p class="mb-1"><strong>État&nbsp;:</strong>
+        {{ summary.official_total }} exigences officielles —
+        {{ summary.counts[plan.STATUS_VALIDATED] }} validée(s),
+        {{ summary.counts[plan.STATUS_PARTIAL] }} partielle(s),
+        {{ summary.counts[plan.STATUS_TODO] }} non traitée(s).
+        {% if summary.complete %}Couverture complète.{% else %}<strong>Couverture non complète.</strong>{% endif %}
+    </p>
+    <p class="small mb-0">
+        « Validé » = tous les cours ET l'exercice liés sont publiés et relus. Les liens « théorie »
+        renvoient aux mini-cours MC existants qui abordent la notion&nbsp;: ils ne valent pas
+        couverture de l'épreuve pratique.
+    </p>
+</div>
+
+<p class="small mb-3">
+    Source&nbsp;: <a href="{{ plan.OFFICIAL_SOURCE.url }}" rel="noopener" target="_blank">{{ plan.OFFICIAL_SOURCE.title }}</a>
+    — {{ plan.OFFICIAL_SOURCE.version }} — {{ plan.OFFICIAL_SOURCE.date }} — SHA-256
+    <code class="text-break">{{ plan.OFFICIAL_SOURCE.sha256 }}</code> (consulté le {{ plan.OFFICIAL_SOURCE.retrieved_on }}).
+    Complément&nbsp;: programme <a href="{{ plan.PROGRAMME_SOURCE.url }}" rel="noopener" target="_blank">{{ plan.PROGRAMME_SOURCE.version }}</a>.
+</p>
+
+<div class="d-print-none mb-3">
+    <button type="button" class="jc-btn jc-btn-ghost jc-btn-sm" onclick="window.print()">
+        <i class="bi bi-printer" aria-hidden="true"></i> Imprimer (A4 paysage conseillé)
+    </button>
+</div>
+
+<div class="table-responsive">
+<table class="table table-sm align-top jc-matrix">
+    <caption class="visually-hidden">Exigences de l'épreuve pratique AMPCR et leur couverture</caption>
+    <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Exigence (texte officiel)</th>
+            <th scope="col">Page</th>
+            <th scope="col">Nature</th>
+            <th scope="col">Cours prévus</th>
+            <th scope="col">Exercice</th>
+            <th scope="col">Théorie existante</th>
+            <th scope="col">Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        {% set req = row.requirement %}
+        <tr id="{{ req.id }}">
+            <th scope="row" class="text-nowrap">{{ req.id }}</th>
+            <td>{{ req.text }}{% if req.note %}<div class="small text-muted mt-1">{{ req.note }}</div>{% endif %}</td>
+            <td>{{ req.page or '—' }}</td>
+            <td>
+                {% if req.kind == plan.KIND_OFFICIAL %}<span class="jc-pill jc-pill-primary">officiel</span>
+                {% else %}<span class="jc-pill jc-pill-warn">complément</span>{% endif %}
+            </td>
+            <td class="small">
+                {% for course in row.courses %}
+                {% if published.get(course.code) %}<a href="/uaa/{{ published[course.code].slug }}">{{ course.code }}</a>{% else %}<span title="{{ course.title }}">{{ course.code }}</span>{% endif %}{{ ', ' if not loop.last }}
+                {% endfor %}
+            </td>
+            <td class="small">{% for ex in row.exercises %}{{ ex.code }}{{ ', ' if not loop.last }}{% endfor %}</td>
+            <td class="small">
+                {% for code in req.theory_codes %}
+                {% if theory.get(code) %}<a href="/uaa/{{ theory[code].slug }}" title="{{ theory[code].title }}">{{ code }}</a>{% else %}{{ code }}{% endif %}{{ ', ' if not loop.last }}
+                {% else %}<span class="text-muted">aucune</span>{% endfor %}
+            </td>
+            <td>
+                {% if row.status == plan.STATUS_VALIDATED %}<span class="jc-pill jc-pill-success">validé</span>
+                {% elif row.status == plan.STATUS_PARTIAL %}<span class="jc-pill jc-pill-warn">partiel</span>
+                {% else %}<span class="jc-pill">non traité</span>{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}
