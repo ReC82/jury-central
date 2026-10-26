@@ -1,5 +1,5 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
-#197 : PR15 ; #198 : PR16 ; #199 : PR20).
+#197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -33,6 +33,7 @@ from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
+from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -283,6 +284,54 @@ _PR20_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR24_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr24",
+    course_title="AMPCR pratique écrite — PR24 Dépannage réseau et Internet",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : réponses rédigées de technicien à partir de dossiers d'intervention fictifs "
+        "(plan réseau, symptômes, relevés de commandes, journaux, état des équipements)"
+    ),
+    allowed_notions=[
+        "méthode en couches : symptôme exact, périmètre (un poste ou tous, filaire ou Wi-Fi, local ou Internet), chronologie, changements récents, topologie, hypothèses, tests non destructifs, conclusion ; corrélation n'est pas preuve",
+        "physique et liaison : câble cuivre ou fibre, RJ45, voyants, port du switch actif ou désactivé, prise brassée, négociation vitesse/duplex, désaccord de duplex (repli en half), erreurs CRC, blindage, 100 m, Auto MDI-X, alimentation et PoE (802.3af 15,4 W, 802.3at 30 W), NO-CARRIER, média déconnecté ; pas de diagnostic IP sans lien",
+        "configuration IP : adresse du réseau, masque/CIDR, passerelle dans le réseau, route par défaut, MAC de la bonne carte, même sous-réseau, doublon d'adresse (arp -a), APIPA 169.254.0.0/16 = aucun bail (indice, pas preuve), statique hors étendue, réservation",
+        "DHCP : DORA, bail et renouvellement, options passerelle (3) et DNS (6), étendue épuisée (no address available), serveur arrêté ou qui ignore une carte, postes déjà configurés qui fonctionnent sur leur bail, relais si serveur dans un autre réseau, second serveur DHCP, ipconfig /renew, /release qui coupe la connexion",
+        "DNS : ping par IP OK et nom KO = résolution, pas Internet ; nslookup, dig, resolvectl ; réponse, NXDOMAIN (nom inexistant), délai dépassé (serveur injoignable) ; DNS interne vs public (noms internes) ; cache, ipconfig /flushdns, nslookup contourne cache et hosts",
+        "passerelle et routage : hôte local, passerelle, IP distante ; tracert/traceroute, étoiles intermédiaires non bloquantes ; route par défaut absente (Network is unreachable) ; masque faux = passerelle hors réseau ; routeur entre sous-réseaux ; NAT de la box ; pare-feu, ACL, ICMP filtré : ping sans réponse n'est pas une preuve",
+        "switch et VLAN : table MAC, port désactivé, port dans le mauvais VLAN = autre réseau ou APIPA ; access/trunk en complément ; pas de VLAN supposé sans indice",
+        "Wi-Fi : SSID, BSSID, signal, bande 2,4/5 GHz, canal, interférences, répéteur (débit souvent divisé) ; association et authentification WPA2-Personnel (CCMP) / WPA3-Personnel (SAE), clé, profil obsolète, mode de transition ; DHCP après association ; radio, authentification et IP sont trois problèmes distincts",
+        "partages et imprimantes : découverte du réseau, chemin UNC, 0x80070035 chemin introuvable, accès refusé, compte de domaine ou local en groupe de travail, identifiants mémorisés, droits de partage + NTFS (le plus restrictif), SMB port 445, Test-NetConnection -Port ; file d'impression, port de la file, service Spouleur",
+        "outils Windows : ipconfig /all, ping, tracert -d, nslookup, arp -a, route print, netstat -an, Get-NetTCPConnection, Test-NetConnection, netsh wlan show interfaces ; lecture vs modification ; limites du ping",
+        "outils Linux : ip addr, ip link, ip route, ip neigh, ping -c, traceroute, tracepath, dig, nslookup, ss, journalctl, nmcli, resolvectl ; outils pas toujours installés ; ip route add temporaire, persistance selon la distribution (NetworkManager, Netplan…)",
+        "procédure : physique → IP/masque → passerelle → IP distante → DNS → service ; pannes combinées (câble + DNS, masque + passerelle, DHCP intermittent, LAN OK/Internet KO, Internet OK/partage KO, Wi-Fi associé sans IP, lenteur intermittente) ; revérifier après chaque correction",
+        "sécurité : autorisation avant de modifier la production, état initial, retour arrière, une modification à la fois, prévenir des coupures, pas de scan intrusif non autorisé, pas de réinitialisation de box « pour voir », confidentialité des journaux",
+        "rapport : contexte, symptômes, périmètre, schéma, hypothèses, tests et sorties, cause confirmée ou incertaine, correction et autorisation, tests finaux, prévention, restitution",
+    ],
+    competencies=[
+        "Localiser méthodiquement une panne réseau ou Internet à partir d'un dossier écrit (périmètre, couche)",
+        "Interpréter des relevés (ping, tracert, nslookup, ipconfig, journaux DHCP, état Wi-Fi, ports du switch) et choisir des tests discriminants non destructifs",
+        "Proposer une correction autorisée avec retour arrière, la valider et rédiger le rapport d'intervention",
+    ],
+    vocabulary=[
+        "APIPA", "DHCP", "DORA", "bail", "étendue", "relais DHCP", "DNS", "NXDOMAIN", "passerelle",
+        "route par défaut", "NAT", "ICMP", "tracert", "VLAN", "duplex", "CRC", "PoE", "SSID",
+        "BSSID", "WPA2", "WPA3", "UNC", "SMB", "NTFS", "spouleur",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et toute "
+        "démarche techniquement justes, sans exiger de mot-clé ni l'orthographe exacte d'une "
+        "commande si l'outil et son rôle sont clairs ; suivre le barème de la question. Une "
+        "lecture fausse d'un relevé (perte, saut, réponse DNS, adresse) est toujours une erreur. "
+        "Ne jamais valider « l'APIPA prouve que le serveur DHCP est en panne », « ping par nom KO "
+        "donc Internet en panne », « un ping sans réponse prouve que la machine est éteinte », "
+        "« des étoiles dans un tracert prouvent une panne » quand la destination est atteinte, "
+        "ni une erreur de VLAN affirmée sans indice. Pénaliser une modification de production "
+        "sans autorisation ni état initial, une réinitialisation de box, un scan non autorisé, "
+        "un ipconfig /release à distance et une cause affirmée sans test."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT
@@ -310,6 +359,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="IPv4, MAC, masques et passerelles — configuration et diagnostics écrits",
         items=PR20_ITEMS,
         context=_PR20_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR24",
+        title="Dépannage réseau et Internet — dossiers d'intervention écrits",
+        items=PR24_ITEMS,
+        context=_PR24_CONTEXT,
     ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}
