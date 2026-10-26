@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR06, PR11, PR15, PR16, PR20 et PR24),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR06, PR11, PR15, PR16, PR20 et PR24),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -212,6 +212,17 @@ barrettes, débits PCIe/USB/SATA) et relevés d'inventaire fictifs (`lsblk`, `Ge
 **produits par code** (`app/v1/ampcr_pratique_pr01_figures.py`) et recalculés par les tests.
 4 cas résolus, 16 exercices (identifications, inventaires, choix de pièces compatibles,
 scénarios, procédures), mini-examen 10 questions /20 (`app/v1/ampcr_pratique_pr01_*.py`).
+Fiches produits fictives ; aucune image générée.
+
+**Huitième cours publié (ticket #203) : PR02 « Alimentation, connectique, compatibilité et
+sécurité »** (`/uaa/ampcr-pratique-pr02`), même intégration, deuxième cours de l'ordre
+pédagogique. 19 blocs (12 chapitres : AC/DC et tensions, caractéristiques et rendement,
+connecteurs et brochages, budget de puissance, refroidissement, protections et onduleur,
+sécurité électrique/ESD/batteries/outils, USB/HDMI/DisplayPort, SATA/PCIe/M.2, compatibilité,
+symptômes d'alimentation, procédure de remplacement sûre ; cas, pièges, exercices, mini-examen,
+mémo, sources). 8 figures SVG ; tolérances, puissances PCIe, rendements, budgets, grille de
+compatibilité et relevés **calculés par code** (`app/v1/ampcr_pratique_pr02_figures.py`) et
+recalculés par les tests. 4 cas résolus, 16 exercices, mini-examen 10 questions /20.
 Fiches produits fictives ; aucune image générée.
 
 ## Administration
