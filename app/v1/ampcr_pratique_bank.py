@@ -1,5 +1,5 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
-#197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02).
+#197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -29,6 +29,7 @@ from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
 from app.v1.ampcr_pratique_pr02_bank import ALL_ITEMS as PR02_ITEMS
+from app.v1.ampcr_pratique_pr03_bank import ALL_ITEMS as PR03_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
@@ -429,6 +430,51 @@ _PR02_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR03_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr03",
+    course_title="AMPCR pratique écrite — PR03 Montage et démontage d'un PC — procédure écrite",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : procédures rédigées de technicien, repérage d'erreurs de montage et "
+        "justifications à partir de bons de montage, relevés, observations et écrans fictifs"
+    ),
+    allowed_notions=[
+        "préparation : sauvegarde vérifiée ou refus écrit, autorisation signée, état initial (photos, numéro de série, défauts), fiche d'intervention ; arrêt, interrupteur du bloc sur 0, câble secteur débranché (+5 VSB présent PC éteint), appui sur le bouton ; poste dégagé, tapis et bracelet antistatique relié au châssis, sachets, pièces tenues par les bords ; outillage PH1/PH2, bac à vis, photos avant de débrancher",
+        "compatibilité vérifiée sur les fiches avant le montage (socket + liste des processeurs + firmware, DDR4/DDR5, format ATX/microATX/Mini-ITX, hauteur du ventirad, longueur de la carte graphique, M.2 NVMe/SATA, bloc) ; ne jamais forcer : ce qui résiste est mal orienté",
+        "ordre recommandé : carte mère équipée hors du boîtier sur son carton (processeur, mémoire, M.2, pâte et ventirad) → entretoises et plaque d'E/S → carte mère vissée → bloc et disques → carte graphique → câbles → contrôle visuel → premier démarrage ; la notice peut adapter l'ordre (plaque arrière, AIO, gros ventirad, boîtier compact)",
+        "processeur : LGA (broches sur la carte, capot de protection gardé) ou PGA AM4 (broches sous le processeur) ; triangle sur le repère, encoches, pose verticale sans pression ; pâte : petite noisette ou selon la notice, pâte pré-appliquée, film de la semelle retiré, serrage en croix, pâte neuve et nettoyage à l'alcool isopropylique à chaque démontage ; câble sur CPU_FAN, pompe sur AIO_PUMP",
+        "mémoire : encoche, enfoncée jusqu'au clic, emplacements du manuel pour le double canal (souvent A2/B2) ; M.2 : entretoise à la longueur (2280), insertion à environ 30°, vis M2 ou loquet",
+        "entretoises : une sous chaque trou de la carte, aucune ailleurs (entretoise en trop = court-circuit au dos de la carte, manquante = carte qui fléchit) ; plaque d'E/S avant la carte ; visserie courante : 6-32 (bloc, disques 3,5 pouces, carte mère le plus souvent, parfois M3), M3 (SSD 2,5 pouces), M2 (M.2) ; vis engagée à la main, jamais forcée",
+        "câblage : ATX 24, EPS 8 « CPU » (sans lui pas de démarrage ou arrêt immédiat), PCIe/12V-2x6 tous branchés sans adaptateur, SATA données + alimentation ; façade F_PANEL d'après le manuel (disposition Intel : 1 HDD_LED+, 3 HDD_LED−, 2 PLED+, 4 PLED−, 5/7 Reset, 6/8 Power, 9 +5 V, 10 clé) ; LED polarisées (à l'envers : éteinte, sans dégât), boutons non polarisés ; USB 3 interne 19 broches, USB 2 9 broches, HD_AUDIO",
+        "contrôle visuel PC débranché avec grille (fixations, aucune vis libre, ventirad, mémoire, carte graphique, alimentation, façade, câbles loin des pales) ; premier démarrage : POST, entraînement de la mémoire (écran noir plusieurs minutes, surtout DDR5 : ne pas couper), LED de diagnostic et bips selon le fabricant ; UEFI comparé au bon de montage (processeur, mémoire totale, disques, température, CPU_FAN, date) ; XMP/EXPO après stabilité",
+        "tests : mémoire (MemTest86, Diagnostic de mémoire Windows, plusieurs passes), températures au repos et en charge comparées à la fiche (limite atteinte = baisse de fréquence puis arrêt), état SMART, ports, boutons, stabilité ; compte rendu avec les valeurs",
+        "flux d'air avant/bas → arrière/haut, flèche du cadre ; câbles derrière le plateau, attachés, loin des pales",
+        "démontage : ordre inverse, photos, étiquettes, vis triées, fiche ; loquet avant de tirer sur le connecteur, jamais sur les fils ; clip PCIe ouvert ; ventirad collé tourné doucement (pâte tiède), jamais arraché (PGA : processeur arraché, broches tordues) ; capot remis sur un socket LGA vide",
+        "remplacement : panne et compatibilité confirmées, accord, hors tension, démonter le nécessaire, remonter, pâte neuve si ventirad retiré, tout retester, compte rendu (pièces et numéros de série)",
+        "pannes au premier démarrage : montage soupçonné avant les pièces neuves ; rien (secteur, interrupteur, ATX 24, POWER SW), allumage d'une fraction de seconde (EPS, entretoise ou vis en court-circuit), pas d'image (barrette, écran sur la carte mère sans partie graphique, PCIe manquant), disque absent (câbles, M.2 non vissé, port partagé), surchauffe (film, pâte, serrage, CPU_FAN) ; correction PC débranché, un changement à la fois",
+    ],
+    competencies=[
+        "Rédiger et justifier une procédure de préparation, de montage, de démontage ou de remplacement d'un composant",
+        "Repérer les erreurs d'un montage décrit (entretoises, façade, câbles, refroidissement, mémoire) et indiquer conséquence et correction",
+        "Contrôler un montage et interpréter le premier démarrage (UEFI, températures, tests) avant de rédiger le compte rendu",
+    ],
+    vocabulary=[
+        "ESD", "bracelet antistatique", "entretoise", "plaque d'E/S", "socket", "LGA", "PGA",
+        "pâte thermique", "ventirad", "CPU_FAN", "EPS", "F_PANEL", "POST", "UEFI", "XMP", "SMART",
+        "M.2", "6-32", "M3",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si le geste est "
+        "clair ; suivre le barème de la question. Ne jamais valider « on peut forcer le "
+        "processeur ou la barrette », « éteint donc sans tension », « la pâte peut être "
+        "réutilisée », « on peut ouvrir le bloc », « tirer sur le ventirad collé », une "
+        "entretoise sans trou en face, ni « ça démarre donc c'est validé » sans contrôle. "
+        "Pénaliser l'absence de mise hors tension ou de protection antistatique, un démontage "
+        "sans sauvegarde ni autorisation, et toute manipulation sous tension."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -441,6 +487,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Alimentation, connectique, compatibilité et sécurité",
         items=PR02_ITEMS,
         context=_PR02_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR03",
+        title="Montage et démontage d'un PC — procédure écrite",
+        items=PR03_ITEMS,
+        context=_PR03_CONTEXT,
     ),
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT
