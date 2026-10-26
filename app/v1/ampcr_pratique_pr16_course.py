@@ -43,6 +43,14 @@ from app.v1.ampcr_pratique_pr16_figures import (
 
 PR16_TITLE = "Câble coaxial et BNC — impédance, fabrication et diagnostic écrit"
 PR16_SLUG = "ampcr-pratique-pr16"
+# Titres des blocs remplacés après la première installation (tableaux trop larges à 390 px
+# convertis en listes) : le seed retire ces anciens blocs et crée les nouveaux.
+PR16_OBSOLETE_TITLES = frozenset({
+    "PR16 — 1. Structure du câble coaxial et familles RG",
+    "PR16 — 2-3. Impédance caractéristique, adaptation et réflexions",
+    "PR16 — 5-7. Ethernet 10BASE2, 10BASE5 et liaisons vidéo 75 Ω",
+    "PR16 — Exercices corrigés (16)",
+})
 
 
 def _exercises_html() -> str:
@@ -121,7 +129,7 @@ après envoi), puis passe le **mini-examen noté sur {EXAM_TOTAL_POINTS}** dans 
 
 
 def _structure() -> str:
-    rows = "\n".join(f"| {name} | {ohm} Ω | {diameter} | {use} |" for name, ohm, diameter, use in CABLE_TYPES)
+    rows = "\n".join(f"- **{name}** — **{ohm} Ω**, {diameter} : {use}." for name, ohm, diameter, use in CABLE_TYPES)
     return f"""## 1.1 Quatre couches autour d'un même axe
 
 {_fig(COAX_SECTION_FIGURE)}
@@ -158,8 +166,6 @@ La désignation **RG** (*Radio Guide*, ancienne nomenclature militaire américai
 désigner des familles de câbles. Elle ne suffit pas toujours : il existe des variantes (A/U,
 C/U…). **On lit le marquage de la gaine**, en particulier l'**impédance**.
 
-| Câble | Impédance | Diamètre | Usage typique |
-|---|---|---|---|
 {rows}
 
 Deux câbles de même diamètre peuvent avoir des impédances différentes (RG-58 50 Ω et RG-59
@@ -169,7 +175,7 @@ Deux câbles de même diamètre peuvent avoir des impédances différentes (RG-5
 
 def _impedance() -> str:
     rows = "\n".join(
-        f"| {label} | {load} | {_gamma(value)} | {meaning} |"
+        f"- **{label}** (charge {load}) : Γ = **{_gamma(value)}**, {meaning}."
         for label, load, value, meaning in (
             ("Terminateur 50 Ω sur câble 50 Ω", "50 Ω", 50, "adaptation : rien n'est renvoyé"),
             ("Terminateur 75 Ω sur câble 50 Ω", "75 Ω", 75, "20 % de l'amplitude renvoyée"),
@@ -211,8 +217,8 @@ Un signal qui arrive sur un changement d'impédance est **en partie renvoyé** v
 comme un écho. La part renvoyée est le **coefficient de réflexion**
 **Γ = (Zc − Z0) / (Zc + Z0)**, où Z0 est l'impédance du câble et Zc celle de ce qu'il rencontre.
 
-| Situation (câble 50 Ω) | Charge rencontrée | Γ | Effet |
-|---|---|---|---|
+Sur un câble 50 Ω :
+
 {rows}
 
 Ce qui crée une réflexion :
@@ -334,13 +340,12 @@ partagent seulement le principe du **bus 50 Ω terminé aux deux bouts**.
 
 {_fig(COMPARISON_FIGURE)}
 
-| | 10BASE2 | 10BASE5 | Vidéo (analogique, SDI) |
-|---|---|---|---|
-| Impédance | 50 Ω | 50 Ω | **75 Ω** |
-| Câble type | RG-58 | coaxial épais | RG-59 (ou câble vidéo numérique) |
-| Connecteurs | BNC 50 Ω, T, terminateurs 50 Ω | N, prise vampire, AUI | BNC 75 Ω |
-| Topologie | bus, plusieurs postes | bus, plusieurs stations | **point à point** (une source, un récepteur) |
-| Terminaison | 2 terminateurs 50 Ω | 2 terminateurs 50 Ω | l'entrée du récepteur fait 75 Ω |
+- **10BASE2** : **50 Ω**, RG-58, BNC 50 Ω + T + terminateurs 50 Ω ; **bus** de plusieurs
+  postes ; **deux terminateurs 50 Ω**.
+- **10BASE5** : **50 Ω**, coaxial épais, connecteurs N + prise vampire + câble AUI ; **bus** de
+  plusieurs stations ; **deux terminateurs 50 Ω**.
+- **Vidéo (analogique, SDI)** : **75 Ω**, RG-59 (ou câble vidéo numérique), BNC 75 Ω ;
+  **point à point** (une source, un récepteur) ; l'entrée du récepteur fait 75 Ω.
 
 En **télévision** et **satellite**, on rencontre du **RG-6 75 Ω** avec des **fiches F** (à
 visser) ou la fiche d'antenne TV, pas des BNC. En **radio**, le 50 Ω domine (BNC, N, PL-259…).
@@ -782,17 +787,17 @@ def pr16_course_sections() -> list[tuple[str, str]]:
     """Blocs du cours (titre, contenu), dans l'ordre d'affichage."""
     return [
         ("PR16 — Objectifs et place dans l'épreuve", _objectives()),
-        ("PR16 — 1. Structure du câble coaxial et familles RG", _structure()),
-        ("PR16 — 2-3. Impédance caractéristique, adaptation et réflexions", _impedance()),
+        ("PR16 — 1. Structure du câble coaxial, rôle et familles RG", _structure()),
+        ("PR16 — 2-3. Impédance caractéristique, adaptation et réflexions du signal", _impedance()),
         ("PR16 — 4. Connecteurs BNC, T, terminateurs et variantes", _bnc()),
-        ("PR16 — 5-7. Ethernet 10BASE2, 10BASE5 et liaisons vidéo 75 Ω", _ethernet()),
+        ("PR16 — 5-7. Ethernet coaxial 10BASE2, 10BASE5 et liaisons vidéo 75 Ω", _ethernet()),
         ("PR16 — 8-9. Fabriquer une liaison BNC : procédure, contrôles et outils", _fabrication()),
         ("PR16 — 10. Lire et corriger un schéma de bus coaxial", _schemas()),
         ("PR16 — 11. Diagnostic : symptômes, mesures, localisation, réparation", _diagnosis()),
         ("PR16 — 12. Sécurité, bonnes pratiques et rapport d'intervention", _safety()),
         ("PR16 — Exemples : quatre cas intégralement corrigés", _examples()),
         ("PR16 — Pièges et erreurs fréquentes", _pitfalls()),
-        (f"PR16 — Exercices corrigés ({len(PRACTICE_ITEMS)})", _exercises_intro()),
+        (f"PR16 — Exercices corrigés ({len(PRACTICE_ITEMS)}) et leurs corrigés", _exercises_intro()),
         ("PR16 — Mini-examen noté sur 20 : mode d'emploi", _mini_exam()),
         ("PR16 — Fiche mémo", _memo()),
         ("PR16 — Sources et compléments pédagogiques", _sources()),
