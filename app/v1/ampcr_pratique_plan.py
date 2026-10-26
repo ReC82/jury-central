@@ -3,8 +3,9 @@ officielle (ticket #192).
 
 **Source faisant foi** : consignes officielles du Jury de la FWB
 « 26-27-1-CESSP-Consignes-Assistant_Maintenance_PCreseaux-Pratique.pdf » (6 pages, voir
-`OFFICIAL_SOURCE`). Les textes des exigences (`OFFICIAL_REQUIREMENTS`) et des consignes du
-jour (`DAY_INSTRUCTIONS`) sont recopiés depuis ce PDF (extraction texte, espaces multiples
+`OFFICIAL_SOURCE`), versionnées dans `docs/references-officielles/ampcr/2026-2027-1/`
+(PDF, README de provenance, transcription page par page). Les textes des exigences
+(`OFFICIAL_REQUIREMENTS`) et des consignes du jour (`DAY_INSTRUCTIONS`) sont recopiés depuis ce PDF (extraction texte, espaces multiples
 réduits à un seul) — jamais reformulés. Le programme 345/2007/249 (`PROGRAMME_SOURCE`) est
 un complément : les consignes ne le remplacent pas, mais il n'est pas transcrit ici.
 
@@ -44,6 +45,7 @@ class SourceDocumentRef:
     pages: int
     sha256: str
     retrieved_on: str
+    repo_path: str = ""  # copie versionnée dans le dépôt (vide si non versionnée)
 
 
 OFFICIAL_SOURCE = SourceDocumentRef(
@@ -61,6 +63,14 @@ OFFICIAL_SOURCE = SourceDocumentRef(
     pages=6,
     sha256="7a93c3858ffd67b42620bc5364aa9b8e964a379bdf255bbcd126b50c4df095e1",
     retrieved_on="2026-10-26",
+    repo_path=(
+        "docs/references-officielles/ampcr/2026-2027-1/"
+        "26-27-1-CESSP-Consignes-Assistant_Maintenance_PCreseaux-Pratique.pdf"
+    ),
+)
+# Copie versionnée consultable en ligne (README : provenance, droits, contenu des 6 pages).
+OFFICIAL_SOURCE_REPO_URL = (
+    "https://github.com/ReC82/jury-central/tree/develop/docs/references-officielles/ampcr/2026-2027-1"
 )
 
 PROGRAMME_SOURCE = SourceDocumentRef(

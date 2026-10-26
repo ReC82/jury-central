@@ -11,8 +11,13 @@ théorique MC01–MC38, qui reste inchangé.
 | Consignes d'examen — pratique (fait foi) | [26-27-1-CESSP-Consignes-Assistant_Maintenance_PCreseaux-Pratique.pdf](https://jurys.cfwb.be/fileadmin/sites/jurys/secondaire/uploads/BDD_document/Consignes_specifiques/CESS/CESS_P/OBG/AMPCR/26-27-1-CESSP-Consignes-Assistant_Maintenance_PCreseaux-Pratique.pdf) | cycle 2026-2027/1 (août 2026 → janvier 2027), PDF créé le 2026-07-13 | 6 | `7a93c3858ffd67b42620bc5364aa9b8e964a379bdf255bbcd126b50c4df095e1` |
 | Programme 345/2007/249 (complément) | [AMPCR.pdf](https://jurys.cfwb.be/fileadmin/sites/jurys/secondaire/uploads/BDD_document/Programmes/CESS/CESS_P/OBG/AMPCR/AMPCR.pdf) | d'application depuis 2008-2009, PDF modifié le 2015-10-29 | 46 | `95e45949fc3c36d6e8ea82e7643791d323b7f1a668da54113c373f41a69bf14b` |
 
-Récupérés le 2026-10-26 depuis la page « Matières du CESS P » du site des Jurys. Les PDF ne
-sont pas versionnés dans le dépôt (documents officiels, à re-télécharger). Le texte des
+Récupérés le 2026-10-26 depuis la page « Matières du CESS P » du site des Jurys. **Le PDF
+des consignes est versionné** dans
+[`docs/references-officielles/ampcr/2026-2027-1/`](references-officielles/ampcr/2026-2027-1/README.md)
+(copie identique, provenance, droits, contenu des 6 pages, transcription page par page ;
+empreinte et texte des 38 exigences contrôlés par `tests/test_ticket192_ampcr_pratique_reference.py`).
+Les tickets de cours et d'exercices citent ce chemin. Le programme (46 p.) reste référencé
+par URL + empreinte seulement (complément, non transcrit). Le texte des
 exigences et des consignes du jour est recopié dans `app/v1/ampcr_pratique_plan.py`
 (extraction texte, espaces multiples réduits à un seul). Le programme est un complément :
 les consignes rappellent qu'elles ne s'y substituent pas ; il n'est pas transcrit.
