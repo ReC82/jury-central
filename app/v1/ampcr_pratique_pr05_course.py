@@ -481,7 +481,7 @@ systèmes de fichiers du programme.
 - **Droits** : propriétaire et permissions sur chaque fichier et dossier (NTFS, ext4) ;
   FAT32 et exFAT n'en ont pas.
 - **FAT32** refuse tout fichier de plus de **{f"{FAT32_MAX_FILE:,}".replace(",", " ")} octets** (4 Gio moins 1) :
-  une vidéo de 6 Go ne passe pas. L'outil de
+  une vidéo de 6 Go ne passe pas. L'outil graphique de
   formatage de Windows ne propose d'ailleurs FAT32 que pour des volumes de 32 Go au plus.
 
 **Procédure professionnelle (à rédiger)** : nommer l'opération (partitionner / formater /

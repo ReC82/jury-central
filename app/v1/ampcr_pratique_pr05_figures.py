@@ -232,7 +232,7 @@ FILESYSTEMS: tuple[Filesystem, ...] = (
                "lecture et écriture", False, False,
                "Partition EFI (ESP), petites clés pour des appareils anciens (autoradio, TV, mise à jour du firmware)."),
     Filesystem(FS_EXFAT, "très grande (plusieurs To)", "lecture et écriture", "lecture et écriture",
-               "lecture et écriture (noyau 5.4 et suivants)", False, False,
+               "lecture et écriture (pilote intégré aux noyaux récents)", False, False,
                "Clés USB, cartes mémoire et disques externes échangés entre Windows, macOS et Linux."),
     Filesystem(FS_EXT4, "16 Tio (blocs de 4 Kio)", "non lu sans outil supplémentaire", "non lu sans outil supplémentaire",
                "lecture et écriture (système de fichiers courant)", True, True,
