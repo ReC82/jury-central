@@ -39,6 +39,7 @@ from app.v1.parcours import (
 from app.v1.quiz_service import quiz_question_counts
 from app.v1.routes import router as v1_auth_router
 from app.v1.routes_admin_bank import router as v1_admin_bank_router
+from app.v1.routes_ampcr_pratique import router as v1_ampcr_pratique_router
 from app.v1.routes_lexicon import router as v1_lexicon_router
 from app.v1.routes_parcours import router as v1_parcours_router
 from app.v1.routes_quiz import router as v1_quiz_router
@@ -71,6 +72,7 @@ app.include_router(v1_auth_router)
 app.include_router(v1_sessions_router)
 app.include_router(v1_lexicon_router)
 app.include_router(v1_parcours_router)
+app.include_router(v1_ampcr_pratique_router)
 app.include_router(v1_quiz_router)
 app.include_router(v1_weakness_router)
 

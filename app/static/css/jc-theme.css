@@ -1399,3 +1399,24 @@ a.jc-quiz-row:hover { border-color: var(--jc-primary); color: var(--jc-ink); }
     .jc-order-card.is-moved { animation: none; }
     .jc-order-card.is-dragging { transform: none; }
 }
+
+/* --- AMPCR pratique écrite (ticket #192) ------------------------------------------------ */
+.jc-practical-card { border-radius: var(--jc-radius-sm); }
+.jc-matrix th, .jc-matrix td { vertical-align: top; }
+.jc-matrix td:nth-child(2) { min-width: 18rem; }
+.jc-practical-sheet {
+    max-width: 48rem;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: var(--jc-radius-sm);
+    padding: 1.5rem;
+}
+.jc-answer-lines > div { border-bottom: 1px dotted #999; height: 1.9rem; }
+
+@media print {
+    .jc-practical-sheet { border: 0; padding: 0; max-width: none; }
+    .jc-practical-correction { break-before: page; }
+    .jc-practical-doc, .jc-practical-card, .jc-matrix tr { break-inside: avoid; }
+    .jc-matrix { font-size: 9pt; }
+    .jc-matrix .jc-pill { border: 0; padding: 0; background: none; }
+}

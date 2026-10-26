@@ -22,6 +22,7 @@ from fastapi import Request
 from sqlalchemy.orm import Session as DBSession
 
 from app import models
+from app.v1.ampcr_pratique_plan import PRACTICAL_PATH_URL
 from app.v1.francais_plan import FR20_SESSION_SCOPE
 from app.v1.fse_plan import FSE17_SESSION_SCOPE
 from app.v1.mc38_transversal import MC38_SESSION_SCOPE
@@ -69,6 +70,8 @@ class OptionDef:
     short: str
     description: str
     tracks: tuple[SubjectTrack, ...]
+    # Ticket #192 : parcours de l'épreuve pratique écrite (plan sans module en base).
+    practical_path: str | None = None
 
 
 @dataclass(frozen=True)
@@ -140,6 +143,7 @@ AMPCR_OPTION = OptionDef(
         "et les matières de la formation commune déjà présentes sur Jury Central."
     ),
     tracks=(AMPCR_TRACK, FRANCAIS_TRACK, FSE_TRACK),
+    practical_path=PRACTICAL_PATH_URL,
 )
 
 REGISTRY: tuple[DiplomaDef, ...] = (

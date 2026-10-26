@@ -13,6 +13,7 @@ Si la tâche concerne...
 - exemple d'UAA → REFERENCE_UAA.md
 - priorité Informatique/Français, cartographie, prochains tickets d'import → content_plan_informatique_francais.md
 - plan des 17 mini-cours Formation sociale et économique (FSE), périmètre officiel → content_plan_fse.md
+- AMPCR pratique écrite (Laboratoire + T.P.) : parcours, matrice officielle, conventions PR/EX → ampcr_pratique_v1.md
 - déploiement staging, script de déploiement, diagnostic serveur → deployment_staging.md
 - génération d'exercices par IA, correction IA, sécurité (clé API, injection) → ai_exercise_engine.md
 - exercices éditoriaux interactifs (single_choice/true_false/short_answer, correction locale) → editorial_exercise_engine.md- points faibles, renforcement ciblé, examen ciblé → weakness_v1.md

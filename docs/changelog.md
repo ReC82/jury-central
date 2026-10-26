@@ -2,6 +2,15 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : socle et matrice de couverture officielle (ticket #192)
+
+Nouveau parcours distinct du théorique : `app/v1/ampcr_pratique_plan.py` (sources officielles
+tracées par URL + SHA-256, consignes du jour, 38 exigences pp. 5-6 recopiées, 2 compléments,
+6 modules, PR01–PR30, EX01–EX06, statut calculé depuis les UAA publiées du module
+`AMPCR-PRATIQUE`), `app/v1/ampcr_pratique_format.py` (format d'exercice pratique écrit →
+`document_analysis`/`long_answer` existants), routes `/ampcr-pratique[/matrice|/format-exercice]`,
+liens depuis `/mon-parcours` et `/modules/ampcr`. Aucune table, aucun seed.
+
 ## 2026-09-17 — S'entraîner : rendre les 12 exercices MC01 répondables (ticket #29)
 
 Termine la mise à niveau interactive de S'entraîner amorcée aux tickets #17/#21 : les 8

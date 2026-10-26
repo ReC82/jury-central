@@ -124,6 +124,14 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 
 ---
 
+## AMPCR — Pratique écrite (ticket #192)
+
+Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
+(consignes du jour, 6 modules, emplacements PR01–PR30 / EX01–EX06 encore « à venir »),
+`/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 2 compléments, toutes
+« non traité » à ce stade) et `/ampcr-pratique/format-exercice`. Aucun cours pratique publié.
+Voir `ampcr_pratique_v1.md`.
+
 ## Administration
 
 Disponible.

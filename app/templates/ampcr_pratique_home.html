@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}AMPCR — Pratique écrite — Jury Central{% endblock %}
+{% block main_class %}jc-wide{% endblock %}
+
+{% block content %}
+{# Ticket #192 : socle du parcours pratique écrit. Aucun cours ni exercice n'est affiché comme
+publié tant qu'une UAA de même code n'existe pas en base (voir app.v1.ampcr_pratique_plan). #}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/mon-parcours">Mon parcours</a></li>
+        <li class="breadcrumb-item active" aria-current="page">AMPCR — Pratique écrite</li>
+    </ol>
+</nav>
+
+<div class="jc-theme-info">
+<header class="jc-module-head mb-4">
+    <div>
+        <span class="jc-pill mb-2"><i class="bi bi-star-fill" aria-hidden="true"></i> Option — épreuve pratique</span>
+        <h1 class="h2 mb-2">AMPCR — Pratique écrite <small class="text-muted fs-6">(cycle {{ plan.CYCLE_LABEL }})</small></h1>
+        <p class="text-muted mb-2">Laboratoire + T.P. et méthodes&nbsp;: une seule épreuve, uniquement par écrit.</p>
+        <p class="jc-stat mb-0">
+            <i class="bi bi-journal-check" aria-hidden="true"></i>
+            {{ published_course_count }} cours publiés sur {{ plan.COURSE_SLOTS | length }} prévus
+            · {{ published_exercise_count }} séries d'exercices sur {{ plan.EXERCISE_SLOTS | length }} prévues
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-3 d-print-none">
+            <a href="{{ plan.PRACTICAL_PATH_URL }}/matrice" class="jc-btn jc-btn-primary jc-btn-sm">
+                <i class="bi bi-table" aria-hidden="true"></i> Matrice de couverture officielle
+            </a>
+            <a href="{{ plan.PRACTICAL_PATH_URL }}/format-exercice" class="jc-btn jc-btn-ghost jc-btn-sm">
+                <i class="bi bi-file-earmark-text" aria-hidden="true"></i> Format d'un exercice
+            </a>
+            <a href="/modules/ampcr" class="jc-btn jc-btn-ghost jc-btn-sm">
+                <i class="bi bi-book" aria-hidden="true"></i> Cours théoriques MC01–MC38
+            </a>
+        </div>
+    </div>
+</header>
+
+<div class="jc-honest mb-4">
+    <p class="mb-0"><i class="bi bi-hourglass-split" aria-hidden="true"></i>
+        <strong>Parcours en construction.</strong>
+        Les cours PR01–PR30 et les exercices EX01–EX06 arrivent un par un&nbsp;; un emplacement
+        « à venir » n'a pas encore de contenu. En attendant, les liens « théorie » ouvrent les
+        mini-cours MC déjà publiés qui abordent la notion.
+    </p>
+</div>
+
+<section aria-labelledby="day-title" class="mb-4" id="consignes">
+    <h2 id="day-title" class="h4 mb-2"><i class="bi bi-clipboard-check" aria-hidden="true"></i> Consignes du jour de l'examen</h2>
+    <p class="small text-muted mb-3">
+        Texte tiré des consignes officielles du Jury, cycle {{ plan.CYCLE_LABEL }}
+        (<a href="{{ plan.OFFICIAL_SOURCE.url }}" rel="noopener" target="_blank">PDF officiel</a>, {{ plan.OFFICIAL_SOURCE.pages }} pages).
+        Seul le document officiel fait foi&nbsp;; vérifie-le avant l'épreuve.
+    </p>
+    <div class="row g-3">
+        {% for section in plan.DAY_INSTRUCTIONS %}
+        <div class="col-12 col-lg-6">
+            <div class="card h-100 jc-practical-card">
+                <div class="card-body">
+                    <h3 class="h6 mb-2">{{ section.title }} <span class="text-muted small fw-normal">(p.&nbsp;{{ section.page }})</span></h3>
+                    {% for paragraph in section.paragraphs %}
+                    <p class="small mb-2{% if paragraph in section.emphasis %} fw-bold{% endif %}">{{ paragraph }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section aria-labelledby="modules-title" class="mb-4">
+    <h2 id="modules-title" class="h4 mb-3">Les 6 modules</h2>
+    {% for item in modules %}
+    {% set module = item.module %}
+    <article class="card mb-3 jc-practical-card" aria-labelledby="mod-{{ module.key }}">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start mb-2">
+                <h3 id="mod-{{ module.key }}" class="h5 mb-0">
+                    <i class="bi bi-{{ module.icon }}" aria-hidden="true"></i>
+                    Module {{ loop.index }} — {{ module.title }}
+                </h3>
+                <span class="jc-pill">{{ item.published_count }}/{{ item.courses | length }} cours publiés</span>
+            </div>
+            <p class="text-muted small mb-3">{{ module.summary }} Exigences&nbsp;: {{ item.requirement_ids | join(', ') }}.</p>
+            <ol class="list-unstyled mb-3">
+                {% for course in item.courses %}
+                {% set uaa = published.get(course.code) %}
+                <li class="d-flex flex-wrap justify-content-between gap-2 py-1 border-bottom">
+                    {% if uaa %}
+                    <a href="/uaa/{{ uaa.slug }}">{{ course.code }} — {{ uaa.title }}</a>
+                    {% set st = states.get(course.code) %}
+                    {% if current_user and st and st.practice_done %}
+                    <span class="jc-pill jc-pill-primary"><i class="bi bi-check2-circle" aria-hidden="true"></i> Entraîné ×{{ st.practice_done }}</span>
+                    {% else %}
+                    <span class="badge progress-badge text-bg-secondary" data-uaa-slug-badge="{{ uaa.slug }}">Pas encore ouvert</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="text-muted">{{ course.code }} — {{ course.title }}</span>
+                    <span class="jc-pill"><i class="bi bi-hourglass" aria-hidden="true"></i> À venir</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+                {% set ex = published.get(item.exercise.code) %}
+                <li class="d-flex flex-wrap justify-content-between gap-2 py-1">
+                    {% if ex %}
+                    <a href="/uaa/{{ ex.slug }}"><strong>{{ item.exercise.code }}</strong> — {{ ex.title }}</a>
+                    {% else %}
+                    <span class="text-muted"><strong>{{ item.exercise.code }}</strong> — {{ item.exercise.title }}</span>
+                    <span class="jc-pill"><i class="bi bi-hourglass" aria-hidden="true"></i> À venir</span>
+                    {% endif %}
+                </li>
+            </ol>
+            {% set theory_links = item.theory_codes | select('in', theory) | list %}
+            {% if theory_links %}
+            <p class="small mb-0"><span class="text-muted">Théorie déjà publiée&nbsp;:</span>
+                {% for code in theory_links %}<a class="jc-pill" href="/uaa/{{ theory[code].slug }}" title="{{ theory[code].title }}">{{ code }}</a> {% endfor %}
+            </p>
+            {% endif %}
+        </div>
+    </article>
+    {% endfor %}
+</section>
+
+<div class="jc-honest mb-3">
+    <p class="mb-0"><i class="bi bi-info-circle" aria-hidden="true"></i>
+        <strong>Couverture officielle&nbsp;:</strong>
+        {{ summary.counts[plan.STATUS_VALIDATED] }} exigence(s) validée(s) sur {{ summary.official_total }}
+        ({{ summary.counts[plan.STATUS_PARTIAL] }} partielle(s), {{ summary.counts[plan.STATUS_TODO] }} non traitée(s)).
+        Une exigence n'est validée que si ses cours ET son exercice sont publiés et relus.
+        La progression est un repère personnel, jamais une note officielle.
+    </p>
+</div>
+</div>
+{% endblock %}
+
