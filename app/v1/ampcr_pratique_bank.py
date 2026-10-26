@@ -1,4 +1,5 @@
-"""Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11).
+"""Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
+#197 : PR15).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -29,6 +30,7 @@ from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
+from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -142,6 +144,51 @@ _PR11_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR15_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr15",
+    course_title="AMPCR pratique écrite — PR15 Câblage RJ45 T568A/B",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : réponses rédigées de technicien à partir de relevés de testeur et de "
+        "situations de câblage fictifs"
+    ),
+    allowed_notions=[
+        "câble à 4 paires torsadées, 8 conducteurs, rôle de la torsade, diaphonie, détorsadage limité à environ 13 mm",
+        "U/UTP, F/UTP, U/FTP, S/FTP ; UTP, FTP, STP historiques ; blindage continu de bout en bout, mise à la terre selon l'installation",
+        "Cat5e (100 MHz, 1 Gb/s sur 100 m), Cat6 (250 MHz, 10 Gb/s sur longueur réduite d'environ 37 à 55 m), Cat6A (500 MHz, 10 Gb/s sur 100 m)",
+        "connecteur 8P8C dit RJ45, fiche, prise, keystone, panneau de brassage, cordon ; monobrin pour l'installation, multibrin pour les cordons ; fiches adaptées",
+        "orientation : contacts dorés face à soi, languette dessous, câble vers le bas, broche 1 à gauche",
+        "T568B : 1 blanc/orange, 2 orange, 3 blanc/vert, 4 bleu, 5 blanc/bleu, 6 vert, 7 blanc/marron, 8 marron",
+        "T568A : 1 blanc/vert, 2 vert, 3 blanc/orange, 4 bleu, 5 blanc/bleu, 6 orange, 7 blanc/marron, 8 marron",
+        "A et B échangent les paires orange et verte (broches 1, 2, 3, 6) ; bleue (4-5) et marron (7-8) identiques ; positions de paire 1-2, 3-6, 4-5, 7-8 ; paire séparée (split pair)",
+        "câble droit A-A ou B-B ; croisé A-B (1→3, 2→6, 3→1, 6→2) ; MDI/MDI-X ; Auto MDI-X et ses limites",
+        "10/100BASE-TX sur deux paires (1-2 émission, 3-6 réception côté carte) ; 1000BASE-T sur quatre paires bidirectionnelles",
+        "lien physique, négociation de vitesse et duplex, configuration IP : trois niveaux distincts",
+        "fabrication : manchons, coupe, dénudage sans entailler, ordre, recoupe, butée, gaine sous la patte de maintien, sertissage, autre bout, test avant mise en service ; poinçonnage d'un keystone",
+        "wiremap : circuit ouvert, court-circuit, paire inversée, paires croisées, paire séparée, défaut intermittent ; continuité, qualification, certification",
+        "canal 100 m = 90 m de lien permanent + cordons ; atténuation, NEXT, blindage, rapport signal/bruit ; lien à 100 Mb/s si 4-5 ou 7-8 défectueuse",
+        "chaîne baie, panneau, câble permanent, prise, cordon, PC ; étiquetage ; rapport : besoin, norme, schéma, outils, tests avant/après, résultats, défauts corrigés, validation",
+    ],
+    competencies=[
+        "Appliquer et vérifier les brochages T568A/T568B, pour un câble droit ou croisé",
+        "Interpréter un relevé de testeur ou un rapport de qualification/certification et proposer la correction",
+        "Rédiger une procédure de fabrication, de raccordement ou de diagnostic et un compte rendu",
+    ],
+    vocabulary=[
+        "8P8C", "RJ45", "T568A", "T568B", "keystone", "panneau de brassage", "monobrin",
+        "multibrin", "wiremap", "split pair", "NEXT", "Auto MDI-X", "U/UTP", "F/UTP", "S/FTP",
+        "Cat5e", "Cat6", "Cat6A",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation "
+        "techniquement juste, sans exiger de mot-clé ; suivre le barème de la question. Un "
+        "ordre de couleurs, une broche ou une paire faux est toujours une erreur, même bien "
+        "rédigé ; accepter « blanc-orange », « blanc/orange » ou « orange-blanc » pour le même "
+        "fil. Ne jamais valider « Cat6 = 10 Gb/s sur 100 m », « un testeur de continuité "
+        "certifie la catégorie » ni « le gigabit n'utilise que deux paires »."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT
@@ -151,6 +198,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Messages d'erreur Windows/Linux — diagnostic et interventions écrites",
         items=PR11_ITEMS,
         context=_PR11_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR15",
+        title="Câblage RJ45 T568A/B — fabrication, schémas et tests",
+        items=PR15_ITEMS,
+        context=_PR15_CONTEXT,
     ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}
