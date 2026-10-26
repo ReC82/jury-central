@@ -54,12 +54,13 @@ def test_every_requirement_has_a_planned_course_and_exercise():
     assert referenced <= set(plan.REQUIREMENTS_BY_ID)
 
 
-def test_slots_pr01_pr30_ex01_ex06_in_six_modules():
+def test_slots_pr01_pr30_ex01_ex06_in_five_modules():
+    # Ticket #236 : 5 modules alignés sur les tickets (EX05/EX06 globaux dans P5).
     assert [c.code for c in plan.COURSE_SLOTS] == [f"PR{i:02d}" for i in range(1, 31)]
     assert [e.code for e in plan.EXERCISE_SLOTS] == [f"EX{i:02d}" for i in range(1, 7)]
-    assert len(plan.MODULES) == 6
+    assert len(plan.MODULES) == 5
     assert sum(len(m.course_codes) for m in plan.MODULES) == 30
-    assert {m.exercise_code for m in plan.MODULES} == {e.code for e in plan.EXERCISE_SLOTS}
+    assert [c for m in plan.MODULES for c in m.exercise_codes] == [e.code for e in plan.EXERCISE_SLOTS]
 
 
 def test_theory_links_point_to_existing_mc_courses():
@@ -69,14 +70,14 @@ def test_theory_links_point_to_existing_mc_courses():
 
 
 def test_status_never_validated_without_course_exercise_and_explicit_validation(monkeypatch):
-    req = "AP-04"  # PR04 + EX01
+    req = "AP-04"  # PR02 + EX01 (audit #236)
     assert plan.requirement_status(req, set()) == plan.STATUS_TODO
-    assert plan.requirement_status(req, {"PR04"}) == plan.STATUS_PARTIAL
-    assert plan.requirement_status(req, {"PR04", "EX01"}) == plan.STATUS_PARTIAL
+    assert plan.requirement_status(req, {"PR02"}) == plan.STATUS_PARTIAL
+    assert plan.requirement_status(req, {"PR02", "EX01"}) == plan.STATUS_PARTIAL
     monkeypatch.setattr(plan, "VALIDATED_REQUIREMENT_IDS", frozenset({req}))
-    assert plan.requirement_status(req, {"PR04"}) == plan.STATUS_PARTIAL
-    assert plan.requirement_status(req, {"PR04", "EX01"}) == plan.STATUS_VALIDATED
-    summary = plan.coverage_summary(plan.coverage_rows({"PR04", "EX01"}))
+    assert plan.requirement_status(req, {"PR02"}) == plan.STATUS_PARTIAL
+    assert plan.requirement_status(req, {"PR02", "EX01"}) == plan.STATUS_VALIDATED
+    summary = plan.coverage_summary(plan.coverage_rows({"PR02", "EX01"}))
     assert summary["complete"] is False
 
 
@@ -143,8 +144,9 @@ def test_home_shows_modules_slots_as_upcoming_and_day_instructions(client):
     text = _text(response.text)
     assert "0 cours publiés sur 30 prévus" in text
     assert text.count("À venir") == 36
-    for i in range(1, 7):
+    for i in range(1, 6):
         assert f"Module {i} — " in text
+    assert "Module 6 — " not in text
     assert "L’EXAMEN SE FERA UNIQUEMENT PAR ÉCRIT." in text
     assert "/ampcr-pratique/matrice" in response.text
 

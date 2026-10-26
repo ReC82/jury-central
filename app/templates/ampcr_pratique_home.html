@@ -22,7 +22,7 @@ publié tant qu'une UAA de même code n'existe pas en base (voir app.v1.ampcr_pr
         <p class="jc-stat mb-0">
             <i class="bi bi-journal-check" aria-hidden="true"></i>
             {{ published_course_count }} cours publiés sur {{ plan.COURSE_SLOTS | length }} prévus
-            · {{ published_exercise_count }} séries d'exercices sur {{ plan.EXERCISE_SLOTS | length }} prévues
+            · {{ published_exercise_count }} examens blancs sur {{ plan.EXERCISE_SLOTS | length }} prévus
         </p>
         <div class="d-flex flex-wrap gap-2 mt-3 d-print-none">
             <a href="{{ plan.PRACTICAL_PATH_URL }}/matrice" class="jc-btn jc-btn-primary jc-btn-sm">
@@ -41,7 +41,7 @@ publié tant qu'une UAA de même code n'existe pas en base (voir app.v1.ampcr_pr
 <div class="jc-honest mb-4">
     <p class="mb-0"><i class="bi bi-hourglass-split" aria-hidden="true"></i>
         <strong>Parcours en construction.</strong>
-        Les cours PR01–PR30 et les exercices EX01–EX06 arrivent un par un&nbsp;; un emplacement
+        Les cours PR01–PR30 et les examens blancs EX01–EX06 arrivent un par un&nbsp;; un emplacement
         « à venir » n'a pas encore de contenu. En attendant, les liens « théorie » ouvrent les
         mini-cours MC déjà publiés qui abordent la notion.
     </p>
@@ -72,7 +72,7 @@ publié tant qu'une UAA de même code n'existe pas en base (voir app.v1.ampcr_pr
 </section>
 
 <section aria-labelledby="modules-title" class="mb-4">
-    <h2 id="modules-title" class="h4 mb-3">Les 6 modules</h2>
+    <h2 id="modules-title" class="h4 mb-3">Les {{ modules | length }} modules</h2>
     {% for item in modules %}
     {% set module = item.module %}
     <article class="card mb-3 jc-practical-card" aria-labelledby="mod-{{ module.key }}">
@@ -103,15 +103,17 @@ publié tant qu'une UAA de même code n'existe pas en base (voir app.v1.ampcr_pr
                     {% endif %}
                 </li>
                 {% endfor %}
-                {% set ex = published.get(item.exercise.code) %}
+                {% for exercise in item.exercises %}
+                {% set ex = published.get(exercise.code) %}
                 <li class="d-flex flex-wrap justify-content-between gap-2 py-1">
                     {% if ex %}
-                    <a href="/uaa/{{ ex.slug }}"><strong>{{ item.exercise.code }}</strong> — {{ ex.title }}</a>
+                    <a href="/uaa/{{ ex.slug }}"><strong>{{ exercise.code }}</strong> — {{ ex.title }}</a>
                     {% else %}
-                    <span class="text-muted"><strong>{{ item.exercise.code }}</strong> — {{ item.exercise.title }}</span>
+                    <span class="text-muted"><strong>{{ exercise.code }}</strong> — {{ exercise.title }}{% if exercise.is_global %} <span class="small">(tout le parcours)</span>{% endif %}</span>
                     <span class="jc-pill"><i class="bi bi-hourglass" aria-hidden="true"></i> À venir</span>
                     {% endif %}
                 </li>
+                {% endfor %}
             </ol>
             {% set theory_links = item.theory_codes | select('in', theory) | list %}
             {% if theory_links %}
@@ -129,7 +131,7 @@ publié tant qu'une UAA de même code n'existe pas en base (voir app.v1.ampcr_pr
         <strong>Couverture officielle&nbsp;:</strong>
         {{ summary.counts[plan.STATUS_VALIDATED] }} exigence(s) validée(s) sur {{ summary.official_total }}
         ({{ summary.counts[plan.STATUS_PARTIAL] }} partielle(s), {{ summary.counts[plan.STATUS_TODO] }} non traitée(s)).
-        Une exigence n'est validée que si ses cours ET son exercice sont publiés et relus.
+        Une exigence n'est validée que si ses cours ET ses examens blancs sont publiés et relus.
         La progression est un repère personnel, jamais une note officielle.
     </p>
 </div>

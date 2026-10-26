@@ -2,6 +2,15 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-26 — AMPCR pratique écrite : numérotation PR01–PR30 / EX01–EX06 alignée sur les tickets (ticket #236)
+
+Audit des 36 tickets GitHub contre le plan installé : seuls PR01, PR06, PR11 et PR15 portaient
+le sujet de leur ticket. `app/v1/ampcr_pratique_plan.py` reprend désormais code, titre, ticket
+et matière de chaque ticket (5 modules ; EX01–EX04 examens de module, EX05/EX06 examens blancs
+globaux, chacun avec ses exigences AP) ; complément AP-C03 (protection des données). Matrice,
+accueil `/ampcr-pratique`, `docs/ampcr_pratique_tickets.md` et `docs/ampcr_pratique_v1.md`
+mis à jour. PR06 (seul cours publié) inchangé ; aucune donnée en base modifiée.
+
 ## 2026-10-26 — AMPCR pratique écrite : cours PR06 « Diagnostic des pannes matérielles » (ticket #193)
 
 Premier cours du parcours pratique : module `AMPCR-PRATIQUE` (matière Informatique) seedé avec

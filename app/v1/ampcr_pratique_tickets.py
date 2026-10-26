@@ -1,11 +1,13 @@
-"""Modèles de tickets PR01–PR30 / EX01–EX06 du parcours AMPCR pratique écrite (ticket #192).
+"""Modèles de tickets PR01–PR30 / EX01–EX06 du parcours AMPCR pratique écrite (tickets #192,
+#236).
 
-Chaque futur ticket de cours ou d'examen est un **cahier des charges pédagogique** rédigé
-par le propriétaire AVANT exécution : la session qui le traite n'improvise pas le programme.
-Ce module produit, depuis le plan (`app.v1.ampcr_pratique_plan`), l'amorce de chaque ticket :
-titre, exigences officielles couvertes (texte exact du PDF), théorie MC à réutiliser,
-écarts connus, puis les sections à compléter et les exigences transversales (visuels,
-évaluation, contrat de fin de ticket).
+Chaque ticket de cours ou d'examen est un **cahier des charges pédagogique** rédigé par le
+propriétaire AVANT exécution : la session qui le traite n'improvise pas le programme. Depuis
+l'audit #236, les 36 tickets existent sur GitHub et font foi (code, titre, matière). Ce module
+produit, depuis le plan (`app.v1.ampcr_pratique_plan`), la fiche de référence de chaque
+ticket : numéro et titre GitHub, exigences officielles rattachées (texte exact du PDF),
+théorie MC à réutiliser, écarts connus, puis le gabarit des sections et les exigences
+transversales (visuels, évaluation, contrat de fin de ticket).
 
 `docs/ampcr_pratique_tickets.md` contient la sortie de `render_document()` ; un test vérifie
 qu'il reste synchronisé avec le plan. Régénération :
@@ -17,9 +19,11 @@ import sys
 
 from app.v1 import ampcr_pratique_plan as plan
 
-# Tickets de cours déjà rédigés par le propriétaire (le ticket fait foi pour son contenu).
-EXISTING_TICKETS: dict[str, int] = {"PR06": 193, "PR11": 194, "PR15": 197}
-SOCLE_TICKET = 192
+# Ticket GitHub de chaque emplacement (tous rédigés par le propriétaire ; le ticket fait foi).
+EXISTING_TICKETS: dict[str, int] = {
+    slot.code: slot.ticket for slot in plan.COURSE_SLOTS + plan.EXERCISE_SLOTS
+}
+SOCLE_TICKET = plan.SOCLE_TICKET
 
 COURSE_SECTIONS: tuple[tuple[str, str], ...] = (
     ("Objectifs observables",
@@ -138,15 +142,16 @@ def course_ticket(code: str, *, full: bool = True) -> str:
     module = plan.MODULES_BY_KEY[course.module_key]
     theory = _theory_codes(course.requirement_ids)
     lines = [
-        f"## [P0][AMPCR pratique {code}] {course.title}",
+        f"## [AMPCR pratique {code}] {course.title}",
         "",
         (f"**Parcours** AMPCR — Pratique écrite, cycle {plan.CYCLE_LABEL} · **module** "
-        f"{module.key} — {module.title} · **examen du module** {module.exercise_code} · "
-        f"**socle** #{SOCLE_TICKET}."),
+        f"{module.key} — {module.title} · **examen(s) du module** "
+        f"{', '.join(module.exercise_codes)} · **socle** #{SOCLE_TICKET}."),
+        (f"**Ticket déjà rédigé : #{course.ticket}** ({plan.ticket_url(course.ticket)}) — "
+        "il fait foi pour le code, le titre et la matière."),
+        "",
+        "### Exigences officielles couvertes (matrice #192, audit #236)",
     ]
-    if code in EXISTING_TICKETS:
-        lines.append(f"**Ticket déjà rédigé : #{EXISTING_TICKETS[code]}** (il fait foi).")
-    lines += ["", "### Exigences officielles couvertes (matrice #192)"]
     lines += _requirement_lines(course.requirement_ids)
     lines += [
         "",
@@ -162,24 +167,26 @@ def course_ticket(code: str, *, full: bool = True) -> str:
 def exam_ticket(code: str, *, full: bool = True) -> str:
     exercise = plan.EXERCISE_SLOTS_BY_CODE[code]
     module = plan.MODULES_BY_KEY[exercise.module_key]
-    requirement_ids = tuple(
-        r.id for r in plan.ALL_REQUIREMENTS
-        if exercise in plan.exercises_for_requirement(r.id)
-    )
+    if exercise.is_global:
+        scope = "**examen blanc global** · **cours concernés** : tout le parcours (PR01–PR30)"
+    else:
+        scope = (f"**module** {module.key} — {module.title} · **cours du module** "
+                 f"{', '.join(module.course_codes)}")
     lines = [
-        f"## [P0][AMPCR pratique {code}] Examen écrit du module {module.key} — {module.title}",
+        f"## [AMPCR pratique {code}] {exercise.title}",
         "",
-        (f"**Parcours** AMPCR — Pratique écrite, cycle {plan.CYCLE_LABEL} · **socle** "
-        f"#{SOCLE_TICKET} · **cours du module** {', '.join(module.course_codes)} "
-        "(dépendances : leurs tickets doivent être livrés avant)."),
+        (f"**Parcours** AMPCR — Pratique écrite, cycle {plan.CYCLE_LABEL} · {scope} · "
+        f"**socle** #{SOCLE_TICKET}."),
+        (f"**Ticket déjà rédigé : #{exercise.ticket}** ({plan.ticket_url(exercise.ticket)}) — "
+        "il fait foi ; les cours qui portent ses exigences doivent être livrés avant."),
         "",
-        "### Exigences à évaluer (matrice #192)",
+        "### Exigences à évaluer (matrice #192, audit #236)",
     ]
-    lines += _requirement_lines(requirement_ids)
+    lines += _requirement_lines(exercise.requirement_ids)
     lines += [
         "",
         ("Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) "
-        "seulement quand ses cours ET cet examen sont publiés et relus."),
+        "seulement quand tous ses cours ET examens blancs sont publiés et relus."),
         "",
     ]
     lines += _sections(EXAM_SECTIONS)
@@ -225,30 +232,33 @@ Recopier dans chaque rapport PR/EX, chaque case cochée ou justifiée.
 
 def render_document() -> str:
     parts = [
-        "# AMPCR — Pratique écrite : modèles de tickets PR01–PR30 et EX01–EX06 (ticket #192)",
+        "# AMPCR — Pratique écrite : modèles de tickets PR01–PR30 et EX01–EX06 (tickets #192, #236)",
         "",
         ("Document généré par `python -m app.v1.ampcr_pratique_tickets` depuis le plan "
         "(`app/v1/ampcr_pratique_plan.py`) ; ne pas l'éditer à la main."),
         "",
         "## 1. Mode d'emploi",
         "",
-        ("1. Le propriétaire crée un ticket GitHub par cours (PR) ou examen de module (EX), "
-        "en copiant l'amorce correspondante du § 4 et en **rédigeant la matière** dans les "
-        "sections « À compléter ». Les tickets #193 (PR06), #194 (PR11) et #197 (PR15) "
-        "sont les références de niveau de détail attendu."),
-        ("2. Titre : `[P0][AMPCR pratique PRxx] …` ou `[P0][AMPCR pratique EXxx] …` (priorité "
-        "au choix du propriétaire) ; l'orchestrateur traite les tickets par priorité puis "
-        "ancienneté."),
-        ("3. Un EX dépend des PR de son module ; une session qui reçoit un EX avant ses PR "
-        "rend `READY` avec la dépendance."),
-        ("4. Si le titre ou le périmètre d'un ticket diffère du plan, **le ticket fait foi** : "
-        "la session réaligne le plan et la matrice dans la même PR."),
+        ("1. Les 36 tickets existent sur GitHub (audit #236 du 26/10/2026) : **chaque ticket "
+        "fait foi** pour son code, son titre et sa matière. Le § 4 donne, pour chacun, le "
+        "numéro du ticket et les exigences AP rattachées dans la matrice ; le tableau "
+        "complet est dans `docs/ampcr_pratique_v1.md` § 5."),
+        ("2. Titre : `[Px][AMPCR pratique PRxx] …` ou `[Px][AMPCR pratique EXxx] …` (priorité "
+        "P0–P3 au choix du propriétaire) ; l'orchestrateur traite les tickets par priorité "
+        "puis ancienneté."),
+        ("3. Un examen EX01–EX04 dépend des cours de son module ; EX05 et EX06 (globaux) "
+        "portent sur tout le parcours. Une session qui reçoit un EX avant ses PR rend "
+        "`READY` avec la dépendance."),
+        ("4. Un nouveau ticket ou un changement de périmètre : la session réaligne "
+        "`_COURSE_ROWS` / `_EXERCISE_ROWS`, la matrice et ce document dans la même PR ; "
+        "`tests/test_ticket236_ampcr_pratique_numerotation.py` fige la correspondance "
+        "code → ticket → titre."),
         ("5. Livraison incrémentale : chaque cours est publié dès qu'il est complet, sans "
         "attendre le module entier."),
         "",
         "## 2. Gabarit commun",
         "",
-        "Un ticket de cours contient, dans cet ordre : en-tête (parcours, module, examen du "
+        "Un ticket de cours contient, dans cet ordre : en-tête (parcours, module, examens du "
         "module, socle) ; exigences officielles couvertes (texte exact) ; théorie existante ; "
         + " ; ".join(title.lower() for title, _ in COURSE_SECTIONS)
         + " ; exigences transversales ; contrat de fin de ticket.",
@@ -268,14 +278,15 @@ def render_document() -> str:
         "",
         CHECKLIST,
         "",
-        "## 4. Amorces des 36 tickets",
+        "## 4. Fiches des 36 tickets",
         "",
     ]
     for module in plan.MODULES:
         parts += [f"### Module {module.key} — {module.title}", ""]
         for code in module.course_codes:
             parts += [_demote(course_ticket(code, full=False)), ""]
-        parts += [_demote(exam_ticket(module.exercise_code, full=False)), ""]
+        for code in module.exercise_codes:
+            parts += [_demote(exam_ticket(code, full=False)), ""]
     return "\n".join(parts).rstrip() + "\n"
 
 

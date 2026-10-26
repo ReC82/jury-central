@@ -27,7 +27,7 @@
         {% if summary.complete %}Couverture complète.{% else %}<strong>Couverture non complète.</strong>{% endif %}
     </p>
     <p class="small mb-0">
-        « Validé » = tous les cours ET l'exercice liés sont publiés et relus. Les liens « théorie »
+        « Validé » = tous les cours ET examens blancs liés sont publiés et relus. Les liens « théorie »
         renvoient aux mini-cours MC existants qui abordent la notion&nbsp;: ils ne valent pas
         couverture de l'épreuve pratique.
     </p>
@@ -58,7 +58,7 @@
             <th scope="col">Page</th>
             <th scope="col">Nature</th>
             <th scope="col">Cours prévus</th>
-            <th scope="col">Exercice</th>
+            <th scope="col">Examens blancs</th>
             <th scope="col">Théorie existante</th>
             <th scope="col">Statut</th>
         </tr>
@@ -79,7 +79,7 @@
                 {% if published.get(course.code) %}<a href="/uaa/{{ published[course.code].slug }}">{{ course.code }}</a>{% else %}<span title="{{ course.title }}">{{ course.code }}</span>{% endif %}{{ ', ' if not loop.last }}
                 {% endfor %}
             </td>
-            <td class="small">{% for ex in row.exercises %}{{ ex.code }}{{ ', ' if not loop.last }}{% endfor %}</td>
+            <td class="small">{% for ex in row.exercises %}<span title="{{ ex.title }}">{{ ex.code }}</span>{{ ', ' if not loop.last }}{% endfor %}</td>
             <td class="small">
                 {% for code in req.theory_codes %}
                 {% if theory.get(code) %}<a href="/uaa/{{ theory[code].slug }}" title="{{ theory[code].title }}">{{ code }}</a>{% else %}{{ code }}{% endif %}{{ ', ' if not loop.last }}

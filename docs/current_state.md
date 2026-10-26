@@ -127,9 +127,14 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 6 modules, emplacements PR01–PR30 / EX01–EX06 encore « à venir »),
-`/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 2 compléments, toutes
-« non traité » à ce stade) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR06),
+`/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
+
+**Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
+blancs = ceux des tickets GitHub (#193–#234), qui font foi ; modules P1 matériel (PR01–PR06,
+EX01), P2 systèmes (PR07–PR12, EX02), P3 câblage (PR13–PR17, EX03), P4 réseau (PR18–PR25,
+EX04), P5 méthode (PR26–PR30) + examens globaux EX05/EX06. Test de non-régression :
+`tests/test_ticket236_ampcr_pratique_numerotation.py`.
 
 **Premier cours publié (ticket #193) : PR06 « Diagnostic des pannes matérielles »**
 (`/uaa/ampcr-pratique-pr06`), module `AMPCR-PRATIQUE` de la matière Informatique, séparé du
