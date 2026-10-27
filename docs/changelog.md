@@ -2,6 +2,18 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR21 « Connexion directe de deux PC et mini-réseau » (ticket #221)
+
+Cours PR21 du parcours pratique, vingt et unième dans l'ordre pédagogique (UAA PR21 du module
+`AMPCR-PRATIQUE`, position 21, après PR20, 16 blocs) : carte réseau, câble droit ou croisé et
+Auto MDI-X, voyants ; adresses statiques 192.168.10.1/24 et .2/24 sans passerelle ; ping, ARP et
+pare-feu (profil réseau) ; partage et permissions ; extension à 3–6 PC via un switch ; DHCP ou
+statique, box (passerelle, DNS), plan d'adressage ; erreurs liaison, DHCP, doublon, masque ;
+mise en service et recette ; 3 procédures, 12 figures SVG + 4 schémas à compléter (fichiers
+statiques `app/static/img/ampcr-pratique/pr21-*.svg`) ; 5 cas résolus, 20 exercices, mini-examen
+10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr21_*.py`,
+`tests/test_ticket221_ampcr_pratique_pr21.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR19 « Topologies, OSI, TCP/IP, NetBEUI et équipements » (ticket #220)
 
 Cours PR19 du parcours pratique, dix-neuvième dans l'ordre pédagogique (UAA PR19 du module
