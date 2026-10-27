@@ -1,0 +1,106 @@
+/* Fiches de dépannage AMPCR Pratique écrite (ticket #302).
+   Même feuille pour la page du site et pour le fichier HTML autonome téléchargé (incluse en ligne). */
+.fx-doc { --fx-ink: #1d2433; --fx-muted: #5b6475; --fx-line: #d5dae3; --fx-soft: #f4f6fa;
+  --fx-accent: #2f5bb7; --fx-si: #1f7a4d; --fx-sinon: #a3471b; --fx-warn: #b42318;
+  color: var(--fx-ink); font-size: 1rem; line-height: 1.55; max-width: 62rem; margin: 0 auto;
+  overflow-wrap: anywhere; }
+.fx-doc h1 { font-size: 1.75rem; margin: .2rem 0 .5rem; line-height: 1.2; }
+.fx-doc h2 { font-size: 1.4rem; margin: 2.2rem 0 .9rem; padding-bottom: .35rem;
+  border-bottom: 3px solid var(--fx-accent); }
+.fx-doc h3 { font-size: 1.15rem; margin: 1.6rem 0 .5rem; color: var(--fx-accent); }
+.fx-doc h4 { font-size: 1rem; margin: 1rem 0 .35rem; text-transform: none; }
+.fx-doc p, .fx-doc ul, .fx-doc ol { margin: 0 0 .6rem; }
+.fx-doc ul, .fx-doc ol { padding-left: 1.4rem; }
+.fx-doc li { margin-bottom: .25rem; }
+.fx-doc a { color: var(--fx-accent); }
+.fx-doc code { font-size: .92em; background: var(--fx-soft); padding: 0 .2em; border-radius: 3px; }
+
+.fx-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1.2rem; }
+.fx-toolbar a, .fx-toolbar button { display: inline-flex; align-items: center; gap: .35rem;
+  border: 1px solid var(--fx-accent); background: #fff; color: var(--fx-accent); border-radius: 6px;
+  padding: .45rem .8rem; font: inherit; font-size: .95rem; text-decoration: none; cursor: pointer; }
+.fx-toolbar a.fx-primary { background: var(--fx-accent); color: #fff; }
+
+.fx-head { border: 1px solid var(--fx-line); border-left: 6px solid var(--fx-accent);
+  border-radius: 8px; padding: 1rem 1.1rem; background: var(--fx-soft); }
+.fx-kicker { text-transform: uppercase; letter-spacing: .05em; font-size: .8rem; color: var(--fx-muted);
+  margin: 0; font-weight: 600; }
+.fx-scope { color: var(--fx-muted); margin: 0; }
+.fx-toc { border: 1px solid var(--fx-line); border-radius: 8px; padding: .8rem 1rem; margin: 1rem 0; }
+.fx-toc ol { margin: 0; columns: 2 18rem; }
+
+.fx-proc, .fx-case { border: 1px solid var(--fx-line); border-radius: 8px; padding: .3rem 1rem .8rem;
+  margin: 1.2rem 0; }
+.fx-proc > h3, .fx-case > h3 { margin-top: .8rem; }
+.fx-sev { font-size: .88rem; color: var(--fx-muted); margin-top: -.2rem; }
+.fx-steps > li { margin-bottom: .7rem; }
+.fx-branch { margin: .35rem 0 .2rem; padding-left: .2rem; }
+.fx-branch p { margin: .15rem 0; padding: .2rem .55rem; border-radius: 4px; }
+.fx-si { border-left: 4px solid var(--fx-si); background: #edf7f1; }
+.fx-sinon { border-left: 4px solid var(--fx-sinon); background: #fbf1ec; }
+.fx-si b, .fx-sinon b { letter-spacing: .03em; }
+
+.fx-cmd, .fx-out, .fx-diagram { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .85rem; line-height: 1.4; border-radius: 6px; padding: .55rem .7rem; margin: .3rem 0 .6rem;
+  white-space: pre-wrap; overflow-wrap: anywhere; }
+.fx-cmd { background: #1d2433; color: #f3f6fb; }
+.fx-out { background: var(--fx-soft); border: 1px dashed var(--fx-line); color: var(--fx-ink); }
+.fx-diagram { background: #fff; border: 1px solid var(--fx-line); white-space: pre; overflow-x: auto; }
+
+.fx-warn { border: 2px solid var(--fx-warn); background: #fdf0ef; border-radius: 6px; padding: .45rem .7rem; }
+.fx-warn b { color: var(--fx-warn); }
+.fx-answer { border: 2px solid var(--fx-si); border-radius: 8px; padding: .5rem .9rem; margin: .6rem 0;
+  background: #f6fbf8; }
+.fx-answer-title { font-weight: 700; color: var(--fx-si); margin: .1rem 0 .4rem; }
+.fx-lose { border-left: 4px solid var(--fx-warn); padding-left: .55rem; }
+.fx-trap { border: 1px solid #e0b252; background: #fff8e6; border-radius: 6px; padding: .45rem .7rem;
+  margin: .5rem 0; }
+.fx-case-statement { background: var(--fx-soft); border: 1px solid var(--fx-line); border-radius: 6px;
+  padding: .6rem .8rem; margin: .4rem 0 .6rem; }
+.fx-ref { font-weight: 600; white-space: normal; }
+
+.fx-table-wrap { overflow-x: auto; margin: .5rem 0 1rem; }
+.fx-table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.fx-table th, .fx-table td { border: 1px solid var(--fx-line); padding: .35rem .5rem; vertical-align: top;
+  text-align: left; }
+.fx-table thead th { background: #e7ecf5; }
+.fx-table tbody tr:nth-child(even) td { background: #fafbfd; }
+
+.fx-check { list-style: none; padding-left: 0; }
+.fx-check li { padding-left: 1.7rem; position: relative; }
+.fx-check li::before { content: "\2610"; position: absolute; left: .2rem; top: -.05rem; font-size: 1.1rem; }
+
+@media (max-width: 640px) {
+  .fx-doc { font-size: .97rem; }
+  .fx-doc h1 { font-size: 1.4rem; }
+  .fx-doc h2 { font-size: 1.22rem; }
+  .fx-proc, .fx-case { padding: .2rem .65rem .6rem; }
+  .fx-doc ul, .fx-doc ol { padding-left: 1.15rem; }
+  /* Grandes matrices : chaque ligne devient une carte lisible sans défilement horizontal. */
+  .fx-table.fx-stack thead { display: none; }
+  .fx-table.fx-stack, .fx-table.fx-stack tbody, .fx-table.fx-stack tr, .fx-table.fx-stack td { display: block; width: 100%; }
+  .fx-table.fx-stack tr { border: 1px solid var(--fx-line); border-radius: 6px; margin-bottom: .6rem; }
+  .fx-table.fx-stack td { border: 0; border-bottom: 1px solid var(--fx-line); }
+  .fx-table.fx-stack td::before { content: attr(data-label); display: block; font-weight: 700;
+    font-size: .78rem; text-transform: uppercase; color: var(--fx-muted); }
+}
+
+@media print {
+  @page { size: A4; margin: 14mm 12mm 15mm; }
+  .fx-doc { max-width: none; font-size: 10.5pt; line-height: 1.4; color: #000; }
+  .fx-toolbar, .fx-noprint, nav.breadcrumb, header.navbar, footer, .navbar { display: none !important; }
+  .fx-doc a { color: #000; text-decoration: none; }
+  .fx-doc h2 { break-before: page; border-bottom-color: #000; }
+  .fx-doc .fx-head + .fx-toc + h2, .fx-doc section:first-of-type > h2 { break-before: auto; }
+  .fx-doc h2, .fx-doc h3, .fx-doc h4 { break-after: avoid; color: #000; }
+  .fx-proc, .fx-case { break-inside: auto; border-color: #888; }
+  .fx-steps > li, .fx-branch, .fx-answer, .fx-trap, .fx-warn, .fx-cmd, .fx-out, .fx-diagram,
+  .fx-table tr, .fx-case-statement, .fx-check li { break-inside: avoid; }
+  .fx-cmd { background: #fff; color: #000; border: 1px solid #000; }
+  .fx-si, .fx-sinon, .fx-out, .fx-answer, .fx-trap, .fx-warn, .fx-head, .fx-case-statement,
+  .fx-table thead th, .fx-table tbody tr td { background: #fff !important; }
+  .fx-table-wrap { overflow: visible; }
+  .fx-table thead { display: table-header-group; }
+  .fx-diagram { white-space: pre-wrap; }
+  .fx-toc ol { columns: 2; }
+}

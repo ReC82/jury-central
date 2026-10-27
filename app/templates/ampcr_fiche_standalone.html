@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiche {{ fiche.number }} — {{ fiche.title }} — AMPCR Pratique écrite</title>
+<style>
+body { margin: 0; padding: 16px; background: #fff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+{{ fiche_css | safe }}
+</style>
+</head>
+<body>
+<div class="fx-doc">
+    <div class="fx-toolbar">
+        <button type="button" onclick="window.print()">Imprimer / PDF</button>
+        <a href="{{ fiches.SITE_URL }}{{ fiche.url }}">Version en ligne</a>
+    </div>
+    {{ fiche_html | safe }}
+    <p class="fx-scope">Jury Central — AMPCR Pratique écrite, cycle {{ plan.CYCLE_LABEL }} · {{ fiches.SITE_URL }}{{ fiche.url }}</p>
+</div>
+</body>
+</html>
