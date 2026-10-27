@@ -1,0 +1,50 @@
+<section class="fx-sec" id="f6-pieges">
+<h2>6. Pièges d'examen et confusions fréquentes (transversaux)</h2>
+<p>Les pièges propres à un domaine sont dans chaque fiche ; ici, ceux qui naissent du <strong>croisement</strong> des domaines et de la forme écrite de l'épreuve.</p>
+
+<h3 id="f6-p-methode">6.1 Pièges de méthode</h3>
+<div class="fx-trap"><b>Piège</b> Répondre au symptôme au lieu de la cause : « le PC n'a pas d'IP, je lui en donne une fixe ». La question attend <em>pourquoi</em> il n'en reçoit pas (étendue pleine, serveur arrêté, port isolé). Une IP fixe masque la panne et crée un conflit futur.</div>
+<div class="fx-trap"><b>Piège</b> Le dernier changement accusé sans test : « depuis la mise à jour », « depuis le nouveau câble ». La coïncidence oriente l'hypothèse ; seul un test (retour arrière, substitution) la confirme. Les dossiers 1, 2, 3, 7 et 10 contiennent tous une fausse piste de ce type.</div>
+<div class="fx-trap"><b>Piège</b> Un seul diagnostic pour deux pannes. Si un symptôme ne peut pas expliquer l'autre (lieu, date ou couche différents), écris « deux pannes indépendantes » et traite-les dans l'ordre des dépendances (dossiers 1, 6, 10).</div>
+<div class="fx-trap"><b>Piège</b> Le geste destructif en premier : réinstaller, réinitialiser, formater, <code>chkdsk /r</code> sur un disque mourant, initialiser un disque sans l'identifier. Toujours : sauvegarde vérifiée, accord, identification de la cible, alternative prudente.</div>
+<div class="fx-trap"><b>Piège</b> Oublier la validation ou valider avec le mauvais test : valider des droits avec un compte administrateur, valider une panne intermittente avec un ping de 4 paquets, valider une surchauffe au repos.</div>
+<div class="fx-trap"><b>Piège</b> Écrire un résultat de test que le sujet ne donne pas (« je fais un ping et ça marche »). Écris le test, le résultat <em>attendu</em> et les deux branches.</div>
+
+<h3 id="f6-p-confusions">6.2 Confusions qui coûtent cher, et comment les distinguer</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>On confond</th><th>Indice qui tranche</th></tr></thead>
+<tbody>
+<tr><td>« Média déconnecté » et 169.254.x.x</td><td>Média déconnecté = pas de lien (câble, port, prise) ; 169.254 = lien présent mais pas de réponse DHCP</td></tr>
+<tr><td>Panne Internet et panne DNS</td><td>Ping d'une IP Internet : répond → DNS (nslookup) ; ne répond pas → accès/passerelle</td></tr>
+<tr><td>Ping échoué et coupure</td><td>L'ARP répond, ou un partage fonctionne → la cible bloque ICMP (pare-feu) ; le lien est bon</td></tr>
+<tr><td>« Accès refusé » et « Chemin réseau introuvable »</td><td>Refusé = le serveur répond et refuse (compte, droits) ; introuvable = nom/IP, réseau, pare-feu, partage désactivé</td></tr>
+<tr><td>Câble croisé et câble défectueux</td><td>Testeur : 1↔3 / 2↔6 réguliers = croisé (fonctionne en Auto MDI-X) ; conducteur ouvert, court-circuit, paires mélangées = défectueux</td></tr>
+<tr><td>Testeur OK et câble bon</td><td>Le testeur ne voit ni les parasites, ni un contact intermittent, ni toujours une paire divisée : corréler avec les journaux et la vitesse de lien</td></tr>
+<tr><td>Pas d'image et PC en panne</td><td>Q-LED/bips présents → POST en échec ; POST normal (bip court, accès disque) → sortie vidéo, câble, écran</td></tr>
+<tr><td>« Reboot and Select proper Boot Device » et disque mort</td><td>Disque visible dans l'UEFI → ordre de boot ou bootloader ; invisible → câble/alimentation/disque</td></tr>
+<tr><td>Disque visible dans le BIOS mais pas dans l'Explorateur</td><td>Non initialisé/non alloué = configuration, pas une panne</td></tr>
+<tr><td>Lenteur Wi-Fi et lenteur Internet</td><td>Comparer en câble au même moment : rapide en câble → radio ; lent partout → accès opérateur ou réseau</td></tr>
+<tr><td>Permission de partage et permission NTFS</td><td>Droit effectif = le plus restrictif des deux ; en local (sur le poste lui-même) seul NTFS s'applique</td></tr>
+<tr><td>RAID 1 et sauvegarde</td><td>Le miroir protège d'une panne de disque, pas d'un effacement, d'un rançongiciel ou d'un vol</td></tr>
+<tr><td>Kernel-Power 41 et alimentation défectueuse</td><td>L'événement dit « arrêt non propre », pas sa cause : chercher la corrélation (température, charge, secteur)</td></tr>
+<tr><td>Répéteur et point d'accès câblé</td><td>Répéteur : même canal, débit divisé, à placer où le signal est encore bon ; AP câblé : plein débit</td></tr>
+<tr><td>Réseau visiteurs et panne</td><td>Une IP dans le réseau invités qui ne voit pas le NAS = isolement voulu</td></tr>
+</tbody></table></div>
+
+<h3 id="f6-p-calcul">6.3 Pièges de calcul et de valeurs</h3>
+<div class="fx-trap"><b>Piège</b> Masque implicite : appliquer 255.255.255.0 à un réseau annoncé en /26 ou /25. Recalcule toujours bloc, réseau, diffusion et plage à partir du préfixe donné (dossier 4, laboratoire question 4).</div>
+<div class="fx-trap"><b>Piège</b> Compter l'adresse réseau et la diffusion comme utilisables : nombre d'hôtes = 2<sup>bits hôte</sup> − 2.</div>
+<div class="fx-trap"><b>Piège</b> Bits et octets : 60 Go = 480 Gbit ; à 1 Gbit/s ≈ 8 min théoriques, à 100 Mbit/s ≈ 80 min (dossier 9).</div>
+<div class="fx-trap"><b>Piège</b> Go décimaux et Go binaires : un disque de 2 To affiche ≈ 1863 Go dans Windows ; ce n'est pas une capacité manquante (dossier 8).</div>
+<div class="fx-trap"><b>Piège</b> Coaxial : deux bouchons de 50 Ω en parallèle donnent 25 Ω à la mesure ; 50 Ω mesurés = un bouchon manque (dossier 11). Un bouchon 75 Ω (vidéo) n'est pas un bouchon réseau.</div>
+<div class="fx-trap"><b>Piège</b> Longueurs : 90 m de câble fixe + cordons = 100 m de canal en paires torsadées ; un métré sans marge oblige à racheter du câble (laboratoire question 3).</div>
+
+<h3 id="f6-p-forme">6.4 Pièges de forme (épreuve écrite)</h3>
+<ul>
+<li>Réponse sans numéro de question ou dans le désordre : le correcteur doit retrouver chaque réponse ; recopie le numéro.</li>
+<li>Abréviations personnelles et « etc. » : écris les termes techniques en entier au moins une fois.</li>
+<li>Correcteur liquide interdit : barre d'un trait, réécris à côté.</li>
+<li>Calcul fait « dans la tête » : pas de brouillon autorisé, donc le calcul visible sur la copie est ta seule trace.</li>
+<li>Question laissée blanche : la démarche (observation, hypothèses, test, ce que tu en conclurais) rapporte des points même sans la cause finale.</li>
+</ul>
+</section>

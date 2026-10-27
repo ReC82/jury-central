@@ -1,0 +1,181 @@
+<section class="fx-sec" id="f6-dossiers-b">
+<h2>4. Dossiers intégrés résolus — B. Installer, migrer, optimiser (dossiers 4 à 6)</h2>
+
+<article class="fx-case" id="f6-dossier-4">
+<h3>Dossier 4 — Installer un mini-réseau de 5 postes : plan, câblage, adressage, partages, tests</h3>
+<p class="fx-sev">Domaines : câblage + réseau + système + méthode · Type : procédure d'installation complète · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Cabinet vétérinaire des Tilleuls, un seul étage. 5 postes Windows 11 Pro neufs : ACCUEIL, VETO1 (vétérinaire responsable), VETO2, SOINS, GESTION. Une multifonction laser réseau. Une box fibre (routeur, DHCP, Wi-Fi) déjà installée dans le local technique. Le prestataire Internet impose pour le LAN le réseau <strong>192.168.50.0/26</strong>, box en 192.168.50.1. Pas de serveur : GESTION hébergera les dossiers partagés. Besoins : Internet partout ; dossier « Commun » en lecture/écriture pour tout le personnel ; dossier « Compta » modifiable par la gestionnaire seule et consultable (lecture) par le vétérinaire responsable ; impression depuis tous les postes.</p>
+<p><strong>Document 1 — Plan simplifié.</strong></p>
+<pre class="fx-diagram">
+ [Local technique]--------- couloir ---------------------
+ | Box  Switch?  |  ACCUEIL 12 m   SOINS 31 m
+ | MFP 2 m       |  VETO1  18 m    VETO2 24 m
+ |               |  GESTION 9 m   (longueurs de câble
+ +---------------+   estimées depuis le local technique)
+</pre>
+<p><strong>Document 2 — Matériel disponible en stock.</strong> Hub 10 Mb/s 8 ports ; switch gigabit 8 ports non administrable ; touret de câble cat. 6 U/UTP ; touret de câble coaxial RG-58 ; connecteurs RJ45 cat. 6, prises murales RJ45, pince à sertir, testeur de câble.</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Choisis l'équipement d'interconnexion et le câble ; décris le câblage (norme, type de câble, longueurs, repérage). (4 pts)</li>
+<li>Calcule pour 192.168.50.0/26 : masque décimal, adresse réseau, diffusion, plage d'hôtes, nombre d'hôtes. Le réseau suffit-il ? (4 pts)</li>
+<li>Propose un plan d'adressage complet (fixe / DHCP) et justifie. (4 pts)</li>
+<li>Décris la configuration des comptes, du groupe de travail, des partages et des droits ; donne le droit effectif de ACCUEIL, VETO1 et GESTION sur « Compta ». (5 pts)</li>
+<li>Décris la recette (tests de réception). (3 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Équipement et câblage (4 pts).</strong></p>
+<ul>
+<li>Je choisis le <strong>switch gigabit 8 ports</strong> : il commute les trames vers le seul port destinataire (un domaine de collision par port, full duplex, 1 Gb/s) ; le hub 10 Mb/s partage la bande passante entre tous et provoque des collisions. Ports nécessaires : 5 postes + multifonction + liaison vers la box = 7 ≤ 8 (1 port libre ; je le signale : prévoir un 16 ports en cas d'extension).</li>
+<li>Câble <strong>cat. 6 U/UTP</strong> (1 Gb/s jusqu'à 100 m par canal, dont 90 m de câble fixe) : la plus longue liaison fait 31 m, largement dans la limite. Le coaxial RG-58 est inadapté (10 Mb/s en bus, matériel actuel sans BNC).</li>
+<li>Câblage : liaisons fixes du local technique vers une prise murale RJ45 par poste, câblées selon <strong>T568B</strong> aux deux extrémités (blanc-orange, orange, blanc-vert, bleu, blanc-bleu, vert, blanc-brun, brun), puis cordons droits prise → poste et switch → prise. Repérage identique aux deux bouts (« P01-ACCUEIL »…). Câbles éloignés des câbles électriques (croisement à 90° si nécessaire), rayon de courbure respecté, pas d'agrafes qui écrasent. Chaque liaison est testée au testeur (1-1 … 8-8) avant raccordement. Gestes : <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-rj45">→ Fiche 3 · RJ45</a> · <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-installation">→ Fiche 3 · Installation physique</a>.</li>
+</ul>
+<p><strong>2. Calcul /26 (4 pts).</strong></p>
+<pre class="fx-diagram">
+/26 = 26 bits réseau, 32 - 26 = 6 bits hôte
+Masque : 11111111.11111111.11111111.11000000
+       = 255.255.255.192   (4e octet : 128+64 = 192)
+Taille de bloc : 256 - 192 = 64 -> réseaux .0, .64, .128, .192
+Adresse réseau : 192.168.50.0
+Diffusion      : 192.168.50.63   (0 + 64 - 1)
+Plage d'hôtes  : 192.168.50.1 à 192.168.50.62
+Nombre d'hôtes : 2^6 - 2 = 64 - 2 = 62
+</pre>
+<p>Besoin : box + 5 postes + multifonction = 7 adresses, plus les appareils Wi-Fi (smartphones du personnel, portable) : 62 adresses suffisent largement.</p>
+<p><strong>3. Plan d'adressage (4 pts).</strong></p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Adresse(s)</th><th>Appareil</th><th>Mode</th><th>Justification</th></tr></thead>
+<tbody>
+<tr><td>192.168.50.1</td><td>Box (passerelle, DNS relais)</td><td>Fixe (imposée)</td><td>Passerelle de tous les postes</td></tr>
+<tr><td>192.168.50.10</td><td>Multifonction</td><td>Fixe, hors étendue</td><td>Les postes l'atteignent toujours à la même adresse</td></tr>
+<tr><td>192.168.50.11</td><td>GESTION (héberge les partages)</td><td>Fixe, hors étendue</td><td>Accès stable \\192.168.50.11 et \\GESTION</td></tr>
+<tr><td>192.168.50.20 – .50</td><td>Étendue DHCP : ACCUEIL, VETO1, VETO2, SOINS, Wi-Fi</td><td>DHCP</td><td>31 adresses, configuration automatique (masque, passerelle .1, DNS .1)</td></tr>
+<tr><td>.2 – .9, .12 – .19, .51 – .62</td><td>Réserve</td><td>—</td><td>Futurs équipements fixes</td></tr>
+</tbody></table></div>
+<p>Masque partout 255.255.255.192, passerelle 192.168.50.1, DNS 192.168.50.1. Règle : aucune IP fixe dans l'étendue DHCP (sinon conflit d'adresse). Calculs IP détaillés : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ipv4">→ Fiche 4 · IPv4</a>.</p>
+<p><strong>4. Comptes, groupe de travail, partages, droits (5 pts).</strong></p>
+<ol>
+<li>Groupe de travail identique sur les 5 postes (Paramètres → Système → Informations système → Paramètres avancés du système → Nom de l'ordinateur → Modifier : « TILLEULS »), noms d'ordinateur explicites. Profil réseau <strong>Privé</strong> et « Découverte du réseau » + « Partage de fichiers et d'imprimantes » activés. Un domaine n'est pas justifié : 5 postes, pas de serveur.</li>
+<li>Sur GESTION (qui contrôle l'accès en groupe de travail) : un compte local par personne avec mot de passe (accueil, veto1, veto2, soins, gestion) ; groupes locaux <code>G_Personnel</code> (tous) et <code>G_Compta</code> (gestion). Chaque utilisateur enregistre une seule fois ses identifiants \\GESTION (Gestionnaire d'identification).</li>
+<li>Dossier D:\Commun : partage « Commun », permission de partage <code>G_Personnel</code> = Modifier ; NTFS <code>G_Personnel</code> = Modification.</li>
+<li>Dossier D:\Compta : partage « Compta », permission de partage <code>G_Personnel</code> = Modifier (le partage reste large, le filtrage se fait en NTFS) ; NTFS : désactiver l'héritage en convertissant, retirer Utilisateurs, donner <code>G_Compta</code> = Modification, <code>veto1</code> = Lecture et exécution, Administrateurs = Contrôle total.</li>
+<li>Droit effectif = le plus restrictif entre partage et NTFS (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-partage">→ Fiche 4 · Partage</a>) :</li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Compte sur « Compta »</th><th>Partage</th><th>NTFS</th><th>Effectif</th></tr></thead>
+<tbody>
+<tr><td>accueil</td><td>Modifier (G_Personnel)</td><td>aucune entrée</td><td><strong>Accès refusé</strong></td></tr>
+<tr><td>veto1</td><td>Modifier</td><td>Lecture et exécution</td><td><strong>Lecture</strong></td></tr>
+<tr><td>gestion</td><td>Modifier</td><td>Modification (G_Compta)</td><td><strong>Modification</strong></td></tr>
+</tbody></table></div>
+<p>Multifonction : installée sur chaque poste par port TCP/IP standard 192.168.50.10 avec le pilote du fabricant (pas de partage via GESTION : l'impression ne dépend pas d'un poste allumé).</p>
+<p><strong>5. Recette (3 pts).</strong> Pour chaque prise : testeur OK, voyant de lien 1 Gb/s. Pour chaque poste : <code>ipconfig</code> (adresse attendue, masque .192, passerelle .1), <code>ping 192.168.50.1</code>, <code>ping 192.168.50.11</code>, ping IP Internet, <code>nslookup</code> d'un nom, navigation ; page de test sur la multifonction. Partages testés <strong>avec le compte de chaque utilisateur</strong> : accueil crée un fichier dans Commun (OK) et ouvre Compta (refus attendu) ; veto1 ouvre un fichier de Compta mais ne peut pas l'enregistrer (attendu) ; gestion modifie. Remise d'un plan d'adressage, d'un plan de câblage avec repères et d'un rapport ; mots de passe remis en main propre.</p>
+<p class="fx-lose"><b>Perd des points :</b> choisir le hub ; câble croisé « parce que deux PC » ; oublier la passerelle ou mettre le masque 255.255.255.0 alors que le réseau est un /26 ; IP fixes dans l'étendue ; « Tout le monde : Contrôle total » partout ; tester les droits avec un compte administrateur.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f6-dossier-5">
+<h3>Dossier 5 — Migration vers un SSD et Windows 11 avec sauvegarde des données (disque en fin de vie)</h3>
+<p class="fx-sev">Domaines : matériel + système + méthode · Type : intervention planifiée sous contrainte de risque + panne secondaire (pilote) · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> École primaire Saint-Roch. Le PC de la directrice (tour, Intel Core i5-8500, 8 Go, disque dur 500 Go, Windows 10) est devenu très lent et le disque « gratte ». Windows 10 n'est plus pris en charge par Microsoft depuis octobre 2025. La direction t'autorise par écrit à installer un SSD neuf de 500 Go et Windows 11 Pro, à condition de ne perdre <strong>aucune</strong> donnée.</p>
+<p><strong>Document 1 — Relevé SMART du disque dur (à 3 jours d'intervalle).</strong></p>
+<pre class="fx-out">ID  Attribut                 Brut (lundi)  Brut (jeudi)
+05  Reallocated_Sector_Ct    152           388
+C5  Current_Pending_Sector   24            61
+C6  Offline_Uncorrectable    0             9
+État global : MAUVAIS</pre>
+<p><strong>Document 2 — Informations système (msinfo32) et tpm.msc.</strong></p>
+<pre class="fx-out">Mode BIOS : Hérité
+État du démarrage sécurisé : Non pris en charge
+tpm.msc : « Aucun module de plateforme sécurisée compatible n'a été trouvé »</pre>
+<p><strong>Document 3 — Inventaire avec la directrice.</strong> Documents 85 Go, Bureau 12 Go, Images 40 Go, messagerie Outlook (fichier .pst 6 Go), favoris du navigateur, logiciel de gestion scolaire (clé de licence sur facture papier), imprimante USB du bureau.</p>
+<p><strong>Document 4 — Après installation de Windows 11.</strong> Pas d'icône Wi-Fi. Gestionnaire de périphériques : « Autres périphériques → Contrôleur réseau » avec un point d'exclamation jaune.</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Interprète le document 1 et fixe les priorités de l'intervention. (4 pts)</li>
+<li>Décris la sauvegarde : quoi, vers où, comment, vérification, ce qu'il ne faut surtout pas faire avant. (5 pts)</li>
+<li>Le PC est-il compatible Windows 11 ? Que faut-il régler dans l'UEFI ? (4 pts)</li>
+<li>Décris l'installation et la restauration, avec les précautions. (4 pts)</li>
+<li>Traite le document 4, puis décris la validation et le sort de l'ancien disque. (3 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. SMART et priorités (4 pts).</strong> Les secteurs réalloués passent de 152 à 388 en 3 jours, les secteurs en attente de 24 à 61 et des secteurs irrécupérables apparaissent : la dégradation est <strong>active et rapide</strong>. Ce n'est pas un symptôme isolé (lenteur) mais une mesure du disque lui-même, confirmée par l'état global « MAUVAIS ». Conclusion : disque en fin de vie, risque de perte imminente. Priorités : 1) <strong>sauvegarder immédiatement</strong> les données en sollicitant le disque le moins possible ; 2) vérifier la sauvegarde ; 3) seulement ensuite installer le SSD et le système. La lenteur s'explique par les relectures de secteurs défectueux (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-stockage">→ Fiche 1 · Stockage, SMART</a>).</p>
+<p><strong>2. Sauvegarde (5 pts).</strong></p>
+<ol>
+<li>Accord écrit déjà obtenu ; je préviens que des fichiers situés sur des secteurs illisibles pourraient être perdus (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ Fiche 5 · Sécurité des données</a>).</li>
+<li>Quoi : profil complet de la directrice (Documents, Bureau, Images, Téléchargements), fichier .pst Outlook (Outlook fermé), export des favoris, copie de la clé de licence et des paramètres du logiciel scolaire (base de données : emplacement indiqué par l'éditeur), liste des logiciels installés et des imprimantes. Total ≈ 145 Go.</li>
+<li>Vers où : disque externe USB de capacité suffisante (≥ 500 Go), vérifié sain, de préférence en <strong>deux exemplaires</strong> ou un disque + le stockage en ligne de l'école.</li>
+<li>Comment : copie <em>fichier par fichier</em> en commençant par le plus précieux (Documents, .pst), avec un outil qui reprend et journalise les erreurs (par ex. <code>robocopy C:\Users\directrice E:\Sauvegarde\directrice /E /R:1 /W:1 /LOG:E:\robocopy.log</code>) : peu de nouvelles tentatives pour ne pas user le disque sur un secteur mort ; les fichiers en échec sont listés dans le journal. Si le disque se dégrade trop vite : clonage secteur par secteur vers un disque sain avec un outil qui saute les zones illisibles, puis récupération depuis le clone.</li>
+<li>Vérification : comparer nombre de fichiers et taille, ouvrir quelques documents au hasard et le .pst sur un autre PC, lire le journal (fichiers en échec signalés à la directrice).</li>
+<li>À ne pas faire avant la sauvegarde : <code>chkdsk /r</code> (lit et réécrit toute la surface, peut achever le disque), défragmentation, mises à jour, réinstallation, tests de surface longs.</li>
+</ol>
+<p><strong>3. Compatibilité Windows 11 (4 pts).</strong> Processeur Intel de 8<sup>e</sup> génération : dans la liste supportée ; 8 Go de RAM ≥ 4 Go ; SSD 500 Go ≥ 64 Go. Le document 2 ne prouve pas l'absence de TPM : sur cette génération, le TPM 2.0 est intégré au processeur (Intel PTT) mais <strong>désactivé</strong> dans l'UEFI, et le PC démarre en mode hérité (CSM), d'où « démarrage sécurisé non pris en charge ». Réglages UEFI : activer Intel PTT (TPM 2.0) ; désactiver le CSM (mode UEFI seul) ; activer le Secure Boot (après l'installation en UEFI si l'option n'est pas disponible avant). L'installation se faisant sur un SSD vierge, il sera partitionné en <strong>GPT</strong> automatiquement : pas de conversion MBR→GPT du vieux disque. Vérification après installation : msinfo32 « Mode BIOS : UEFI », « Démarrage sécurisé : Activé », tpm.msc « Version de la spécification 2.0 » (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-boot">→ Fiche 2 · UEFI, GPT</a>).</p>
+<p><strong>4. Installation et restauration (4 pts).</strong></p>
+<p class="fx-warn"><b>Attention</b> L'installation supprime les partitions du disque choisi. Prérequis : sauvegarde vérifiée. Précaution : <strong>débrancher le disque dur</strong> pendant l'installation pour qu'il soit impossible de l'effacer par erreur ; alternative si impossible : identifier le SSD par sa taille et son modèle dans l'écran de partitionnement avant toute suppression.</p>
+<ol>
+<li>Coupure secteur, ESD ; montage du SSD (M.2 ou SATA + alimentation), disque dur débranché ; SSD détecté dans l'UEFI.</li>
+<li>Clé d'installation Windows 11 (outil officiel Microsoft), démarrage UEFI sur la clé, installation sur l'espace non alloué du SSD, compte de la directrice, mises à jour Windows Update, pilotes du constructeur.</li>
+<li>Réinstallation des logiciels (Office/Outlook, logiciel scolaire avec sa clé), imprimante USB avec son pilote.</li>
+<li>Restauration : profil depuis la sauvegarde vers les dossiers correspondants, .pst ouvert dans Outlook (Fichier → Ouvrir et exporter), favoris importés, données du logiciel scolaire selon la procédure de l'éditeur.</li>
+</ol>
+<p><strong>5. Pilote, validation, ancien disque (3 pts).</strong> Document 4 : « Contrôleur réseau » inconnu = pilote Wi-Fi absent, pas une panne matérielle. Je relève l'ID matériel (Propriétés → Détails → Numéros d'identification du matériel, par ex. PCI\VEN_8086…) et j'installe le pilote du fabricant téléchargé par câble Ethernet ou depuis un autre PC sur clé ; attendu : périphérique sous « Cartes réseau », icône Wi-Fi, connexion (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-pilote">→ Fiche 2 · Pilotes</a>). Validation : démarrage rapide, aucun périphérique inconnu, Wi-Fi et Internet, impression, la directrice ouvre ses documents et ses mails anciens et confirme ses données. L'ancien disque est conservé intact et étiqueté pendant une période convenue (ex. 30 jours), puis effacé de façon sécurisée ou détruit avec l'accord écrit de l'école (données d'élèves). Rapport complet.</p>
+<p class="fx-lose"><b>Perd des points :</b> lancer chkdsk /r ou une défragmentation sur un disque qui se dégrade ; installer avant d'avoir vérifié la sauvegarde ; dire « le PC n'a pas de TPM, achat d'un PC neuf » ; oublier le .pst ou la licence ; jeter l'ancien disque sans effacement ni accord.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f6-dossier-6">
+<h3>Dossier 6 — Wi-Fi lent dans une salle et sites inaccessibles : deux pannes, deux couches</h3>
+<p class="fx-sev">Domaines : réseau (radio + DNS) + câblage + méthode · Type : pannes concomitantes d'origine différente · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Centre culturel La Fabrique. Box 192.168.0.1/24 dans le bureau (DHCP .100 à .200, Wi-Fi « Fabrique » en 2,4 GHz et « Fabrique-5G » en 5 GHz, WPA2). La salle polyvalente est à 25 m du bureau, derrière deux murs en béton. Plaintes : 1) « Dans la salle, le Wi-Fi est d'une lenteur terrible, depuis toujours » ; 2) « Depuis la semaine passée, beaucoup de sites ne s'ouvrent plus, même dans le bureau ; quelques sites marchent encore ». Le bénévole informatique a « débranché le petit boîtier Raspberry Pi pour le spectacle » la semaine passée.</p>
+<p><strong>Document 1 — Portable dans la salle.</strong></p>
+<pre class="fx-cmd">C:\&gt; netsh wlan show interfaces</pre>
+<pre class="fx-out">    SSID                   : Fabrique
+    Type de radio          : 802.11n
+    Authentification       : WPA2 - Personnel
+    Bande                  : 2,4 GHz
+    Canal                  : 6
+    Réception (Mbits/s)    : 6.5
+    Transmission (Mbits/s) : 13
+    Signal                 : 32%</pre>
+<p><strong>Document 2 — Réseaux visibles dans la salle (extrait).</strong> 9 réseaux : 5 sur le canal 6 (dont « Fabrique »), 2 sur le canal 1, 1 sur le canal 11, aucun « Fabrique-5G ».</p>
+<p><strong>Document 3 — Portable dans le bureau, à 2 m de la box.</strong></p>
+<pre class="fx-out">C:\&gt; ipconfig /all
+   Adresse IPv4. . . . . . . . : 192.168.0.143(préféré)
+   Masque de sous-réseau . . . : 255.255.255.0
+   Passerelle par défaut . . . : 192.168.0.1
+   Serveurs DNS. . . . . . . . : 192.168.0.250
+C:\&gt; ping 192.168.0.1      -&gt; 4 réponses, temps&lt;1ms
+C:\&gt; ping 1.1.1.1          -&gt; 4 réponses, temps=12 ms
+C:\&gt; nslookup www.example.be
+DNS request timed out.
+    timeout was 2 seconds.
+Serveur :   UnKnown
+Address:  192.168.0.250
+*** Le délai d'attente de la requête sur UnKnown a expiré</pre>
+<p><strong>Document 4 — Box, page DHCP.</strong> Serveur DNS distribué : 192.168.0.250 (unique).</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Montre qu'il y a deux pannes distinctes. (4 pts)</li>
+<li>Diagnostique la panne « sites inaccessibles » ; explique pourquoi certains sites marchent encore. (5 pts)</li>
+<li>Corrige-la durablement. (3 pts)</li>
+<li>Diagnostique la lenteur dans la salle et propose une solution justifiée (répéteur ou point d'accès ?). (5 pts)</li>
+<li>Décris la validation. (3 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Deux pannes (4 pts).</strong> Elles diffèrent par le lieu, la date et la couche : la lenteur ne touche que la salle et existe « depuis toujours » (radio) ; l'échec des sites touche aussi le bureau, à 2 m de la box, et date de la semaine passée (service réseau). Le document 3, pris dans le bureau, montre que la connectivité IP est parfaite (passerelle et IP Internet répondent) alors que la résolution de noms échoue : la seconde panne est indépendante du Wi-Fi. Je les traite séparément.</p>
+<p><strong>2. Panne de noms (5 pts).</strong> Lecture dans l'ordre (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">→ Fiche 4 · Ordre des tests</a>) : IP correcte et cohérente ; <code>ping 192.168.0.1</code> OK → LAN et passerelle OK ; <code>ping 1.1.1.1</code> OK → accès Internet OK ; <code>nslookup</code> → « délai expiré » vers 192.168.0.250 → le <strong>serveur DNS configuré ne répond pas</strong>. Le document 4 montre que la box distribue ce DNS unique ; or 192.168.0.250 est le Raspberry Pi débranché la semaine passée (date cohérente). Cause racine : DHCP distribue un DNS hors service, sans DNS secondaire. Certains sites marchent encore parce que leurs noms sont encore dans le <strong>cache DNS</strong> du poste ou du navigateur (consultés récemment) : ils échoueront à leur tour à l'expiration du cache. Test de confirmation : <code>nslookup www.example.be 192.168.0.1</code> (interroger directement la box) → si une adresse est renvoyée, la confirmation est faite.</p>
+<p><strong>3. Correction (3 pts).</strong> Choix à valider avec le responsable : soit remettre en service le Raspberry Pi (s'il assurait un filtrage voulu) à son emplacement définitif ; soit, si le filtrage n'est plus voulu, modifier l'option DNS du DHCP de la box en 192.168.0.1 (la box relaie vers le DNS de l'opérateur). Dans tous les cas, ajouter un DNS secondaire fonctionnel pour éviter qu'un seul appareil coupe tout. Puis sur chaque poste : <code>ipconfig /renew</code> (ou reconnexion Wi-Fi) et <code>ipconfig /flushdns</code> (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-dns">→ Fiche 4 · DNS</a>).</p>
+<p><strong>4. Lenteur dans la salle (5 pts).</strong> Observation : signal 32 % (faible), 802.11n en 2,4 GHz, débit négocié 6,5 Mb/s en réception (le minimum pratique), canal 6 partagé avec 4 autres réseaux, réseau 5 GHz absent dans la salle (le 5 GHz traverse moins bien deux murs en béton). Causes : distance + obstacles (atténuation) et canal encombré. Solution : <strong>point d'accès supplémentaire relié en câble</strong> dans la salle : liaison cat. 6 U/UTP depuis le switch/box (≈ 25 à 40 m, &lt; 90 m), même SSID et même sécurité (WPA2, WPA3 si tous les appareils le supportent), 5 GHz (ex. canal 36) + 2,4 GHz sur le canal 1 ou 11 (les moins encombrés, document 2), puissance adaptée. Un <strong>répéteur</strong> est moins bon : placé dans la salle il recevrait le même signal faible, placé à mi-chemin il retransmet sur le même canal et divise au moins par deux le débit utile. Correction immédiate en attendant : passer la box du canal 6 au canal 1 ou 11 (gain limité). Détails : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-wifi">→ Fiche 4 · Wi-Fi</a>.</p>
+<p><strong>5. Validation (3 pts).</strong> DNS : <code>nslookup</code> de plusieurs noms jamais visités → adresses renvoyées ; navigation sur 5 sites, dans le bureau et la salle. Wi-Fi : au même endroit de la salle, comparer avant/après (signal, bande, débit négocié, test de débit ou copie d'un fichier) ; déplacement dans la salle sans coupure ; bureau inchangé. Rapport : deux causes, deux corrections, nouveau plan Wi-Fi (canaux), rôle du Raspberry Pi documenté.</p>
+<p class="fx-lose"><b>Perd des points :</b> traiter la lenteur Wi-Fi comme cause des sites inaccessibles alors que le bureau est touché ; « la box est en panne » alors que ping 1.1.1.1 répond ; conclure « DNS » sans citer le nslookup ; proposer un répéteur dans la salle ; oublier la sécurité WPA sur le nouveau point d'accès.</p>
+</div>
+</article>
+</section>

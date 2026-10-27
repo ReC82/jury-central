@@ -1,0 +1,152 @@
+<section class="fx-sec" id="f6-dossiers">
+<h2>4. Dossiers intégrés résolus — A. Pannes concomitantes et fausses pistes (dossiers 1 à 3)</h2>
+<p>Chaque dossier est présenté comme un sujet d'examen (contexte, documents, questions notées), suivi de la <strong>copie modèle</strong>. Entreprises, personnes et adresses sont fictives. Lis l'énoncé, réponds au brouillon mental ou sur une feuille ce soir, puis compare. Les points indiqués sont un repère d'entraînement, pas un barème officiel.</p>
+
+<article class="fx-case" id="f6-dossier-1">
+<h3>Dossier 1 — Plus d'image après ajout de RAM… et plus de réseau</h3>
+<p class="fx-sev">Domaines : matériel + câblage + méthode · Type : pannes concomitantes avec fausse corrélation · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Fiduciaire Lemaire (4 postes). Hier soir, un stagiaire a ajouté une barrette au PC de la comptable (tour, Windows 11, carte mère à 2 emplacements DIMM DDR4, 1 × 8 Go DDR4-3200 d'origine en A2). Ce matin, la comptable a déplacé la tour pour passer l'aspirateur. Au démarrage : les ventilateurs tournent, l'écran reste noir, une LED « DRAM » orange reste allumée sur la carte mère. La comptable ajoute : « Et il n'y a plus de réseau non plus : la nouvelle mémoire a dû griller la carte réseau. »</p>
+<p><strong>Document 1 — Note du stagiaire.</strong></p>
+<pre class="fx-out">Ajout barrette DDR4-2666 8 Go DIMM 288 broches en A1.
+A dû forcer un peu, un seul clip a claqué. Pas testé (fin de journée).</pre>
+<p><strong>Document 2 — Extrait du manuel de la carte mère.</strong></p>
+<pre class="fx-out">Mémoire : 2 x DIMM DDR4, max 64 Go, 2133/2400/2666/2933/3200 MHz.
+Q-LED DRAM allumée fixe : mémoire non détectée ou défectueuse.
+Installation recommandée : 1 barrette en A2 ; 2 barrettes en A1 + A2.</pre>
+<p><strong>Document 3 — Écran du BIOS/UEFI après ta première intervention.</strong></p>
+<pre class="fx-out">Total Memory : 16384 MB (DDR4-2666)
+DIMM_A1 : 8 GB   DIMM_A2 : 8 GB</pre>
+<p><strong>Document 4 — Sous Windows, après démarrage.</strong></p>
+<pre class="fx-cmd">C:\&gt; ipconfig</pre>
+<pre class="fx-out">Carte Ethernet Ethernet :
+   Statut du média. . . . . . . . . . . . : Média déconnecté
+   Suffixe DNS propre à la connexion. . . :</pre>
+<p><strong>Document 5 — Constat visuel.</strong> À l'arrière de la tour, le connecteur RJ45 n'a plus d'ergot de verrouillage et ressort légèrement du port. Le voyant du port 3 du switch est éteint ; les ports des autres postes sont allumés.</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Sépare les symptômes et dis s'ils peuvent avoir une cause commune. Justifie. (3 pts)</li>
+<li>Décris ta procédure de diagnostic du non-démarrage, sécurité comprise, jusqu'à la cause. (6 pts)</li>
+<li>Le document 3 montre DDR4-2666 au lieu de 3200 : est-ce une panne ? (2 pts)</li>
+<li>Diagnostique la panne réseau avec les documents 4 et 5 ; propose la correction. (5 pts)</li>
+<li>Décris la validation finale et les éléments du rapport. (4 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Symptômes séparés (3 pts).</strong></p>
+<ul>
+<li>Symptôme A : écran noir, ventilateurs actifs, Q-LED DRAM fixe → échec du POST au contrôle mémoire.</li>
+<li>Symptôme B : plus de réseau, constaté une fois Windows démarré (« Média déconnecté »).</li>
+<li>Une barrette mémoire ne peut pas « griller » une carte réseau sans autre signe (pas d'odeur, pas d'arrêt, la carte est toujours reconnue puisque Windows l'affiche). Les deux symptômes ont deux événements déclencheurs différents : l'ajout de RAM (A) et le déplacement de la tour (B). Hypothèse de travail : <strong>deux pannes indépendantes</strong>, à confirmer chacune par un test. Je traite A d'abord, car sans démarrage je ne peux pas tester B côté système.</li>
+</ul>
+<p><strong>2. Diagnostic du non-démarrage (6 pts).</strong></p>
+<ol>
+<li>Sécurité : arrêt, câble secteur débranché, interrupteur de l'alimentation sur 0, appui 5 s sur le bouton de démarrage pour décharger ; bracelet antistatique relié au châssis, travail sur surface non isolante propre (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ Fiche 5 · Sécurité, ESD</a>).</li>
+<li>Observation : la Q-LED DRAM et la note du stagiaire (« un seul clip a claqué ») orientent vers une barrette mal insérée (hypothèse 1, la plus probable), puis barrette défectueuse (hypothèse 2), puis incompatibilité (hypothèse 3, peu probable : DIMM DDR4 2666 est dans la liste du manuel).</li>
+<li>Test de retour arrière : je retire la nouvelle barrette et je laisse la barrette d'origine seule en A2 (configuration recommandée). Attendu : POST et démarrage comme avant. <em>Si</em> ça démarre → la panne est liée à la nouvelle barrette ou à son installation ; <em>sinon</em> → la barrette d'origine ou l'emplacement a souffert pendant l'intervention (ESD, contact) : je teste la barrette d'origine dans l'autre emplacement.</li>
+<li>Je contrôle la nouvelle barrette : détrompeur aligné, contacts propres, puis je l'insère en A1 en appuyant verticalement des deux côtés jusqu'à ce que les <strong>deux</strong> clips se verrouillent seuls (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-ram">→ Fiche 1 · RAM</a>).</li>
+<li>Redémarrage : attendu Q-LED éteinte, image, 16 Go dans le BIOS. Le document 3 montre 16384 Mo avec A1 et A2 à 8 Go : la barrette est reconnue.</li>
+<li>Conclusion : cause = <strong>barrette mal insérée</strong> (un clip non verrouillé). Limite : un démarrage réussi ne prouve pas l'absence de défaut intermittent ; je lance donc un test mémoire complet (Diagnostic de mémoire Windows ou MemTest86, au moins une passe complète) avant de rendre le poste. Si des erreurs apparaissent → tester chaque barrette seule pour identifier la fautive.</li>
+</ol>
+<p><strong>3. DDR4-2666 (2 pts).</strong> Ce n'est pas une panne. Avec deux barrettes de fréquences différentes, la carte mère aligne les deux sur la fréquence la plus basse commune (2666) pour qu'elles fonctionnent ensemble. Conséquence : légère perte de performance, pas de dysfonctionnement. Pour retrouver 3200, il faudrait une seconde barrette identique à l'originale (même fréquence, idéalement même référence) ; je le signale dans le rapport comme recommandation.</p>
+<p><strong>4. Panne réseau (5 pts).</strong></p>
+<ul>
+<li>Observation : « Média déconnecté » = la carte ne voit aucun lien électrique ; la carte est donc bien présente et pilotée (Windows l'affiche), ce qui écarte la « carte grillée » comme première hypothèse. Le port 3 du switch est éteint alors que les autres sont allumés : le défaut est sur le chemin de ce poste uniquement.</li>
+<li>Hypothèses classées : 1) connecteur mal enfiché (ergot cassé, document 5) ; 2) câble abîmé lors du déplacement ; 3) port de switch ; 4) carte réseau.</li>
+<li>Test : j'enfonce le connecteur et je le maintiens → si le voyant s'allume des deux côtés, le connecteur est la cause. Pour confirmer sans ambiguïté, je remplace le cordon par un cordon <strong>testé</strong> droit T568B : attendu voyants allumés, « Média déconnecté » disparu, adresse IP du réseau. Si toujours rien : je branche le cordon témoin sur un autre port du switch (isole le port), puis un autre poste sur ce cordon (isole la carte). Le geste de test de câble est en <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-testeur">→ Fiche 3 · Testeur</a>.</li>
+<li>Conclusion attendue : connecteur sans ergot qui sort du port lors des mouvements → contact perdu. Correction : remplacer le cordon de brassage (ou resertir un connecteur RJ45 neuf en T568B, avec manchon, et tester). Pas de changement de carte réseau.</li>
+</ul>
+<p><strong>5. Validation et rapport (4 pts).</strong> Validation : trois démarrages à froid sans Q-LED ; BIOS 16 Go ; Windows (Paramètres → Système → Informations système) affiche 16 Go ; test mémoire sans erreur ; voyants de lien allumés ; <code>ipconfig</code> montre une IP du réseau de la fiduciaire ; ping de la passerelle et accès aux dossiers comptables et à Internet ; la comptable vérifie son logiciel et une impression. Rapport (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-rapport">→ Fiche 5 · Rapport</a>) : demande, deux symptômes et leurs causes distinctes, tests et résultats, gestes (réinsertion, cordon remplacé), recommandation (barrette identique pour 3200 MHz, rappel : un ajout de composant se teste avant de quitter le poste), signature de validation.</p>
+<p class="fx-lose"><b>Perd des points :</b> reprendre l'idée « la RAM a grillé la carte réseau » sans test ; commander une carte mère ou une carte réseau ; intervenir sans couper le secteur ni ESD ; conclure « barrette HS » alors qu'elle n'était que mal insérée ; oublier le test mémoire ou la vérification réseau finale.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f6-dossier-2">
+<h3>Dossier 2 — Poste sans Internet : 169.254.x.x et câble « croisé »</h3>
+<p class="fx-sev">Domaines : réseau + câblage + méthode · Type : fausse piste matérielle, cause côté service · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Agence de voyages Horizon. Une box opérateur (192.168.1.1/24, serveur DHCP actif, étendue 192.168.1.100 à 192.168.1.119, bail de 7 jours, Wi-Fi « Horizon » utilisé par le personnel <strong>et laissé aux clients</strong> en salle d'attente), un switch gigabit 16 ports non administrable (fiche technique : « Auto MDI/MDI-X sur tous les ports »), 6 PC fixes, une imprimante en IP fixe 192.168.1.10. Ce matin, le technicien a installé un 7<sup>e</sup> poste (PC-07) avec un câble trouvé dans un tiroir, étiqueté « CROISÉ ». PC-07 n'a pas Internet. Les autres postes fonctionnent.</p>
+<p><strong>Document 1 — PC-07.</strong></p>
+<pre class="fx-cmd">C:\&gt; ipconfig /all</pre>
+<pre class="fx-out">Carte Ethernet Ethernet :
+   Description. . . . . . : Intel(R) Ethernet I219-V
+   Adresse physique . . . . . . . . . . . : 3C-52-82-1A-77-04
+   DHCP activé. . . . . . . . . . . . . . : Oui
+   Configuration automatique activée. . . : Oui
+   Adresse IPv4 de liaison locale automatique : 169.254.37.201(préféré)
+   Masque de sous-réseau. . . . . . . . . : 255.255.0.0
+   Passerelle par défaut. . . . . . . . . :
+   Serveurs DNS . . . . . . . . . . . . . : fec0:0:0:ffff::1%1</pre>
+<p><strong>Document 2 — État de la carte (Panneau de configuration → Centre Réseau et partage → Ethernet → État).</strong> Vitesse : 1,0 Gbit/s ; Connectivité IPv4 : Pas d'accès réseau. Voyant du port 7 du switch : allumé.</p>
+<p><strong>Document 3 — Testeur sur le câble.</strong></p>
+<pre class="fx-out">Broche  1 2 3 4 5 6 7 8
+Distant 3 6 1 4 5 2 7 8</pre>
+<p><strong>Document 4 — Page « Baux DHCP » de la box.</strong> 20 baux actifs sur 20 : PC-01 à PC-06, « Galaxy-A54 », « iPhone-de-Sarah », « Redmi-Note », « iPad-salle »… (14 appareils mobiles dont 11 inconnus du personnel).</p>
+<p><strong>Document 5 — PC-03, sur le même switch.</strong> Adresse IPv4 192.168.1.104, masque 255.255.255.0, passerelle 192.168.1.1, DNS 192.168.1.1.</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Interprète le document 1 : que prouve-t-il et que ne prouve-t-il pas ? (3 pts)</li>
+<li>Le câble croisé est-il la cause ? Justifie à l'aide des documents 2 et 3. (4 pts)</li>
+<li>Identifie la cause racine et sa preuve. (4 pts)</li>
+<li>Propose une correction durable (deux options) et les gestes sur PC-07. (5 pts)</li>
+<li>Décris la validation. (4 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Document 1 (3 pts).</strong> PC-07 est en DHCP (« DHCP activé : Oui ») et s'est attribué lui-même une adresse de liaison locale 169.254.37.201/16, sans passerelle : il n'a reçu <strong>aucune offre DHCP</strong>. Le document prouve que la configuration du poste est bien « automatique » (pas d'IP fixe erronée) et que la carte est active. Il ne dit pas <em>pourquoi</em> l'offre manque : lien sans trafic utile, serveur DHCP indisponible, ou serveur qui n'a plus d'adresse à donner. Une 169.254 n'est jamais une preuve de câble défectueux : avec un câble débranché, on aurait « Média déconnecté » (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-dhcp">→ Fiche 4 · DHCP</a>).</p>
+<p><strong>2. Le câble croisé (4 pts).</strong> Le testeur montre 1↔3 et 2↔6 inversés, 4, 5, 7, 8 directs : c'est un câble croisé (T568A d'un côté, T568B de l'autre), sans conducteur ouvert ni court-circuit. Le switch est Auto MDI-X : il corrige lui-même l'inversion. Preuve : le lien est établi (voyant du port 7 allumé) et négocié à 1 Gbit/s (document 2). Le câble n'empêche donc pas la communication : <strong>fausse piste, écartée</strong>. Je le remplacerai quand même par un cordon droit T568B étiqueté, par conformité (un futur équipement sans Auto MDI-X ne fonctionnerait pas) — mais ce n'est pas la correction de la panne.</p>
+<p><strong>3. Cause racine (4 pts).</strong> PC-03, sur le même switch, a un bail valide (192.168.1.104) : le serveur DHCP de la box fonctionne et le switch transmet. La différence : PC-07 est un <em>nouvel</em> appareil qui demande un <em>nouveau</em> bail. Le document 4 montre 20 baux sur 20 : l'étendue .100 à .119 (20 adresses) est <strong>épuisée</strong>, en grande partie par les smartphones des clients, qui gardent leur bail 7 jours. Cause racine : étendue DHCP trop petite + Wi-Fi client sur le réseau interne avec des baux longs. Confirmation : dès qu'une adresse est libérée (ou l'étendue agrandie), <code>ipconfig /renew</code> doit donner une adresse 192.168.1.1xx.</p>
+<p><strong>4. Correction (5 pts).</strong></p>
+<ol>
+<li>Option A (immédiate) : dans l'interface d'administration de la box, agrandir l'étendue à 192.168.1.100 – 192.168.1.199 (100 adresses), en vérifiant qu'aucune IP fixe n'y tombe (imprimante en .10 : hors étendue, OK), et réduire la durée du bail (par ex. 24 h) pour que les appareils de passage libèrent vite leur adresse.</li>
+<li>Option B (recommandée, en plus) : activer le <strong>réseau Wi-Fi invités</strong> de la box (réseau séparé, isolé du LAN) pour les clients, avec son propre mot de passe WPA2/WPA3 ; le Wi-Fi « Horizon » reste réservé au personnel avec une nouvelle clé. Cela libère les baux <em>et</em> supprime un risque : les clients ne voient plus les PC ni l'imprimante (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-wifi">→ Fiche 4 · Wi-Fi</a>).</li>
+<li>Sur PC-07 : <code>ipconfig /release</code> puis <code>ipconfig /renew</code> (ou débrancher/rebrancher le câble). Remplacer le cordon croisé par un cordon droit T568B testé, étiqueté « PC-07 ».</li>
+</ol>
+<p><strong>5. Validation (4 pts).</strong> <code>ipconfig /all</code> : 192.168.1.1xx, masque 255.255.255.0, passerelle 192.168.1.1, DNS 192.168.1.1, bail obtenu ; <code>ping 192.168.1.1</code> (réponses) ; ping d'une adresse IP Internet ; <code>nslookup</code> d'un nom connu ; navigation. Contrôle de non-régression : PC-01 à PC-06 et imprimante toujours joignables ; un smartphone sur le réseau invités obtient Internet mais ne voit pas l'imprimante. Page des baux : nombre d'adresses libres. Rapport : cause, valeurs avant/après, nouvelle clé Wi-Fi remise au gérant, plan d'adressage mis à jour.</p>
+<p class="fx-lose"><b>Perd des points :</b> « le câble croisé est la cause » alors que le lien est à 1 Gbit/s ; mettre une IP fixe à PC-07 dans l'étendue (conflit futur) ; redémarrer la box sans rien changer (la panne reviendra) ; oublier la passerelle et le DNS si on donne une IP fixe.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f6-dossier-3">
+<h3>Dossier 3 — Imprimante partagée inaccessible après changement de box</h3>
+<p class="fx-sev">Domaines : réseau + système + méthode · Type : deux pannes successives et une fausse piste (pilote) · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Menuiserie Dubois : 5 postes Windows 11 et un portable Ubuntu 24.04, une imprimante laser réseau « IMP-ATELIER » reliée au switch. Lundi, l'opérateur a remplacé la box (même réseau 192.168.10.0/24, passerelle 192.168.10.1, nouvelle étendue DHCP 192.168.10.100 à 192.168.10.200). L'ancienne box contenait une réservation DHCP qui donnait toujours 192.168.10.20 à l'imprimante. Depuis lundi, tous les postes affichent « Imprimante hors connexion ». Mardi, la secrétaire a désinstallé et réinstallé le pilote de l'imprimante sur son poste : aucun changement.</p>
+<p><strong>Document 1 — Windows, Paramètres → Bluetooth et appareils → Imprimantes et scanners → IMP-ATELIER → Propriétés de l'imprimante → onglet Ports.</strong> Port coché : « IP_192.168.10.20 — Port TCP/IP standard ».</p>
+<p><strong>Document 2 — Page de configuration imprimée depuis le panneau de l'imprimante.</strong></p>
+<pre class="fx-out">TCP/IP : DHCP activé
+Adresse IP : 192.168.10.137   Masque : 255.255.255.0
+Passerelle : 192.168.10.1     Adresse MAC : 00:1B:A9:4C:21:E0</pre>
+<p><strong>Document 3 — Depuis le poste de la secrétaire (192.168.10.105).</strong></p>
+<pre class="fx-out">C:\&gt; ping 192.168.10.20
+Réponse de 192.168.10.105 : Impossible de joindre l'hôte de destination.
+C:\&gt; ping 192.168.10.137
+Réponse de 192.168.10.137 : octets=32 temps=1 ms TTL=64</pre>
+<p><strong>Document 4 — Après ta correction d'adresse, la secrétaire n'imprime toujours pas</strong> (les autres postes impriment). Sa file d'attente montre : « Facture_0912.pdf — Erreur - Impression » en tête, suivi de 6 documents « En attente ».</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Interprète les documents 1 à 3 et explique pourquoi la réinstallation du pilote n'a rien changé. (5 pts)</li>
+<li>Propose la correction durable de l'adresse de l'imprimante ; justifie le choix de l'adresse. (5 pts)</li>
+<li>Indique ce qu'il faut modifier sur les postes Windows et sur le portable Ubuntu. (3 pts)</li>
+<li>Traite le document 4. (4 pts)</li>
+<li>Validation et documentation. (3 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Interprétation (5 pts).</strong> Les postes envoient les impressions vers le port TCP/IP 192.168.10.20 (document 1). L'imprimante, en DHCP, a reçu de la nouvelle box 192.168.10.137 (document 2) : la réservation de l'ancienne box n'existe plus. Le ping vers .20 donne « Impossible de joindre l'hôte de destination » <em>émis par le poste lui-même</em> (192.168.10.105) : sur le réseau local, personne ne répond à cette adresse (aucune réponse ARP). Le ping vers .137 répond en 1 ms : le réseau, le câble et l'imprimante fonctionnent. Cause racine : <strong>l'adresse de l'imprimante a changé, les postes visent l'ancienne</strong>. Le pilote traduit le document en langage imprimante ; il ne règle pas l'adresse du port. Le réinstaller ne pouvait donc rien changer : fausse piste écartée par le document 3.</p>
+<p><strong>2. Correction durable (5 pts).</strong> Deux solutions acceptables, à justifier :</p>
+<ul>
+<li>Solution retenue : <strong>adresse fixe sur l'imprimante</strong> 192.168.10.20, masque 255.255.255.0, passerelle 192.168.10.1, DNS 192.168.10.1, réglée dans son panneau ou sa page web (http://192.168.10.137). Justification : .20 est dans le réseau 192.168.10.0/24 (hôtes .1 à .254), <strong>hors de l'étendue DHCP</strong> (.100 à .200) donc sans risque de conflit, et c'est l'adresse déjà configurée sur tous les postes : aucun poste à reconfigurer. Avant validation, je vérifie que .20 est libre (ping .20 sans réponse, document 3).</li>
+<li>Alternative : <strong>réservation DHCP</strong> dans la nouvelle box (MAC 00:1B:A9:4C:21:E0 → 192.168.10.20), puis redémarrer l'imprimante pour qu'elle reprenne un bail. Avantage : gestion centralisée ; inconvénient : à refaire au prochain changement de box (c'est ce qui a causé la panne).</li>
+<li>À éviter : changer le port de tous les postes vers .137 sans fixer l'adresse : la panne reviendrait au prochain bail différent.</li>
+</ul>
+<p><strong>3. Postes (3 pts).</strong> Avec la solution retenue, les postes Windows n'ont rien à modifier (port IP_192.168.10.20 toujours valable) ; je vérifie seulement dans Propriétés de l'imprimante → Ports. Sur le portable Ubuntu : Paramètres → Imprimantes, ouvrir IMP-ATELIER et vérifier/mettre à jour l'URI (par ex. <code>ipp://192.168.10.20/ipp/print</code>), ou supprimer et rajouter l'imprimante détectée. Détails : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-imprimante">→ Fiche 4 · Imprimante réseau</a>.</p>
+<p><strong>4. File bloquée de la secrétaire (4 pts).</strong> Observation : la panne ne touche qu'un poste et la file montre un travail en erreur en tête, qui bloque les suivants. Hypothèse : travail corrompu envoyé pendant la panne (la réinstallation du pilote a pu laisser un travail orphelin). Actions : 1) dans la file, Annuler tous les documents (après avoir prévenu la secrétaire qu'elle devra relancer ses 7 impressions) ; 2) si le travail en erreur ne disparaît pas : <code>services.msc</code> → service « Spouleur d'impression » → Arrêter ; supprimer le contenu de <code>C:\Windows\System32\spool\PRINTERS</code> (fichiers de travaux uniquement, pas le dossier) ; Démarrer le service ; 3) vérifier que le port de son imprimante réinstallée est bien IP_192.168.10.20 (la réinstallation a pu créer un port WSD ou un autre port). Si la file se rebloque avec le même document → le fichier PDF lui-même est en cause : l'imprimer via un autre lecteur ou en image.</p>
+<p><strong>5. Validation et documentation (3 pts).</strong> Page de configuration : IP 192.168.10.20 fixe ; ping .20 depuis deux postes ; page de test depuis <em>chaque</em> poste Windows et depuis l'Ubuntu ; impression réelle d'une facture par la secrétaire ; redémarrage de l'imprimante → elle garde .20. Documentation : plan d'adressage (« .20 = IMP-ATELIER, IP fixe, hors étendue .100-.200 »), note pour le prochain changement de box, rapport d'intervention.</p>
+<p class="fx-lose"><b>Perd des points :</b> réinstaller encore le pilote ; choisir une IP fixe dans l'étendue DHCP (ex. .150) ; donner une IP sans masque ni passerelle ; supprimer le dossier spool entier ; ne valider que depuis un poste.</p>
+</div>
+</article>
+</section>
