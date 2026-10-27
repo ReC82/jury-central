@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -52,6 +52,7 @@ from app.v1.ampcr_pratique_pr17_bank import ALL_ITEMS as PR17_ITEMS
 from app.v1.ampcr_pratique_pr18_bank import ALL_ITEMS as PR18_ITEMS
 from app.v1.ampcr_pratique_pr19_bank import ALL_ITEMS as PR19_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
+from app.v1.ampcr_pratique_pr21_bank import ALL_ITEMS as PR21_ITEMS
 from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.models import (
     GenerationSource,
@@ -1202,6 +1203,52 @@ _PR19_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR21_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr21",
+    course_title="AMPCR pratique écrite — PR21 Connexion directe de deux PC et mini-réseau",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : connexion directe de deux PC, câble droit ou croisé, Auto MDI-X, adresses "
+        "statiques, ping, ARP, pare-feu, partage, extension à un mini-réseau de 3 à 6 PC, DHCP, "
+        "passerelle, DNS, plan d'adressage, erreurs et recette ; postes et relevés fictifs"
+    ),
+    allowed_notions=[
+        "câble : carte réseau et port routé = MDI (émission 1-2, réception 3-6 en 10/100 Mb/s) ; switch, hub, ports LAN d'une box = MDI-X ; même type → câble croisé (T568A ↔ T568B : 1→3, 2→6, 3→1, 6→2), types différents → câble droit ; un seul port Auto MDI-X suffit, tout câble fonctionne ; 1 Gb/s sur les quatre paires ; lien à la vitesse de la carte la plus lente",
+        "voyants : lien éteint = aucun lien (câble, type de câble, carte désactivée, PC distant éteint) ; « Média déconnecté » (ipconfig), NO-CARRIER (Linux) ; activité qui clignote = trames, pas la preuve d'un bon adressage ; couleurs selon le fabricant",
+        "connexion directe : adresses fixes du même réseau, différentes, même masque (192.168.10.1/24 et 192.168.10.2/24) ; passerelle et DNS vides (aucun routeur, réseau isolé) ; sans serveur DHCP, adresse automatique 169.254.x.x",
+        "ping : réponse ; « Délai d'attente de la demande dépassé » = la demande arrive, pare-feu ou destinataire qui ne sait pas répondre (masque) ; « Impossible de joindre l'hôte de destination » = réponse du poste lui-même, aucune réponse ARP, compté comme reçu (0 % de perte trompeur) ; « Défaillance générale » = pas de lien ou destination hors réseau sans passerelle",
+        "ARP : arp -a (ip neigh) ; MAC du poste distant présente = il existe et a répondu ; ping sans réponse avec MAC connue = pare-feu",
+        "pare-feu Windows : réseau sans passerelle = réseau non identifié, profil Public ; passer en Privé, activer le partage de fichiers et d'imprimantes (règle d'écho ICMPv4 entrante, port 445) ; ne pas désactiver le pare-feu",
+        "partage : Partage avancé, nom, autorisations du partage + permissions NTFS (onglet Sécurité) ; par le réseau la plus restrictive s'applique ; compte de l'ordinateur qui partage, avec mot de passe (compte sans mot de passe refusé par défaut) ; \\\\192.168.10.1\\Echange, net use, net share /GRANT",
+        "mini-réseau : switch, un câble droit par appareil, étoile ; le switch ne donne pas d'adresses ; adresses suivantes du plan ; box = passerelle + DNS + serveur DHCP ; adresses fixes (box, imprimante, PC qui partage) hors de l'étendue DHCP ou réservation ; DHCP pour les postes",
+        "erreurs : liaison, DHCP (169.254), IP dupliquée (« (Dupliqué) », conflit signalé), masque ou réseau différents ; recette dans l'ordre : lien, adresse, doublon, réseau et masque, ARP, ping, partage, Internet ; tableau de recette et procès-verbal signé",
+    ],
+    competencies=[
+        "Relier deux PC directement : choisir le câble, configurer les adresses et prouver la liaison",
+        "Étendre la liaison à un mini-réseau et écrire un plan d'adressage cohérent (DHCP, fixe, passerelle, DNS)",
+        "Diagnostiquer liaison, DHCP, doublon, masque et pare-feu à partir de relevés ; rédiger la recette",
+    ],
+    vocabulary=[
+        "carte réseau", "câble droit", "câble croisé", "Auto MDI-X", "MDI", "MDI-X", "voyant de lien",
+        "adresse statique", "masque", "passerelle", "DNS", "DHCP", "étendue DHCP", "169.254", "ping",
+        "ARP", "pare-feu", "profil réseau", "partage", "permissions", "switch", "box", "plan d'adressage",
+        "doublon", "recette",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si l'idée est claire ; "
+        "accepter une autre solution technique juste et justifiée (autre réseau privé, box en .1 "
+        "avec un plan cohérent, réservation DHCP au lieu d'une adresse fixe, petit switch au lieu "
+        "d'un câble croisé) ; valoriser le diagnostic prouvé par les relevés, le choix justifié et "
+        "la recette ; suivre le barème de la question. Ne jamais valider : une passerelle "
+        "présentée comme nécessaire entre deux PC reliés en direct, l'autre PC donné comme "
+        "passerelle, un câble droit présenté comme suffisant entre deux cartes sans Auto MDI-X, "
+        "« 0 % de perte » accepté quand la réponse vient du poste lui-même, la désactivation du "
+        "pare-feu comme solution, une adresse fixe dans l'étendue DHCP, un switch présenté comme "
+        "distribuant des adresses."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1319,6 +1366,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="IPv4, MAC, masques et passerelles — configuration et diagnostics écrits",
         items=PR20_ITEMS,
         context=_PR20_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR21",
+        title="Connexion directe de deux PC et mini-réseau",
+        items=PR21_ITEMS,
+        context=_PR21_CONTEXT,
     ),
     PracticalCourse(
         code="PR24",

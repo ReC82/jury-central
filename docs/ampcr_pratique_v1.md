@@ -60,6 +60,7 @@ le plan est du code (`app/v1/ampcr_pratique_plan.py`), lu en lecture seule.
 | PR18 — Installation physique d'un mini-réseau (#219) | `/uaa/ampcr-pratique-pr18` | 20 exercices (entraînement, dont 3 remises en ordre, 4 classements, 5 schémas à compléter et 4 devis/nomenclatures) + 10 questions de mini-examen /20 (examen blanc) |
 | PR19 — Topologies, OSI, TCP/IP, NetBEUI et équipements (#220) | `/uaa/ampcr-pratique-pr19` | 20 exercices (entraînement, dont 3 remises en ordre, 5 classements, 6 schémas à compléter et 5 choix d'équipement ou de topologie) + 10 questions de mini-examen /20 (examen blanc) |
 | PR20 — IPv4, MAC, masques et passerelles — configuration et diagnostics écrits (#199) | `/uaa/ampcr-pratique-pr20` | 20 exercices (entraînement, dont 3 classements et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |
+| PR21 — Connexion directe de deux PC et mini-réseau (#221) | `/uaa/ampcr-pratique-pr21` | 20 exercices (entraînement, dont 3 remises en ordre, 5 classements, 4 schémas à compléter et 6 relevés ou plans à analyser) + 10 questions de mini-examen /20 (examen blanc) |
 | PR24 — Dépannage réseau et Internet — dossiers d'intervention écrits (#200) | `/uaa/ampcr-pratique-pr24` | 20 exercices (entraînement, dont 1 classement et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |
 
 Intégration d'un cours pratique (modèle posé par PR06, à réutiliser par PR11, PR15…) :
