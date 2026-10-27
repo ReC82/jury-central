@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -56,6 +56,7 @@ from app.v1.ampcr_pratique_pr21_bank import ALL_ITEMS as PR21_ITEMS
 from app.v1.ampcr_pratique_pr22_bank import ALL_ITEMS as PR22_ITEMS
 from app.v1.ampcr_pratique_pr23_bank import ALL_ITEMS as PR23_ITEMS
 from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
+from app.v1.ampcr_pratique_pr25_bank import ALL_ITEMS as PR25_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -1348,6 +1349,53 @@ _PR23_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR25_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr25",
+    course_title="AMPCR pratique écrite — PR25 Wi-Fi : configuration, couverture, sécurité et diagnostic",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : architecture Wi-Fi (point d'accès, client, routeur, répéteur, mesh, SSID et "
+        "BSSID), normes et bandes, canaux et largeur, couverture et débit réel, roaming, connexion "
+        "d'un client, sécurité WPA2/WPA3, Personnel ou Entreprise, WPS, invités, configuration d'un "
+        "point d'accès et diagnostic d'un poste Wi-Fi ; réseaux, personnes et relevés fictifs"
+    ),
+    allowed_notions=[
+        "architecture : client, point d'accès (relie la radio au réseau câblé), routeur ou box (passerelle, NAT, pare-feu), serveur DHCP (un seul par réseau), répéteur (retransmet par radio), mesh ; SSID = nom du réseau, BSSID = adresse MAC d'une radio ; point d'accès câblé préférable au mesh, lui-même préférable au répéteur",
+        "normes : 802.11b/g 2,4 GHz, 802.11a 5 GHz, 802.11n Wi-Fi 4, 802.11ac Wi-Fi 5 (5 GHz), 802.11ax Wi-Fi 6/6E, 802.11be Wi-Fi 7 ; débits maximaux théoriques ; un appareil n'utilise que les bandes et normes qu'il connaît (carte 802.11g = 2,4 GHz seulement)",
+        "bandes en Europe : 2,4 GHz canaux 1 à 13, seuls 1, 6, 11 sans chevauchement, 20 MHz ; 5 GHz canaux 36 à 64 et 100 à 140, DFS dès le 52, 40 ou 80 MHz ; 6 GHz 5945-6425 MHz, Wi-Fi 6E/7, WPA3 obligatoire, portée courte ; pays réglé et réglementation font foi",
+        "canal : relevé des voisins (netsh wlan show networks mode=bssid), 0 % ≈ −100 dBm et 100 % ≈ −50 dBm ; voisin gênant (convention) à −80 dBm ou plus sur un canal à moins de 5 numéros ; choisir parmi 1, 6, 11 le moins gêné ; interférences micro-ondes, Bluetooth",
+        "couverture (estimation simplifiée) : 20 dBm − espace libre (20 log d + 20 log f − 27,55) − obstacles (cloison 3/4, brique 6/10, béton 12/18, dalle 15/25, métal 20/25 dB en 2,4/5 GHz) ; seuils −60 excellent, −67 bon (objectif), −75 faible ; la mesure sur place fait foi ; placement central, en hauteur, hors métal",
+        "débit réel : liaison négociée selon le signal, utile ≈ moitié, partagé entre clients ; répéteur à une radio : le plus faible des deux liens, divisé par deux ; répéteur placé là où il reçoit −67 dBm ou mieux, à mi-chemin ; roaming : même SSID, même sécurité, même clé, canaux différents, 802.11k/v/r",
+        "connexion : découverte (balises), association (SAE en WPA3), échange en 4 temps (802.1X/RADIUS d'abord en Entreprise), DHCP (sinon 169.254), passerelle et DNS ; connecté ne veut pas dire Internet",
+        "sécurité : ouvert, WEP, WPA-TKIP à refuser ; WPA2-Personnel AES-CCMP acceptable avec clé longue ; transition WPA2/WPA3 ; WPA3-Personnel SAE et WPA2/WPA3-Entreprise 802.1X/RADIUS recommandés ; WPS à désactiver ; clé 12+ caractères de trois types ou phrase 20+, rien de devinable ; mot de passe d'administration changé ; SSID masqué et filtrage MAC ne protègent pas ; invités : SSID et VLAN séparés, isolation des clients, clé distincte",
+        "configuration d'un point d'accès : placement, administration par câble, micrologiciel à jour et sauvegarde de configuration, SSID neutre, bandes, canaux et largeur, sécurité et clé, une seule source DHCP (répéteur ou second routeur en mode point d'accès ou pont), invités, test et fiche",
+        "diagnostic dans l'ordre : réseau visible (radio, programmation horaire, SSID masqué, bande non prise en charge, portée) → clé et sécurité (profil enregistré : oublier puis ressaisir ; WPA3 non géré) → adresse (169.254 : pas de DHCP, point d'accès déconnecté du switch ; autre réseau : second DHCP) → Internet (ping passerelle, adresse Internet, nslookup) → signal → lien du répéteur → canal",
+    ],
+    competencies=[
+        "Choisir et justifier bande, canal, largeur, emplacement et sécurité d'un réseau Wi-Fi",
+        "Estimer une couverture et placer un point d'accès ou un répéteur",
+        "Diagnostiquer un poste Wi-Fi à partir de relevés et proposer une correction minimale",
+    ],
+    vocabulary=[
+        "point d'accès", "répéteur", "mesh", "SSID", "BSSID", "bande", "canal", "largeur de canal", "chevauchement",
+        "DFS", "dBm", "couverture", "roaming", "association", "WPA2", "WPA3", "SAE", "AES-CCMP", "802.1X", "RADIUS",
+        "WPS", "réseau invités", "isolation", "DHCP", "169.254",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si l'idée est claire ; "
+        "accepter une autre solution juste et justifiée (autre canal aussi peu gêné, mesh ou point "
+        "d'accès câblé, WPA3 seul si tous les appareils le gèrent, transition WPA2/WPA3, portail ou "
+        "clé pour les invités, valeurs estimées proches si la démarche est juste) ; valoriser le "
+        "choix justifié par les données, le diagnostic prouvé par les relevés et la correction "
+        "minimale ; suivre le barème de la question. Ne jamais valider : WEP, WPA-TKIP ou un réseau "
+        "ouvert pour le personnel, WPS laissé actif, un SSID masqué ou un filtrage MAC présentés "
+        "comme sécurité, un canal 2,4 GHz hors 1, 6, 11 ou 40 MHz en 2,4 GHz comme réglage conseillé, "
+        "un répéteur placé près du client, deux serveurs DHCP, la désactivation de la sécurité pour "
+        "tester, une réinitialisation d'usine sans sauvegarde."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1489,6 +1537,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Dépannage réseau et Internet — dossiers d'intervention écrits",
         items=PR24_ITEMS,
         context=_PR24_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR25",
+        title="Wi-Fi : configuration, couverture, sécurité et diagnostic",
+        items=PR25_ITEMS,
+        context=_PR25_CONTEXT,
     ),
     PracticalCourse(
         code="EX01",

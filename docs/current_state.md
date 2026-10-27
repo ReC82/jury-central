@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, EX01, EX02 et EX03),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, EX01, EX02 et EX03),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -468,6 +468,20 @@ compléter servis aussi en fichiers statiques ; droits effectifs (cumul, refus, 
 le plus restrictif, local = NTFS seul), matrice des droits, droits Unix/ACL/Samba et ordre des
 diagnostics d'accès et d'impression **calculés par code** (`app/v1/ampcr_pratique_pr23_figures.py`)
 et contrôlés par les tests. 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
+
+**Vingt-cinquième cours publié (ticket #224) : PR25 « Wi-Fi : configuration, couverture, sécurité
+et diagnostic »** (`/uaa/ampcr-pratique-pr25`), même intégration, position 25 (après PR24).
+16 blocs (9 chapitres : architecture point d'accès / client / routeur / répéteur / mesh, SSID et
+BSSID ; normes 802.11 et bandes 2,4 / 5 / 6 GHz ; canaux, largeur et interférences ; portée,
+obstacles, débit réel, répéteur et roaming ; connexion d'un client ; sécurité WEP / WPA2 / WPA3,
+Personnel ou Entreprise, WPS, invités ; configuration d'un point d'accès ; diagnostic réseau
+invisible, mauvaise clé, mauvaise IP, sans Internet ; diagnostic signal faible, interférence,
+répéteur mal placé ; 5 cas résolus ; pièges, exercices, mini-examen, mémo, sources). 3 procédures,
+13 figures SVG et 4 schémas à compléter servis aussi en fichiers statiques ; canaux et
+chevauchements, canaux 5/6 GHz par largeur, signal estimé (espace libre + obstacles), débit
+derrière un répéteur, audit de configuration, contrôle des clés et ordre du diagnostic **calculés
+par code** (`app/v1/ampcr_pratique_pr25_figures.py`) et contrôlés par les tests. 20 exercices,
+mini-examen 10 questions /20 ; aucune image générée.
 
 ## Administration
 
