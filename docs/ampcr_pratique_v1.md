@@ -87,6 +87,7 @@ Intégration d'un cours pratique (modèle posé par PR06, à réutiliser par PR1
 |---|---|---|
 | EX01 — Examen blanc écrit — maintenance et dépannage matériel (#230) | `/uaa/ampcr-pratique-ex01` (sujet), `/uaa/ampcr-pratique-ex01/exam` | 10 questions de 10 points (note /100), réponses libres, partie 1 + 3 dossiers (A, B, C), réserve `exam` seule |
 | EX02 — Examen blanc écrit — installation et dépannage des systèmes (#231) | `/uaa/ampcr-pratique-ex02` (sujet), `/uaa/ampcr-pratique-ex02/exam` | 10 questions de 10 points (note /100), réponses libres, partie 1 + 3 dossiers (A Windows, B Linux, C dépannage et restauration), 3 schémas dans les questions, réserve `exam` seule ; position 12, après PR12 |
+| EX03 — Examen blanc écrit — câblage RJ45, BNC et fibre (#232) | `/uaa/ampcr-pratique-ex03` (sujet), `/uaa/ampcr-pratique-ex03/exam` | 10 questions de 10 points (note /100), réponses libres, partie 1 + 3 dossiers (A cuivre, B coaxial, C fibre), 4 schémas sans verdict dans les questions, réserve `exam` seule ; position 17, après PR17 |
 
 Intégration d'un examen blanc (modèle posé par EX01, à réutiliser par EX02–EX06) : même
 déclaration que pour un cours (`PRACTICAL_COURSES`, code `EXxx`) ; la page de l'UAA devient le

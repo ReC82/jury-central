@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR20, PR24, EX01 et EX02),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR20, PR24, EX01, EX02 et EX03),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -395,6 +395,19 @@ compatibilités, polarités, pertes, zones de réception, événements OTDR et r
 code** (`app/v1/ampcr_pratique_pr17_figures.py`, valeurs d'affaiblissement et portées reprises
 de PR14) et contrôlés par les tests. 18 exercices, mini-examen 10 questions /20 ; aucune image
 générée.
+
+**Troisième examen blanc publié (ticket #232) : EX03 « Examen blanc écrit — câblage RJ45, BNC et
+fibre »** (`/uaa/ampcr-pratique-ex03`), juste après PR17 (module 3 = PR13 → PR17 ; PR18 appartient
+au module 4), même modèle que EX01/EX02 (sujet imprimable sans corrigé, onglets « Sujet » et
+« Examen blanc », 10 questions de 10 points à réponse libre, note /100, corrigé et barème après
+la remise). Partie 1 (fiche RJ45 d'un stagiaire contre T568B et brochages A/B, cordon droit ou
+croisé et Auto MDI-X), dossier A imprimerie (choix des câbles et du blindage, rapport de test des
+liens : mélange A/B, lien trop long, ouvert, paires séparées, 10 Gb/s en Cat6 ; relevé de pose et
+fabrication d'un cordon), dossier B musée (bus 10BASE2 non conforme et réflexion 75/50 Ω,
+ohmmètre, fabrication d'un câble BNC, 10BASE5), dossier C brasserie (choix fibre/modules/jarretières,
+bilan et photométrie, panne lue au réflectomètre et réparation). 4 schémas SVG **sans verdict**
+dans les questions (fiche, testeur, bus, trace) ; toutes les valeurs **calculées par code** avec
+les règles des cours PR13–PR17 (`app/v1/ampcr_pratique_ex03_*.py`).
 
 ## Administration
 

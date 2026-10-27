@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -28,6 +28,7 @@ from app.models import UAA, Module
 from app.v1 import question_types  # noqa: F401 — enregistre les types (#40) au chargement
 from app.v1.ampcr_pratique_ex01_bank import ALL_ITEMS as EX01_ITEMS
 from app.v1.ampcr_pratique_ex02_bank import ALL_ITEMS as EX02_ITEMS
+from app.v1.ampcr_pratique_ex03_bank import ALL_ITEMS as EX03_ITEMS
 from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
@@ -674,6 +675,51 @@ _EX02_CONTEXT = PedagogicalContext(
     ),
 )
 
+# Ticket #232 : EX03, examen blanc du module 3 (PR13 → PR17) — notions de ces cinq cours.
+_EX03_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-ex03",
+    course_title="AMPCR pratique écrite — EX03 Examen blanc écrit : câblage RJ45, BNC et fibre",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : examen blanc /100 du module câblage, réponses rédigées de technicien à partir "
+        "de dossiers fictifs (fiche RJ45, rapport et affichage de testeur, relevé de pose, bus "
+        "coaxial, mesures à l'ohmmètre et au photomètre, catalogue, trace de réflectomètre)"
+    ),
+    allowed_notions=[
+        "brochages TIA/EIA-568 lus fiche vue côté contacts, languette dessous, broche 1 à gauche : T568A = blanc/vert, vert, blanc/orange, bleu, blanc/bleu, orange, blanc/marron, marron ; T568B = blanc/orange, orange, blanc/vert, bleu, blanc/bleu, vert, blanc/marron, marron ; paires sur 1-2, 3-6, 4-5, 7-8",
+        "cordon droit (même norme aux deux bouts) ou croisé (A d'un côté, B de l'autre : 1→3, 2→6, 3→1, 6→2) ; MDI (carte : émet 1-2, reçoit 3-6 en 10/100) et MDI-X (switch) ; Auto MDI-X : un droit suffit ; 1 Gb/s utilise les 4 paires dans les deux sens",
+        "testeur de câble (wiremap) : conforme, circuit ouvert, paire inversée, paires croisées, court-circuit, paires séparées (continuité correcte mais diaphonie NEXT en échec) ; un câble qui échoue au test ne se livre pas ; mélange T568A/T568B entre prise et panneau",
+        "fabrication d'un cordon RJ45 : câble multibrin, fiches adaptées, 25 à 30 mm de gaine retirée, détorsadage minimal (≤ 13 mm), recoupe à 12-13 mm, fils en butée, gaine sous la patte, sertissage, test, étiquetage",
+        "choix du câble : catégorie selon le débit (Cat5e 1 Gb/s, Cat6A 10 Gb/s sur 100 m ; Cat6 à 10 Gb/s ≤ 55 m après certification), blindage selon les perturbations et la mise à la terre (U/UTP, F/UTP, S/FTP ; lettre avant la barre = écran global, après = écran par paire), coaxial 75 Ω RG-59 et BNC 75 Ω pour la vidéo analogique, fibre au-delà de 100 m ou entre bâtiments",
+        "pose : rayon de courbure ≥ 4 × diamètre (non écranté), 8 × (écranté), 10 × (coaxial sans fiche du fabricant) ; traction ≤ 110 N ; séparation EN 50174-2 selon la classe (a 300, b 100, c 50, d 10 mm) sauf cloison métallique ; lien permanent ≤ 90 m, cordons ≤ 10 m, canal ≤ 100 m",
+        "10BASE2 : RG-58 50 Ω, 185 m, 30 stations, T BNC directement sur la carte, 0,5 m entre T, terminateur 50 Ω à chaque bout, terre en un seul point ; réflexion Γ = (Z − Z0)/(Z + Z0) ; ohmmètre au T réseau arrêté : 25 Ω normal, 50 Ω un seul terminateur vu, 0 Ω court-circuit, infini aucun terminateur",
+        "câble BNC à sertir : câble et connecteur de même impédance, manchon et bague enfilés, dénudeur coaxial aux cotes de la notice, contact central serti, corps poussé sans brin vers l'âme, bague sertie, contrôles (traction, continuité, pas de court-circuit) ; 10BASE5 : coaxial épais 50 Ω, 500 m, 100 transceivers, prises vampires tous les 2,5 m, câble AUI ≤ 50 m, connecteurs N",
+        "fibre : multimode OM1-OM4 (850/1 300 nm) et monomode OS2 (1 310/1 550 nm, gaine jaune) ; connecteurs LC (SFP), SC ; UPC (bleu) et APC (vert, 8°) non mélangeables ; modules 1000BASE-SX (OM2 550 m), 10GBASE-SR (OM2 82 m, OM3 300 m, OM4 400 m), 10GBASE-LR (OS2 10 km) ; mêmes modules aux deux bouts ; jamais de cuivre entre deux bâtiments",
+        "bilan optique : fibre (km × dB/km : OS2 0,4 dB/km) + 0,75 dB par paire de connecteurs + 0,3 dB par épissure ; photométrie : perte = référence − lecture ; puissance reçue = émise − perte, comparée à la plage de la fiche ; inspecter, nettoyer, réinspecter ; ne jamais regarder une fibre",
+        "réflectomètre : bobine amorce retranchée ; pic + petite perte = connecteur ; sans pic, même perte aux deux longueurs d'onde = épissure ; perte bien plus forte à 1 550 nm = courbure ; retombée dans le bruit = fin de fibre ou cassure ; polarité inversée = LOS des deux côtés ; rayon d'un câble optique 10 × Ø au repos, 20 × Ø au tirage, traction par l'aramide",
+    ],
+    competencies=[
+        "Choisir le câble, le connecteur et le support adaptés au débit, à la distance et à l'environnement, et le justifier",
+        "Décrire la réalisation et le contrôle d'un câble RJ45 et d'un câble BNC, et interpréter un test (wiremap, ohmmètre)",
+        "Calculer et mesurer une liaison optique, interpréter un relevé (photomètre, réflectomètre) et rédiger une réparation sûre",
+    ],
+    vocabulary=[
+        "T568A", "T568B", "Auto MDI-X", "wiremap", "paires séparées", "U/UTP", "F/UTP", "S/FTP",
+        "lien permanent", "RG-58", "terminateur", "10BASE2", "10BASE5", "OS2", "OM4", "LC", "UPC",
+        "APC", "SFP+", "photomètre", "réflectomètre",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien dans un examen blanc /100 (10 points par "
+        "question) : accepter toute formulation, toute méthode et tout ordre techniquement justes, "
+        "sans exiger de mot-clé ni de libellé exact ; suivre le barème de la question et noter en "
+        "proportion ; un calcul juste avec une petite erreur d'arrondi reste juste. Pénaliser un "
+        "brochage faux, la confusion de T568A et T568B ou de 50 et 75 Ω, un câble livré malgré un "
+        "test en échec, des cordons raccourcis pour « rattraper » un lien permanent trop long, du "
+        "cuivre entre deux bâtiments, le mélange UPC/APC ou multimode/monomode, et le fait de "
+        "regarder une fibre ou un module."
+    ),
+)
+
 _PR07_CONTEXT = PedagogicalContext(
     course_key="ampcr-pratique-pr07",
     course_title="AMPCR pratique écrite — PR07 Systèmes d'exploitation, GUI/CLI et prérequis d'installation",
@@ -1185,6 +1231,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Examen blanc écrit — installation et dépannage des systèmes",
         items=EX02_ITEMS,
         context=_EX02_CONTEXT,
+    ),
+    PracticalCourse(
+        code="EX03",
+        title="Examen blanc écrit — câblage RJ45, BNC et fibre",
+        items=EX03_ITEMS,
+        context=_EX03_CONTEXT,
     ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}
