@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR15, PR16, PR20, PR24 et EX01),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR15, PR16, PR20, PR24 et EX01),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -323,6 +323,21 @@ identifiants matériels, actions sur les services et fiches des 16 commandes **d
 (`app/v1/ampcr_pratique_pr10_figures.py`) et contrôlés par les tests. 17 exercices, mini-examen
 10 questions /20. Windows en français, Linux en anglais, libellés datés (octobre 2026),
 situations fictives ; aucune image générée.
+
+**Seizième cours publié (ticket #215) : PR12 « Dépannage logiciel et restauration du système »**
+(`/uaa/ampcr-pratique-pr12`), même intégration, douzième cours de l'ordre pédagogique (après
+PR11). 20 blocs (13 chapitres : familles de causes et isolement, recueil des faits et journaux,
+protection des données (sauvegarde, empreintes SHA-256, accord écrit), WinRE et mode sans échec,
+points de restauration, SFC/DISM, pilotes et mises à jour, profil corrompu, logiciels
+malveillants, systemd/journalctl/GRUB, permissions/paquets/fsck/espace disque, échelle des
+interventions, panne réseau logicielle ou physique, contrôles et rapport ; 5 cas résolus :
+démarrage, service, profil, mise à jour, espace disque ; pièges, exercices, mini-examen, mémo,
+sources). 5 procédures illustrées et 11 figures SVG (arbre d'isolement, échelle des
+interventions, arbre réseau, 3 captures fictives) ; causes, isolement, effets et précautions des
+interventions, empreintes (calculées par `hashlib`), espace disque et diagnostic réseau **définis
+par code** (`app/v1/ampcr_pratique_pr12_figures.py`) et contrôlés par les tests. 17 exercices,
+mini-examen 10 questions /20. Windows en français, Linux en anglais, libellés datés (octobre
+2026), situations fictives ; aucune image générée.
 
 ## Administration
 
