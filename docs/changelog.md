@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR09 « Installation complète de Linux — préparation et dépannage » (ticket #209)
+
+Quatorzième cours du parcours pratique et neuvième dans l'ordre pédagogique (UAA PR09 du module
+`AMPCR-PRATIQUE`, position 9, après PR08, 19 blocs) : choix de la distribution selon l'usage,
+ISO officielle et `sha256sum -c`, clé USB (Etcher, Rufus, `dd` sur la bonne cible), UEFI et
+démarrage sécurisé (shim, MOK), session live, sauvegarde et double démarrage prudent (BitLocker,
+démarrage rapide, réduction depuis Windows, ESP réutilisée sans formatage), partitions GPT (ESP,
+/ ext4, /home facultative, swap selon besoin), fstab et UUID, GRUB / systemd-boot et
+`efibootmgr`, comptes et sudo, réseau, `apt`/`dnf`, pilotes, services ; dépannage par six familles
+(disque non vu, chargeur, fstab/UUID, réseau absent, permissions et sudo, espace disque) ;
+3 procédures illustrées, 9 figures SVG ; 5 cas résolus, 17 exercices, mini-examen 10 questions /20
+sans génération IA (`app/v1/ampcr_pratique_pr09_*.py`, `tests/test_ticket209_ampcr_pratique_pr09.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR08 « Installation complète de Windows — préparation et dépannage » (ticket #208)
 
 Treizième cours du parcours pratique et huitième dans l'ordre pédagogique (UAA PR08 du module

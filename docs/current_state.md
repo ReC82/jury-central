@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR11, PR15, PR16, PR20, PR24 et EX01),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR11, PR15, PR16, PR20, PR24 et EX01),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -294,6 +294,21 @@ exercices, mini-examen, mémo, sources). 3 procédures illustrées et 9 figures 
 des partitions, dépannage et codes fabricants **définis par code**
 (`app/v1/ampcr_pratique_pr08_figures.py`) et contrôlés par les tests. 16 exercices, mini-examen
 10 questions /20. Écrans datés (octobre 2026), situations fictives ; aucune image générée.
+
+**Quatorzième cours publié (ticket #209) : PR09 « Installation complète de Linux — préparation
+et dépannage »** (`/uaa/ampcr-pratique-pr09`), même intégration, neuvième cours de l'ordre
+pédagogique (après PR08). 19 blocs (12 chapitres : demande, accord écrit et inventaire, choix de
+la distribution selon l'usage, image ISO et contrôle d'intégrité, clé USB, firmware UEFI,
+démarrage sécurisé et session live, sauvegarde et double démarrage, partitions ESP / racine /
+/home / swap en ext4 et fstab/UUID, installateur et chargeur GRUB/systemd-boot, comptes et sudo,
+réseau, mises à jour apt/dnf et pilotes, services et tests, dépannage par six familles, liste de
+contrôle et rapport ; 5 cas résolus, pièges, exercices, mini-examen, mémo, sources). 3 procédures
+illustrées et 9 figures SVG (deux plans de partitions, arbre « Linux ne démarre pas », 4 terminaux
+fictifs) ; distributions et commandes, verdict de somme de contrôle, repère du swap, règle du
+double démarrage, ordre des entrées UEFI et dépannage **définis par code**
+(`app/v1/ampcr_pratique_pr09_figures.py`) et contrôlés par les tests. 17 exercices, mini-examen
+10 questions /20. Sorties de terminal en anglais, installateurs datés (octobre 2026), situations
+fictives ; aucune image générée.
 
 ## Administration
 
