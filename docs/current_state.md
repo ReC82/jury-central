@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR11, PR15, PR16, PR20, PR24 et EX01),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR11, PR15, PR16, PR20, PR24 et EX01),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -281,6 +281,19 @@ sources). 3 procédures illustrées et 8 figures SVG ; verdicts de compatibilit�
 virtuelles **définis par code** (`app/v1/ampcr_pratique_pr07_figures.py`) et contrôlés par les
 tests. 16 exercices, mini-examen 10 questions /20. Prérequis datés (octobre 2026), situations
 fictives ; aucune image générée.
+
+**Treizième cours publié (ticket #208) : PR08 « Installation complète de Windows — préparation
+et dépannage »** (`/uaa/ampcr-pratique-pr08`), même intégration, huitième cours de l'ordre
+pédagogique (après PR07). 20 blocs (13 chapitres : demande, accord écrit et inventaire,
+compatibilité et pilotes, licence/édition/activation, sauvegarde et installation propre / mise à
+niveau / migration, média USB et pilotes F6, firmware UEFI et démarrage, installateur, disque et
+partitions GPT/ESP, configuration initiale, pilotes et mises à jour, activation/sécurité/
+restauration, dépannage par cinq familles, liste de contrôle et rapport ; 5 cas résolus, pièges,
+exercices, mini-examen, mémo, sources). 3 procédures illustrées et 9 figures SVG (plan GPT, arbre
+« disque introuvable », 4 captures fictives) ; activation selon la licence, règle de suppression
+des partitions, dépannage et codes fabricants **définis par code**
+(`app/v1/ampcr_pratique_pr08_figures.py`) et contrôlés par les tests. 16 exercices, mini-examen
+10 questions /20. Écrans datés (octobre 2026), situations fictives ; aucune image générée.
 
 ## Administration
 

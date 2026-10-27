@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR08 « Installation complète de Windows — préparation et dépannage » (ticket #208)
+
+Treizième cours du parcours pratique et huitième dans l'ordre pédagogique (UAA PR08 du module
+`AMPCR-PRATIQUE`, position 8, après PR07, 20 blocs) : procédure complète sur poste vierge
+(demande et accord écrit, inventaire, compatibilité et pilotes, licence et édition, sauvegarde,
+installation propre / mise à niveau / migration, média USB et pilote F6, firmware UEFI et entrée
+« UEFI: », installateur, disque cible et partitions GPT/ESP/MSR/Récupération, configuration
+initiale, pilotes et ID du matériel, Windows Update, activation, sécurité, restauration, liste de
+contrôle et rapport) ; dépannage par cinq familles (stockage non détecté, démarrage, partitions
+MBR/GPT, pilotes manquants, licence) ; 3 procédures illustrées, 9 figures SVG ; 5 cas résolus,
+16 exercices, mini-examen 10 questions /20 sans génération IA
+(`app/v1/ampcr_pratique_pr08_*.py`, `tests/test_ticket208_ampcr_pratique_pr08.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR07 « Systèmes d'exploitation, GUI/CLI et prérequis d'installation » (ticket #207)
 
 Douzième cours du parcours pratique et septième dans l'ordre pédagogique (UAA PR07 du module
