@@ -1,0 +1,69 @@
+<section class="fx-sec" id="f3-dossiers">
+<h2>9. Dossiers d'examen résolus</h2>
+<p>Format de l'épreuve : contexte, documents (wiremap, rapport, schéma, mesures), questions numérotées. La réponse attendue est rédigée, justifiée, ordonnée : observation → hypothèse → test → conclusion → correction → validation.</p>
+
+<article class="fx-case" id="f3-dossier-1">
+<h3>Dossier 1 — Le cordon du stagiaire</h3>
+<div class="fx-case-statement">
+<p>Un stagiaire a fabriqué un cordon droit de 2 m pour relier un PC au switch. La norme du client est T568B. Le testeur affiche : 1→3, 2→6, 3→1, 4→4, 5→5, 6→2, 7→7, 8→8. À travers le corps transparent, la fiche du côté du bouchon distant montre, broche 1 à 8 : blanc-vert, vert, blanc-orange, bleu, blanc-bleu, orange, blanc-marron, marron.</p>
+<ol><li>Écris l'ordre des couleurs T568A et T568B, broches 1 à 8.</li><li>Identifie le défaut et la fiche fautive. Justifie.</li><li>Le PC a-t-il un lien ? Distingue deux cas.</li><li>Rédige la correction et la validation.</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> T568A : blanc-vert, vert, blanc-orange, bleu, blanc-bleu, orange, blanc-marron, marron. T568B : blanc-orange, orange, blanc-vert, bleu, blanc-bleu, vert, blanc-marron, marron.</p>
+<p><b>2.</b> Le wiremap 1→3, 2→6, 3→1, 6→2 avec 4, 5, 7, 8 directs est la signature de paires croisées : une extrémité en T568A, l'autre en T568B. La fiche distante lue est exactement T568A ; le client impose T568B : c'est donc la fiche distante qui est fautive (l'autre, à vérifier visuellement, est en B). Le cordon fabriqué est un croisé et non un droit.</p>
+<p><b>3.</b> Si la carte ou le port du switch dispose de l'Auto MDI-X (cas de la quasi-totalité du matériel 1 Gb/s), le lien monte malgré tout. Sans Auto MDI-X (matériel ancien 10/100), un croisé entre un PC et un switch relie émission sur émission : pas de lien. Dans les deux cas, le cordon n'est pas conforme à la commande.</p>
+<p><b>4.</b> Couper la fiche distante, refaire l'extrémité en T568B (dénudage 25–30 mm sans entailler, détorsadage minimal, recoupe à 12–13 mm, fils en butée, gaine sous la patte, sertissage). Validation : testeur 1→1 à 8→8, traction légère, lien à 1 Gb/s sur le switch, cordon étiqueté. Explication au stagiaire : même norme aux deux bouts pour un droit.</p>
+<p class="fx-lose"><b>Perd des points :</b> conclure « câble défectueux » ; ne pas désigner la fiche fautive ; affirmer que le lien ne peut jamais monter.</p></div>
+</article>
+
+<article class="fx-case" id="f3-dossier-2">
+<h3>Dossier 2 — Rapport de test du chantier de l'imprimerie</h3>
+<div class="fx-case-statement">
+<p>Fin de chantier, câblage Cat6A U/FTP, certification en lien permanent classe EA. Extrait du rapport :</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Lien</th><th>Wiremap</th><th>Longueur</th><th>Verdict</th><th>Remarque du testeur</th></tr></thead>
+<tbody>
+<tr><td>B1-P1-01</td><td>OK</td><td>47 m</td><td>PASS</td><td>—</td></tr>
+<tr><td>B1-P1-02</td><td>Ouvert broche 4</td><td>52 m</td><td>FAIL</td><td>Défaut à 52 m</td></tr>
+<tr><td>B1-P1-03</td><td>OK</td><td>93 m</td><td>FAIL</td><td>Longueur</td></tr>
+<tr><td>B1-P1-04</td><td>OK</td><td>66 m</td><td>FAIL</td><td>NEXT, marge négative côté panneau</td></tr>
+<tr><td>B1-P1-05</td><td>OK</td><td>38 m</td><td>FAIL</td><td>Perte de retour, événement à 21 m</td></tr>
+<tr><td>B1-P1-06</td><td>1→2, 2→1</td><td>71 m</td><td>FAIL</td><td>—</td></tr>
+</tbody></table></div>
+<ol><li>Explique l'ordre de lecture d'un rapport.</li><li>Pour chaque lien en échec : cause probable, reprise, contrôle.</li><li>Le client demande de réceptionner aujourd'hui. Que réponds-tu ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Câblage (wiremap) d'abord, puis longueur, puis performances : un défaut de câblage fausse toutes les autres mesures, et un lien trop long échoue en performance sans que la pose soit en cause.</p>
+<p><b>2.</b> <b>-02</b> : ouvert sur la broche 4 (bleu), défaut situé à 52 m, c'est-à-dire à l'extrémité distante : fil bleu mal poinçonné au keystone de la prise. Reprise : repoinçonner le keystone (T568A ou B selon le repère, torsade jusqu'à la fente) ; recertifier. <b>-03</b> : wiremap OK mais 93 m &gt; 90 m de lien permanent : non conforme par conception. Reprise : trajet plus court ou point de répartition plus proche ; on ne « raccourcit » pas un lien trop long. <b>-04</b> : NEXT en échec côté panneau : détorsadage excessif au poinçonnage du panneau. Reprise : refaire la terminaison côté panneau avec détorsadage minimal. <b>-05</b> : perte de retour avec événement à 21 m, au milieu du câble : câble écrasé, plié sous le rayon minimal (8 × Ø pour un blindé) ou trop serré par un collier. Reprise : inspecter à 21 m ; câble déformé → remplacer le câble entier (pas de raboutage). <b>-06</b> : paire inversée 1-2 (blanc-orange et orange permutés à une extrémité) : comparer les deux terminaisons à la norme et refaire la fautive. Après chaque reprise : nouvelle certification PASS et rapport.</p>
+<p><b>3.</b> Réception impossible aujourd'hui pour les liens -02 à -06 : seuls les liens PASS sont réceptionnables. Je propose une réception partielle avec réserves écrites (liste des liens, causes, date de reprise), puis une réception définitive sur nouveaux rapports PASS.</p>
+<p class="fx-lose"><b>Perd des points :</b> « remplacer tous les câbles en échec » sans distinguer les causes ; accepter le -03 « car il fonctionne ».</p></div>
+</article>
+
+<article class="fx-case" id="f3-dossier-3">
+<h3>Dossier 3 — Le segment 10BASE2 du musée</h3>
+<div class="fx-case-statement">
+<p>Schéma relevé, de gauche à droite : terminateur 50 Ω relié à la terre sur le T du PC-1 — 15 m RG-58 — T du PC-2 — 0,3 m RG-58 — T du PC-3 — 20 m RG-59 — T du PC-4 (le T est relié à la carte du PC-4 par 1,5 m de câble) — 12 m RG-58 — T du Serveur avec terminateur marqué 75 Ω, relié à la terre. Aucun poste ne communique. Mesure entre âme et blindage au T du PC-1, réseau arrêté : 30 Ω.</p>
+<ol><li>Liste toutes les non-conformités.</li><li>Interprète la mesure de 30 Ω.</li><li>Rédige les corrections et le contrôle final.</li><li>Après tes corrections (tronçon PC-2/PC-3 porté à 1 m, tronçon PC-3/PC-4 refait en 20 m de RG-58), tout fonctionne. Une semaine plus tard, plus rien ne passe : 50 Ω au T du PC-1, 50 Ω au T du Serveur, terminateurs en place. Réflectomètre branché sur le T du PC-1 (terminateur retiré, réseau arrêté, VF 0,66) : réflexion de même sens que l'impulsion à 250 ns. Conclus.</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> (a) Terminateur 75 Ω côté Serveur : il faut 50 Ω. (b) Terre aux deux extrémités : un seul point de terre (boucle de masse sinon). (c) 0,3 m entre les T du PC-2 et du PC-3 : 0,5 m au moins. (d) Tronçon de 20 m en RG-59 (75 Ω) : il faut du RG-58 50 Ω partout. (e) Câble de 1,5 m entre le T et la carte du PC-4 : le T doit être directement sur la carte (dérivation non terminée = réflexions). Longueur totale 48,8 m ≤ 185 m et 5 postes ≤ 30 : conformes.</p>
+<p><b>2.</b> Deux terminateurs 50 Ω en parallèle donnent 25 Ω. 30 Ω = 50 × 75 / (50 + 75) : la mesure confirme un terminateur 75 Ω à la place d'un 50 Ω (le câble n'est ni coupé ni en court-circuit).</p>
+<p><b>3.</b> Prévenir les utilisateurs (le bus sera ouvert). Remplacer le terminateur 75 Ω par un 50 Ω sans liaison à la terre ; remplacer le tronçon RG-59 par du RG-58 50 Ω avec BNC 50 Ω ; rallonger le tronçon PC-2/PC-3 à 0,5 m au moins ; visser le T directement sur la carte du PC-4. Contrôle : réseau arrêté, 25 Ω aux T du PC-1 et du Serveur ; puis communication entre tous les postes ; schéma mis à jour, rapport.</p>
+<p><b>4.</b> 50 Ω aux deux extrémités avec les terminateurs en place : chaque extrémité ne « voit » que son propre terminateur, le bus est donc coupé quelque part entre elles (un terminateur manquant est exclu par l'inspection). Distance au TDR : 0,66 × 0,3 m/ns × 250 ns / 2 ≈ 24,7 m depuis le PC-1 ; réflexion de même sens = circuit ouvert. Report sur le plan : PC-2 à 15 m, PC-3 à 16 m, PC-4 à 36 m : la coupure est dans le tronçon PC-3/PC-4, à environ 8,7 m du T du PC-3 (précision de quelques mètres). Test de confirmation : continuité âme à âme de ce seul tronçon débranché : infinie. Correction : remplacer le tronçon (ou couper au défaut et poser deux BNC 50 Ω et un raccord), remettre le terminateur du PC-1. Validation : 25 Ω aux T du PC-1 et du Serveur, communication de tous les postes, rapport avec les mesures avant/après.</p>
+<p class="fx-lose"><b>Perd des points :</b> oublier une des cinq non-conformités ; mesurer réseau en marche ; ne pas savoir calculer 50 ∥ 75.</p></div>
+<div class="fx-trap"><b>Piège</b> Reporte toujours la distance TDR sur les longueurs cumulées du plan et dis dans quel tronçon elle tombe ; la distance seule ne suffit pas comme réponse.</div>
+</article>
+
+<article class="fx-case" id="f3-dossier-4">
+<h3>Dossier 4 — Les trois liaisons de la brasserie</h3>
+<div class="fx-case-statement">
+<p>La brasserie modernise son réseau. (a) Bureau ↔ baie principale : 60 m, même bâtiment, 1 Gb/s, couloir sans machines. (b) Baie principale ↔ entrepôt (autre bâtiment) : 250 m, 10 Gb/s, fibre multimode OM3 déjà posée, deux tiroirs (2 paires de connecteurs). Budget du module 10GBASE-SR : 2,6 dB. (c) Baie ↔ site de stockage : 2,4 km, 10 Gb/s, 2 paires de connecteurs, 2 épissures. Fiche du module 10GBASE-LR : Tx −1 dBm, sensibilité −14,4 dBm, surcharge +0,5 dBm.</p>
+<ol><li>Choisis support, catégorie ou type de fibre, modules et jarretières. Justifie.</li><li>Calcule le bilan de (b) et (c) et la puissance reçue attendue en (c).</li><li>À la réception de (c), une fibre mesure 3,1 dB à 1 310 nm et 4,6 dB à 1 550 nm. Interprète et propose la suite.</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> (a) 60 m ≤ 100 m, même bâtiment, 1 Gb/s, environnement calme : paire torsadée U/UTP Cat6 (Cat5e suffit pour 1 Gb/s ; Cat6 ou Cat6A pour l'évolution), monobrin poinçonné, certifié. (b) Deux bâtiments : fibre obligatoire (isolation électrique). 250 m ≤ 300 m de portée de 10GBASE-SR sur OM3 : deux modules SFP+ 10GBASE-SR identiques (850 nm), jarretières duplex LC-LC multimode OM3 (aqua). (c) 2,4 km : hors portée du multimode ; fibre monomode OS2, deux modules SFP+ 10GBASE-LR (1 310 nm, 10 km), jarretières duplex LC-LC OS2 de même polissage (UPC).</p>
+<p><b>2.</b> (b) 0,25 × 3,5 = 0,875 dB + 2 × 0,75 = 1,5 dB → 2,375 dB ≈ 2,38 dB ≤ 2,6 dB : marge 0,22 dB, conforme mais serrée : connecteurs inspectés et nettoyés obligatoirement ; pour plus de marge, OM4 ou monomode. (c) 2,4 × 0,4 = 0,96 dB + 1,5 + 2 × 0,3 = 0,6 → 3,06 dB. Puissance reçue attendue : −1 − 3,06 = −4,06 dBm, entre −14,4 et +0,5 dBm : dans la plage, ni trop faible ni saturante.</p>
+<p><b>3.</b> 3,1 dB à 1 310 nm est proche du calcul (3,06 dB) ; mais 4,6 dB à 1 550 nm alors que l'OS2 atténue autant aux deux longueurs d'onde : écart de 1,5 dB, bien au-delà de 0,2 dB. Signature d'une courbure trop serrée (macrocourbure), qui pénalise davantage 1 550 nm. Suite : OTDR à 1 310 et 1 550 nm pour localiser l'événement sans pic plus fort à 1 550 nm (souvent dans un tiroir ou une cassette), reprise du rayon (≥ 10 × Ø au repos), nouvelle mesure aux deux longueurs d'onde, rapport.</p>
+<p class="fx-lose"><b>Perd des points :</b> cuivre entre les bâtiments ; « OM3 car 10 Gb/s » pour 2,4 km ; ne mesurer qu'à 1 310 nm ; additionner des dBm.</p></div>
+</article>
+</section>

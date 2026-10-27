@@ -1,0 +1,66 @@
+<section class="fx-sec" id="f3-outils">
+<h2>8. Outils, mesures et lectures</h2>
+<h3>8.1 Quel outil pour quelle preuve</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Outil</th><th>Ce qu'il prouve</th><th>Ce qu'il ne prouve pas</th><th>Précaution</th></tr></thead>
+<tbody>
+<tr><td>Testeur de continuité (wiremap, LED)</td><td>Chemin des 8 fils : ouvert, court-circuit, inversion, croisement</td><td>Catégorie, débit, paires séparées, longueur</td><td>Jamais sur un port actif/PoE ; auto-test avant</td></tr>
+<tr><td>Testeur de qualification</td><td>Le lien supporte tel débit (100 Mb/s, 1 Gb/s, 10 Gb/s) ; split pairs</td><td>Conformité à une catégorie</td><td>Choisir le débit visé</td></tr>
+<tr><td>Certificateur</td><td>Conformité à la catégorie (longueur, perte d'insertion, NEXT, perte de retour), rapport PASS/FAIL par lien</td><td>Configuration réseau</td><td>Adaptateurs lien permanent/canal, étalonnage, classe visée</td></tr>
+<tr><td>Générateur de tonalité + sonde</td><td>Identifier un câble/port sans repère</td><td>Qualité du câble</td><td>Hors PoE/hors tension</td></tr>
+<tr><td>Multimètre (ohmmètre)</td><td>Coax : continuité âme/tresse, court-circuit, 25 Ω sur bus 10BASE2</td><td>Mauvais sertissage, écrasement, impédance du câble</td><td>Réseau arrêté, câble hors tension</td></tr>
+<tr><td>Réflectomètre cuivre (TDR)</td><td>Distance d'une coupure, d'un court-circuit, d'un changement d'impédance</td><td>Cause exacte</td><td>Facteur de vélocité correct (RG-58 ≈ 0,66)</td></tr>
+<tr><td>Sonde/microscope d'inspection fibre</td><td>Propreté, rayure des faces</td><td>Perte de la liaison</td><td>Lumière coupée</td></tr>
+<tr><td>Source + photomètre</td><td>Perte globale d'une fibre (dB) ou puissance reçue (dBm)</td><td>Où est la perte</td><td>Référencer, bonne longueur d'onde</td></tr>
+<tr><td>OTDR (réflectomètre optique)</td><td>Position et nature des événements (connecteur, épissure, courbure, casse)</td><td>Valeur absolue de réception</td><td>Bobine amorce, indice de groupe, émetteurs coupés</td></tr>
+<tr><td>VFL (laser rouge visible)</td><td>Casse ou courbure visible sur jarretière/courte distance, continuité d'un brin</td><td>Liaisons longues</td><td>Ne pas regarder la férule</td></tr>
+<tr><td>Coupe-câble, dénudeur, pince à sertir RJ45, outil de poinçonnage (110/LSA)</td><td>—</td><td>—</td><td>Outil adapté au connecteur ; dénudage sans entailler</td></tr>
+<tr><td>Dénudeur coaxial calibré, pince à matrice BNC</td><td>—</td><td>—</td><td>Cotes de la notice ; pas de pince RJ45</td></tr>
+</tbody></table></div>
+
+<h3>8.2 Commandes pour prouver l'état du lien physique</h3>
+<pre class="fx-cmd">PS C:\&gt; Get-NetAdapter | Format-Table Name,InterfaceDescription,Status,LinkSpeed</pre>
+<pre class="fx-out">Name     InterfaceDescription           Status  LinkSpeed
+----     --------------------           ------  ---------
+Ethernet Intel(R) Ethernet Connection   Up      100 Mbps</pre>
+<p>Interprétation : <code>Up 1 Gbps</code> attendu ; <code>Up 100 Mbps</code> → <a href="#f3-100mbs">P4.2</a> ; <code>Disconnected</code> → <a href="#f3-pas-de-lien">P4.1</a> ; <code>Disabled</code> → carte désactivée (réactiver : <code>Enable-NetAdapter -Name "Ethernet"</code>, ou <code>ncpa.cpl</code>).</p>
+<pre class="fx-cmd">PS C:\&gt; Get-NetAdapterAdvancedProperty -Name "Ethernet" -DisplayName "*Duplex*"</pre>
+<pre class="fx-out">Name      DisplayName          DisplayValue
+----      -----------          ------------
+Ethernet  Speed &amp; Duplex       100 Mbps Full Duplex</pre>
+<p>Interprétation : valeur forcée → remettre « Auto Negotiation » / « Négociation automatique » (nom exact selon le pilote) ; vérifier le port du switch.</p>
+<pre class="fx-cmd">$ sudo ethtool enp3s0</pre>
+<pre class="fx-out">	Supported link modes:   10baseT/Full 100baseT/Full 1000baseT/Full
+	Speed: 1000Mb/s
+	Duplex: Full
+	Auto-negotiation: on
+	Link detected: yes</pre>
+<pre class="fx-cmd">$ ip -s link show enp3s0</pre>
+<p>Lire <code>state UP</code>/<code>DOWN</code>, <code>NO-CARRIER</code> (pas de lien), compteurs <code>errors</code> qui montent entre deux relevés (erreurs physiques ou duplex).</p>
+<p>Côté switch administrable : état et vitesse du port, compteurs CRC/FCS, collisions tardives (signe d'un désaccord de duplex), état PoE, informations DDM des modules optiques (températures, Tx, Rx en dBm).</p>
+
+<h3>8.3 Valeurs et formules à appliquer</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Règle</th><th>Valeur</th></tr></thead>
+<tbody>
+<tr><td>Canal cuivre / lien permanent / cordons</td><td>100 m / 90 m / 10 m au total</td></tr>
+<tr><td>Débit → catégorie minimale</td><td>10 Mb/s Cat3 ; 100 Mb/s Cat5 ; 1 Gb/s Cat5e ; 10 Gb/s Cat6A (Cat6 ≤ 55 m, 37 m en environnement dense)</td></tr>
+<tr><td>Paires utilisées</td><td>10/100BASE-T : 1-2 et 3-6 ; 1000BASE-T et 10GBASE-T : les 4 paires</td></tr>
+<tr><td>Impédance paire torsadée</td><td>100 Ω (± 15 Ω)</td></tr>
+<tr><td>Détorsadage max / traction max</td><td>13 mm / 110 N</td></tr>
+<tr><td>Rayon de courbure installé</td><td>4 × Ø (non blindé), 8 × Ø (blindé), 10 × Ø (coax sans fiche fabricant) ; fibre 10 × Ø repos, 20 × Ø tirage</td></tr>
+<tr><td>Séparation courant fort (EN 50174-2, sans cloison)</td><td>Classe a 300 mm, b 100 mm, c 50 mm, d 10 mm ; inconnue 300 mm</td></tr>
+<tr><td>Bus 10BASE2</td><td>50 Ω, RG-58, 185 m, 30 postes, 0,5 m entre T, 2 terminateurs 50 Ω, 1 terre ; ohmmètre 25 Ω</td></tr>
+<tr><td>10BASE5</td><td>50 Ω épais, 500 m, 100 transceivers, repères 2,5 m, AUI ≤ 50 m</td></tr>
+<tr><td>Résistances en parallèle</td><td>R = R1 × R2 / (R1 + R2) (50 ∥ 50 = 25 ; 50 ∥ 75 = 30)</td></tr>
+<tr><td>TDR cuivre</td><td>d = VF × 0,3 m/ns × t / 2</td></tr>
+<tr><td>Atténuation fibre (cours)</td><td>MM 3,5 dB/km (850) et 1,5 dB/km (1 300) ; OS1 1,0 dB/km (1 310) ; OS2 0,4 dB/km (1 310 et 1 550)</td></tr>
+<tr><td>Pertes ponctuelles</td><td>paire de connecteurs 0,75 dB ; épissure 0,3 dB</td></tr>
+<tr><td>Bilan</td><td>Perte = L(km) × α + n × 0,75 + e × 0,3 ; marge = budget − perte ; Rx = Tx − perte</td></tr>
+<tr><td>OTDR</td><td>d = c × t / (2 n), n ≈ 1,468 ; position dans la liaison = lue − bobine amorce</td></tr>
+<tr><td>dB</td><td>3 dB ≈ ÷ 2 ; 10 dB = ÷ 10 ; 20 dB = ÷ 100 ; 0 dBm = 1 mW</td></tr>
+<tr><td>PoE par port (classe)</td><td>1 : 4 W ; 2 : 7 W ; 0/3 : 15,4 W ; 4 : 30 W ; 5–8 : 45/60/75/90 W</td></tr>
+<tr><td>Dimensionnement</td><td>Ports = ⌈liens × 1,2⌉ + montants ; baie = ⌈U × 1,25⌉ → taille standard ; boîte 305 m ; 1 U = 44,45 mm</td></tr>
+<tr><td>Longueur d'un lien au plan</td><td>|Δx| + |Δy| + 3 m + 2 m, arrondi au mètre supérieur</td></tr>
+</tbody></table></div>
+</section>

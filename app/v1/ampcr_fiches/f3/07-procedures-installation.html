@@ -1,0 +1,90 @@
+<section class="fx-sec" id="f3-proc-installation">
+<h2>7. Procédures d'installation physique d'un mini-réseau</h2>
+<pre class="fx-diagram">
+ Opérateur ── Box/routeur ──┐            (baie, local fermé)
+                            │ cordon
+  [Panneau 24 ports] ◀─brassage─▶ [Switch PoE]
+     │ câble permanent monobrin ≤ 90 m (étoile)
+     ├── Prise B1-P1-01 ── cordon ── PC bureau 1
+     ├── Prise B1-P1-02 ── cordon ── Imprimante
+     └── Prise B1-P1-13 ── cordon ── Point d'accès (PoE)
+  Canal = cordon brassage + permanent + cordon poste ≤ 100 m
+</pre>
+
+<article class="fx-proc" id="f3-installation">
+<h3>P7.1 — Installer le câblage d'un mini-réseau, de l'étude à la réception</h3>
+<p class="fx-sev">Fréquence : question officielle (« câblage et installation physique », « création d'un mini-réseau ») · Gravité : erreurs de conception coûteuses à reprendre</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Énoncé : plan des locaux avec cotes, nombre de postes, imprimantes, Wi-Fi, caméras/téléphones PoE, arrivée opérateur ; demande de plan, nomenclature, procédure.</li><li>Variante dépannage : chantier livré avec liens trop longs, câbles au sol, repérage absent, câble près du 230 V.</li></ul>
+<h4>2. Causes possibles d'une installation non conforme (classées)</h4>
+<ol><li>Baie mal placée → liens &gt; 90 m.</li><li>Pas de séparation du courant fort, croisements non perpendiculaires.</li><li>Repérage absent ou différent aux deux bouts.</li><li>Normes T568A/B mélangées entre prises et panneau.</li><li>Dimensionnement sans réserve (ports, baie, PoE).</li><li>Câble au sol dans un passage, rayon de courbure ou traction non respectés.</li><li>Câblage non testé avant mise en service.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Combien de postes, d'imprimantes, d'appareils PoE ? Évolution prévue ? Débit (1 ou 10 Gb/s) ?</li><li>Où arrive l'opérateur ? Local technique fermé, ventilé, avec prise électrique dédiée ? Faux plafond, goulottes ?</li><li>Sécurité chantier : travail en hauteur (escabeau), perçage (détecteur de câbles/canalisations), pas d'intervention dans les tableaux électriques (personne habilitée).</li></ul>
+<h4>4. Diagnostic pas à pas (procédure d'installation)</h4>
+<ol class="fx-steps">
+<li><strong>Analyser le besoin</strong> — postes, imprimantes, Wi-Fi, PoE, débit, plan, évolution. Deux prises par poste ; une par imprimante, caméra, point d'accès.</li>
+<li><strong>Concevoir l'étoile</strong> — baie au centre (local fermé à clé, ventilé, sec) ; box dans la baie ou à l'arrivée opérateur ; AP en hauteur au centre de la zone, loin des masses métalliques. <div class="fx-branch"><p class="fx-si"><b>SI</b> un lien calculé dépasse 90 m → déplacer la baie ou ajouter un second répartiteur relié en fibre (ou en cuivre ≤ 100 m).</p><p class="fx-sinon"><b>SINON</b> → longueurs.</p></div></li>
+<li><strong>Calculer chaque longueur</strong> — trajet horizontal le long des murs/chemins de câbles (écart en x + écart en y, jamais en diagonale) + 3 m de montée/descente + 2 m de réserve, arrondi au mètre supérieur ; total → boîtes de 305 m (un lien ne se raboute jamais : chaque longueur doit tenir dans le reste d'une boîte).</li>
+<li><strong>Dimensionner</strong> — switch : liens × 1,2 arrondi au-dessus + liens montants → taille standard (8, 16, 24, 48) ; panneau 24 ports par tranche de 24 liens ; baie : unités utilisées × 1,25 → taille standard (6, 9, 12 U…) ; budget PoE (<a href="#f3-poe">P7.2</a>).</li>
+<li><strong>Chiffrer</strong> — nomenclature, HT, TVA 21 %, TTC ; accord du client.</li>
+<li><strong>Poser</strong> — chemins de câbles/goulottes, séparation des câbles d'énergie (classe inconnue : 300 mm), croisement à 90°, rayon ≥ 4 × diamètre (U/UTP) ou 8 × (blindé), traction ≤ 110 N, pas de câble au sol dans un passage, colliers non serrés, étiquette identique aux deux bouts <b>avant</b> de tirer.</li>
+<li><strong>Raccorder</strong> — keystones et panneau poinçonnés selon <b>une seule norme</b> (T568A ou B), détorsadage ≤ 13 mm, blindé : continuité d'écran et terre de la baie.</li>
+<li><strong>Tester chaque lien</strong> — wiremap, longueur ≤ 90 m, certification ; corriger et retester (<a href="#f3-certif">P4.4</a>).</li>
+<li><strong>Équiper et valider</strong> — brasser selon le tableau, voyants de lien, puis validation réseau dans l'ordre : lien → adresse → passerelle → autre poste → Internet par nom → partage (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">→ Fiche 4 · Ordre des tests</a>).</li>
+<li><strong>Documenter et réceptionner</strong> — plan, tableau de brassage, rapports de test, PV signé.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Rapport de certification PASS pour 100 % des liens et validation fonctionnelle de chaque prise. Limite : un câblage certifié n'est pas un réseau validé ; et une validation ping ne remplace pas la certification.</p>
+<h4>6. Correction</h4><p>Liens non conformes repris (terminaison, trajet, câble) ; étiquettes et plan corrigés ; réserve ajoutée (switch plus grand, baie plus grande) si l'étude l'impose.</p>
+<h4>7. Validation</h4><p>Dossier de recette : plan, nomenclature, tableau de brassage, rapports de test, résultats de validation par prise, PV signé par le client.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Bureau de 6 postes, 1 imprimante, 1 point d'accès : décris l'installation physique »</p>
+<p>Besoin : 6 postes × 2 prises + 1 imprimante + 1 AP = 14 liens. Topologie en étoile depuis une baie murale dans le local fermé, à l'arrivée de la box. Câble Cat6 U/UTP monobrin (bureaux calmes, 1 Gb/s), plus long lien calculé 41 m (≤ 90 m). Switch : 14 × 1,2 = 16,8 → 17 + 1 lien montant vers la box = 18 → 24 ports PoE (pour l'AP). Panneau 24 ports, passe-câbles, switch, étagère 2 U pour la box, bandeau électrique : 6 U × 1,25 = 7,5 → baie 9 U. Pose en goulotte à compartiments séparés du 230 V, repères B1-P1-01 à B1-P1-14 identiques à la prise et au panneau, poinçonnage T568B partout. Tests : chaque lien au testeur (wiremap, longueur, certification). Validation : voyants, adresse, passerelle, ping d'un autre poste, Internet par nom, partage. Documentation : plan, tableau de brassage, rapports, PV.</p>
+<p class="fx-lose"><b>Perd des points :</b> topologie en bus ou en guirlande de switchs sous les bureaux ; aucune réserve ; oublier le repérage et les tests ; mélanger A et B.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> La longueur à vol d'oiseau sur le plan sous-estime le câble : trajet le long des murs + montée/descente + réserve.</div>
+<div class="fx-trap"><b>Piège</b> Le câble permanent est monobrin, poinçonné ; les cordons (brassage ≤ quelques m, poste) sont multibrin, sertis ; total cordons ≤ 10 m.</div>
+</article>
+
+<article class="fx-proc" id="f3-poe">
+<h3>P7.2 — Appareil PoE qui ne démarre pas, ou budget PoE à vérifier</h3>
+<p class="fx-sev">Fréquence : fréquent (AP, caméras, téléphones IP) · Gravité : appareils hors service, redémarrages</p>
+<h4>1. Symptômes observables</h4><p>AP/caméra/téléphone sans voyant ; appareils qui redémarrent quand un autre est branché ; voyant PoE du port éteint ou en défaut ; journal du switch « power budget exceeded ».</p>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Port non PoE ou PoE désactivé (configuration).</li><li>Budget total du switch dépassé (les derniers appareils sont refusés).</li><li>Classe de l'appareil supérieure à ce que le port fournit (PoE 802.3af 15,4 W vs appareil classe 4 30 W).</li><li>Câble défectueux (paire ouverte), cordon à 2 paires pour un appareil 4 paires (PoE++).</li><li>Appareil défectueux (à prouver avec un injecteur).</li></ol>
+<h4>3. Questions initiales</h4><ul><li>Quels appareils, quelles classes (fiche technique) ? Budget PoE du switch (fiche) ? Depuis quand (nouvel appareil ajouté ?)</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Additionner la puissance réservée par classe</strong> : classe 1 = 4 W, 2 = 7 W, 0 et 3 = 15,4 W (802.3af), 4 = 30 W (802.3at, PoE+), 5 à 8 = 45, 60, 75, 90 W (802.3bt). <div class="fx-branch"><p class="fx-si"><b>SI</b> total &gt; budget → budget dépassé.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Le port fournit-il la classe demandée ?</strong> <div class="fx-branch"><p class="fx-si"><b>SI</b> non → port PoE+ ou PoE++ / injecteur.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Testeur sur le câble</strong> (8 fils), autre port PoE. <div class="fx-branch"><p class="fx-si"><b>SI</b> défaut → <a href="#f3-testeur">P3.4</a>.</p><p class="fx-sinon"><b>SINON</b> → appareil sur un injecteur connu bon : s'il ne démarre pas, appareil en cause.</p></div></li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Exemple (cours)</th><th>Calcul</th><th>Switch 65 W</th><th>Switch 130 W</th><th>Switch 370 W</th></tr></thead>
+<tbody><tr><td>1 AP classe 4, 4 caméras classe 3, 6 téléphones classe 2</td><td>30 + 4 × 15,4 + 6 × 7 = 133,6 W</td><td>Dépassé</td><td>Dépassé</td><td>Suffisant</td></tr></tbody></table></div>
+<h4>5. Test de confirmation</h4><p>Débrancher un appareil non critique libère le budget et l'appareil refusé démarre ; ou l'appareil démarre sur injecteur. Limite : certains switchs réservent selon la consommation réelle et non la classe : lire la fiche/journal.</p>
+<h4>6. Correction</h4><p>Switch au budget suffisant avec marge, second switch PoE, injecteurs pour les appareils les plus gourmands, activation du PoE sur le port.</p>
+<h4>7. Validation</h4><p>Tous les appareils alimentés, budget consommé &lt; budget avec marge, test de redémarrage simultané (coupure du switch).</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Je calcule la puissance réservée : AP classe 4 = 30 W, quatre caméras classe 3 = 61,6 W, six téléphones classe 2 = 42 W, total 133,6 W. Le switch de 130 W est insuffisant (le dernier appareil branché sera refusé ou les appareils redémarreront) ; je retiens le switch de 370 W, qui laisse de la marge pour l'évolution.</p><p class="fx-lose"><b>Perd des points :</b> additionner des consommations « typiques » au lieu des classes ; oublier la marge.</p></div>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Un appareil PoE qui fonctionne sur cordon court mais pas sur la prise murale : paire du lien permanent ouverte, ou longueur/qualité limite : teste le lien.</div>
+</article>
+
+<article class="fx-proc" id="f3-brassage">
+<h3>P7.3 — Prise morte, repérage faux, voyants de lien côté baie</h3>
+<p class="fx-sev">Fréquence : très fréquent en exploitation · Gravité : un poste isolé, risque de débrancher le mauvais lien</p>
+<h4>1. Symptômes observables</h4><p>Prise sans lien ; étiquette illisible ou absente ; brassage en « plat de spaghettis » ; port du switch allumé alors que le poste est éteint (mauvais port).</p>
+<h4>2. Causes possibles (classées)</h4><ol><li>Prise non brassée.</li><li>Repère différent prise/panneau, tableau de brassage pas à jour.</li><li>Cordon de brassage déplacé lors d'une autre intervention.</li><li>Keystone non raccordé ou défectueux.</li></ol>
+<h4>3. Questions initiales</h4><ul><li>Tableau de brassage disponible ? Ai-je le droit de débrancher un cordon en production ? Quels utilisateurs sont concernés ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Lire le repère de la prise</strong> (convention B1-P1-07 : baie 1, panneau 1, port 7) et le tableau de brassage. <div class="fx-branch"><p class="fx-si"><b>SI</b> port de panneau non brassé → brasser vers le port prévu du switch.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Brancher le poste et observer le voyant du port du switch</strong> correspondant. <div class="fx-branch"><p class="fx-si"><b>SI</b> un autre port s'allume → repérage faux : corriger étiquettes et tableau.</p><p class="fx-sinon"><b>SINON</b> → aucun voyant : étape 3.</p></div></li>
+<li><strong>Repère absent/douteux : générateur de tonalité</strong> à la prise, sonde sur les ports du panneau (hors tension PoE), ou testeur avec identifiants de bouchons.</li>
+<li><strong>Testeur prise ↔ panneau</strong> → <a href="#f3-testeur">P3.4</a>.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le voyant du port attendu s'allume au branchement du poste et s'éteint au débranchement. Limite : un port en vitesse forcée peut ne pas s'allumer malgré un lien correct.</p>
+<h4>6. Correction</h4><p>Brasser (cordon de longueur juste, passe-câbles), corriger étiquettes aux deux bouts et tableau de brassage (repère, destination, port du switch, prise).</p>
+<h4>7. Validation</h4><p>Voyant à la vitesse attendue, poste fonctionnel, tableau daté et signé.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>La prise porte le repère B1-P1-07. Le tableau indique le port 7 du panneau brassé sur le port 7 du switch, mais ce port reste éteint quand je branche le poste ; c'est le port 9 qui s'allume. Le repérage est inversé entre les ports 7 et 9 du panneau. Je vérifie au générateur de tonalité, je corrige les étiquettes et le tableau de brassage, je teste les deux liens et je préviens l'utilisateur du port 9 avant toute manipulation.</p></div>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Débrancher « au hasard » dans une baie de production coupe un autre utilisateur ou un serveur : toujours identifier avant de débrancher.</div>
+</article>
+</section>

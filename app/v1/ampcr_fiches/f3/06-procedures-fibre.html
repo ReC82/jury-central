@@ -1,0 +1,141 @@
+<section class="fx-sec" id="f3-proc-fibre">
+<h2>6. Procédures fibre optique</h2>
+<p class="fx-warn"><b>Attention</b> Sécurité laser : la lumière à 850, 1 300, 1 310 et 1 550 nm est <b>invisible</b> et peut léser la rétine. Ne regarde <b>jamais</b> une férule, une traversée ou un module, même « éteints » ; ne regarde pas une fibre au microscope sans être sûr qu'elle est éteinte (port désactivé ou module retiré, vérifié au photomètre). Le localisateur visuel (VFL, laser rouge visible) se lit sur la lueur de côté, jamais face à la férule. Éclats de fibre : travail sur tapis sombre, chutes ramassées sur adhésif dans un conteneur fermé, lunettes, pas de nourriture sur le poste, mains lavées. Capuchon sur tout connecteur libre.</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Type</th><th>Mode</th><th>Cœur</th><th>Longueurs d'onde</th><th>Gaine (habituelle)</th><th>Portées de référence</th></tr></thead>
+<tbody>
+<tr><td>OM1</td><td>Multimode</td><td>62,5 µm</td><td>850 / 1 300 nm</td><td>orange</td><td>1000BASE-SX 275 m ; 10GBASE-SR 33 m</td></tr>
+<tr><td>OM2</td><td>Multimode</td><td>50 µm</td><td>850 / 1 300 nm</td><td>orange</td><td>1000BASE-SX 550 m ; 10GBASE-SR 82 m</td></tr>
+<tr><td>OM3</td><td>Multimode optimisée laser</td><td>50 µm</td><td>850 / 1 300 nm</td><td>aqua</td><td>10GBASE-SR 300 m</td></tr>
+<tr><td>OM4</td><td>Multimode optimisée laser</td><td>50 µm</td><td>850 / 1 300 nm</td><td>aqua, parfois violet</td><td>10GBASE-SR 400 m</td></tr>
+<tr><td>OM5</td><td>Multimode large bande</td><td>50 µm</td><td>850 à 950 nm</td><td>vert citron</td><td>comme OM4 en 10G, pensée pour le multiplexage</td></tr>
+<tr><td>OS1 / OS2</td><td>Monomode</td><td>≈ 9 µm</td><td>1 310 / 1 550 nm</td><td>jaune</td><td>1000BASE-LX 5 km ; 10GBASE-LR 10 km (OS2)</td></tr>
+</tbody></table></div>
+<p>Modules : 1000BASE-SX (SFP, 850 nm, MM), 1000BASE-LX (SFP, 1 310 nm, SM), 10GBASE-SR (SFP+, 850 nm, MM), 10GBASE-LR (SFP+, 1 310 nm, SM). Connecteurs : LC (férule 1,25 mm, clip, SFP), SC (2,5 mm, pousser-tirer), ST (baïonnette, ancien). Polissage : UPC (bleu en monomode) et APC 8° (vert) ne se raccordent <b>jamais</b> entre eux. Le marquage imprimé sur la gaine fait foi, pas la couleur seule.</p>
+
+<article class="fx-proc" id="f3-fibre">
+<h3>P6.1 — Liaison optique sans lien (LOS) ou lien qui ne monte pas</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : souvent une liaison entre bâtiments ou vers un serveur (impact large)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Voyant du port SFP éteint, état « down », alarme LOS (perte de signal) ; puissance reçue nulle ou très basse (DDM : <code>show interface transceiver</code> ou équivalent selon le switch).</li><li>Module non reconnu (« unsupported transceiver »), port err-disabled.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Polarité inversée : TX de A arrive sur TX de B (jarretière duplex A/B non croisée).</li><li>Connecteur sale (poussière, gras de doigt) : de loin la cause la plus fréquente de perte excessive.</li><li>Jarretière débranchée, mauvais port du tiroir, capuchon oublié.</li><li>Modules différents (SX d'un côté, LX de l'autre), module inadapté à la fibre (SR sur monomode), SFP 1 Gb/s contre SFP+ 10 Gb/s, module non accepté par le switch.</li><li>Jarretière de mauvais type (multimode sur liaison monomode), APC raccordé à UPC.</li><li>Portée ou budget dépassés (<a href="#f3-fibre-bilan">P6.2</a>).</li><li>Courbure trop serrée, casse (<a href="#f3-fibre-casse">P6.3</a>).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>La liaison a-t-elle déjà fonctionné ? Qu'est-ce qui a changé (travaux, nouveau module, nettoyage de la baie) ?</li><li>Plan de brassage et polarité documentés ? Accès aux deux extrémités ? Fenêtre d'intervention autorisée ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Relever les deux côtés</strong> : état du port, modules (référence, longueur d'onde), puissances émise et reçue (DDM). <div class="fx-branch"><p class="fx-si"><b>SI</b> modules différents ou inadaptés à la fibre → corriger les modules (étape 2).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Modules</strong> : même norme aux deux bouts ; MM (SX/SR, 850 nm) sur OM ; SM (LX/LR, 1 310 nm) sur OS ; vitesse identique ; module accepté par l'équipement.</li>
+<li><strong>Polarité</strong> : le TX de chaque côté doit arriver sur le RX de l'autre. <div class="fx-branch"><p class="fx-si"><b>SI</b> les deux modules émettent mais aucun ne reçoit → polarité probable : inverser les deux fibres à <b>une seule</b> extrémité (clip duplex LC retourné ou jarretière A-B).</p><p class="fx-sinon"><b>SINON</b> → un côté reçoit, l'autre non → fibre ou connecteur sur un seul brin : étape 4.</p></div></li>
+<li><strong>Connecteurs : inspecter → nettoyer → réinspecter</strong> (<a href="#f3-fibre-nettoyage">P6.4</a>), y compris les traversées des tiroirs. Vérifier type de jarretière (MM/SM, UPC/APC).</li>
+<li><strong>Mesurer au photomètre</strong> fibre par fibre (source + photomètre à la bonne longueur d'onde) ; comparer au budget. <div class="fx-branch"><p class="fx-si"><b>SI</b> perte normale → revoir équipement/configuration du port.</p><p class="fx-sinon"><b>SINON</b> → perte excessive ou aucune lumière → OTDR (<a href="#f3-fibre-casse">P6.3</a>).</p></div></li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Puissance reçue (Rx)</th><th>Interprétation</th><th>Suite</th></tr></thead>
+<tbody>
+<tr><td>≤ −30 dBm (souvent affiché −40)</td><td>Aucune lumière : polarité, débranché, casse, émetteur éteint</td><td>Polarité, jarretières, Tx de l'autre côté, OTDR</td></tr>
+<tr><td>Sous la sensibilité (ex. &lt; −14,4 dBm pour la fiche LR du cours, &lt; −9,9 pour la fiche SR)</td><td>Trop faible : saleté, courbure, budget dépassé</td><td>Nettoyer, mesurer la perte, OTDR</td></tr>
+<tr><td>Dans la plage de la fiche</td><td>Optique correcte</td><td>Chercher côté configuration/équipement</td></tr>
+<tr><td>Au-dessus de la surcharge</td><td>Saturation du récepteur (module longue portée sur liaison courte)</td><td>Atténuateur ou module adapté</td></tr>
+</tbody></table></div>
+<h4>5. Test de confirmation</h4>
+<p>Un seul changement (inversion de polarité à un bout, ou nettoyage) fait monter le lien et ramène Rx dans la plage : cause prouvée. Limite : les valeurs DDM sont indicatives (± quelques dB) ; pour une réception de chantier, photomètre étalonné.</p>
+<h4>6. Correction</h4>
+<p>Croiser la polarité à une extrémité et documenter ; nettoyer ; remplacer la jarretière par le bon type (MM/SM, LC/SC, UPC/APC) — LC vers SC par une jarretière LC-SC, jamais par adaptation forcée ; paire de modules identiques adaptés à la fibre et à la distance.</p>
+<h4>7. Validation</h4>
+<p>Lien UP à la vitesse attendue des deux côtés, Rx dans la plage avec marge, compteurs d'erreurs nuls, plan de brassage et polarité mis à jour, mesures consignées.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Après remplacement d'une jarretière, la liaison inter-bâtiments ne monte plus ; Rx = −40 dBm des deux côtés »</p>
+<p>Observation : aucune lumière reçue aux deux extrémités alors que les deux modules émettent (Tx normal). Hypothèses : 1) polarité inversée par la nouvelle jarretière ; 2) jarretière branchée sur un mauvais port du tiroir ; 3) casse (peu probable : les deux brins à la fois). Test : inverser les deux brins de la jarretière duplex côté baie A uniquement. Résultat : lien UP, Rx −4,4 dBm. Conclusion : polarité inversée (TX sur TX). Correction : conserver l'inversion, étiqueter la jarretière, mettre à jour le plan. Validation : lien 10 Gb/s, Rx dans la plage de la fiche, erreurs nulles, rapport. Sécurité : aucun regard dans les férules, capuchons remis sur la jarretière retirée.</p>
+<p class="fx-lose"><b>Perd des points :</b> « regarder si la lumière passe » ; inverser aux deux bouts (on revient à l'erreur) ; changer les modules sans mesure.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Un module monomode LX sur de la multimode peut parfois « monter » sur une courte distance : ce n'est pas conforme ni garanti. Le module doit correspondre à la fibre posée.</div>
+<div class="fx-trap"><b>Piège</b> Pannes concomitantes fréquentes : polarité inversée ET connecteur sale. Après inversion, si Rx reste sous la sensibilité, continue avec l'inspection.</div>
+</article>
+
+<article class="fx-proc" id="f3-fibre-bilan">
+<h3>P6.2 — Choisir fibre et modules, calculer le bilan de liaison, réceptionner au photomètre</h3>
+<p class="fx-sev">Fréquence : très fréquent à l'examen (EX03 dossier C) · Gravité : liaison non garantie</p>
+<h4>1. Symptômes observables</h4>
+<p>Énoncé : distance, débit, tiroirs, nombre de connecteurs et d'épissures, budget du module ; ou mesure de réception supérieure au calcul ; ou lien instable en limite de portée.</p>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Portée du module dépassée sur cette fibre (dispersion), même si le budget passe.</li><li>Perte supérieure au budget du module.</li><li>Connecteurs/épissures en excès ou de mauvaise qualité.</li><li>Mauvaise longueur d'onde au photomètre (mesure fausse).</li></ol>
+<h4>3. Questions initiales</h4><ul><li>Même bâtiment ? Distance réelle du trajet ? Débit présent et futur ? Fibre déjà posée (type) ?</li></ul>
+<h4>4. Diagnostic pas à pas (calcul)</h4>
+<ol class="fx-steps">
+<li><strong>Choisir le support</strong> — ≤ 100 m et même bâtiment : Cat6A possible ; entre bâtiments : fibre ; 10 Gb/s ≤ 300 m : SR sur OM3 ; ≤ 400 m : SR sur OM4 ; au-delà (≤ 10 km) : LR sur OS2.</li>
+<li><strong>Vérifier la portée</strong> du module sur la fibre (tableau ci-dessus). <div class="fx-branch"><p class="fx-si"><b>SI</b> longueur &gt; portée → non conforme même si le budget passe.</p><p class="fx-sinon"><b>SINON</b> → calculer la perte.</p></div></li>
+<li><strong>Perte = longueur (km) × atténuation + nb de paires de connecteurs × 0,75 dB + nb d'épissures × 0,3 dB</strong> (valeurs du cours) ; atténuation : MM 3,5 dB/km à 850 nm, 1,5 dB/km à 1 300 nm ; OS2 0,4 dB/km à 1 310 et 1 550 nm (OS1 1,0 dB/km à 1 310).</li>
+<li><strong>Marge = budget − perte</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> marge &lt; 0 → réduire connecteurs, meilleure fibre, module plus puissant.</p><p class="fx-sinon"><b>SINON</b> → conforme ; la mesure réelle doit être ≤ perte calculée.</p></div></li>
+<li><strong>Réception au photomètre</strong> : référencer source + jarretières, mesurer chaque fibre aux longueurs d'onde d'usage, comparer au calcul.</li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Exemple</th><th>Calcul</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>OM3, 220 m, 850 nm, 2 paires de connecteurs, budget 2,6 dB (10GBASE-SR)</td><td>0,22 × 3,5 = 0,77 ; + 2 × 0,75 = 1,50 → 2,27 dB</td><td>Portée 300 m OK ; marge 0,33 dB : conforme mais serré, connecteurs impeccables</td></tr>
+<tr><td>OS2, 800 m, 1 310 nm, 2 paires de connecteurs, 2 épissures (10GBASE-LR)</td><td>0,8 × 0,4 = 0,32 ; + 1,50 ; + 0,60 → 2,42 dB</td><td>Portée 10 km OK ; très large marge</td></tr>
+<tr><td>OM3, 350 m, 10GBASE-SR</td><td>—</td><td>Portée 300 m dépassée : OM4 (400 m) ou OS2 + LR</td></tr>
+</tbody></table></div>
+<p>Puissance reçue attendue = puissance émise (dBm) − perte (dB). Ex. Tx −2 dBm, perte 2,42 dB → Rx −4,42 dBm.</p>
+<h4>5. Test de confirmation</h4><p>Mesure photomètre ≤ perte calculée sur chaque fibre. Limite : le photomètre donne une perte globale, il ne localise rien (OTDR pour localiser).</p>
+<h4>6. Correction</h4><p>Mesure &gt; calcul : nettoyer et remesurer ; puis OTDR pour localiser connecteur/épissure/courbure ; refaire l'épissure, remplacer le connecteur, détendre la courbure (rayon ≥ 10 × diamètre au repos, 20 × au tirage).</p>
+<h4>7. Validation</h4><p>Tableau de réception : fibre, longueur d'onde, perte mesurée, perte calculée, marge, verdict ; polarité ; signature.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Relier à 10 Gb/s deux bâtiments distants de 800 m »</p><p>Cuivre exclu : distance &gt; 100 m et deux bâtiments (terres différentes, foudre). Multimode exclue : 800 m dépasse la portée de 10GBASE-SR (300 m OM3, 400 m OM4). Choix : fibre monomode OS2, deux modules SFP+ 10GBASE-LR identiques (1 310 nm, 10 km), jarretières duplex LC-LC OS2 UPC. Bilan : 0,8 km × 0,4 = 0,32 dB ; 2 paires de connecteurs 1,50 dB ; 2 épissures 0,60 dB ; total 2,42 dB, largement sous le budget. Réception : photomètre à 1 310 nm (et 1 550 nm pour révéler une courbure), mesure ≤ 2,42 dB, polarité TX→RX vérifiée, rapport.</p>
+<p class="fx-lose"><b>Perd des points :</b> vérifier seulement le budget sans la portée ; oublier les connecteurs/épissures ; additionner des dBm entre eux.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> dB = rapport (perte), dBm = niveau absolu (0 dBm = 1 mW). dBm − dB = dBm ; on n'additionne jamais deux dBm. 3 dB ≈ moitié de la puissance, 10 dB = un dixième.</div>
+</article>
+
+<article class="fx-proc" id="f3-fibre-casse">
+<h3>P6.3 — Liaison coupée : localiser au réflectomètre (OTDR) et réparer</h3>
+<p class="fx-sev">Fréquence : moins fréquent, classique d'examen · Gravité : liaison entière perdue</p>
+<h4>1. Symptômes observables</h4><p>LOS durable, photomètre : aucune lumière sur un ou plusieurs brins ; travaux récents (tranchée, faux plafond) ; trace OTDR fournie.</p>
+<h4>2. Causes possibles (classées)</h4><ol><li>Câble sectionné ou écrasé lors de travaux.</li><li>Courbure très serrée (perte forte, pas de coupure).</li><li>Épissure ou connecteur de tiroir arraché.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Travaux ? Où passe le câble ? Plan avec longueurs ? Couper les émetteurs avant de raccorder l'OTDR (son laser et celui du module).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Raccorder l'OTDR via une bobine amorce</strong> (ex. 150 m), indice de groupe réglé (≈ 1,468 en monomode).</li>
+<li><strong>Lire les événements</strong> :
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Événement</th><th>Signature</th></tr></thead>
+<tbody>
+<tr><td>Connecteur</td><td>Pic de réflexion + petite marche</td></tr>
+<tr><td>Épissure par fusion</td><td>Petite marche sans pic, même perte à 1 310 et 1 550 nm</td></tr>
+<tr><td>Courbure</td><td>Marche sans pic, nettement plus forte à 1 550 nm qu'à 1 310 nm (écart &gt; 0,2 dB)</td></tr>
+<tr><td>Fin de fibre / cassure</td><td>Grand pic (ou chute) puis plus que du bruit</td></tr>
+</tbody></table></div>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> la fin de trace arrive avant la longueur prévue → casse à (position lue − bobine amorce).</p><p class="fx-sinon"><b>SINON</b> → pas de casse : chercher l'événement à forte perte (courbure, épissure).</p></div></li>
+<li><strong>Calculer la position</strong> — ex. liaison prévue 1 230 m, fin de trace lue à 830 m, amorce 150 m → casse à <b>680 m</b> du tiroir A ; reporter sur le plan du cheminement. Distance = c × t / (2 × n).</li>
+<li><strong>Confirmer par une mesure depuis l'autre extrémité</strong> : la somme des deux distances ≈ longueur de la liaison.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Inspection visuelle au point indiqué (dégâts de chantier) ; mesure depuis l'autre bout cohérente. Limite : zone morte de l'OTDR près de l'injection (d'où la bobine amorce) ; une position est précise à quelques mètres près selon le réglage.</p>
+<h4>6. Correction</h4><p>Ouvrir au point de casse, deux épissures par fusion dans un boîtier de protection (ou remplacement du tronçon si câble long endommagé), selon le budget restant ; courbure : reposer avec un rayon suffisant.</p>
+<h4>7. Validation</h4><p>Nouvelle trace OTDR complète (fin à la bonne longueur, épissures ≈ 0,3 dB), photomètre ≤ bilan recalculé avec les épissures ajoutées, lien UP, rapport.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Observation : LOS, aucune lumière au photomètre ; OTDR depuis le tiroir A avec bobine de 150 m : fin de fibre à 830 m alors que la liaison mesure 1 230 m. Conclusion : cassure à 830 − 150 = 680 m du tiroir A, ce qui correspond à la tranchée creusée la semaine dernière. Correction : boîtier d'épissure, deux épissures par fusion. Nouveau bilan : + 2 × 0,3 = 0,6 dB, toujours dans le budget. Validation : OTDR complet, photomètre conforme, lien UP, rapport avec traces avant/après.</p>
+<p class="fx-lose"><b>Perd des points :</b> oublier de soustraire la bobine amorce ; confondre épissure et courbure.</p></div>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Une courbure trop serrée ressemble à une épissure à 1 310 nm : c'est la comparaison 1 310/1 550 nm qui tranche.</div>
+</article>
+
+<article class="fx-proc" id="f3-fibre-nettoyage">
+<h3>P6.4 — Inspecter, nettoyer, réinspecter un connecteur optique</h3>
+<p class="fx-sev">Fréquence : à chaque raccordement · Gravité : perte excessive, faces rayées définitivement</p>
+<h4>1. Symptômes observables</h4><p>Rx bas, perte mesurée supérieure au calcul, lien instable ; tache, poussière ou rayure à la sonde d'inspection.</p>
+<h4>2. Causes possibles (classées)</h4><ol><li>Poussière (connecteur laissé sans capuchon).</li><li>Gras de doigt.</li><li>Rayure/éclat (face abîmée : à remplacer).</li><li>Traversée du tiroir sale (on ne nettoie qu'un côté).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><p>Lumière coupée (port désactivé/module retiré, vérifié au photomètre) ; sonde d'inspection ou microscope adapté, jamais l'œil nu face à la férule.</p>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Inspecter</strong> fiche et traversée à la sonde. <div class="fx-branch"><p class="fx-si"><b>SI</b> propre → raccorder.</p><p class="fx-sinon"><b>SINON</b> → nettoyer.</p></div></li>
+<li><strong>Nettoyer à sec</strong> : nettoyeur à cliquet (cassette/stylo) ou lingette non pelucheuse, un seul passage.</li>
+<li><strong>Réinspecter</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> encore sale → alcool isopropylique puis à sec, réinspecter.</p><p class="fx-sinon"><b>SINON</b> → raccorder aussitôt.</p></div></li>
+<li><strong>Rayure dans la zone du cœur</strong> → remplacer la jarretière ou le connecteur.</li>
+<li><strong>Mesurer</strong> Rx ou perte, consigner.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Face propre à la sonde et perte revenue au calcul. Limite : nettoyer sans inspecter ne prouve rien (on peut étaler la saleté).</p>
+<h4>6. Correction</h4><p>Nettoyage selon la séquence ; capuchons systématiques ; jarretière rayée remplacée.</p>
+<h4>7. Validation</h4><p>Photo/relevé de la sonde, mesure photomètre, consignation.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Je coupe la lumière (port désactivé), je vérifie au photomètre qu'aucune lumière n'est émise, j'inspecte à la sonde la fiche et la traversée, je nettoie à sec avec un nettoyeur à cliquet, je réinspecte ; si la saleté reste, alcool isopropylique puis à sec ; si la face est rayée, je remplace la jarretière. Je raccorde aussitôt, je mesure la puissance reçue et je la consigne.</p><p class="fx-lose"><b>Perd des points :</b> souffler dessus, essuyer avec un vêtement, regarder la férule à l'œil.</p></div>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Nettoyer la jarretière mais pas la traversée du tiroir ou le port du module : la saleté recontamine la face propre.</div>
+</article>
+</section>

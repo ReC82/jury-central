@@ -1,0 +1,142 @@
+<section class="fx-sec" id="f3-proc-liens">
+<h2>4. Procédures cuivre : pannes de lien</h2>
+
+<article class="fx-proc" id="f3-pas-de-lien">
+<h3>P4.1 — Pas de lien : voyant éteint, « Câble réseau débranché »</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : poste isolé (bloquant pour l'utilisateur)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Voyant de la carte et du port du switch éteints ; icône réseau barrée ; Windows « Câble réseau non connecté ».</li><li><code>ipconfig</code> : « Média déconnecté » ; Linux : <code>NO-CARRIER</code>, <code>state DOWN</code>.</li></ul>
+<pre class="fx-cmd">C:\&gt; ipconfig</pre>
+<pre class="fx-out">Carte Ethernet Ethernet :
+   Statut du média. . . . . . . . . . . . : Média déconnecté</pre>
+<pre class="fx-cmd">PS C:\&gt; Get-NetAdapter | Format-Table Name,Status,LinkSpeed</pre>
+<pre class="fx-out">Name      Status        LinkSpeed
+----      ------        ---------
+Ethernet  Disconnected  0 bps</pre>
+<pre class="fx-cmd">$ ip link show enp3s0</pre>
+<pre class="fx-out">2: enp3s0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 ... state DOWN</pre>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Cordon débranché, mal clipsé, patte cassée (câble).</li><li>Cordon défectueux (fiche, fil coupé) (câble).</li><li>Prise murale non brassée ou brassée sur le mauvais port (installation/repérage).</li><li>Défaut du lien permanent (keystone, panneau, câble endommagé) (câble).</li><li>Port de switch désactivé, en erreur (err-disabled) ou HS ; switch éteint (équipement/configuration).</li><li>Carte réseau désactivée dans le système ou dans le BIOS/UEFI, pilote absent (OS : voir <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-pilote">→ Fiche 2 · Pilotes</a>).</li><li>Croisé requis entre deux équipements sans Auto MDI-X (<a href="#f3-droit-croise">P3.3</a>).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Depuis quand ? Un déménagement de bureau, des travaux, un nettoyage ? Les voisins ont-ils le réseau ?</li><li>Le switch est-il allumé, d'autres ports actifs ? Ai-je l'autorisation d'accéder à la baie ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Vérifier branchement et clip aux deux bouts</strong> (carte, prise) — attendu : clic, fiche verrouillée. <div class="fx-branch"><p class="fx-si"><b>SI</b> fiche desserrée/patte cassée → rebrancher ; remplacer le cordon si patte cassée.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Cordon de poste par un cordon testé bon</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> lien OK → cordon fautif (le tester pour le prouver).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Brancher le PC sur un port connu bon</strong> (autre prise ou directement au switch avec cordon bon). <div class="fx-branch"><p class="fx-si"><b>SI</b> lien OK → la carte est bonne ; défaut dans prise / lien permanent / brassage / port : étape 4.</p><p class="fx-sinon"><b>SINON</b> → carte : état dans le Gestionnaire de périphériques et <code>ncpa.cpl</code> (désactivée ?), BIOS, autre carte (USB) pour isoler.</p></div></li>
+<li><strong>Tableau de brassage : la prise est-elle brassée, sur quel port ?</strong> <div class="fx-branch"><p class="fx-si"><b>SI</b> non brassée ou repère introuvable → brasser ; retrouver le port au générateur de tonalité si repérage absent.</p><p class="fx-sinon"><b>SINON</b> → étape 5.</p></div></li>
+<li><strong>Testeur sur le lien permanent</strong> (panneau ↔ prise). <div class="fx-branch"><p class="fx-si"><b>SI</b> défaut → <a href="#f3-testeur">P3.4</a>.</p><p class="fx-sinon"><b>SINON</b> → cordon de brassage, puis autre port du switch ; voyant de port, état administratif du port.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Remise en place de l'élément d'origine : le défaut réapparaît, remplacé : il disparaît. Limite : un défaut intermittent peut « disparaître » au simple fait de débrancher/rebrancher ; dans ce cas tester en flexion (<a href="#f3-erreurs">P4.3</a>).</p>
+<h4>6. Correction</h4>
+<p>Remplacer le cordon ; brasser et étiqueter ; refaire keystone/panneau ; réactiver port ou carte ; remplacer le port/switch seulement après preuve (port fautif avec plusieurs cordons et postes bons).</p>
+<h4>7. Validation</h4>
+<p>Voyants allumés aux deux bouts, <code>Get-NetAdapter</code> « Up 1 Gbps », puis ordre des tests IP (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">→ Fiche 4 · Ordre des tests</a>) ; tableau de brassage mis à jour.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Après un déménagement de bureau, le poste du bureau 12 n'a plus de réseau »</p>
+<p>Observation : voyant de carte éteint, ipconfig « Média déconnecté » : le problème est physique, inutile de vérifier l'IP. Hypothèses : 1) cordon de poste abîmé au déménagement ; 2) prise 12 non brassée au panneau ; 3) défaut du lien permanent ; 4) port du switch ; 5) carte désactivée. Tests dans l'ordre : cordon testé bon (pas de lien) ; PC branché sur une prise voisine fonctionnelle (lien OK : carte bonne) ; tableau de brassage : la prise B1-P1-12 n'est plus brassée. Conclusion : brassage retiré pendant les travaux. Correction : cordon de brassage du port 12 du panneau au port prévu du switch. Validation : voyant à 1 Gb/s, ping de la passerelle, utilisateur confirme ; tableau de brassage à jour.</p>
+<p class="fx-lose"><b>Perd des points :</b> commencer par <code>ipconfig /release</code> ; changer le switch sans test ; ne pas mentionner le tableau de brassage.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Voyant allumé côté switch mais pas côté carte (ou l'inverse) : souvent une seule paire en défaut ou un port en vitesse forcée ; ce n'est pas « tout est bon ».</div>
+<div class="fx-trap"><b>Piège</b> Poste branché sur la prise téléphonique (RJ45 brassée sur le standard) : voyant éteint ou lien sans réseau. Lire l'étiquette de la prise.</div>
+</article>
+
+<article class="fx-proc" id="f3-100mbs">
+<h3>P4.2 — Lien à 100 Mb/s au lieu de 1 Gb/s, ou lien lent (désaccord de duplex)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : dégradation (copies 10 fois plus lentes), parfois incident majeur pour un serveur</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Voyant de vitesse de la couleur « 10/100 » (souvent orange au lieu de vert, selon le constructeur — lire la notice).</li><li><code>LinkSpeed 100 Mbps</code>, <code>Speed: 100Mb/s</code> ; copie de fichier plafonnant vers 11 Mo/s.</li><li>Désaccord de duplex : débit très bas, compteurs CRC/FCS et collisions tardives (late collisions) qui montent côté half.</li></ul>
+<pre class="fx-cmd">$ sudo ethtool enp3s0</pre>
+<pre class="fx-out">	Speed: 100Mb/s
+	Duplex: Full
+	Auto-negotiation: on
+	Link detected: yes</pre>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Fil ouvert sur la paire 4-5 ou 7-8 (1 Gb/s exige les 4 paires ; la carte rétrograde à 100 Mb/s) (câble).</li><li>Cordon Cat5 ou cordon à 2 paires, téléphone IP ou prise 10/100 intercalée (câble/équipement).</li><li>Vitesse/duplex forcés sur la carte ou le port (configuration).</li><li>Équipement 100 Mb/s seulement (switch ancien, box) (capacité).</li><li>Pilote/économie d'énergie (OS, renvoi F2).</li></ol>
+<h4>3. Questions initiales</h4>
+<ul><li>Était-ce à 1 Gb/s avant ? Quel changement ? Tous les postes ou un seul ? Un téléphone IP est-il entre la prise et le PC ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Relever vitesse et duplex des deux côtés</strong> (carte et port). <div class="fx-branch"><p class="fx-si"><b>SI</b> duplex différent (full/half) → un côté forcé : étape 5.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Capacités de chaque maillon</strong> (carte, switch, téléphone IP, prise). <div class="fx-branch"><p class="fx-si"><b>SI</b> un maillon est 10/100 → cause trouvée (capacité, pas panne).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Testeur sur les 8 fils</strong> du cordon puis du lien permanent. <div class="fx-branch"><p class="fx-si"><b>SI</b> 4, 5, 7 ou 8 ouverte → refaire la terminaison (<a href="#f3-testeur">P3.4</a>).</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Lire la gaine</strong> (CAT5 sans e ? 2 paires ?) ; qualifier le lien à 1 Gb/s. <div class="fx-branch"><p class="fx-si"><b>SI</b> catégorie insuffisante → remplacer.</p><p class="fx-sinon"><b>SINON</b> → configuration (étape 5).</p></div></li>
+<li><strong>Remettre l'auto-négociation des deux côtés</strong> (Windows : Gestionnaire de périphériques → carte → Avancé → « Speed &amp; Duplex » / « Vitesse et duplex » = Négociation automatique ; Linux : <code>sudo ethtool -s enp3s0 autoneg on</code>).</li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Carte</th><th>Port switch</th><th>Résultat</th></tr></thead>
+<tbody>
+<tr><td>Auto</td><td>Auto</td><td>Meilleure vitesse commune, full duplex (1 Gb/s si 4 paires bonnes)</td></tr>
+<tr><td>Forcée 100 full</td><td>Auto</td><td>Le côté auto détecte 100 Mb/s mais se met en <b>half</b> → désaccord de duplex</td></tr>
+<tr><td>Forcée 100 full</td><td>Forcé 100 full</td><td>100 Mb/s full (fonctionne, mais 1 Gb/s perdu)</td></tr>
+<tr><td>Forcée 100</td><td>Forcé 10</td><td>Pas de lien (vitesses différentes)</td></tr>
+</tbody></table></div>
+<h4>5. Test de confirmation</h4>
+<p>Après correction de l'unique cause suspectée : 1 Gb/s full des deux côtés, compteurs d'erreurs stables sur une copie volumineuse. Limite : certaines cartes refusent le lien au lieu de rétrograder avec une paire ouverte ; le symptôme peut alors être « pas de lien ».</p>
+<h4>6. Correction</h4><p>Resertir, remplacer cordon/câble, retirer l'équipement 10/100 intercalé ou le remplacer, auto-négociation des deux côtés (ou forçage identique des deux côtés si le constructeur l'impose, documenté).</p>
+<h4>7. Validation</h4><p>Vitesse/duplex relevés des deux côtés, copie d'un gros fichier (environ 110 Mo/s attendus à 1 Gb/s), compteurs d'erreurs à zéro sur la durée, consignation.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Le poste négocie 100 Mb/s depuis qu'on a refait son cordon »</p>
+<p>Observation : lien à 100 Mb/s full duplex, avant 1 Gb/s ; seul ce poste ; cordon refait récemment. Hypothèse principale : une paire 4-5 ou 7-8 mal sertie, car 100 Mb/s n'utilise que 1-2 et 3-6 alors que 1 Gb/s exige les quatre paires. Test : testeur sur le cordon : broche 8 ouverte. Correction : refaire la fiche en respectant la norme, fils en butée. Validation : wiremap 8/8, lien 1 Gb/s full duplex, copie à débit normal.</p>
+<p class="fx-lose"><b>Perd des points :</b> forcer la carte à 1000 full d'un seul côté (crée un désaccord ou pas de lien) ; dire « câble trop long » sans mesure.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Débit faible avec lien à 1 Gb/s : ce n'est plus la couche physique (disque, serveur, Wi-Fi, saturation). Prouve d'abord vitesse/duplex/erreurs, puis renvoie vers F4 ou F2 (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-lenteur">→ Fiche 2 · Lenteurs</a>).</div>
+</article>
+
+<article class="fx-proc" id="f3-erreurs">
+<h3>P4.3 — Lien instable, erreurs, coupures intermittentes (perturbations, blindage, mécanique)</h3>
+<p class="fx-sev">Fréquence : fréquent en atelier · Gravité : élevée (pannes difficiles à reproduire)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Voyant qui clignote éteint/allumé, déconnexions de quelques secondes, appels VoIP hachés, compteurs d'erreurs (CRC, FCS) qui augmentent.</li><li>Corrélation avec une machine (rotative, soudure, ascenseur, néons), avec un mouvement (chaise, porte), ou aucune.</li></ul>
+<pre class="fx-cmd">$ ip -s link show enp3s0</pre>
+<pre class="fx-out">    RX:  bytes  packets errors dropped ...
+     9123456   81234    517       0</pre>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Mécanique : fiche mal sertie, gaine non pincée, fil entaillé, cordon écrasé.</li><li>Paires séparées ou détorsadage excessif (diaphonie).</li><li>Perturbations électromagnétiques : U/UTP parallèle à un câble d'énergie, près d'un moteur/variateur/néon.</li><li>Système blindé mal fait : écran interrompu, non relié à la terre, ou relié à deux terres différentes (boucle de masse).</li><li>Longueur limite (&gt; 100 m), rayon de courbure trop serré, traction excessive à la pose (câble déformé).</li><li>Hors câble : port/carte défaillant, désaccord de duplex (<a href="#f3-100mbs">P4.2</a>), économie d'énergie de la carte.</li></ol>
+<h4>3. Questions initiales</h4>
+<ul><li>Quand ? Tous les jours à la même heure ? Pendant le fonctionnement d'une machine ? Quand on bouge le câble ?</li><li>Un seul poste ou toute une zone (même chemin de câbles) ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Testeur en continu en manipulant fiche et cordon</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> l'affichage change → défaut mécanique localisé : refaire la fiche/cordon.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Testeur de qualification/certification</strong> (NEXT, split pair). <div class="fx-branch"><p class="fx-si"><b>SI</b> SPLIT ou NEXT en échec à une extrémité → refaire la terminaison.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Corréler les erreurs à une source</strong> (journal des coupures vs horaires de la machine ; relever le cheminement). <div class="fx-branch"><p class="fx-si"><b>SI</b> corrélation nette et câble à moins de la distance de séparation → EMI.</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Si blindé : continuité de l'écran et terre</strong> (prises, keystones, panneau blindés ? baie reliée à la terre ?). <div class="fx-branch"><p class="fx-si"><b>SI</b> un élément non blindé ou terre absente → l'écran agit comme une antenne : corriger.</p><p class="fx-sinon"><b>SINON</b> → isoler port et carte par échange.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Après correction, aucune erreur pendant une période de fonctionnement de la source suspecte (même durée que celle où les erreurs apparaissaient). Limite : une panne intermittente demande une durée d'observation suffisante ; un seul test réussi ne prouve pas la guérison.</p>
+<h4>6. Correction</h4>
+<ul><li>Éloigner : séparation sans cloison classe a 300 mm, b 100 mm, c 50 mm, d 10 mm (classe inconnue → 300 mm) ; croiser le courant fort à angle droit ; goulotte à compartiments.</li><li>Passer en F/UTP (moyen) ou S/FTP (fort), système blindé complet relié à la terre côté baie ; entre bâtiments ou très fortes perturbations → fibre.</li><li>Rayon de courbure ≥ 4 × diamètre (non blindé), 8 × (blindé) ; traction ≤ 110 N ; câble déformé → remplacer.</li></ul>
+<h4>7. Validation</h4><p>Certification PASS, compteurs d'erreurs à zéro sur la durée d'observation, utilisateur confirme, rapport avec la cause et la mesure.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Les postes de l'atelier perdent le réseau quand la presse démarre »</p>
+<p>Observation : coupures systématiques au démarrage de la presse, seulement dans l'atelier ; câble U/UTP posé dans la même goulotte que l'alimentation de la presse. Hypothèse : perturbations électromagnétiques induites. Test discriminant : erreurs relevées sur le port pendant que la presse tourne, aucune presse arrêtée ; certification hors fonctionnement PASS (le câble lui-même est bon). Conclusion : défaut d'installation (séparation non respectée, câble non blindé). Correction : reposer le câble dans un chemin séparé (≥ 300 mm si la classe est inconnue), croisement à 90°, en S/FTP dans un système blindé relié à la terre, ou en fibre. Validation : aucune erreur pendant un cycle complet de la presse, rapport.</p>
+<p class="fx-lose"><b>Perd des points :</b> poser un câble blindé sans terre ni connecteurs blindés ; ne pas proposer de test reliant coupures et presse.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Concomitance : fiche mal sertie + câble près d'un néon ; corriger la fiche fait baisser les erreurs sans les supprimer. Continue la recherche tant que le compteur bouge.</div>
+<div class="fx-trap"><b>Piège</b> Coupure tous les soirs à 18 h : ménage (cordon arraché, aspirateur) ou extinction d'un équipement, pas forcément des parasites. Interroge.</div>
+</article>
+
+<article class="fx-proc" id="f3-certif">
+<h3>P4.4 — Interpréter un rapport de test/certification et décider des reprises</h3>
+<p class="fx-sev">Fréquence : fréquent à l'examen (document fourni) · Gravité : réception de chantier refusée</p>
+<h4>1. Symptômes observables</h4>
+<p>Tableau par lien : repère (B1-P1-07), wiremap OK/KO, longueur, verdict PASS/FAIL, parfois paramètre en échec (perte d'insertion, NEXT, perte de retour) et marge.</p>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Défaut de câblage (wiremap).</li><li>Longueur de lien permanent &gt; 90 m.</li><li>Performance : détorsadage, composant de catégorie inférieure, câble abîmé à la pose.</li></ol>
+<h4>3. Questions initiales</h4><ul><li>Quelle classe visée (Cat5e, Cat6, Cat6A) ? Lien permanent ou canal mesuré ? Testeur étalonné et bons adaptateurs ?</li></ul>
+<h4>4. Diagnostic pas à pas (ordre de lecture imposé)</h4>
+<ol class="fx-steps">
+<li><strong>Wiremap</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> KO → « défaut de câblage » : refaire la terminaison, re-tester ; ne pas lire la suite.</p><p class="fx-sinon"><b>SINON</b> → longueur.</p></div></li>
+<li><strong>Longueur ≤ 90 m (permanent)</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> &gt; 90 m → « lien trop long » : reprise de conception.</p><p class="fx-sinon"><b>SINON</b> → performance.</p></div></li>
+<li><strong>Verdict de performance</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> FAIL NEXT près d'une extrémité → terminaison ; FAIL perte de retour/insertion au milieu → câble/pose.</p><p class="fx-sinon"><b>SINON</b> → lien conforme.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Re-certification après reprise, nouveau rapport PASS. Limite : un PASS « marginal » (signalé par un astérisque sur certains testeurs) est à noter au rapport.</p>
+<h4>6. Correction</h4><p>Terminaison refaite ; composant remplacé par la bonne catégorie ; câble déformé ou écrasé remplacé de bout en bout ; trop long → nouveau trajet ou répartiteur intermédiaire.</p>
+<h4>7. Validation</h4><p>Tous les liens PASS, rapports archivés, repères concordants prise/panneau/plan, PV de réception.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Pour chaque lien je lis dans l'ordre câblage, longueur, performance, car le premier défaut fausse les mesures suivantes. B1-P1-03 : wiremap KO → défaut de câblage, refaire la terminaison puis recertifier. B1-P1-09 : wiremap OK, 96 m → trop long (90 m max), à reconcevoir. B1-P1-14 : OK, 61 m, FAIL NEXT côté panneau → détorsadage au panneau, repoinçonner. Les autres : conformes. Réception après recertification de tous les liens repris.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> 90 m s'applique au lien permanent ; 100 m au canal (avec 10 m de cordons au total). Ne compare pas une longueur de canal à 90 m.</div>
+</article>
+</section>
