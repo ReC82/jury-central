@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -39,6 +39,7 @@ from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr07_bank import ALL_ITEMS as PR07_ITEMS
 from app.v1.ampcr_pratique_pr08_bank import ALL_ITEMS as PR08_ITEMS
 from app.v1.ampcr_pratique_pr09_bank import ALL_ITEMS as PR09_ITEMS
+from app.v1.ampcr_pratique_pr10_bank import ALL_ITEMS as PR10_ITEMS
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
@@ -768,6 +769,58 @@ _PR09_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR10_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr10",
+    course_title="AMPCR pratique écrite — PR10 Comptes, pilotes, paramètres et commandes",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : comptes et droits, pilotes, paramètres, services et commandes de base de "
+        "Windows et de Linux, lecture de consoles fictives (net user, ipconfig, ping, tracert, "
+        "nslookup, sfc, tasklist, ip, systemctl, journalctl, lsblk, df, ls -l), dépannage écrit "
+        "et rapport d'intervention"
+    ),
+    allowed_notions=[
+        "comptes : local (un seul poste, .\\nom) et de domaine (contrôleur de domaine Active Directory, DOMAINE\\nom, droits par les groupes du domaine ; détails PR22) ; compte Microsoft ; standard (groupe Utilisateurs) et administrateur nominatif (groupe Administrateurs) ; Administrateur intégré désactivé par défaut ; root verrouillé sous Ubuntu ; un compte par personne, pas de compte commun",
+        "groupes : Administrateurs, Utilisateurs, Utilisateurs du Bureau à distance, Invités ; Linux sudo (wheel sous Fedora), adm (journaux), lpadmin (imprimantes), dialout (ports série), groupe de projet ; droits donnés aux groupes",
+        "création et contrôle : Paramètres → Comptes, net user nom * /add (mot de passe demandé, jamais en clair), net localgroup Administrateurs nom /add ou /delete, net user nom (Compte : actif, groupes locaux) ; sudo adduser nom, sudo usermod -aG groupe nom puis reconnexion, groups nom, id nom",
+        "moindre privilège ; UAC : compte standard → invite demandant le nom et le mot de passe d'un administrateur ; administrateur → invite de consentement Oui / Non ; ne pas désactiver l'UAC ; sudo : mot de passe de l'utilisateur, membre de sudo, sinon « is not in the sudoers file » ; pas de session root",
+        "permissions Linux : propriétaire, groupe, autres (première classe qui correspond), r = 4, w = 2, x = 1 ; sur un dossier, w crée/supprime et x permet d'entrer ; ls -l, ls -ld ; chmod 640, 750, 770, u+x, g+w (propriétaire ou sudo) ; sudo chown utilisateur:groupe ; jamais chmod -R 777 ni chown -R sur /etc ou /home",
+        "pilotes : rôle ; sources Windows Update (mises à jour facultatives), site du fabricant du PC, du composant ; jamais de pack de pilotes ou de site inconnu ; compatibilité version de Windows, 64 bits (x64) ou ARM64, modèle exact, signature ; Linux : modules du noyau, lspci -k (Kernel driver in use), lsusb, Pilotes additionnels",
+        "Gestionnaire de périphériques (devmgmt.msc) : Code 28 pilotes non installés (Autres périphériques, périphérique inconnu), Code 22 désactivé (flèche vers le bas), Code 10 ne peut pas démarrer, Code 43 arrêté car il a signalé des problèmes (USB : port, câble, hub non alimenté, autre PC) ; ID du matériel PCI\\VEN_xxxx&DEV_yyyy, USB\\VID_xxxx&PID_yyyy (VEN 8086 Intel, 10EC Realtek, 10DE NVIDIA, 1022 AMD, 14E4 Broadcom ; VID 046D Logitech, 04F9 Brother, 03F0 HP, 04A9 Canon, 0BDA Realtek)",
+        "mettre à jour, Restaurer le pilote (grisé si aucune version précédente), désactiver/activer, désinstaller l'appareil, rechercher les modifications ; point de restauration avant ; ancien noyau depuis GRUB sous Linux",
+        "paramètres : Paramètres (Win + I), devmgmt.msc, services.msc, eventvwr.msc, diskmgmt.msc, lusrmgr.msc (pas dans l'édition Famille), Gestionnaire des tâches → Applications de démarrage, msconfig ; Linux : paramètres du bureau, systemctl list-unit-files --state=enabled",
+        "services : Windows État (En cours d'exécution, Arrêté) et Type de démarrage (Automatique, Automatique début différé, Manuel, Désactivé) ; Spouleur d'impression (spoolsv.exe, net stop/start spooler, file C:\\Windows\\System32\\spool\\PRINTERS) ; systemd enabled/disabled, active (running)/inactive (dead)/failed ; systemctl status, sudo systemctl start/stop/restart/enable --now, systemctl --failed, journalctl -u service -b ; cups ; ssh (sudo sshd -t)",
+        "commandes Windows : ipconfig /all (lecture standard ; /release, /renew, /flushdns en administrateur, /release à distance coupe la connexion), ping (4 échos, Délai d'attente, statistiques, un pare-feu peut bloquer), tracert -d (sauts, * délai dépassé), nslookup (serveur interrogé, Non-existent domain, délai expiré), sfc /scannow et DISM /Online /Cleanup-Image /RestoreHealth en invite administrateur (DISM puis SFC, Internet, CBS.log), tasklist /fi \"imagename eq …\" (PID, mémoire), net user",
+        "commandes Linux : ip a, ip route (default via = passerelle ; Network is unreachable sans route par défaut ; modification non persistante, NetworkManager pour durable), systemctl, journalctl (groupe adm ou sudo), lsblk -f (MOUNTPOINTS vide = non monté), df -h (Use%), chmod, chown, sudo apt update puis upgrade/install, dnf ; lire avant d'agir",
+        "configuration réseau : lire la configuration, ping de la passerelle, d'une adresse Internet, nslookup d'un nom ; passerelle ou DNS mal saisis ; DHCP ; adresses de documentation RFC 5737 ; dépannage complet PR24",
+        "liste de contrôle (comptes, élévation, pilotes, services, réseau, système) et rapport en rubriques (demande, constat, actions, contrôles, recommandations), sans mot de passe",
+    ],
+    competencies=[
+        "Choisir et créer les comptes et groupes adaptés selon le moindre privilège, et expliquer l'UAC et sudo",
+        "Installer, mettre à jour ou restaurer un pilote, identifier un périphérique inconnu et vérifier la compatibilité",
+        "Utiliser les commandes de base de Windows et de Linux : syntaxe, rôle, sortie attendue, droits nécessaires et risques ; lire des consoles et dépanner par écrit comptes, pilotes, services, périphériques USB et configuration réseau",
+    ],
+    vocabulary=[
+        "compte local", "compte de domaine", "contrôleur de domaine", "groupe", "UAC", "sudo", "moindre privilège",
+        "chmod", "chown", "pilote", "ID du matériel", "VEN", "DEV", "VID", "PID", "Code 28", "point de restauration",
+        "service", "systemd", "ipconfig", "ping", "tracert", "nslookup", "sfc", "DISM", "tasklist", "net user",
+        "journalctl", "lsblk", "df", "apt", "dnf",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si le geste est clair ; "
+        "accepter un autre outil ou une autre commande équivalente bien justifiée (interface "
+        "graphique ou ligne de commande, chmod en chiffres ou en lettres, apt ou dnf selon la "
+        "distribution) ; suivre le barème de la question. Ne jamais valider un compte commun, un "
+        "compte administrateur pour l'usage quotidien ou sans mot de passe, la désactivation de "
+        "l'UAC, un mot de passe écrit en clair dans une commande ou un rapport, chmod -R 777 ou un "
+        "chown -R sur un dossier système, un pilote d'un site inconnu ou d'une autre version ou "
+        "architecture, une mise à jour de pilote sans retour arrière possible, la désactivation de "
+        "services au hasard, ipconfig /release ou l'arrêt de ssh à distance sans précaution, ni une "
+        "réinstallation du système pour un simple pilote, droit ou réglage."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -819,6 +872,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Installation complète de Linux — préparation et dépannage",
         items=PR09_ITEMS,
         context=_PR09_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR10",
+        title="Comptes, pilotes, paramètres et commandes",
+        items=PR10_ITEMS,
+        context=_PR10_CONTEXT,
     ),
     PracticalCourse(
         code="PR11",
