@@ -2,6 +2,20 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR27 « Construire et justifier une procédure de diagnostic » (ticket #226)
+
+Cours PR27 du parcours pratique (UAA PR27 du module `AMPCR-PRATIQUE`, position 27, après PR26,
+15 blocs) : cycle hypothèse → test discriminant → résultat attendu → interprétation → action →
+validation ; du moins au plus invasif (échelle 0 à 5 du cours), mesure d'impact et sécurité ;
+approche par couches et isolation de variables ; test croisé, test négatif, faux positifs et
+faux négatifs ; contrôle de configuration, journaux, conditions de reproduction ; 4 arbres de
+décision (matériel, démarrage, système, réseau) ; conservation de preuves et plan de retour
+arrière ; alternatives et escalade ; 6 dossiers entièrement résolus (démarrage, périphérique,
+DHCP, DNS, partage, panne intermittente) ; 4 procédures, 12 figures SVG + 2 schémas à compléter
+(`app/static/img/ampcr-pratique/pr27-*.svg`) ; 23 exercices dont 8 procédures à ordonner et
+justifier, mini-examen 10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr27_*.py`,
+`tests/test_ticket226_ampcr_pratique_pr27.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR26 « Analyser une demande d'intervention technique » (ticket #225)
 
 Cours PR26 du parcours pratique (UAA PR26 du module `AMPCR-PRATIQUE`, position 26, après EX04,
