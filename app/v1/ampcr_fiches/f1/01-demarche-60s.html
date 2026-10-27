@@ -1,0 +1,86 @@
+<section class="fx-sec" id="f1-demarche">
+<h2>1. Face à un problème : la démarche en 60 secondes</h2>
+
+<h3>1.1 Les sept réflexes, dans l'ordre</h3>
+<ol class="fx-steps">
+<li><strong>Données et accord d'abord.</strong> Y a-t-il des données uniques sur le PC ? Existe-t-il une copie vérifiée ? Qui autorise l'intervention et jusqu'à quel montant ? Tant que ce n'est pas clair, tu ne fais que des gestes qui n'écrivent rien sur le disque. <a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ Fiche 5 · Sécurité des données</a></li>
+<li><strong>Symptôme exact, mot pour mot.</strong> Voyants, ventilateurs, bips (nombre, longs/courts), LED de diagnostic, code affiché, message exact, moment où ça se produit (à froid, après 10 min, en charge), ce qui a changé récemment (pièce ajoutée, déménagement, orage, mise à jour, nettoyage).</li>
+<li><strong>Trouver la dernière étape réussie de la chaîne de démarrage</strong> (schéma ci-dessous). Toute la suite du diagnostic se fait à partir de cette étape et pas avant.</li>
+<li><strong>Du simple au complexe, du non destructif au destructif.</strong> Secteur, interrupteur, câbles, écran, connecteurs avant les pièces ; réinsertion avant remplacement ; lecture avant écriture.</li>
+<li><strong>Un seul changement à la fois, puis on reteste.</strong> Sinon tu ne sais pas ce qui a corrigé (ou aggravé).</li>
+<li><strong>Preuve par test discriminant.</strong> Un composant n'est « défectueux » que si la panne <em>suit</em> le composant (pièce connue bonne qui fait disparaître la panne, erreur qui suit la barrette, mesure hors tolérance). Un symptôme seul n'est qu'un indice.</li>
+<li><strong>Valider et tracer.</strong> Même test qu'au départ, résultat chiffré (températures, tensions, nombre de passes mémoire, attributs SMART), plus ce qui fonctionnait avant. <a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-rapport">→ Fiche 5 · Rapport d'intervention</a></li>
+</ol>
+
+<h3>1.2 La chaîne de démarrage : où s'arrête-t-elle ?</h3>
+<pre class="fx-diagram">
+ [1] Secteur ──&gt; bloc (+5 VSB, LED veille carte mère)
+      │ rien du tout ? ──────────────────&gt; P1.1 PC inerte
+ [2] Bouton ──&gt; PS_ON# ──&gt; bloc démarre (+12/+5/+3,3 V)
+      │ démarre 1-2 s puis coupe ? ──────&gt; P1.2 Arrêt immédiat
+ [3] PWR_OK ──&gt; CPU, VRM, mémoire : POST
+      │ LED CPU/DRAM/VGA, bips, code ? ──&gt; P1.5 Lire le POST
+      │ redémarre en boucle ? ───────────&gt; P1.3 Boucle
+ [4] Carte graphique / iGPU ──&gt; écran
+      │ ventilos, écran noir ? ──────────&gt; P1.4 Écran noir
+ [5] Firmware UEFI affiché (logo, Suppr/F2)
+      │ disque absent de l'UEFI ? ───────&gt; P1.12 Stockage
+ [6] Chargeur de démarrage ──&gt; système
+      │ « No boot device », boucle de
+      │ réparation, écran bleu ? ────────&gt; Fiche 2
+ [7] Système chargé : stabilité
+      │ arrêts en charge, gels ? ────────&gt; P1.8 / P1.10
+</pre>
+<p>Règle de lecture : <strong>si le logo du fabricant ou l'UEFI s'affiche, l'alimentation, le processeur, la mémoire et l'affichage fonctionnent au moins au repos</strong>. Ne démonte pas la mémoire ou le bloc pour un « No boot device ».</p>
+
+<h3>1.3 Six situations à classer avant tout geste</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Situation</th><th>Observation qui la caractérise</th><th>Zone de recherche</th><th>Article</th></tr></thead>
+<tbody>
+<tr><td>Absence de courant</td><td>Aucun voyant, aucun ventilateur, aucun bruit</td><td>Prise, câble, interrupteur du bloc, bouton de façade, bloc, court-circuit</td><td><a href="#f1-inerte">P1.1</a></td></tr>
+<tr><td>Alimentation partielle</td><td>Ventilateurs qui frémissent ou tournent 1 à 2 s puis plus rien</td><td>EPS, ATX 24, court-circuit (entretoise, vis), protection du bloc</td><td><a href="#f1-arret-immediat">P1.2</a></td></tr>
+<tr><td>Absence de POST</td><td>Ventilateurs en continu, LED de diagnostic allumée ou bips d'erreur, pas d'image</td><td>Mémoire, processeur, carte graphique, carte mère</td><td><a href="#f1-post">P1.5</a></td></tr>
+<tr><td>Absence d'image seule</td><td>Le PC démarre (activité disque, son Windows, voyant clavier qui réagit), écran « Aucun signal »</td><td>Écran, entrée, câble, mauvaise sortie vidéo</td><td><a href="#f1-ecran-noir">P1.4</a></td></tr>
+<tr><td>Échec de démarrage système</td><td>UEFI visible puis message : aucun périphérique, système introuvable</td><td>Détection du disque (F1), puis ordre/mode de démarrage (F2)</td><td><a href="#f1-stockage">P1.12</a></td></tr>
+<tr><td>Instabilité</td><td>Le système démarre puis gel, écran bleu, extinction ou redémarrage</td><td>Température, alimentation sous charge, mémoire, disque, pilotes (F2)</td><td><a href="#f1-surchauffe">P1.8</a></td></tr>
+</tbody></table></div>
+
+<h3>1.4 Sécurité minimale avant d'ouvrir (version courte)</h3>
+<ul>
+<li>Arrêter le système → interrupteur du bloc sur 0 → débrancher le câble secteur → appuyer quelques secondes sur le bouton de démarrage (décharge, LED de veille éteinte) → bracelet antistatique relié au châssis, tapis ESD.</li>
+<li>Le bloc d'alimentation ne s'ouvre jamais (condensateurs chargés même débranché). Odeur de brûlé, fumée, étincelle : couper le secteur, ne pas rallumer.</li>
+<li>Portable : chargeur débranché, batterie déconnectée si la notice le prévoit ; batterie gonflée : ne pas percer, ne pas plier, isoler, filière spécialisée.</li>
+<li>Protocole complet et consignation : <a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ Fiche 5 · Sécurité électrique et ESD</a>.</li>
+</ul>
+
+<h3>1.5 La configuration minimale (isolation)</h3>
+<p>Outil central de ce module : quand le premier tour de vérifications ne conclut pas, on réduit le PC à ce qui est indispensable pour atteindre le POST, puis on réintroduit <strong>un élément à la fois</strong>.</p>
+<pre class="fx-diagram">
+ Configuration minimale (PC débranché, ESD) :
+  carte mère + processeur + ventirad (CPU_FAN)
+  + 1 barrette dans le slot indiqué par le manuel
+  + bloc (ATX 24 + EPS)
+  + sortie vidéo : iGPU si le CPU en a un,
+    sinon la carte graphique avec ses PCIe
+  Débranchés : disques, cartes d'extension,
+  USB sauf clavier, façade sauf POWER SW
+
+ Démarre ? ─ OUI ─&gt; rajouter 1 élément, retester
+          │         la panne revient = élément ajouté
+          └ NON ──&gt; hors boîtier sur carton (court-
+                    circuit châssis ?) puis pièce
+                    connue bonne : bloc, barrette,
+                    carte graphique, enfin CPU/carte
+</pre>
+<p class="fx-warn"><b>Attention</b> Le démontage du processeur vient en dernier : broches LGA de la carte ou broches PGA du processeur se tordent facilement, et chaque démontage du ventirad impose une pâte thermique neuve.</p>
+
+<h3>1.6 Ce que le correcteur attend dans chaque réponse</h3>
+<ol>
+<li>Reformuler le symptôme et l'étape où le démarrage s'arrête.</li>
+<li>Hypothèses classées de la plus probable/simple à la plus rare/invasive.</li>
+<li>Pour chaque test : geste précis, résultat attendu, interprétation et suite (SI… ALORS… SINON…).</li>
+<li>Conclusion appuyée sur un résultat de test (jamais sur le symptôme seul).</li>
+<li>Correction avec précautions (sécurité, données, accord, compatibilité).</li>
+<li>Validation chiffrée et conseil de prévention ; trace écrite.</li>
+</ol>
+</section>

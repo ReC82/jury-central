@@ -1,0 +1,50 @@
+<section class="fx-sec" id="f1-pieges">
+<h2>9. Pièges d'examen et confusions fréquentes</h2>
+
+<h3>9.1 Deux symptômes semblables, deux causes différentes : le test qui tranche</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Confusion</th><th>Test discriminant</th><th>Si résultat A</th><th>Si résultat B</th></tr></thead>
+<tbody>
+<tr><td>Absence d'image ou absence de POST ?</td><td>Écran sur une autre source + lecture des LED/bips + signes de démarrage du système</td><td>Écran OK, LED d'erreur → arrêt au POST</td><td>Système démarre (son, disque) → affichage (écran, câble, sortie)</td></tr>
+<tr><td>PC inerte : bouton ou bloc ?</td><td>LED de veille de la carte mère</td><td>Allumée → bouton/façade</td><td>Éteinte → bloc, ATX 24, secteur</td></tr>
+<tr><td>Arrêt immédiat ou boucle ?</td><td>Durée et répétition</td><td>1-2 s puis plus rien → EPS, court-circuit</td><td>Cycles répétés → mémoire, réglages, firmware</td></tr>
+<tr><td>Extinction en charge : chaleur ou bloc ?</td><td>Températures relevées au moment de l'arrêt</td><td>Proches de la limite → refroidissement</td><td>Normales → bloc (test croisé), carte graphique</td></tr>
+<tr><td>Barrette ou slot ?</td><td>Barrette suspecte dans un autre slot + barrette saine dans le slot suspect</td><td>Erreur suit la barrette → barrette</td><td>Erreur reste au slot → slot/carte</td></tr>
+<tr><td>Artefacts : carte graphique ou pilote ?</td><td>Artefacts visibles dans l'UEFI ?</td><td>Oui → matériel</td><td>Non → pilote (Fiche 2)</td></tr>
+<tr><td>Disque absent : matériel ou logiciel ?</td><td>Écran Stockage de l'UEFI</td><td>Absent → câble, port, M.2, disque</td><td>Présent → initialisation, lettre (P1.14) ou démarrage (Fiche 2)</td></tr>
+<tr><td>Erreurs SMART : disque ou câble ?</td><td>Attribut concerné</td><td>Pending/Uncorrectable → disque</td><td>CRC seul → câble/connecteur</td></tr>
+<tr><td>Périphérique : panne, connexion ou pilote ?</td><td>Autre PC / autre périphérique sur le port / Gestionnaire</td><td>Ne marche nulle part → périphérique ; autre périphérique échoue aussi → port</td><td>Vu « inconnu » → pilote</td></tr>
+<tr><td>Capacité « manquante » : unités ou MBR ?</td><td>Calcul ÷ 2^30 ; type de table</td><td>Écart ≈ 7 % → unités, normal</td><td>Plafond ≈ 2 Tio → MBR</td></tr>
+<tr><td>Heure fausse : pile ou système ?</td><td>Date dans l'UEFI après débranchement</td><td>Fausse → pile CMOS</td><td>Juste → synchronisation (Fiche 2)</td></tr>
+</tbody></table></div>
+
+<h3>9.2 Erreurs de méthode qui coûtent des points</h3>
+<div class="fx-trap"><b>Piège</b> Conclure « HS » sur un symptôme seul. Écris « hypothèse » tant qu'il n'y a pas de test croisé ou de mesure.</div>
+<div class="fx-trap"><b>Piège</b> Changer plusieurs éléments à la fois : impossible de savoir lequel corrige, et la réponse perd sa logique.</div>
+<div class="fx-trap"><b>Piège</b> Formater, initialiser, réinstaller ou lancer une réparation en écriture avant de sauver les données d'un disque suspect.</div>
+<div class="fx-trap"><b>Piège</b> Oublier la mise hors tension complète (interrupteur 0, câble débranché, bouton appuyé) et le bracelet avant chaque geste interne.</div>
+<div class="fx-trap"><b>Piège</b> Ouvrir un bloc d'alimentation, réutiliser les câbles modulaires d'un autre bloc, alimenter une carte graphique par adaptateur Molex.</div>
+<div class="fx-trap"><b>Piège</b> Valider « ça marche » sans valeur : chaque contrôle = un outil + une valeur + un verdict (« test mémoire 4 passes, 0 erreur »).</div>
+<div class="fx-trap"><b>Piège</b> Tester uniquement la pièce changée : un câble voisin a pu bouger ; retester ce qui marchait avant.</div>
+<div class="fx-trap"><b>Piège</b> Couper un PC pendant l'entraînement mémoire (écran noir de quelques minutes après changement de barrettes) et conclure à une panne.</div>
+<div class="fx-trap"><b>Piège</b> Recopier une table de bips « universelle » : les codes dépendent du fabricant et du firmware ; cite le manuel ou le document fourni.</div>
+<div class="fx-trap"><b>Piège</b> Ignorer les documents fournis : l'examen donne presque toujours l'élément qui tranche (extrait de manuel, ports partagés, relevé).</div>
+<div class="fx-trap"><b>Piège</b> Dépasser l'autorisation du client (montant, effacement) sans devis ni accord écrit.</div>
+
+<h3>9.3 Confusions de vocabulaire technique qui faussent une réponse</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>On confond</th><th>Règle pratique</th></tr></thead>
+<tbody>
+<tr><td>EPS 8 broches et PCIe 8 broches</td><td>EPS = « CPU », près du socket ; PCIe = carte graphique. Détrompeurs différents : jamais forcer.</td></tr>
+<tr><td>M.2 et NVMe</td><td>M.2 = format ; SATA ou NVMe = interface : lire ce que chaque emplacement accepte.</td></tr>
+<tr><td>USB-C et débit</td><td>Forme ≠ norme : un port USB-C peut être en USB 2.0.</td></tr>
+<tr><td>Formatage rapide et effacement</td><td>Formater ne rend pas les données illisibles ; effacement sécurisé adapté au support + certificat.</td></tr>
+<tr><td>Défragmentation et TRIM</td><td>Défragmenter un disque dur ; TRIM pour un SSD, jamais de défragmentation.</td></tr>
+<tr><td>Go et Gio</td><td>Fabricant 10^9, Windows 2^30 écrit « Go » ; ≈ × 0,93.</td></tr>
+<tr><td>Puissance du bloc et consommation au secteur</td><td>Le bloc fournit sa puissance nominale ; il prélève plus au secteur selon son rendement.</td></tr>
+<tr><td>Throttling et panne</td><td>Baisse de fréquence = protection thermique, symptôme d'un refroidissement insuffisant.</td></tr>
+<tr><td>Kernel-Power 41 et cause</td><td>Événement = arrêt non propre, indice seulement.</td></tr>
+<tr><td>SMART « PASSED » et disque sain</td><td>Lire les attributs bruts ; SMART ne remplace pas une sauvegarde.</td></tr>
+<tr><td>Réparation, remise à zéro, reconditionnement</td><td>Même client + panne ; même client + système neuf ; nouvel utilisateur (effacement obligatoire).</td></tr>
+</tbody></table></div>
+</section>

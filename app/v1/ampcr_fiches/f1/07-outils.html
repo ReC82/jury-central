@@ -1,0 +1,108 @@
+<section class="fx-sec" id="f1-outils">
+<h2>7. Outils, mesures et commandes</h2>
+
+<h3>7.1 Tensions du bloc ATX : valeurs à vérifier</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Sortie</th><th>Couleur de fil (usuelle)</th><th>Tolérance</th><th>Plage acceptable</th><th>Ce qu'elle alimente / signifie</th></tr></thead>
+<tbody>
+<tr><td>+12 V</td><td>Jaune</td><td>±5 %</td><td>11,40 à 12,60 V</td><td>Processeur (EPS), carte graphique (PCIe), moteurs des disques, ventilateurs</td></tr>
+<tr><td>+5 V</td><td>Rouge</td><td>±5 %</td><td>4,75 à 5,25 V</td><td>USB, électronique des disques</td></tr>
+<tr><td>+3,3 V</td><td>Orange</td><td>±5 %</td><td>3,135 à 3,465 V (≈ 3,14 à 3,47 V)</td><td>Circuits de la carte, mémoire, M.2</td></tr>
+<tr><td>+5 VSB (veille)</td><td>Violet</td><td>±5 %</td><td>4,75 à 5,25 V</td><td>Présent PC éteint mais branché : LED de veille, réveil, bouton Power</td></tr>
+<tr><td>−12 V</td><td>Bleu</td><td>±10 %</td><td>−10,8 à −13,2 V</td><td>Héritage (ports série anciens)</td></tr>
+<tr><td>PS_ON#</td><td>Vert</td><td>signal</td><td>—</td><td>Relié à la masse par la carte → le bloc démarre</td></tr>
+<tr><td>PWR_OK</td><td>Gris</td><td>signal</td><td>—</td><td>Le bloc annonce des tensions stables → la carte lance le processeur</td></tr>
+<tr><td>Masse (COM)</td><td>Noir</td><td>—</td><td>0 V</td><td>Référence des mesures</td></tr>
+</tbody></table></div>
+<p>Calcul de tolérance à poser : 12 × 0,95 = 11,40 V ; 12 × 1,05 = 12,60 V. Une mesure de 11,52 V est conforme ; 11,21 V sous charge est hors tolérance.</p>
+
+<h3>7.2 Connecteurs à reconnaître et à nommer dans un rapport</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Connecteur</th><th>Broches</th><th>Vers</th><th>Règle pratique</th></tr></thead>
+<tbody>
+<tr><td>ATX principal</td><td>24 (souvent 20+4)</td><td>Carte mère</td><td>Les deux parties branchées sur une carte 24 broches ; clip enclenché</td></tr>
+<tr><td>EPS (« CPU »)</td><td>8 (souvent 4+4) ; certaines cartes 8+4 ou 8+8</td><td>Carte mère, près du socket (VRM)</td><td>Absent = pas de démarrage ou arrêt immédiat ; ≠ PCIe 8 broches (détrompage différent)</td></tr>
+<tr><td>ATX12V</td><td>4</td><td>Anciennes cartes</td><td>Moitié d'un EPS 4+4</td></tr>
+<tr><td>PCIe 6 broches</td><td>6</td><td>Carte graphique</td><td>75 W</td></tr>
+<tr><td>PCIe 8 broches</td><td>8 (souvent 6+2)</td><td>Carte graphique</td><td>150 W ; un câble par connecteur pour les cartes gourmandes</td></tr>
+<tr><td>12VHPWR / 12V-2x6</td><td>16 (12 puissance + 4 signaux)</td><td>Cartes graphiques récentes</td><td>Jusqu'à 600 W ; enfoncé à fond, sans jour, pas de pliure serrée près du connecteur</td></tr>
+<tr><td>Emplacement PCIe x16</td><td>—</td><td>Carte graphique</td><td>75 W au maximum fournis par l'emplacement</td></tr>
+<tr><td>Alimentation SATA</td><td>15</td><td>Disques SATA, SSD 2,5 pouces</td><td>Fournit 3,3, 5 et 12 V</td></tr>
+<tr><td>Molex (périphérique)</td><td>4</td><td>Anciens disques, accessoires</td><td>5 V et 12 V ; jamais d'adaptateur Molex → PCIe pour une carte graphique</td></tr>
+<tr><td>Ventilateur</td><td>3 (DC) ou 4 (PWM)</td><td>CPU_FAN, SYS/CHA_FAN, AIO_PUMP</td><td>Ventirad sur CPU_FAN (surveillé)</td></tr>
+<tr><td>Données SATA</td><td>7</td><td>Port SATA de la carte</td><td>Erreurs CRC → câble</td></tr>
+<tr><td>Façade</td><td>F_PANEL, USB 2.0 (9), USB 3.x (19), USB-C interne, HD Audio</td><td>Carte mère</td><td>Positions selon le manuel ; LED polarisées</td></tr>
+</tbody></table></div>
+<pre class="fx-diagram">
+ Identifier EPS 8 ou PCIe 8 (même taille) :
+  - Marquage du câble : « CPU » = EPS, « PCIe/VGA » = PCIe
+  - EPS : 4 fils jaunes (+12 V) d'un côté, 4 noirs de l'autre
+  - PCIe 8 : 3 jaunes, 5 noirs (dont 2 de détection)
+  - Détrompeurs différents : si ça résiste, ne pas forcer
+</pre>
+
+<h3>7.3 Testeur d'alimentation et multimètre</h3>
+<ol class="fx-steps">
+<li><strong>Testeur d'alimentation</strong> (bloc débranché de tout composant) : brancher ATX 24, puis EPS, PCIe, SATA, Molex sur le testeur ; mettre sous tension. — attendu : chaque tension affichée dans la plage, PG (PWR_OK) présent.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> une tension manque ou est hors plage → bloc à remplacer (bloc jamais ouvert).</p><p class="fx-sinon"><b>SINON</b> → bloc correct <em>à vide</em> seulement : confirmer sous charge par un bloc connu bon si les symptômes sont sous charge.</p></div></li>
+<li><strong>Multimètre</strong> (mesures sous tension réservées aux personnes habilitées et outillées) : calibre tension continue (V⎓) 20 V, pointe noire sur une masse (fil noir), pointe rouge sur la broche à mesurer par l'arrière du connecteur, sans court-circuiter deux broches.</li>
+<li><strong>Pile CMOS</strong> (hors tension, pile retirée) : tension continue, valeur proche de 3 V attendue pour une pile neuve.</li>
+</ol>
+<p class="fx-warn"><b>Attention</b> Le « test du trombone » (relier PS_ON# vert à une masse noire pour démarrer un bloc seul) se pratique en atelier mais ne prouve rien sous charge et présente un risque : à l'examen, propose le testeur d'alimentation ou le bloc connu fonctionnel.</p>
+
+<h3>7.4 Outils logiciels et ce qu'on en note</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Besoin</th><th>Outil (exemples)</th><th>Ce qu'on note</th><th>Interprétation / suite</th></tr></thead>
+<tbody>
+<tr><td>Inventaire, détection</td><td>Écrans de l'UEFI (Suppr/F2 au démarrage), <code>msinfo32</code></td><td>CPU, mémoire totale, slots, disques par port, températures, CPU_FAN, date</td><td>Comparer au bon de montage/inventaire</td></tr>
+<tr><td>Mémoire</td><td>MemTest86 (clé USB), <code>mdsched.exe</code></td><td>Passes, erreurs</td><td>0 erreur sur ≥ 4 passes ; erreur → barrette par barrette</td></tr>
+<tr><td>Stockage</td><td>CrystalDiskInfo, <code>smartctl -a</code>, outil du fabricant</td><td>Attributs bruts</td><td>Règle de P1.16</td></tr>
+<tr><td>Températures, fréquences, tensions</td><td>HWiNFO, HWMonitor, UEFI ; <code>sensors</code> (Linux)</td><td>Repos et charge, durée, limite de la fiche</td><td>Moins de 10 °C de la limite = à surveiller ; limite = anormal</td></tr>
+<tr><td>Stabilité</td><td>Logiciel de charge CPU/GPU</td><td>Durée sans arrêt (≥ 30 min)</td><td>Arrêt → T° ? tensions ?</td></tr>
+<tr><td>Partitions</td><td><code>diskmgmt.msc</code>, <code>diskpart</code> ; <code>lsblk -f</code>, <code>parted</code></td><td>Disque, table, volumes, système de fichiers</td><td>P1.14</td></tr>
+<tr><td>Entretien disques</td><td><code>dfrgui</code>, <code>defrag</code> ; <code>fstrim</code></td><td>Type de support, % fragmenté, dernier TRIM</td><td>P1.19</td></tr>
+<tr><td>Périphériques</td><td><code>devmgmt.msc</code> ; <code>lsusb</code>, <code>lspci</code></td><td>Présent ? inconnu ? triangle ?</td><td>P1.20 ; pilote → Fiche 2</td></tr>
+<tr><td>Batterie</td><td><code>powercfg /batteryreport</code></td><td>Capacité d'origine, pleine charge, cycles</td><td>&lt; 80 % → remplacer</td></tr>
+</tbody></table></div>
+
+<h3>7.5 Exemples de commandes et de sorties à interpréter</h3>
+<h4>Relevé SMART sous Linux (colonnes simplifiées)</h4>
+<pre class="fx-cmd">$ sudo smartctl -a /dev/sda</pre>
+<pre class="fx-out">SMART overall-health self-assessment test result: PASSED
+ID# ATTRIBUTE_NAME          VALUE THRESH RAW_VALUE
+  5 Reallocated_Sector_Ct   097   036    24
+  9 Power_On_Hours          071   000    25731
+194 Temperature_Celsius     064   000    36
+197 Current_Pending_Sector  100   000    8
+198 Offline_Uncorrectable   100   000    8
+199 UDMA_CRC_Error_Count    200   000    0</pre>
+<p>Lecture : malgré « PASSED », 8 secteurs en attente et 8 illisibles (&gt; 0) → disque à remplacer après sauvegarde immédiate ; 24 réalloués confirment la dégradation ; CRC 0 → le câble n'est pas en cause ; 25 731 h ≈ 2,9 ans de fonctionnement continu.</p>
+
+<h4>Mémoire et disques sous Windows (PowerShell, lecture seule)</h4>
+<pre class="fx-cmd">PS C:\&gt; Get-CimInstance Win32_PhysicalMemory | Select-Object BankLabel, DeviceLocator, Capacity, Speed
+PS C:\&gt; Get-PhysicalDisk | Select-Object FriendlyName, MediaType, BusType, HealthStatus, Size</pre>
+<pre class="fx-out">FriendlyName        MediaType BusType HealthStatus Size
+------------        --------- ------- ------------ ----
+NVMe SSD 1TB        SSD       NVMe    Healthy      1000204886016
+ST2000DM008         HDD       SATA    Warning      2000398934016</pre>
+<p>Lecture : le disque dur SATA est en « Warning » : relever ses attributs SMART (P1.16) ; tailles en octets (décimal) : 2 000 398 934 016 o ÷ 2^30 ≈ 1 863 Gio.</p>
+
+<h4>Mémoire et capteurs sous Linux (lecture seule)</h4>
+<pre class="fx-cmd">$ free -h
+$ sudo dmidecode -t memory | grep -E "Size|Locator|Speed"
+$ sensors</pre>
+<p>Lecture : <code>dmidecode</code> liste chaque slot (« No Module Installed » = slot vide ou barrette non reconnue) ; comparer à ce qui est physiquement installé.</p>
+
+<h3>7.6 Outillage physique (ce qu'on emporte et ce qu'on écarte)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Retenu</th><th>Pourquoi</th><th>Écarté</th><th>Pourquoi</th></tr></thead>
+<tbody>
+<tr><td>Tournevis cruciformes PH1/PH2 (aimantés avec prudence)</td><td>Vis boîtier, bloc, ventirad, M.2</td><td>Visseuse électrique</td><td>Arrache les filetages, glisse sur la carte</td></tr>
+<tr><td>Bracelet + tapis antistatiques</td><td>Protection ESD</td><td>Aspirateur ménager</td><td>Électricité statique, aspire des pièces</td></tr>
+<tr><td>Air sec en bombe, pinceau antistatique</td><td>Poussière</td><td>Eau, produit ménager</td><td>Liquide sur l'électronique</td></tr>
+<tr><td>Alcool isopropylique ≥ 90 %, chiffon non pelucheux, pâte thermique</td><td>Ancienne pâte, contacts</td><td>Cutter, objet métallique comme levier</td><td>Raye les pistes, court-circuit</td></tr>
+<tr><td>Testeur d'alimentation, multimètre</td><td>Mesures</td><td>Adaptateurs de fortune</td><td>Surcharge, incendie</td></tr>
+<tr><td>Clé USB de diagnostic (MemTest86, système live)</td><td>Tests hors système</td><td>Logiciels de pilotes « gratuits » inconnus</td><td>Logiciels malveillants, mauvais pilotes</td></tr>
+<tr><td>Bac à vis, étiquettes, colliers, lampe, pince</td><td>Repérage, rangement, vis tombée</td><td>—</td><td>—</td></tr>
+</tbody></table></div>
+</section>

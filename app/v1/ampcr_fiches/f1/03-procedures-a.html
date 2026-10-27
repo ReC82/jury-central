@@ -1,0 +1,280 @@
+<section class="fx-sec" id="f1-proc-demarrage">
+<h2>3. Procédures : démarrage, POST et affichage</h2>
+
+<article class="fx-proc" id="f1-inerte">
+<h3>P1.1 — PC totalement inerte (aucun voyant, aucun ventilateur)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante, mais souvent cause triviale</p>
+<h4>1. Symptômes observables</h4>
+<ul>
+<li>Appui sur Power : aucun ventilateur, aucun voyant de façade, aucun bruit, aucun bip.</li>
+<li>Variante : voyant de veille de la carte mère allumé (PC ouvert) mais rien à l'appui sur Power.</li>
+<li>Contexte fréquent : déménagement, orage ou coupure, nettoyage récent, multiprise changée, pièce ajoutée.</li>
+</ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol>
+<li>Prise ou multiprise éteinte, câble secteur débranché côté PC, interrupteur du bloc sur 0 (installation).</li>
+<li>Câble secteur défectueux ; multiprise ou onduleur en défaut.</li>
+<li>Bouton Power ou son câble (POWER SW mal placé sur le connecteur de façade après un montage).</li>
+<li>Connecteur ATX 24 mal clipsé (matériel).</li>
+<li>Bloc d'alimentation défaillant (fusible interne, protection), y compris après un orage.</li>
+<li>Court-circuit qui empêche le bloc de démarrer : entretoise en trop, vis libre, carte d'extension.</li>
+<li>Carte mère (rare, seulement après tout le reste).</li>
+</ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul>
+<li>« Que s'est-il passé juste avant ? » (orage, déplacement, ajout de pièce, liquide renversé, odeur).</li>
+<li>« Y a-t-il des données importantes et une sauvegarde ? » : le disque n'est pas en cause ici, mais on le note.</li>
+<li>Odeur de brûlé ou liquide : ne pas rallumer, débrancher, inspecter avant tout essai.</li>
+<li>Toute intervention interne : PC débranché, décharge par le bouton, bracelet ESD.</li>
+</ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Tester la prise avec un autre appareil</strong> (lampe, chargeur) et brancher le PC directement au mur. — attendu : la prise fonctionne.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le PC démarre au mur → multiprise/onduleur en cause, fin.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Interrupteur du bloc sur I, câble secteur enfoncé, autre câble secteur</strong> (celui de l'écran convient souvent). — attendu : démarrage.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le PC démarre avec l'autre câble → câble défectueux.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Ouvrir (PC débranché, ESD), rebrancher le secteur sans toucher l'intérieur, observer le voyant de veille de la carte mère</strong> (+5 VSB). — attendu : LED allumée.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> LED allumée → le bloc fournit le +5 VSB ; la chaîne s'arrête au bouton : étape 4.</p><p class="fx-sinon"><b>SINON</b> (LED éteinte, carte qui en possède une) → bloc ou ATX 24 : étape 5.</p></div></li>
+<li><strong>Contrôler le câble POWER SW sur le connecteur de façade (F_PANEL) d'après le manuel</strong> ; essayer le bouton intégré à la carte s'il existe, ou ponter brièvement les deux broches PWR_SW avec un tournevis isolé (geste d'atelier, carte sous tension de veille, sans toucher autre chose). — attendu : démarrage.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le PC démarre → bouton ou câble de façade : repositionner/remplacer.</p><p class="fx-sinon"><b>SINON</b> → étape 5.</p></div></li>
+<li><strong>PC débranché : réenfoncer l'ATX 24 et l'EPS jusqu'au clic</strong> ; puis tester le bloc au <strong>testeur d'alimentation</strong> (hors carte mère). — attendu : testeur qui affiche les tensions dans ±5 % et PG (PWR_OK) présent.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le testeur reste muet ou affiche des tensions absentes → bloc en cause (à confirmer par un bloc connu bon).</p><p class="fx-sinon"><b>SINON</b> (bloc correct à vide) → étape 6.</p></div></li>
+<li><strong>Configuration minimale</strong> (section 1.5), puis carte mère hors du boîtier sur son carton. — attendu : démarrage.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> démarre hors boîtier → court-circuit avec le châssis (entretoise sans trou en face, vis tombée) : contrôler entretoises.</p><p class="fx-sinon"><b>SINON</b> si démarre en minimal dans le boîtier → réintroduire chaque élément : celui qui empêche le démarrage est en court-circuit. Sinon → bloc connu bon ; toujours rien → carte mère (escalade/remplacement).</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<ul>
+<li>Bloc : le PC démarre avec un <strong>bloc connu fonctionnel</strong> de puissance et connecteurs adaptés. Limite : un testeur qui affiche des tensions correctes <em>à vide</em> n'innocente pas le bloc sous charge.</li>
+<li>Bouton : démarrage par pontage PWR_SW ou bouton de la carte, échec par le bouton du boîtier.</li>
+<li>Court-circuit : démarrage hors boîtier, échec dans le boîtier, entretoise ou vis trouvée.</li>
+</ul>
+<h4>6. Correction</h4>
+<ul>
+<li>Câble, multiprise : remplacer, conseiller une multiprise parafoudre ou un onduleur.</li>
+<li>Façade : replacer POWER SW sur les broches du manuel (le sens +/− n'a pas d'importance pour un interrupteur, il en a pour les LED).</li>
+<li>Bloc : remplacer par un bloc de format, puissance et connecteurs adaptés, avec <strong>ses propres câbles modulaires</strong> ; l'ancien bloc n'est jamais ouvert, il part au recyclage. <a href="#f1-alim">→ P1.10</a></li>
+<li>Entretoise en trop : retirer ; une entretoise sous chaque trou de la carte, aucune ailleurs.</li>
+</ul>
+<h4>7. Validation</h4>
+<ul>
+<li>Trois démarrages à froid, accès à l'UEFI, système chargé, arrêt propre.</li>
+<li>Bloc remplacé : tensions relevées (logiciel ou testeur) dans ±5 %, 30 minutes de charge sans arrêt.</li>
+<li>Tout ce qui fonctionnait avant fonctionne encore (ports, disques, réseau).</li>
+</ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><em>Constat</em> : le PC ne présente aucun signe d'alimentation (ni voyant ni ventilateur). La chaîne s'arrête avant le démarrage du bloc.</p>
+<p><em>Hypothèses par ordre</em> : 1) secteur (prise, câble, interrupteur du bloc) ; 2) bouton de façade ; 3) connecteur ATX 24 ; 4) bloc ; 5) court-circuit ; 6) carte mère.</p>
+<p><em>Tests</em> : je teste la prise avec un autre appareil et un autre câble secteur, interrupteur sur I. Si rien : PC débranché, bracelet ESD, j'ouvre et j'observe la LED de veille. Allumée : je contrôle le câble POWER SW d'après le manuel et je démarre par le bouton de la carte. Éteinte : je contrôle l'ATX 24 et je teste le bloc au testeur, puis avec un bloc connu fonctionnel.</p>
+<p><em>Conclusion</em> : le PC démarre avec le bloc de remplacement, il ne démarrait pas avec l'ancien : le bloc est défectueux. Je le remplace par un bloc ATX de même format, puissance au moins égale, avec EPS et PCIe nécessaires, sans ouvrir l'ancien.</p>
+<p><em>Validation</em> : trois démarrages, tensions dans ±5 %, 30 min de charge sans arrêt ; compte rendu au client.</p>
+</div>
+<p class="fx-lose"><b>Perd des points :</b> écrire « alimentation HS » sans test croisé ; commencer par démonter la carte mère ; proposer d'ouvrir le bloc ; oublier de débrancher avant de toucher l'intérieur.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Testeur d'alimentation « tout vert » ≠ bloc bon : il teste à vide. Le bloc peut s'effondrer sous charge (P1.10).</div>
+<div class="fx-trap"><b>Piège</b> Après un orage, le bloc ET la carte réseau ou la carte mère peuvent être touchés : pannes concomitantes, tester le reste après le bloc.</div>
+<ul>
+<li>Portable inerte : chargeur (voyant, autre chargeur de même tension/puissance), batterie déconnectée puis branchement secteur seul, réinitialisation par appui long (selon fabricant).</li>
+<li>Voyant de façade qui clignote mais rien d'autre : souvent mode veille (S3) ou code du fabricant (PC de marque) : lire la notice.</li>
+</ul>
+</article>
+
+<article class="fx-proc" id="f1-arret-immediat">
+<h3>P1.2 — Le PC démarre une à deux secondes puis s'arrête</h3>
+<p class="fx-sev">Fréquence : fréquent (surtout après montage ou intervention) · Gravité : bloquante, risque matériel si court-circuit</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Les ventilateurs tournent brièvement, les LED s'allument, puis tout s'éteint ; parfois rien ne se rallume avant d'avoir débranché le secteur.</li>
+<li>Variante : ventilateur qui « frémit » à peine à l'appui sur Power.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol>
+<li>Connecteur EPS (CPU 4+4, 8 broches) absent ou incomplet : la carte coupe.</li>
+<li>Court-circuit : entretoise sans trou en face, vis tombée sous la carte, carte d'extension mal enfoncée touchant le châssis.</li>
+<li>Connecteur PCIe branché par erreur dans l'EPS (ou inversement), forcé.</li>
+<li>Ventirad mal posé : carte qui coupe sur sécurité thermique quasi immédiate (film plastique, ventirad non fixé).</li>
+<li>Bloc qui se met en protection (surintensité, court-circuit d'un câble abîmé).</li>
+<li>Carte mère ou processeur (rare).</li>
+</ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Qu'a-t-on touché récemment (montage, ventirad, carte graphique, nettoyage) ?</li>
+<li>Ne pas multiplier les essais en cas de court-circuit soupçonné : chaque mise sous tension sollicite le bloc et la carte.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>PC débranché : vérifier l'EPS près du socket</strong> (marqué CPU, 4+4 complet si la carte a 8 broches) et l'ATX 24 clipsé. — attendu : branchés à fond, bons connecteurs.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> EPS absent/incomplet ou un connecteur PCIe à sa place → corriger, retester.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Inspecter le dessous de la carte à la lampe</strong> : vis libre, entretoise en trop, câble pincé. — attendu : rien.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> objet trouvé → retirer, retester.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Ventirad : fixé à plat, film retiré, ventilateur sur CPU_FAN.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> anomalie → démonter, nettoyer, pâte neuve, remonter (serrage en croix).</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Configuration minimale</strong>, puis hors boîtier sur carton.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> démarre → réintroduire un élément à la fois ; celui qui provoque l'arrêt est en cause.</p><p class="fx-sinon"><b>SINON</b> → bloc connu bon ; toujours l'arrêt → carte mère/CPU (escalade).</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>La panne disparaît quand on corrige <em>un seul</em> élément (EPS branché, entretoise retirée) et revient si on le remet dans l'état initial (inutile de le refaire réellement si risqué : la disparition reproductible sur 3 démarrages suffit).</p>
+<h4>6. Correction</h4>
+<ul><li>EPS complet, connecteurs non forcés (EPS 8 ≠ PCIe 8 : détrompage différent, les +12 V ne sont pas du même côté).</li>
+<li>Entretoises conformes aux trous de la carte (ATX, micro-ATX, Mini-ITX).</li>
+<li>Câble abîmé ou connecteur fondu : remplacer le bloc entier (pas de réparation de câble de bloc).</li></ul>
+<h4>7. Validation</h4>
+<p>Démarrage complet, UEFI : CPU, mémoire, températures normales au repos ; 30 min de charge sans arrêt.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Le PC démarre puis s'arrête après une seconde : le bloc démarre (PS_ON fonctionne), mais la carte coupe ou le bloc se protège. Les causes les plus probables après un montage sont l'absence du connecteur EPS 8 broches du processeur et un court-circuit (entretoise ou vis). PC débranché, bracelet relié, je vérifie l'EPS marqué CPU et l'ATX 24, puis les entretoises sous chaque trou. Je constate que l'EPS n'est pas branché ; je le branche jusqu'au clic sans forcer. Trois démarrages complets confirment la cause. Je contrôle l'UEFI et lance 30 min de charge sans arrêt.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> accuser la carte mère d'emblée ; confondre EPS et PCIe 8 broches ; laisser tourner les essais avec un court-circuit soupçonné.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Démarre 1 s puis s'arrête ≠ démarre et redémarre en boucle (P1.3). Le premier est presque toujours électrique/montage ; le second souvent mémoire ou réglages.</div>
+<ul><li>Arrêt après 5 à 30 s : penser thermique (ventirad mal posé, pompe AIO non alimentée sur AIO_PUMP).</li>
+<li>Arrêt uniquement quand on branche un périphérique USB précis : court-circuit du périphérique ou du port (protection de surintensité).</li></ul>
+</article>
+
+<article class="fx-proc" id="f1-boucle">
+<h3>P1.3 — Démarrage en boucle avant l'image (s'allume, s'éteint, se rallume)</h3>
+<p class="fx-sev">Fréquence : fréquent après changement de mémoire, de processeur ou de réglages · Gravité : bloquante</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Cycles réguliers : ventilateurs, coupure, relance, sans image ; LED DRAM ou CPU qui s'allume pendant le cycle.</li>
+<li>Variante : écran noir prolongé puis redémarrage après une mise à niveau mémoire (entraînement normal).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Entraînement mémoire normal après changement de barrettes (surtout DDR5) : la carte redémarre plusieurs fois, l'écran reste noir plusieurs minutes.</li>
+<li>Profil XMP/EXPO ou réglages d'overclocking instables : la carte retente puis revient aux valeurs sûres (ou pas).</li>
+<li>Barrette mal insérée, mélange de kits, barrette défaillante.</li>
+<li>Processeur plus récent que le firmware de la carte (même socket, firmware non à jour).</li>
+<li>Réglages CMOS corrompus.</li>
+<li>Bloc instable, carte mère.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>A-t-on changé la mémoire, le processeur, activé XMP/EXPO, mis à jour le firmware (interrompu ?) récemment ?</li>
+<li>Combien de temps a-t-on attendu avant de couper ? Couper pendant l'entraînement le relance à zéro.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Laisser le PC tourner 3 à 5 minutes sans couper</strong> en observant LED/code. — attendu : image après l'entraînement.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'image arrive → c'était l'entraînement : vérifier la mémoire totale dans l'UEFI, fin.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Effacer le CMOS</strong> (cavalier CLR_CMOS ou bouton selon manuel, PC débranché ; ou retrait de la pile quelques minutes). — attendu : redémarrage avec réglages par défaut (XMP désactivé).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> démarre → réglage en cause (XMP/EXPO, overclocking) : laisser par défaut, réactiver ensuite et tester la stabilité.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Une seule barrette dans le slot recommandé</strong>, puis chacune à son tour (<a href="#f1-ram">P1.7</a>).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> démarre avec certaines barrettes seulement → barrette en cause ou mélange incompatible.</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Comparer le processeur à la liste des processeurs pris en charge</strong> de la carte (version minimale du firmware). — attendu : firmware installé ≥ version requise.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> firmware trop ancien → mise à jour via la fonction prévue sans processeur (BIOS Flashback/Q-Flash Plus selon fabricant) ou avec un ancien processeur compatible.</p><p class="fx-sinon"><b>SINON</b> → bloc connu bon, puis escalade carte mère.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>La boucle cesse avec la seule modification testée (CMOS par défaut, barrette retirée, firmware à jour) et ne revient pas sur trois démarrages à froid.</p>
+<h4>6. Correction</h4>
+<ul><li>Réglages par défaut ; profil mémoire réactivé seulement après test de stabilité, sinon laissé à la fréquence standard.</li>
+<li>Kit de mémoire identique de la liste de compatibilité (QVL) ; barrette défectueuse remplacée.</li>
+<li>Mise à jour du firmware : bon modèle et révision, fichier du fabricant, secteur stable, ne jamais couper ; noter les réglages avant.</li></ul>
+<p class="fx-warn"><b>Attention</b> Mise à jour du firmware : une coupure pendant l'écriture peut rendre la carte inutilisable. Prérequis : modèle exact, notes de version lues, alimentation stable, BitLocker suspendu sur un PC chiffré. Alternative prudente : si la carte accepte le processeur actuel, ne pas mettre à jour sans raison.</p>
+<h4>7. Validation</h4><p>Trois démarrages à froid, mémoire totale et fréquence relevées dans l'UEFI, test mémoire plusieurs passes sans erreur.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Le PC redémarre en boucle sans image depuis l'ajout de deux barrettes DDR5. Après une modification de la mémoire, le premier démarrage peut durer plusieurs minutes (entraînement) : je laisse le PC 5 minutes sans couper. Si la boucle persiste, j'efface le CMOS pour revenir aux réglages par défaut, puis je teste une barrette seule dans le slot indiqué par le manuel, puis chacune. La barrette n° 3 seule provoque la boucle, les autres démarrent : elle est en cause. Je la fais remplacer (même référence, même kit), je contrôle 32 Go dans l'UEFI et je lance un test mémoire de 4 passes sans erreur.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> couper au bout de 30 s et conclure « mémoire HS » ; changer plusieurs choses à la fois ; mettre à jour le firmware sans raison ni précaution.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Boucle <em>après</em> le logo Windows (réparation automatique) = démarrage du système : <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-boot">→ Fiche 2 · Boot</a>.</div>
+<ul><li>Boucle intermittente à froid seulement : connexion d'une barrette, bloc vieillissant au démarrage.</li></ul>
+</article>
+
+<article class="fx-proc" id="f1-ecran-noir">
+<h3>P1.4 — Ventilateurs en marche, écran noir (« Aucun signal »)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Ventilateurs et LED en continu ; écran « No signal / Aucun signal » ou veille.</li>
+<li>Indices à chercher : LED de diagnostic (CPU, DRAM, VGA, BOOT), code à 2 caractères, bips ; activité disque, son de démarrage Windows, Verr. Num. qui réagit (le système démarre donc).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Écran éteint, mauvaise entrée (HDMI1/HDMI2/DP), câble.</li>
+<li>Câble branché sur la sortie de la carte mère alors qu'une carte graphique dédiée est installée ; ou processeur sans partie graphique (Intel Core à suffixe F, Ryzen AM4 sans suffixe « G » ; vérifier la fiche du processeur) et pas de carte.</li>
+<li>Barrette mal enfoncée (première cause après une manipulation).</li>
+<li>Carte graphique mal enfoncée ou connecteurs PCIe non branchés.</li>
+<li>Entraînement mémoire (patience).</li>
+<li>Carte graphique, processeur, carte mère (rare).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>L'écran affiche-t-il un message (aucun signal) ou rien du tout (écran éteint) ?</li><li>A-t-on changé quelque chose (écran, câble, carte graphique, mémoire) ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Écran : allumé, bonne entrée, autre câble ; brancher l'écran sur un autre PC ou un portable.</strong> — attendu : l'écran affiche l'autre source.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'écran ne marche avec aucune source → écran/câble en cause.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Sortie utilisée</strong> : carte graphique présente → écran sur ses sorties (en bas, sur les équerres de l'emplacement PCIe), pas sur la plaque arrière de la carte mère.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'image apparaît → mauvaise sortie, fin.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Lire les indicateurs du POST</strong> dans le manuel (<a href="#f1-post">P1.5</a>). — attendu : aucune LED d'erreur.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> LED DRAM → <a href="#f1-ram">P1.7</a> ; LED VGA → <a href="#f1-gpu">P1.11</a> ; LED CPU → EPS, firmware, socket.</p><p class="fx-sinon"><b>SINON</b> (pas d'indicateur ou aucune LED) → étape 4.</p></div></li>
+<li><strong>PC débranché : réinsérer les barrettes jusqu'au clic, la carte graphique jusqu'au clip, tous les connecteurs PCIe.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> image → contact en cause.</p><p class="fx-sinon"><b>SINON</b> → étape 5.</p></div></li>
+<li><strong>Croisement</strong> : iGPU (carte graphique retirée, écran sur la carte mère) si le processeur en a un, ou autre carte connue bonne ; puis configuration minimale.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> image sur iGPU / autre carte → carte graphique en cause.</p><p class="fx-sinon"><b>SINON</b> → une barrette connue bonne, bloc connu bon, puis processeur/carte (escalade).</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Image obtenue en changeant un seul élément ; la panne revient si l'élément initial est remis (ex. ancienne carte graphique). Limite : une carte graphique qui marche dans un autre PC peut ne pas être compatible avec celui-ci (ancien firmware sans UEFI GOP, CSM).</p>
+<h4>6. Correction</h4><ul><li>Câble/écran, bonne sortie ; réinsertion ; remplacement de la pièce prouvée avec vérification de compatibilité (<a href="#f1-compat">P1.22</a>).</li></ul>
+<h4>7. Validation</h4><p>Image dès le logo, UEFI lisible, système chargé dans la bonne résolution ; si carte graphique touchée : charge 3D 15 min sans artefact ni arrêt.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Les ventilateurs tournent mais l'écran indique « Aucun signal » : absence d'image ne veut pas dire absence de POST. Je vérifie d'abord l'écran avec une autre source et le câble, puis la sortie utilisée : le PC a une carte graphique dédiée, l'écran doit être branché sur elle. Ensuite je lis les LED de diagnostic dans le manuel de la carte mère : la LED DRAM est allumée, ce qui oriente vers la mémoire. PC débranché, bracelet ESD, je réinsère les barrettes jusqu'au clic. Si la LED reste allumée, je teste une barrette à la fois dans le slot recommandé. Conclusion seulement après ce croisement.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> conclure « carte graphique HS » sans avoir testé l'écran, le câble, la sortie et lu les LED ; oublier qu'un processeur « F » n'a pas de sortie vidéo intégrée.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Image seulement après Windows chargé, pas dans l'UEFI : écran 4K/120 Hz sur une ancienne carte, mode CSM, ou carte sans GOP — ce n'est pas une panne de POST.</div>
+<ul><li>Écran qui affiche puis s'éteint au chargement de Windows : pilote/résolution (F2) ou mauvaise entrée qui bascule.</li>
+<li>Portable : écran noir mais image sur écran externe → dalle, nappe ou rétroéclairage (lampe de poche sur la dalle : image très faible visible = rétroéclairage).</li></ul>
+</article>
+
+<article class="fx-proc" id="f1-post">
+<h3>P1.5 — Interpréter les bips, LED de diagnostic et codes POST</h3>
+<p class="fx-sev">Fréquence : fréquent à l'examen (documents fournis) · Gravité : indicateur, pas une panne en soi</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Bips : nombre, durée (long/court), répétition. LED : CPU, DRAM, VGA, BOOT (une seule reste allumée). Afficheur de code à deux caractères hexadécimaux. PC de marque : clignotements de la LED d'alimentation (motifs propres au fabricant).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<p>L'indicateur désigne <strong>l'étape</strong> où le POST s'arrête, pas la pièce défectueuse : une LED DRAM peut venir d'une barrette mal insérée, d'un slot, d'un mauvais kit, du contrôleur mémoire du processeur ou d'un EPS absent.</p>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Modèle exact de la carte mère (sérigraphie sur la carte ou étiquette) et éditeur du firmware (AMI, Award/Phoenix, firmware du fabricant).</li>
+<li>Un haut-parleur (buzzer) est-il installé ? Beaucoup de cartes récentes n'en ont pas : <strong>silence ≠ POST réussi</strong>.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Relever le motif exact</strong> : « 1 long, 3 courts, répété », « LED DRAM fixe », « code 55 ».</li>
+<li><strong>Chercher ce motif dans le manuel de la carte mère ou sur le site du fabricant</strong>, selon le fabricant ; ne jamais appliquer un tableau générique sans vérifier.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le manuel donne la signification → appliquer le test de l'étape (mémoire : P1.7 ; vidéo : P1.11 ; CPU : EPS, firmware, socket ; BOOT : P1.12).</p><p class="fx-sinon"><b>SINON</b> (manuel introuvable) → raisonner sur l'étape (LED/bips qui disent « mémoire » ou « vidéo » sur la plupart des firmwares) et confirmer par croisement.</p></div></li>
+<li><strong>Confirmer par un test discriminant avant toute commande de pièce.</strong></li>
+</ol>
+<h4>Exemples typiques (à titre indicatif, à vérifier dans le manuel)</h4>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Firmware (exemples souvent cités)</th><th>Motif</th><th>Orientation habituelle</th></tr></thead>
+<tbody>
+<tr><td>Award (anciennes cartes)</td><td>1 bip court</td><td>POST réussi</td></tr>
+<tr><td>Award</td><td>Bips longs répétés</td><td>Mémoire absente ou mal insérée</td></tr>
+<tr><td>Award</td><td>1 long + 2 courts</td><td>Erreur vidéo (carte graphique)</td></tr>
+<tr><td>AMI (BIOS classique)</td><td>1 long + 3 courts</td><td>Erreur de test mémoire</td></tr>
+<tr><td>AMI (BIOS classique)</td><td>1 long + 8 courts</td><td>Erreur d'affichage (vidéo)</td></tr>
+<tr><td>AMI (BIOS classique)</td><td>1, 2 ou 3 bips courts</td><td>Erreurs mémoire (rafraîchissement, parité, 64 Ko de base)</td></tr>
+<tr><td>Nombreuses cartes récentes</td><td>1 bip court au démarrage</td><td>POST réussi</td></tr>
+<tr><td>LED EZ Debug / Q-LED</td><td>Une LED reste allumée</td><td>CPU, DRAM, VGA ou BOOT : étape bloquée</td></tr>
+<tr><td>Afficheur de code (certaines cartes)</td><td>Code fixe (ex. sur certaines cartes ASUS, 55 = mémoire non détectée)</td><td>Toujours consulter la table du manuel</td></tr>
+</tbody></table></div>
+<p class="fx-warn"><b>Attention</b> Ces correspondances varient selon le fabricant et la version du firmware : à l'examen, écris « selon le manuel de la carte mère, ce motif indique… » et appuie-toi sur le document fourni.</p>
+<h4>5. Test de confirmation</h4><p>Le motif disparaît avec la correction de l'étape (barrette réinsérée → plus de LED DRAM, image). Limite : un code qui change d'étape après correction peut révéler une seconde panne (concomitante).</p>
+<h4>6. Correction</h4><p>Celle de la procédure de l'étape désignée ; jamais de remplacement sur la seule foi d'un code.</p>
+<h4>7. Validation</h4><p>POST complet (bip unique ou LED éteintes, code de fin propre au fabricant), UEFI affiché, système chargé.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Document A2 : la LED DRAM reste allumée. Selon l'extrait du manuel (A3), elle signifie « mémoire non détectée ou défaillante ». C'est l'étape où le POST s'arrête, pas encore la preuve qu'une barrette est défectueuse. Hypothèses : barrette mal insérée (la plus probable après une manipulation), mauvais emplacements, mélange de barrettes, barrette défectueuse. Je teste d'abord la réinsertion, puis une barrette seule en A2, puis chacune.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> donner une signification « universelle » des bips ; conclure « RAM HS » sur la LED seule ; ignorer le document fourni.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> LED DRAM allumée quelques minutes après un changement de mémoire = entraînement normal. Attendre avant de conclure.</div>
+<div class="fx-trap"><b>Piège</b> LED BOOT = le matériel a passé le POST : on cherche le disque et l'ordre de démarrage, pas la mémoire.</div>
+</article>
+
+<article class="fx-proc" id="f1-cmos">
+<h3>P1.6 — Date, heure et réglages UEFI perdus ; remise à zéro du CMOS</h3>
+<p class="fx-sev">Fréquence : fréquent sur PC de plus de 5 ans · Gravité : faible à moyenne (certificats, démarrage si mode modifié)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Date revenue à l'année de fabrication après débranchement ; message « CMOS checksum error », « CMOS battery low », « Press F1 to continue ».</li>
+<li>Réglages UEFI revenus par défaut (ordre de démarrage, mode SATA, XMP) ; navigateur qui signale des certificats invalides (date fausse).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Pile bouton de la carte mère usée (souvent CR2032).</li><li>Pile mal en place, support oxydé.</li><li>Cavalier CLR_CMOS laissé en position d'effacement.</li><li>Heure fausse seulement sous le système, juste dans l'UEFI : fuseau ou synchronisation (F2), double démarrage Windows/Linux (heure locale vs UTC).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>L'heure est-elle fausse dans l'UEFI aussi ? Après débranchement seulement ?</li><li>Noter les réglages UEFI importants (mode de démarrage UEFI/CSM, mode SATA AHCI/RAID) avant toute remise à zéro.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Régler la date dans l'UEFI, débrancher le PC une nuit (ou plusieurs heures), relire.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> date perdue → pile/support/cavalier.</p><p class="fx-sinon"><b>SINON</b> → problème de synchronisation du système (F2).</p></div></li>
+<li><strong>Mesurer la pile au multimètre</strong> (pile retirée) : neuve ≈ 3 V ; nettement sous 3 V → usée (seuil indicatif, voir fiche de la pile).</li></ol>
+<h4>5. Test de confirmation</h4><p>Avec une pile neuve, la date tient après débranchement.</p>
+<h4>6. Correction</h4><ul><li>PC débranché, ESD : remplacer la pile par la même référence, sens + vers le haut (selon support) ; réappliquer les réglages notés.</li>
+<li>Effacer le CMOS volontairement (boucle après réglages, mot de passe UEFI oublié sur PC du client avec accord) : cavalier/bouton CLR_CMOS selon manuel, PC débranché.</li></ul>
+<p class="fx-warn"><b>Attention</b> Après un effacement CMOS, le mode SATA peut repasser de RAID à AHCI (ou inversement) : Windows ne démarre plus (INACCESSIBLE_BOOT_DEVICE). Prérequis : noter les réglages avant. Correction prudente : remettre le réglage d'origine, ne rien réinstaller.</p>
+<h4>7. Validation</h4><p>Date correcte après débranchement, réglages d'origine restaurés, système démarre.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>La date revient en 2019 à chaque débranchement : la pile CMOS ne conserve plus les réglages quand le bloc ne fournit plus le +5 VSB. Je note les réglages UEFI, je débranche, bracelet ESD, je remplace la pile CR2032 par la même référence, je règle la date et je refais les réglages notés. Validation : date correcte après une nuit débranché, démarrage normal.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> oublier de noter les réglages ; confondre heure fausse dans Windows (synchronisation) et dans l'UEFI (pile).</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Un PC toujours branché au secteur ne vide pas sa pile : le symptôme n'apparaît qu'après une coupure ou un déménagement.</div>
+</article>
+</section>

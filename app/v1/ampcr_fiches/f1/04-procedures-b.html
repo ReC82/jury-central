@@ -1,0 +1,188 @@
+<section class="fx-sec" id="f1-proc-composants">
+<h2>4. Procédures : mémoire, refroidissement, alimentation, carte graphique</h2>
+
+<article class="fx-proc" id="f1-ram">
+<h3>P1.7 — Mémoire vive : pas de POST, capacité incomplète, erreurs</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante (pas de POST) à insidieuse (corruption de données, plantages)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>LED DRAM allumée, bips mémoire, pas d'image (après ajout ou manipulation).</li>
+<li>UEFI : mémoire totale inférieure à la somme des barrettes ; un slot vide alors qu'une barrette y est posée.</li>
+<li>Écrans bleus variés (MEMORY_MANAGEMENT, PAGE_FAULT_IN_NONPAGED_AREA, codes changeants), plantages aléatoires, fichiers corrompus, échec d'installation du système.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Barrette pas enfoncée jusqu'au clic (un clip ouvert).</li>
+<li>Mauvais emplacements (double canal : souvent A2 et B2, selon manuel).</li>
+<li>Profil XMP/EXPO trop ambitieux, surtout avec 4 barrettes.</li>
+<li>Mélange de kits (fréquences, timings, densités différentes) ; capacité maximale de la carte dépassée.</li>
+<li>Incompatibilité physique : DDR4 ↔ DDR5 (encoches différentes), DIMM ↔ SO-DIMM, ECC/registered sur carte grand public.</li>
+<li>Barrette défectueuse ; contacts oxydés ou poussiéreux.</li>
+<li>Slot défectueux, contrôleur mémoire du processeur, broches du socket (rare).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Qu'est-ce qui a changé (ajout, kit d'occasion, déplacement) ? Références des barrettes (étiquette) ?</li>
+<li>Plantages avec risque pour les données : faire sauvegarder avant les tests longs.</li>
+<li>ESD obligatoire : les barrettes sont très sensibles aux décharges.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>UEFI (si accessible) : mémoire totale, slots occupés, fréquence.</strong> — attendu : total = somme, chaque slot occupé reconnu.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> un slot manque → étape 2 sur ce slot.</p><p class="fx-sinon"><b>SINON</b> (total correct mais plantages) → étape 4.</p></div></li>
+<li><strong>PC débranché, ESD : retirer et réinsérer chaque barrette</strong>, encoche sur détrompeur, enfoncer droit avec les deux pouces jusqu'au clic des deux clips ; souffler la poussière du slot ; vérifier les emplacements du manuel.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> tout est reconnu → contact en cause, valider par test mémoire.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Croisement barrette/slot</strong> : une barrette à la fois dans le slot recommandé ; puis une barrette <em>saine</em> dans le slot suspect.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'échec suit la barrette → barrette défectueuse.</p><p class="fx-sinon"><b>SINON</b> si l'échec reste sur le slot → slot (ou contrôleur) : ne plus utiliser ce slot, escalade/garantie carte mère.</p></div></li>
+<li><strong>Réglages par défaut (XMP/EXPO désactivé), test mémoire hors système</strong> : MemTest86 sur clé USB, plusieurs passes (au moins 4), ou Diagnostic de mémoire Windows (<code>mdsched.exe</code>, test étendu).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> erreurs → tester barrette par barrette pour trouver laquelle.</p><p class="fx-sinon"><b>SINON</b> (0 erreur par défaut, plantages avec XMP) → profil instable : rester par défaut ou baisser la fréquence. 0 erreur partout → chercher ailleurs (température P1.8, alimentation P1.10, disque P1.16, pilotes Fiche 2).</p></div></li>
+<li><strong>Vérifier la compatibilité sur fiches</strong> : génération, format, capacité max, nombre de slots, QVL du fabricant.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>L'erreur (POST ou erreurs au test) suit une barrette précise dans deux slots différents. Limite : un test sans erreur n'exclut pas une panne intermittente à chaud ; un test d'une passe est insuffisant.</p>
+<h4>6. Correction</h4><ul><li>Remplacer la barrette prouvée (idéalement tout le kit, même référence) ; utiliser les slots du manuel ; désactiver le profil instable.</li>
+<li>Capacité insuffisante dans Windows mais correcte dans l'UEFI : mémoire partagée avec l'iGPU (réservée, normal) ou système 32 bits limité à environ 4 Go (Fiche 2).</li></ul>
+<h4>7. Validation</h4><p>UEFI : total et fréquence ; test mémoire 4 passes, 0 erreur ; 3 démarrages à froid ; usage réel (logiciel du client) sans plantage.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Constat : 4 barrettes de 8 Go installées, l'UEFI affiche 24 Go. Hypothèses : barrette mal insérée, slot défectueux, barrette défectueuse. Test 1 : PC débranché, bracelet, je réinsère la barrette du slot non reconnu (B2) jusqu'au clic : toujours 24 Go. Test 2 : cette barrette seule en A2 → pas de POST ; une autre barrette seule en A2 → POST, 8 Go. Test 3 : une barrette saine en B2 → reconnue. L'erreur suit la barrette : elle est défectueuse. Je la remplace par la même référence (accord du client), puis UEFI 32 Go et test mémoire 4 passes sans erreur.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> tester plusieurs barrettes à la fois ; conclure sur un test d'une passe ; proposer une barrette « 8 Go » sans préciser génération (DDR4/DDR5), format (DIMM/SO-DIMM) et fréquence.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Deux barrettes saines chacune peuvent ne pas fonctionner ensemble (mélange de kits) : le test « barrette seule » réussit pour les deux, le démarrage avec les deux échoue.</div>
+<ul><li>Portable : SO-DIMM sous une trappe, parfois mémoire soudée (non remplaçable) : lire le manuel de service.</li>
+<li>Écrans bleus seulement en été ou après 1 h : mémoire qui chauffe ou ventilation (P1.8).</li></ul>
+</article>
+
+<article class="fx-proc" id="f1-surchauffe">
+<h3>P1.8 — Surchauffe : extinction en charge, ralentissement, ventilateur au maximum</h3>
+<p class="fx-sev">Fréquence : très fréquent (poussière, portables) · Gravité : moyenne (protection) à forte (usure, données en cours perdues)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Extinction brutale après un temps de charge (jeu, rendu, compilation), PC qui redémarre seulement après refroidissement.</li>
+<li>Ventilateur bruyant en permanence ; fréquence du processeur qui chute quand la température approche de la limite (throttling).</li>
+<li>Message UEFI « CPU over temperature », bips aigus en continu sur certaines cartes.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Poussière : filtres, ailettes du ventirad, grilles d'un portable.</li>
+<li>Pâte thermique sèche (plusieurs années) ou absente/mal appliquée ; film plastique laissé sous le ventirad après montage.</li>
+<li>Ventilateur du processeur arrêté, lent, branché sur SYS_FAN réglé à vitesse fixe (n'accélère pas), pompe AIO non alimentée.</li>
+<li>Flux d'air incohérent (ventilateurs qui se combattent), boîtier enfermé dans un meuble, portable utilisé sur un tissu.</li>
+<li>Ventirad mal fixé (un coin desserré), sous-dimensionné pour le processeur.</li>
+<li>VRM ou carte graphique qui chauffe ; température ambiante élevée.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Depuis quand ? Après quel geste (ventilateur changé, nettoyage, montage) ? Combien de minutes avant l'arrêt ? Où est le PC ?</li>
+<li>Sauvegarde si les arrêts brutaux surviennent pendant l'écriture de fichiers importants.</li>
+<li>Températures relevées <strong>avant</strong> toute intervention (sinon pas de comparaison possible).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Relever la température du processeur au repos, puis pendant 10 à 15 min de charge</strong> (UEFI pour le repos ; HWiNFO/HWMonitor + logiciel de charge), avec fréquence et vitesse du ventilateur. Comparer à la limite de la fiche du processeur.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> la température atteint la limite (ou en est à moins de 10 °C, convention du cours) et la fréquence chute → cause thermique : étape 2.</p><p class="fx-sinon"><b>SINON</b> (température correcte au moment de l'arrêt) → alimentation (P1.10) ou carte graphique (P1.11).</p></div></li>
+<li><strong>Vitesse du ventilateur CPU : accélère-t-elle avec la charge ?</strong> Connecteur CPU_FAN ? Réglage de courbe ?
+<div class="fx-branch"><p class="fx-si"><b>SI</b> vitesse fixe/basse ou sur SYS_FAN → rebrancher sur CPU_FAN, courbe automatique.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>PC débranché, ESD : inspection de la poussière</strong> (filtre, ailettes à contre-jour) et du flux d'air (entrée avant/bas, sortie arrière/haut).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> encrassé → nettoyage (étape correction) puis remesure.</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Ventirad : serrage, à plat ? Démonter, observer la pâte</strong> (sèche, mal répartie, film présent).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> pâte sèche/film → nettoyage alcool isopropylique, pâte neuve.</p><p class="fx-sinon"><b>SINON</b> → ventirad sous-dimensionné (TDP) ou VRM : escalade/évolution.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Après la seule action thermique, même charge, même durée, même pièce : température nettement plus basse, plus de chute de fréquence, plus d'arrêt. Limite : une mesure unique ne suffit pas, on compare une série (avant/après).</p>
+<h4>6. Correction</h4>
+<ul><li>Nettoyage : PC débranché, air sec par courtes impulsions bombe droite, <strong>pales bloquées</strong>, pinceau antistatique, filtres lavés à part et secs avant remontage ; jamais d'aspirateur ménager.</li>
+<li>Pâte : ancienne retirée à l'alcool isopropylique (90 % ou plus), noisette de la taille d'un petit pois au centre, ventirad serré en croix progressivement, câble sur CPU_FAN.</li>
+<li>Ventilateur bruyant/lent : remplacement (taille, 3 ou 4 broches PWM, fixation).</li>
+<li>Flux d'air : corriger le sens, ranger les câbles, dégager l'emplacement.</li></ul>
+<h4>7. Validation</h4><p>Tableau avant/après : température repos, température après 15/30 min de charge, fréquence, vitesse ventilateur ; 30 min de charge sans arrêt ; prévention (nettoyage annuel, emplacement aéré).</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Lecture du relevé : la température monte de 62 à 99 °C en 12 minutes pour une limite de 100 °C, la fréquence chute de 4,8 à 2,1 GHz et le ventilateur reste à 1 200 tr/min fixes. Le processeur se protège (baisse de fréquence) puis s'arrête : cause thermique. Les observations (ventilateur du ventirad sur SYS_FAN2 à vitesse fixe, CPU_FAN vide, filtre couvert de poussière, pâte de 4 ans) expliquent la hausse. Intervention : PC débranché, bracelet ; je rebranche le ventilateur sur CPU_FAN avec courbe automatique, je nettoie filtre et ailettes (pales bloquées, air sec), je remplace la pâte. Validation : même rendu 30 min, température maximale relevée, fréquence stable, aucun arrêt ; je note les valeurs avant/après.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> « nettoyé, ça chauffe moins » sans valeurs ; nettoyer à l'aspirateur ; remettre le ventirad sans pâte neuve ; ignorer le connecteur CPU_FAN.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Extinction en charge avec température normale = alimentation ou carte graphique, pas le processeur.</div>
+<div class="fx-trap"><b>Piège</b> Plusieurs causes concomitantes (ventilateur mal branché ET poussière ET pâte sèche) : les corriger toutes, mais tracer chaque action.</div>
+<ul><li>Carte graphique qui chauffe : relever sa température séparément, nettoyer son radiateur ; ne pas démonter son refroidisseur sous garantie.</li></ul>
+</article>
+
+<article class="fx-proc" id="f1-ventilateur">
+<h3>P1.9 — Ventilateur : bruit, « CPU Fan Error », ventilateur à l'arrêt</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : faible à forte (ventilateur CPU arrêté = surchauffe)</p>
+<h4>1. Symptômes observables</h4><ul><li>Message « CPU Fan Error! Press F1 » ; bruit de frottement, cliquetis, sifflement ; vitesse 0 tr/min dans l'UEFI.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Câble dans les pales.</li><li>Ventilateur du ventirad branché sur SYS_FAN/CHA_FAN (CPU_FAN vide).</li><li>Roulement usé, poussière.</li><li>Ventilateur lent sous le seuil d'alerte de la carte.</li><li>Ventilateur du bloc d'alimentation (bloc entier à remplacer, jamais ouvert).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Depuis quand, après quel geste ? Le bruit varie-t-il avec la charge ? PC éteint et débranché pour toucher un ventilateur.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Localiser le bruit</strong> (PC ouvert, sous tension, sans toucher) : ventirad, boîtier, carte graphique, bloc, disque dur (clic de disque ≠ ventilateur : P1.16).</li>
+<li><strong>PC éteint et débranché : bloquer brièvement chaque ventilateur suspect au doigt/pinceau, puis relancer ; observer un câble qui touche.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> câble dans les pales → le ranger (collier).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>UEFI : vitesse de CPU_FAN.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> 0 tr/min alors que le ventilateur tourne → mauvais connecteur ; s'il ne tourne pas → ventilateur bloqué ou mort.</p><p class="fx-sinon"><b>SINON</b> (vitesse faible) → ventilateur basse vitesse : ajuster le seuil d'alerte, sans le désactiver.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le bruit disparaît avec le ventilateur incriminé bloqué un instant ; la vitesse lue redevient normale sur le bon connecteur.</p>
+<h4>6. Correction</h4><ul><li>Rebrancher sur CPU_FAN (pompe AIO sur AIO_PUMP), remplacer le ventilateur (dimensions 80/92/120/140 mm, 3 broches DC ou 4 broches PWM, fixation).</li></ul>
+<p class="fx-warn"><b>Attention</b> Ne jamais régler « CPU Fan Speed : Ignore » pour faire disparaître l'alerte sans vérifier qu'un ventilateur tourne réellement sur le processeur.</p>
+<h4>7. Validation</h4><p>Vitesse lue, accélération en charge, température en charge normale, plus d'alerte au démarrage.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>L'alerte CPU Fan Error indique que la carte ne lit aucune vitesse sur CPU_FAN. Après le remplacement du ventilateur par le client, le câble a été branché sur SYS_FAN2 : je le rebranche sur CPU_FAN (PC débranché), j'active la courbe automatique et je vérifie que la vitesse augmente en charge, avec relevé des températures.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> désactiver l'alerte ; ouvrir le bloc pour changer son ventilateur.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Cliquetis régulier d'un PC = souvent le disque dur (têtes), pas un ventilateur : priorité aux données.</div>
+</article>
+
+<article class="fx-proc" id="f1-alim">
+<h3>P1.10 — Bloc d'alimentation : extinction sous charge, redémarrages, tensions, remplacement</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : forte (instabilité, risque pour les autres composants)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Extinction brutale en jeu/rendu avec températures normales ; redémarrages aléatoires ; PC qui ne démarre qu'après plusieurs essais ; bruit (sifflement, claquement), odeur.</li>
+<li>Après ajout d'une carte graphique plus gourmande : arrêt dès que la charge monte.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Bloc sous-dimensionné pour la configuration (puissance, capacité +12 V).</li>
+<li>Câblage : connecteur PCIe manquant, un seul câble « en marguerite » (6+2 doublé) pour une carte qui demande deux câbles, adaptateur Molex → PCIe, 12VHPWR/12V-2x6 mal enfoncé.</li>
+<li>Bloc vieillissant (condensateurs) : tensions qui chutent sous charge.</li>
+<li>Installation électrique : multiprise surchargée, onduleur trop faible.</li>
+<li>Mémoire, température, carte mère (à exclure par leurs propres tests).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Configuration exacte (CPU, carte graphique, disques), étiquette du bloc (puissance, ampérage +12 V, certification), âge.</li>
+<li>Mesures au multimètre sur connecteurs sous tension : seulement si habilité et outillé ; sinon testeur d'alimentation et logiciel de surveillance. Bloc jamais ouvert.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Calculer le budget de puissance</strong> : somme des puissances maximales (fiches) + marge de 30 % (convention du cours) ; comparer à la puissance du bloc et à la puissance recommandée par le fabricant de la carte graphique ; compter les connecteurs PCIe requis.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> insuffisant ou connecteurs manquants → bloc à remplacer (P1.23).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Contrôler le câblage (PC débranché)</strong> : EPS complet, chaque connecteur PCIe de la carte sur son propre câble si la carte en demande plusieurs, pas d'adaptateur, 12V-2x6 enfoncé sans jour.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> anomalie → corriger, retester sous charge.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Mesurer les tensions</strong> : testeur (à vide), puis logiciel de surveillance/UEFI pendant la charge. Comparer aux tolérances ±5 % (tableau section 7).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> une tension sort de la tolérance sous charge (ex. +12 V à 11,2 V) → bloc en cause (à confirmer).</p><p class="fx-sinon"><b>SINON</b> → étape 4 (le testeur et le logiciel ne voient pas les chutes très brèves).</p></div></li>
+<li><strong>Test croisé : même charge, même durée avec un bloc connu fonctionnel adapté.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> plus d'arrêt → bloc confirmé.</p><p class="fx-sinon"><b>SINON</b> → mémoire (P1.7), température GPU (P1.11), carte mère.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le test croisé avec un bloc connu bon est la preuve la plus solide. Limite : un testeur affiche des tensions à vide, une mesure logicielle est approximative (capteurs de la carte).</p>
+<h4>6. Correction : remplacer un bloc</h4>
+<ol><li>Choisir : format (ATX, SFX), puissance avec marge, connecteurs (ATX 24, EPS 4+4 ou 8+4/8+8 si la carte l'exige, PCIe 6+2 en nombre, 12V-2x6 si besoin, SATA), certification 80 PLUS, longueur dans le boîtier.</li>
+<li>Arrêter, interrupteur sur 0, débrancher, bouton appuyé (LED de veille éteinte), ESD ; photographier/étiqueter les câbles.</li>
+<li>Débrancher tous les connecteurs, dévisser le bloc (4 vis à l'arrière), le sortir.</li>
+<li>Poser le nouveau (ventilateur vers le filtre du fond s'il existe), visser.</li>
+<li>Brancher <strong>uniquement les câbles du nouveau bloc</strong> (les câbles modulaires ne sont pas standardisés côté bloc : un câble d'un autre bloc peut inverser les tensions).</li>
+<li>Ranger les câbles, contrôle visuel, interrupteur sur I, démarrage.</li>
+<li>Ancien bloc : non ouvert, recyclage (filière DEEE) ou rendu au client.</li></ol>
+<h4>7. Validation</h4><p>Tensions relevées dans ±5 %, même charge 30 min sans arrêt, 3 démarrages à froid, tous les périphériques fonctionnent ; références et numéros de série notés.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Le PC s'éteint en jeu depuis l'installation d'une nouvelle carte graphique ; les températures relevées au moment de l'arrêt sont normales (CPU 71 °C, GPU 74 °C) : la cause thermique est peu probable. Budget : 125 + 285 + 60 = 470 W, × 1,3 = 611 W ; le bloc fait 500 W : il est sous-dimensionné. De plus, la carte demande deux connecteurs PCIe 8 broches et un seul câble en marguerite est utilisé. Test : même jeu 30 min avec un bloc de 750 W connu fonctionnel et deux câbles séparés → aucun arrêt. Conclusion : bloc insuffisant. Je propose un bloc ATX 750 W 80 PLUS avec deux PCIe 6+2 ; remplacement hors tension avec ses propres câbles ; validation 30 min de charge et tensions dans la tolérance.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> conclure sur un testeur à vide ; oublier la marge ; réutiliser les câbles modulaires de l'ancien bloc ; utiliser un adaptateur Molex → PCIe ; ouvrir le bloc.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> L'événement Kernel-Power 41 dans le journal dit seulement que Windows ne s'est pas arrêté proprement : indice, pas preuve d'un bloc défectueux.</div>
+<div class="fx-trap"><b>Piège</b> Puissance totale suffisante mais connecteurs insuffisants = bloc inadapté quand même.</div>
+<ul><li>Arrêts seulement quand l'imprimante laser démarre sur la même multiprise : installation électrique, pas le PC.</li></ul>
+</article>
+
+<article class="fx-proc" id="f1-gpu">
+<h3>P1.11 — Carte graphique : LED VGA, artefacts, pas d'image après installation</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne à bloquante</p>
+<h4>1. Symptômes observables</h4><ul><li>LED VGA ou bips vidéo ; pas d'image après pose d'une carte ; artefacts (damier, lignes, couleurs) ; écran noir en jeu ; ventilateurs de la carte à fond.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Carte pas enfoncée jusqu'au clip, équerre mal vissée qui la soulève.</li><li>Connecteurs PCIe/12V-2x6 absents ou partiels.</li><li>Écran branché sur la carte mère.</li><li>Firmware de la carte mère en mode CSM/UEFI inadapté (carte ancienne ou récente).</li><li>Surchauffe de la carte (poussière).</li><li>Pilote (si artefacts seulement sous Windows : Fiche 2).</li><li>Carte défectueuse (VRAM), emplacement PCIe.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Puissance de la carte, bloc, connecteurs requis ? Artefacts aussi dans l'UEFI ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>PC débranché : carte au clip de l'emplacement x16 principal, équerre vissée, tous les connecteurs d'alimentation à fond.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> image → contact/alimentation.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Artefacts dans l'UEFI ?</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> oui → matériel (carte, câble, écran) : autre câble/écran puis étape 3.</p><p class="fx-sinon"><b>SINON</b> (seulement sous Windows) → pilote : <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-pilote">→ Fiche 2 · Pilotes</a>.</p></div></li>
+<li><strong>Croisement</strong> : iGPU ou autre carte connue bonne dans ce PC ; carte suspecte dans un autre PC compatible.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> la panne suit la carte → carte en cause.</p><p class="fx-sinon"><b>SINON</b> → emplacement PCIe, bloc (P1.10), firmware (CSM/UEFI).</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Panne qui suit la carte dans un autre PC ; ou disparition avec une autre carte dans ce PC.</p>
+<h4>6. Correction</h4><ul><li>Réinsertion, câbles complets, nettoyage du radiateur, carte remplacée (longueur, épaisseur en emplacements, puissance, connecteurs, bloc recommandé) ; ancien pilote retiré, nouveau pilote du fabricant (Fiche 2).</li></ul>
+<h4>7. Validation</h4><p>Image dès l'UEFI, résolution native, charge 3D 15 à 30 min : pas d'artefact, température relevée, pas d'arrêt.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Après installation de la nouvelle carte, pas d'image et LED VGA allumée : le POST ne trouve pas d'affichage. PC débranché, je constate qu'un seul des deux connecteurs PCIe 8 broches est branché ; je branche le second avec un câble séparé du bloc. Image au démarrage ; validation par 20 min de charge 3D, températures notées.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> « carte HS » sans croisement ; oublier que l'emplacement x16 ne fournit que 75 W.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Artefacts uniquement sous Windows = pilote ; dans l'UEFI aussi = matériel. C'est le test discriminant à citer.</div>
+</article>
+</section>
