@@ -593,6 +593,19 @@ règles des cours PR02–PR28 (`app/v1/ampcr_pratique_ex06_*.py`), 4 schémas SV
 `session_length_options` renvoie désormais la longueur d'une variante pour un examen à variantes
 (12 pour EX06, 10 pour EX05 inchangé). Couverture comparée avec EX05 affichée sur la page.
 
+**Audit final de couverture officielle et de qualité (ticket #235, 2026-10-27)** : les 30 cours et
+6 examens blancs sont publiés et identiques au code ; `app/v1/ampcr_pratique_audit.py` réunit pour
+chaque exigence AP-01…AP-38 (et AP-C01…C03) des **preuves dans le contenu publié** — cours liés
+rédigés, termes-témoins de la notion présents dans leur texte, au moins un exercice corrigé et une
+question d'examen blanc EX01–EX06. `VALIDATED_REQUIREMENT_IDS` (plan) vaut l'ensemble prouvé
+(égalité gardée par test) : la matrice `/ampcr-pratique/matrice` affiche **38/38 validées** et une
+colonne « Preuves (audit) » ; « validé » = validation technique de couverture, la validation
+pédagogique reste au propriétaire. Garde-fous transversaux (`tests/test_ticket235_*`) : barèmes
+(10 questions /20 par mini-examen, /100 par examen ou variante), types corrigeables, adresses
+IPv4/préfixes/masques et brochages T568A/B écrits en toutes lettres, valeurs coaxiales, séparation
+Théorie/Pratique, liens du parcours, autosave/reprise/corrigé caché dans une session pratique.
+Détail : `docs/ampcr_pratique_v1.md` § 9.
+
 **Vingt-sixième cours publié (ticket #225) : PR26 « Analyser une demande d'intervention
 technique »** (`/uaa/ampcr-pratique-pr26`), même intégration, position 26 (après EX04). Cours de
 méthode écrite (AP-16 vocabulaire technique, complément AP-C01) : 16 blocs (9 chapitres : recueil

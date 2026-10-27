@@ -267,3 +267,27 @@ d'intervention écrite en 6 étapes).
 Rapport daté dans `docs/claude-reports/`, email de fin de ticket envoyé par
 l'orchestrateur `jcorch` (configuration SMTP existante, rapport joint, envoi journalisé),
 commentaire GitHub de synthèse ; détail dans `docs/ampcr_pratique_tickets.md` § 2.
+
+## 9. Audit final de couverture (ticket #235)
+
+Module `app/v1/ampcr_pratique_audit.py` (aucune écriture en base). Une exigence est **prouvée**
+quand, dans le contenu réellement publié :
+
+1. tous les cours PRxx que le plan lui rattache sont rédigés (`PRACTICAL_COURSES`) ;
+2. chaque terme-témoin de `REQUIREMENT_TERMS` (tiré du libellé officiel) figure dans le texte
+   rendu de ces cours (`course_text`) ;
+3. au moins un exercice corrigé (« S'entraîner ») et au moins une question d'un examen blanc
+   EX01–EX06 portent l'exigence.
+
+`VALIDATED_REQUIREMENT_IDS` (plan) doit être égal à `proven_requirement_ids()` (test) ; une
+exigence n'est donc « validée » dans la matrice que si ses preuves existent ET que ses cours et
+examens sont publiés en base. Au 27/10/2026 : 38/38 exigences officielles et 3/3 compléments
+prouvés ; la matrice affiche, par exigence, le nombre d'exercices corrigés, de questions de
+mini-examen et de questions d'examen blanc. Ajouter ou retirer un cours ou une exigence fait
+échouer le test tant que les preuves et l'ensemble validé ne sont pas réalignés.
+
+Contrôles transversaux (`tests/test_ticket235_ampcr_pratique_audit.py`) : barèmes, sections
+obligatoires des cours, adresses IPv4 et masques (contre-exemples volontaires de PR20 listés),
+séquences T568A/T568B écrites en toutes lettres, valeurs du coaxial, publication des 36 unités
+dans le seul module pratique, liens du parcours, session pratique (autosave, reprise, corrigé
+caché avant remise).

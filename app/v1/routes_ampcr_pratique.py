@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse
 from app.database import get_db
 from app.templating import templates
 from app.v1 import ampcr_fiches
+from app.v1 import ampcr_pratique_audit as audit
 from app.v1 import ampcr_pratique_plan as plan
 from app.v1.ampcr_pratique_format import EXAMPLE_EXERCISE, EXAMPLE_FIGURES, build_rubric
 from app.v1.ampcr_pratique_visuals import DIAGNOSTIC_METHOD_FIGURE, render_figure
@@ -69,9 +70,9 @@ async def practical_home(request: Request, db=Depends(get_db)):  # noqa: B008
 
 @router.get(f"{plan.PRACTICAL_PATH_URL}/matrice", response_class=HTMLResponse)
 async def practical_matrix(request: Request, db=Depends(get_db)):  # noqa: B008
-    return templates.TemplateResponse(
-        request=request, name="ampcr_pratique_matrix.html", context=_common_context(db)
-    )
+    context = _common_context(db)
+    context.update({"audit": audit, "evidence": audit.evidence_by_id()})
+    return templates.TemplateResponse(request=request, name="ampcr_pratique_matrix.html", context=context)
 
 
 @router.get(f"{plan.PRACTICAL_PATH_URL}/format-exercice", response_class=HTMLResponse)

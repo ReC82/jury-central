@@ -301,7 +301,7 @@ _À compléter — Ce que le propriétaire vérifiera en priorité._
 - **AP-17** (p. 5) — « Notion de compatibilité. »
 - **AP-C02** (complément pédagogique) — « Sécurité électrique et protection ESD lors d'une intervention sur un PC. » _Note : Prérequis des interventions de montage/démontage (AP-14)._
 
-Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et relus.
+Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et que l'audit #235 en a réuni les preuves (`app.v1.ampcr_pratique_audit`).
 
 ##### Composition de l'examen
 _À compléter — Nombre d'exercices, points par exercice, total /20 ; chaque exigence AP du module évaluée au moins une fois. Aucune durée inventée (les consignes n'en fixent pas)._
@@ -524,7 +524,7 @@ _À compléter — Ce que le propriétaire vérifiera en priorité._
 - **AP-27** (p. 6) — « Les notions de droit et de permission. »
 - **AP-C03** (complément pédagogique) — « Protéger les données du client : sauvegarde préalable, confidentialité et autorisation avant tout effacement ou toute réinstallation. » _Note : Ajouté à l'audit #236 : matière commune des tickets PR04, PR12 et PR28._
 
-Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et relus.
+Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et que l'audit #235 en a réuni les preuves (`app.v1.ampcr_pratique_audit`).
 
 ##### Composition de l'examen
 _À compléter — Nombre d'exercices, points par exercice, total /20 ; chaque exigence AP du module évaluée au moins une fois. Aucune durée inventée (les consignes n'en fixent pas)._
@@ -713,7 +713,7 @@ _À compléter — Ce que le propriétaire vérifiera en priorité._
 - **AP-34** (p. 6) — « Description de la réalisation d’un câble avec connecteurs RJ45 (code des couleurs). »
 - **AP-35** (p. 6) — « Description de la réalisation d’un câble avec connecteurs BNC. » _Note : Aucune théorie existante._
 
-Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et relus.
+Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et que l'audit #235 en a réuni les preuves (`app.v1.ampcr_pratique_audit`).
 
 ##### Composition de l'examen
 _À compléter — Nombre d'exercices, points par exercice, total /20 ; chaque exigence AP du module évaluée au moins une fois. Aucune durée inventée (les consignes n'en fixent pas)._
@@ -997,7 +997,7 @@ _À compléter — Ce que le propriétaire vérifiera en priorité._
 - **AP-37** (p. 6) — « Dépannage de problèmes simples d’accès au réseau. »
 - **AP-38** (p. 6) — « Création d’un mini réseau entre plusieurs machines. »
 
-Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et relus.
+Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et que l'audit #235 en a réuni les preuves (`app.v1.ampcr_pratique_audit`).
 
 ##### Composition de l'examen
 _À compléter — Nombre d'exercices, points par exercice, total /20 ; chaque exigence AP du module évaluée au moins une fois. Aucune durée inventée (les consignes n'en fixent pas)._
@@ -1189,7 +1189,7 @@ _À compléter — Ce que le propriétaire vérifiera en priorité._
 - **AP-37** (p. 6) — « Dépannage de problèmes simples d’accès au réseau. »
 - **AP-C01** (complément pédagogique) — « Rédiger une réponse écrite de technicien : décrire une intervention étape par étape et justifier chaque choix. » _Note : Méthode : l'épreuve pratique se fait uniquement par écrit (p. 3)._
 
-Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et relus.
+Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et que l'audit #235 en a réuni les preuves (`app.v1.ampcr_pratique_audit`).
 
 ##### Composition de l'examen
 _À compléter — Nombre d'exercices, points par exercice, total /20 ; chaque exigence AP du module évaluée au moins une fois. Aucune durée inventée (les consignes n'en fixent pas)._
@@ -1225,7 +1225,7 @@ _À compléter — Ce que le propriétaire vérifiera en priorité._
 - **AP-C01** (complément pédagogique) — « Rédiger une réponse écrite de technicien : décrire une intervention étape par étape et justifier chaque choix. » _Note : Méthode : l'épreuve pratique se fait uniquement par écrit (p. 3)._
 - **AP-C03** (complément pédagogique) — « Protéger les données du client : sauvegarde préalable, confidentialité et autorisation avant tout effacement ou toute réinstallation. » _Note : Ajouté à l'audit #236 : matière commune des tickets PR04, PR12 et PR28._
 
-Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et relus.
+Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) seulement quand tous ses cours ET examens blancs sont publiés et que l'audit #235 en a réuni les preuves (`app.v1.ampcr_pratique_audit`).
 
 ##### Composition de l'examen
 _À compléter — Nombre d'exercices, points par exercice, total /20 ; chaque exigence AP du module évaluée au moins une fois. Aucune durée inventée (les consignes n'en fixent pas)._

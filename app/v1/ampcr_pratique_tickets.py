@@ -186,7 +186,8 @@ def exam_ticket(code: str, *, full: bool = True) -> str:
     lines += [
         "",
         ("Une exigence passe à « validé » dans la matrice (`VALIDATED_REQUIREMENT_IDS`) "
-        "seulement quand tous ses cours ET examens blancs sont publiés et relus."),
+        "seulement quand tous ses cours ET examens blancs sont publiés et que l'audit #235 en "
+        "a réuni les preuves (`app.v1.ampcr_pratique_audit`)."),
         "",
     ]
     lines += _sections(EXAM_SECTIONS)

@@ -27,7 +27,11 @@
         {% if summary.complete %}Couverture complète.{% else %}<strong>Couverture non complète.</strong>{% endif %}
     </p>
     <p class="small mb-0">
-        « Validé » = tous les cours ET examens blancs liés sont publiés et relus. Les liens « théorie »
+        « Validé » = tous les cours ET examens blancs liés sont publiés, et l'audit final
+        (ticket #{{ audit.AUDIT_TICKET }}, {{ audit.AUDIT_DATE }}) a vérifié dans le contenu publié que la
+        notion est enseignée dans le cours et travaillée dans au moins un exercice corrigé et une
+        question d'examen blanc (colonne « Preuves »). C'est une validation technique de
+        couverture&nbsp;; la validation pédagogique finale reste celle du propriétaire. Les liens « théorie »
         renvoient aux mini-cours MC existants qui abordent la notion&nbsp;: ils ne valent pas
         couverture de l'épreuve pratique.
     </p>
@@ -60,6 +64,7 @@
             <th scope="col">Cours prévus</th>
             <th scope="col">Examens blancs</th>
             <th scope="col">Théorie existante</th>
+            <th scope="col">Preuves (audit)</th>
             <th scope="col">Statut</th>
         </tr>
     </thead>
@@ -84,6 +89,13 @@
                 {% for code in req.theory_codes %}
                 {% if theory.get(code) %}<a href="/uaa/{{ theory[code].slug }}" title="{{ theory[code].title }}">{{ code }}</a>{% else %}{{ code }}{% endif %}{{ ', ' if not loop.last }}
                 {% else %}<span class="text-muted">aucune</span>{% endfor %}
+            </td>
+            <td class="small text-nowrap">
+                {% set ev = evidence[req.id] %}
+                {{ ev.practice_items | length }} exercice(s) corrigé(s)<br>
+                {{ ev.mini_exam_items | length }} question(s) de mini-examen<br>
+                {{ ev.mock_exam_items | length }} question(s) d'examen blanc
+                {% if ev.missing_terms %}<br><span class="text-danger">Notion absente du cours&nbsp;: {{ ev.missing_terms | join(', ') }}</span>{% endif %}
             </td>
             <td>
                 {% if row.status == plan.STATUS_VALIDATED %}<span class="jc-pill jc-pill-success">validé</span>
