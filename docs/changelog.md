@@ -2,6 +2,16 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : examen blanc EX03 « câblage RJ45, BNC et fibre » (ticket #232)
+
+Troisième examen blanc du parcours pratique (UAA EX03 du module `AMPCR-PRATIQUE`, après PR17, 7
+blocs), même modèle que EX01/EX02 : 10 questions /100 à réponse libre — fiche RJ45 à contrôler et
+brochages T568A/B, droit/croisé/Auto MDI-X, choix des câbles (catégorie, blindage, coaxial 75 Ω,
+fibre), rapport de test des liens, relevé de pose et fabrication d'un cordon, bus 10BASE2 et
+réflexion, ohmmètre, BNC et 10BASE5, choix fibre/modules/jarretières, bilan et photométrie, panne
+au réflectomètre ; 4 schémas sans verdict ; aucune génération IA (`app/v1/ampcr_pratique_ex03_*.py`,
+`tests/test_ticket232_ampcr_pratique_ex03.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR17 « Fibre optique — choix, raccordement et diagnostic » (ticket #218)
 
 Dix-neuvième cours du parcours pratique et dix-septième dans l'ordre pédagogique (UAA PR17 du
