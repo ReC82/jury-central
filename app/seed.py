@@ -39,6 +39,7 @@ from app.v1.ampcr_pratique_pr22_course import PR22_TITLE, pr22_course_sections
 from app.v1.ampcr_pratique_pr23_course import PR23_TITLE, pr23_course_sections
 from app.v1.ampcr_pratique_pr24_course import PR24_TITLE, pr24_course_sections
 from app.v1.ampcr_pratique_pr25_course import PR25_TITLE, pr25_course_sections
+from app.v1.ampcr_pratique_pr26_course import PR26_TITLE, pr26_course_sections
 from app.v1.document_references import repair_dossier_references
 from app.v1.francais_fr01_05_courses import (
     fr01_course_markdown,
@@ -5040,6 +5041,7 @@ PR21_BLOCKS = _fse_course_blocks(pr21_course_sections())  # ticket #221
 PR22_BLOCKS = _fse_course_blocks(pr22_course_sections())  # ticket #222
 PR23_BLOCKS = _fse_course_blocks(pr23_course_sections())  # ticket #223
 PR25_BLOCKS = _fse_course_blocks(pr25_course_sections())  # ticket #224
+PR26_BLOCKS = _fse_course_blocks(pr26_course_sections())  # ticket #225
 EX01_BLOCKS = _fse_course_blocks(ex01_course_sections())  # ticket #230 (sujet de l'examen blanc)
 EX02_BLOCKS = _fse_course_blocks(ex02_course_sections())  # ticket #231 (sujet de l'examen blanc)
 EX03_BLOCKS = _fse_course_blocks(ex03_course_sections())  # ticket #232 (sujet de l'examen blanc)
@@ -5893,6 +5895,7 @@ def seed() -> None:
         # Ticket #233 : EX04 (module 4 = PR18 → PR25) se place juste après PR25 (même position,
         # créé après lui), comme EX01 après PR06, EX02 après PR12 et EX03 après PR17.
         _seed_uaa(db, practical_module, "EX04", EX04_TITLE, 25, EX04_BLOCKS, created, kept)
+        _seed_uaa(db, practical_module, "PR26", PR26_TITLE, 26, PR26_BLOCKS, created, kept)  # ticket #225
 
         # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
         # n'était pas résolvable → nouvelle version (idempotent, sessions existantes

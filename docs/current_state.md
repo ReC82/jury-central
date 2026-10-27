@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, EX01, EX02, EX03 et EX04),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, PR26, EX01, EX02, EX03 et EX04),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -495,6 +495,22 @@ de la box et rapport d'intervention), dossier C bureau d'architectes (fiche Wi-F
 répéteur ; accès effectifs partage + NTFS ; imprimante et lecteur réseau après changement de box).
 3 schémas SVG **sans verdict** ; toutes les valeurs **calculées par code** avec les règles des cours
 PR19–PR25 (`app/v1/ampcr_pratique_ex04_*.py`).
+
+**Vingt-sixième cours publié (ticket #225) : PR26 « Analyser une demande d'intervention
+technique »** (`/uaa/ampcr-pratique-pr26`), même intégration, position 26 (après EX04). Cours de
+méthode écrite (AP-16 vocabulaire technique, complément AP-C01) : 16 blocs (9 chapitres : recueil
+de la demande, symptômes et interprétation ; contexte, inventaire et changements récents ;
+observation ou hypothèse, panne reproductible ou intermittente ; impact, urgence et priorisation ;
+sauvegarde, consentement, confidentialité, risques et autorisation ; questions utiles et
+reformulation ; fiche d'incident, vocabulaire et grille d'évaluation ; critères de réussite, plan
+et estimation ; escalade ; 5 dossiers entièrement corrigés — PC inerte, impression, lenteur, accès
+partagé, Wi-Fi ; pièges, exercices, mini-examen, mémo, sources). 3 procédures, 7 figures SVG
+(dont matrice de priorité, arbre d'escalade, fiche d'incident vierge) et 2 schémas à compléter
+servis aussi en fichiers statiques ; formulaires (fiche d'incident, bon d'accord) et grille sur 20
+en tableaux HTML. Matrice impact × urgence, ordre des contrôles d'escalade, rubriques obligatoires,
+estimation (+ 25 % au quart d'heure) et grille **calculés par code**
+(`app/v1/ampcr_pratique_pr26_figures.py`, conventions du cours signalées comme telles) et contrôlés
+par les tests. 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
 
 ## Administration
 

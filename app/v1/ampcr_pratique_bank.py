@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -58,6 +58,7 @@ from app.v1.ampcr_pratique_pr22_bank import ALL_ITEMS as PR22_ITEMS
 from app.v1.ampcr_pratique_pr23_bank import ALL_ITEMS as PR23_ITEMS
 from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.ampcr_pratique_pr25_bank import ALL_ITEMS as PR25_ITEMS
+from app.v1.ampcr_pratique_pr26_bank import ALL_ITEMS as PR26_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -1442,6 +1443,55 @@ _PR25_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR26_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr26",
+    course_title="AMPCR pratique écrite — PR26 Analyser une demande d'intervention technique",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : recueil et analyse d'une demande d'intervention, qualification, priorisation, "
+        "protection des données, reformulation, fiche d'incident, critères de réussite, plan "
+        "d'action, estimation et escalade ; vocabulaire technique ; demandes, personnes et fiches "
+        "fictives"
+    ),
+    allowed_notions=[
+        "demande : symptômes (faits dits par le demandeur) ≠ interprétation (cause supposée par le client, notée comme hypothèse) ≠ attente et échéance ; demandeur, date et heure, contact",
+        "contexte matériel, logiciel et réseau ; n° d'inventaire, modèle, n° de série recoupés avec l'inventaire et l'étiquette ; appareil sous garantie : ne pas ouvrir, passer par le fabricant ; date d'apparition ; changements récents (mise à jour, déplacement, nettoyage, droits) ; utilisateurs touchés (un poste → le poste, plusieurs → élément commun)",
+        "observation = fait constaté, vérifiable ; hypothèse = cause supposée, à tester, de la plus simple à vérifier à la plus lourde ; une observation peut contredire une hypothèse",
+        "panne reproductible = à chaque essai dans les mêmes conditions ; panne intermittente = de temps en temps : journal (date, heure, message, tâche en cours), critère de réussite sur une durée, jamais un seul essai",
+        "impact = étendue (élevé : entreprise, service, serveur, clients externes ; moyen : plusieurs personnes ou poste indispensable ; faible : une personne avec contournement) ; urgence = délai avant dommage (élevée : arrêt ou échéance dans l'heure ; moyenne : dégradé, échéance du jour ; faible : gêne)",
+        "matrice du cours (1 = élevé) : 1+1 → P1 critique (immédiat, 30 min) ; 1+2 → P2 haute (2 h) ; 1+3 ou 2+2 → P3 normale (journée) ; au-delà → P4 basse (planifiée, 5 jours ouvrables) ; contournement baisse l'impact, échéance monte l'urgence ; convention, la procédure de l'entreprise fait foi",
+        "sauvegarde avant toute action risquée ; disque qui claque sans copie : arrêter, spécialiste en récupération ; consentement écrit ; confidentialité : ne consulter ni copier que le nécessaire, copie effacée après restitution, jamais le mot de passe d'autrui ; risques annoncés ; autorisation précise par une personne qui en a le droit",
+        "entretien : accueillir, écouter, questions ouvertes puis fermées, sans jargon, sans accuser, sans orienter ; reformulation (quoi, depuis quand, fréquence, qui, enjeu) validée : « si je résume bien… »",
+        "fiche d'incident en six sections (demande ; équipement et contexte ; symptômes ; qualification ; données, risques et autorisation ; plan et suite), rubriques obligatoires ; vocabulaire exact ; grille sur 20 (identification 2, symptômes 3, contexte 2, fréquence 2, priorité 3, données 3, critères 2, plan 2, escalade 1 ; acquis, partiel = moitié, absent)",
+        "critère de réussite = test devant le client + résultat attendu, chiffré si possible ; plan : protéger d'abord, simple avant lourd, contrôle final, plan B ; estimation du cours : somme des tâches + 25 %, arrondie au quart d'heure supérieur ; prévenir avant de dépasser",
+        "escalade, au premier contrôle en échec : sécurité (isoler, ne rien effacer) → autorisation (responsable) → données (sauvegarder, spécialiste) → compétence (niveau 2, fabricant, prestataire) → budget (nouvelle estimation) ; fiche d'escalade : faits, tests faits, hypothèses, à ne pas faire, urgence, contact ; suivi",
+    ],
+    competencies=[
+        "Transformer une demande en fiche d'incident complète, faits séparés des hypothèses",
+        "Évaluer impact et urgence et justifier une priorité",
+        "Protéger les données, obtenir l'autorisation, rédiger critères, plan, estimation et escalade",
+    ],
+    vocabulary=[
+        "demande", "incident", "ticket", "symptôme", "hypothèse", "observation", "panne reproductible",
+        "panne intermittente", "impact", "urgence", "priorité", "contournement", "inventaire", "garantie",
+        "sauvegarde", "consentement", "confidentialité", "autorisation", "reformulation", "critère de réussite",
+        "plan d'action", "estimation", "escalade", "clôture",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "justes, sans exiger de mot-clé ni la reprise exacte du corrigé ; accepter une autre "
+        "qualification si elle est justifiée par l'impact et l'urgence de l'énoncé (à un niveau "
+        "près quand l'énoncé laisse une marge), d'autres questions ou critères équivalents, un "
+        "autre destinataire d'escalade pertinent ; valoriser les faits séparés des hypothèses, la "
+        "protection des données, l'autorisation et les critères vérifiables ; suivre le barème de "
+        "la question. Ne jamais valider : un avis du client recopié comme symptôme, une action "
+        "risquée sans sauvegarde ni accord, la consultation de données personnelles non "
+        "nécessaires, la communication du mot de passe d'une autre personne, l'élargissement de "
+        "droits « pour tester », une manipulation d'un disque qui claque sans copie, un critère "
+        "vague (« le PC marche »), une panne intermittente déclarée réparée sur un seul essai."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1589,6 +1639,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Wi-Fi : configuration, couverture, sécurité et diagnostic",
         items=PR25_ITEMS,
         context=_PR25_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR26",
+        title="Analyser une demande d'intervention technique",
+        items=PR26_ITEMS,
+        context=_PR26_CONTEXT,
     ),
     PracticalCourse(
         code="EX01",
