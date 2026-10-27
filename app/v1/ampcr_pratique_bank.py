@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -43,6 +43,7 @@ from app.v1.ampcr_pratique_pr09_bank import ALL_ITEMS as PR09_ITEMS
 from app.v1.ampcr_pratique_pr10_bank import ALL_ITEMS as PR10_ITEMS
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.ampcr_pratique_pr12_bank import ALL_ITEMS as PR12_ITEMS
+from app.v1.ampcr_pratique_pr13_bank import ALL_ITEMS as PR13_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
@@ -919,6 +920,53 @@ _PR12_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR13_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr13",
+    course_title="AMPCR pratique écrite — PR13 Câbles UTP, FTP, STP et coaxial — choix et pose",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : choix d'un câble à paires torsadées ou coaxial selon les contraintes, "
+        "blindage et mise à la terre, règles de pose, longueurs, repérage et réception ; lecture "
+        "de marquages de gaine, de relevés de chantier et de fiches techniques fictifs"
+    ),
+    allowed_notions=[
+        "câble 4 paires torsadées, 8 conducteurs (bleu, orange, vert, marron) ; transmission différentielle ; torsade contre les parasites et le rayonnement ; pas de torsade différents contre la diaphonie ; détorsadage ≤ 13 mm ; perturbations électromagnétiques (moteurs, variateurs, néons, câbles d'énergie) ; atténuation selon longueur et fréquence ; catégorie (MHz) différente du débit (Gb/s) ; détails chiffrés en PR14",
+        "désignation ISO/IEC 11801 X/YTP : X = écran global, Y = écran de chaque paire ; U aucun, F feuille, S tresse, SF tresse et feuille ; U/UTP, F/UTP, U/FTP, S/FTP, SF/UTP, S/UTP, F/FTP ; noms historiques : UTP = U/UTP, FTP souvent F/UTP (parfois U/FTP), STP ambigu (S/FTP, S/UTP, F/FTP ; à l'origine IBM type 1 150 Ω), S/STP et PiMF = S/FTP ; faire préciser X/YTP",
+        "écran utile seulement s'il est continu (keystones, panneau, cordons blindés, reprise à 360°) et relié à la terre par la baie (barrette de terre, équipotentialité, électricien) ; écran interrompu ou non relié : inutile, peut capter les parasites, préférer U/UTP ; terres différentes entre bâtiments : fibre ; contrôle de la continuité de l'écran au testeur",
+        "catégories : Cat5e 100 MHz 1 Gb/s sur 100 m ; Cat6 250 MHz, 10 Gb/s sur longueur réduite ; Cat6A 500 MHz 10 Gb/s sur 100 m ; toute la chaîne de la même catégorie ; monobrin (/1) posé et poinçonné, multibrin (/7) pour les cordons, fiches selon le conducteur ; CCA non conforme ; marquage de gaine (catégorie, X/YTP, 4x2xAWG23/1, MHz, LSZH, classe de réaction au feu Dca, repère métrique)",
+        "connectique : fiche 8P8C dite RJ45, prise, keystone poinçonné, panneau de brassage, cordon de brassage, cordon de poste, baie, switch ; lien permanent ≤ 90 m, cordons ≤ 10 m, canal ≤ 100 m ; brochage et sertissage en PR15",
+        "coaxial : âme, diélectrique, blindage (tresse, feuille), gaine ; impédance fixée par la géométrie ; 50 Ω (RG-58 10BASE2, RG-8, radio, mesure, terminateurs 50 Ω, segment 185 m) ; 75 Ω (RG-59 vidéo analogique et SDI avec BNC 75 Ω, RG-6 TV et satellite avec fiches F) ; jamais de mélange (réflexions) ; écrasement par agrafe = impédance modifiée, réflexions ; fabrication BNC en PR16",
+        "choix (convention du cours) : service (Ethernet, vidéo, TV, 10BASE2) → longueur ≤ 100 m sinon fibre (PR17) → perturbations faibles U/UTP, moyennes F/UTP, fortes S/FTP → écran seulement si terre et continuité possibles, sinon U/UTP et séparation renforcée (moyennes) ou fibre (fortes) → catégorie : Cat5e pour 1 Gb/s, Cat6A pour 10 Gb/s ; référence exacte consignée",
+        "pose : EN 50174-2 distance aux câbles d'énergie sans cloison, jusqu'à 3 circuits : classe a 300 mm, b 100 mm, c 50 mm, d 10 mm, classe inconnue 300 mm ; cloison métallique ; croisement à angle droit ; rayon de courbure TIA-568 : 4 × Ø non écranté, 8 × Ø écranté, coaxial selon fabricant (cours : 10 × Ø) ; traction ≤ 110 N ; colliers non serrés ou bandes auto-agrippantes, jamais d'agrafe ; réserve de câble",
+        "repérage : même repère aux deux bouts avant le tirage (cours : baie-panneau-port, B1-P1-07), plan de câblage et tableau de brassage ; réception : tests câblage broche à broche, longueur, performances de la catégorie, continuité de l'écran, résultats consignés et remis au client",
+    ],
+    competencies=[
+        "Décrire et identifier un câble à paires torsadées (torsade, diaphonie, parasites, atténuation, catégorie, désignation X/YTP et noms historiques, conducteur, marquage) et un câble coaxial (structure, 50 ou 75 Ω, usages)",
+        "Choisir et justifier par écrit un câble et sa connectique selon le service, la longueur, les perturbations et la possibilité de mise à la terre",
+        "Poser et contrôler une installation : séparation électrique, rayon de courbure, traction, fixation, longueurs, continuité de l'écran, repérage et tests de réception ; proposer les corrections",
+    ],
+    vocabulary=[
+        "paire torsadée", "diaphonie", "atténuation", "U/UTP", "F/UTP", "U/FTP", "S/FTP", "écran",
+        "tresse", "feuille", "mise à la terre", "catégorie", "monobrin", "multibrin", "8P8C",
+        "keystone", "panneau de brassage", "cordon", "lien permanent", "canal", "coaxial", "âme",
+        "diélectrique", "impédance", "RG-58", "RG-59", "rayon de courbure",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si l'idée est claire ; "
+        "accepter un choix plus exigeant que le minimum s'il est justifié (Cat6 au lieu de Cat5e, "
+        "U/FTP au lieu de F/UTP avec une chaîne blindée reliée à la terre) ; accepter les noms "
+        "historiques s'ils sont précisés ; suivre le barème de la question. Valoriser le choix "
+        "justifié par les contraintes, la règle appliquée avec son calcul et le contrôle. Ne "
+        "jamais valider un lien en paire torsadée au-delà de 100 m de canal ou 90 m de lien "
+        "permanent, un câble écranté sans continuité de l'écran ni mise à la terre présenté comme "
+        "protégé, le mélange de 50 et 75 Ω, un monobrin en cordon ou un multibrin en lien "
+        "permanent, une goulotte partagée avec le 230 V sans distance ni cloison, un rayon de "
+        "courbure ou une traction hors des règles, une fixation à l'agrafe, ni une installation "
+        "sans repérage ni tests."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -988,6 +1036,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Dépannage logiciel et restauration du système",
         items=PR12_ITEMS,
         context=_PR12_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR13",
+        title="Câbles UTP, FTP, STP et coaxial — choix et pose",
+        items=PR13_ITEMS,
+        context=_PR13_CONTEXT,
     ),
     PracticalCourse(
         code="PR15",
