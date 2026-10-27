@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -38,6 +38,7 @@ from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr07_bank import ALL_ITEMS as PR07_ITEMS
 from app.v1.ampcr_pratique_pr08_bank import ALL_ITEMS as PR08_ITEMS
+from app.v1.ampcr_pratique_pr09_bank import ALL_ITEMS as PR09_ITEMS
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
@@ -716,6 +717,57 @@ _PR08_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR09_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr09",
+    course_title="AMPCR pratique écrite — PR09 Installation complète de Linux — préparation et dépannage",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : procédures d'installation de Linux rédigées, lecture de terminaux fictifs "
+        "(sha256sum, lsblk, efibootmgr, /etc/fstab, lspci, ip, df), dépannage écrit et rapport "
+        "d'intervention"
+    ),
+    allowed_notions=[
+        "préparation : demande, accord écrit du propriétaire (un accord oral ne suffit pas), confidentialité, fiche d'inventaire (mémoire, disques, firmware UEFI, démarrage sécurisé, mode du contrôleur AHCI/RAID/Intel RST/VMD, puces Wi-Fi et graphique par lspci -nn, Windows à garder, BitLocker)",
+        "distribution selon l'usage et le matériel, version à support long (LTS) ; Ubuntu LTS, Linux Mint (base Ubuntu LTS, bureau léger Xfce pour un PC ancien), Debian stable, Fedora Workstation (cycle court, Btrfs par défaut), Pop!_OS (systemd-boot) ; apt (Debian, Ubuntu, Mint) et dnf (Fedora)",
+        "image ISO du site officiel ; sha256sum -c SHA256SUMS --ignore-missing → OK (FAILED : supprimer et retélécharger ; la taille ne prouve rien) ; Get-FileHash sous Windows ; signature GPG",
+        "clé USB ≥ 8 Go effacée ; balenaEtcher, Rufus (GPT/UEFI) ou sudo dd if=image.iso of=/dev/sdX bs=4M status=progress oflag=sync sur le disque entier (pas sdX1), cible identifiée par lsblk -d (taille, transport usb) ; dd n'avertit pas",
+        "firmware UEFI, démarrage sécurisé laissé actif (shim signé ; mokutil --sb-state) ; pilote compilé (NVIDIA, DKMS) signé par une clé MOK à enrôler (« Perform MOK management » → « Enroll MOK », update-secureboot-policy --enroll-key sous Ubuntu) ; menu de démarrage, entrée « UEFI: » ; session live pour tester Wi-Fi, écran, son, disques avant d'installer",
+        "double démarrage : sauvegarde vérifiée, clé de récupération BitLocker relevée, démarrage rapide de Windows désactivé, C: réduite depuis Windows (Gestion des disques), clé démarrée en UEFI comme Windows ; ESP de Windows réutilisée sur /boot/efi sans formatage ; MSR, Windows, WinRE et données non touchés ; Linux dans l'espace libre ; jamais « Effacer le disque » ; récapitulatif relu",
+        "partitions en GPT : ESP FAT32 ≈ 300 Mo-1 Go sur /boot/efi, racine / ext4 (≥ 25 Go), /home facultative (conservée lors d'une réinstallation, sans formatage), swap partition ou fichier (/swap.img) selon la mémoire et l'hibernation (repère Red Hat : ≤ 2 Go → 2× ; 2-8 Go → = mémoire ; 8-64 Go → au moins 4 Go ; hibernation → plus grand) ; points de montage",
+        "/etc/fstab : partitions désignées par UUID (lsblk -f, blkid) plutôt que /dev/sdX ; reformater change l'UUID ; copie avant modification, findmnt --verify, mount -a, systemctl daemon-reload ; option nofail pour un disque de données ; mode d'urgence « You are in emergency mode » (journalctl -xb) ; root verrouillé sous Ubuntu → session live",
+        "chargeur : GRUB (Ubuntu, Debian, Mint, Fedora ; EFI/ubuntu/shimx64.efi, grubx64.efi ; update-grub), systemd-boot ; entrées UEFI et ordre : efibootmgr, sudo efibootmgr -o ; PC qui démarre directement sous Windows = ordre des entrées ; grub rescue (renvoi PR11)",
+        "comptes : premier compte membre du groupe sudo (wheel sous Fedora ; Debian avec mot de passe root : pas dans sudo), root sans mot de passe sous Ubuntu, sudo usermod -aG sudo nom puis reconnexion, groups, sudo -l ; compte standard au quotidien ; pas de session root ni de mot de passe partagé",
+        "réseau : NetworkManager, ip a (NO-CARRIER = pas de lien), ip route, ping de la passerelle puis d'un nom ; mises à jour sudo apt update puis sudo apt upgrade, sudo dnf upgrade, autoremove, clean ; dépôts de la distribution, jamais de paquet d'un site inconnu",
+        "pilotes : la plupart dans le noyau ; lspci -nnk « Kernel driver in use » ; Broadcom BCM4360 [14e4:43a0] → pilote STA wl (bcmwl-kernel-source) ; NVIDIA ; « Pilotes additionnels », ubuntu-drivers ; câble Ethernet ou partage de connexion USB pour télécharger",
+        "services systemd : systemctl status, sudo systemctl enable --now, systemctl --failed (0 loaded units listed) ; n'activer que les services demandés",
+        "dépannage : disque non vu (firmware le voit ? Intel RST/RAID → AHCI si Windows à supprimer, sinon préparer Windows d'abord : INACCESSIBLE_BOOT_DEVICE) ; permissions (ls -l, propriétaire root après sudo cp → sudo chown -R utilisateur:utilisateur ; jamais chmod -R 777) ; espace (df -h, df -i, du -sh, sudo apt clean, journalctl --vacuum-size, apt autoremove ; ext4 réserve ≈ 5 % à root ; jamais de suppression dans /usr) ",
+        "liste de contrôle (os-release, efibootmgr et redémarrages, mokutil --sb-state, lsblk -f et findmnt --verify, df -h, mises à jour, lspci -k, ip a et ping, systemctl --failed, groups, données avec le client) et rapport d'intervention en rubriques (demande et accord, poste, sauvegarde, actions, contrôles, remise, recommandations, signatures), sans mot de passe",
+    ],
+    competencies=[
+        "Rédiger la préparation et le déroulement complet d'une installation de Linux, seul ou en double démarrage, de l'inventaire à la validation",
+        "Lire des sorties de terminal d'une installation (sha256sum, lsblk, efibootmgr, fstab, lspci, ip, df) et dépanner par écrit disque, chargeur, fstab/UUID, réseau, permissions et espace disque",
+        "Protéger les données du client et rédiger une liste de contrôle et un rapport d'intervention",
+    ],
+    vocabulary=[
+        "distribution", "LTS", "ISO", "SHA-256", "session live", "UEFI", "Secure Boot", "shim", "MOK", "GPT", "ESP",
+        "ext4", "swap", "/home", "point de montage", "fstab", "UUID", "GRUB", "systemd-boot", "efibootmgr", "sudo",
+        "apt", "dnf", "lspci", "NetworkManager", "systemctl", "double démarrage", "BitLocker",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si le geste est clair ; "
+        "accepter une autre distribution ou un autre outil équivalent bien justifié (Etcher, Rufus "
+        "ou dd ; apt ou dnf selon la distribution) ; suivre le barème de la question. Ne jamais "
+        "valider un effacement sans sauvegarde vérifiée ni accord écrit, une image non contrôlée "
+        "ou non officielle, un dd vers un disque non identifié, le formatage de l'ESP de Windows "
+        "ou « Effacer le disque » dans un double démarrage, la désactivation du démarrage sécurisé "
+        "pour contourner un pilote, une réinstallation pour un simple ordre de démarrage, la "
+        "suppression d'une ligne de fstab sans comprendre ou sans copie, chmod -R 777, une "
+        "session root ou sudo donné à tous, la suppression de fichiers de /usr pour faire de la "
+        "place, ni un pilote ou paquet d'un site inconnu."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -761,6 +813,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Installation complète de Windows — préparation et dépannage",
         items=PR08_ITEMS,
         context=_PR08_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR09",
+        title="Installation complète de Linux — préparation et dépannage",
+        items=PR09_ITEMS,
+        context=_PR09_CONTEXT,
     ),
     PracticalCourse(
         code="PR11",
