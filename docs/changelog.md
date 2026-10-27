@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR23 « Partage de dossiers, imprimantes et permissions » (ticket #223)
+
+Cours PR23 du parcours pratique, vingt-troisième dans l'ordre pédagogique (UAA PR23 du module
+`AMPCR-PRATIQUE`, position 23, après PR22, avant PR24, 16 blocs) : partages SMB et chemins UNC ;
+profil réseau, découverte, pare-feu et authentification ; permissions de partage et NTFS ;
+combinaison effective, héritage et groupes ; Linux Samba, rwx et ACL ; imprimantes partagées
+(file d'attente, pilotes, hôte) ; diagnostics « ping OK mais accès refusé », nom introuvable,
+droits insuffisants, imprimante hors connexion ; protection des données et moindre privilège ;
+3 procédures, 12 figures SVG + 4 schémas à compléter (fichiers statiques
+`app/static/img/ampcr-pratique/pr23-*.svg`) ; 5 cas résolus, 20 exercices, mini-examen
+10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr23_*.py`,
+`tests/test_ticket223_ampcr_pratique_pr23.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR22 « Domaine, groupe de travail, comptes et groupes » (ticket #222)
 
 Cours PR22 du parcours pratique, vingt-deuxième dans l'ordre pédagogique (UAA PR22 du module
