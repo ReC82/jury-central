@@ -2,6 +2,16 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : examen blanc EX04 « réseau, configuration et dépannage » (ticket #233)
+
+Quatrième examen blanc du parcours pratique (UAA EX04 du module `AMPCR-PRATIQUE`, après PR25, 7
+blocs), même modèle que EX01–EX03 : 10 questions /100 à réponse libre — plan de réseau (topologie,
+couches, domaines, trames, NetBEUI), calculs IPv4/CIDR et MAC, connexion directe, plan d'adressage
+d'un mini-réseau, DNS contre connectivité IP, route manquante et DHCP épuisé, panne Internet et
+rapport, Wi-Fi (sécurité, canal, répéteur), partages et NTFS, imprimante et SMB ; 3 schémas sans
+verdict ; aucune génération IA (`app/v1/ampcr_pratique_ex04_*.py`,
+`tests/test_ticket233_ampcr_pratique_ex04.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR25 « Wi-Fi : configuration, couverture, sécurité et diagnostic » (ticket #224)
 
 Cours PR25 du parcours pratique, vingt-cinquième dans l'ordre pédagogique (UAA PR25 du module

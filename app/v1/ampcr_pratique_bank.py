@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -29,6 +29,7 @@ from app.v1 import question_types  # noqa: F401 — enregistre les types (#40) a
 from app.v1.ampcr_pratique_ex01_bank import ALL_ITEMS as EX01_ITEMS
 from app.v1.ampcr_pratique_ex02_bank import ALL_ITEMS as EX02_ITEMS
 from app.v1.ampcr_pratique_ex03_bank import ALL_ITEMS as EX03_ITEMS
+from app.v1.ampcr_pratique_ex04_bank import ALL_ITEMS as EX04_ITEMS
 from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
@@ -723,6 +724,51 @@ _EX03_CONTEXT = PedagogicalContext(
         "test en échec, des cordons raccourcis pour « rattraper » un lien permanent trop long, du "
         "cuivre entre deux bâtiments, le mélange UPC/APC ou multimode/monomode, et le fait de "
         "regarder une fibre ou un module."
+    ),
+)
+
+# Ticket #233 : EX04, examen blanc du module 4 (PR18 → PR25) — notions de ces huit cours.
+_EX04_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-ex04",
+    course_title="AMPCR pratique écrite — EX04 Examen blanc écrit : réseau, configuration et dépannage",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : examen blanc /100 du module réseau, réponses rédigées de technicien à partir "
+        "de dossiers fictifs (plan de réseau, configurations, relevés ipconfig, ip addr, ip route, "
+        "ping, tracert, nslookup, journal DHCP, fiche d'un point d'accès, mesures Wi-Fi, "
+        "autorisations de partage et NTFS)"
+    ),
+    allowed_notions=[
+        "topologies bus, étoile, étoile étendue, anneau, maillage ; hub = support partagé (couche 1), switch = couche 2 (table MAC, un domaine de collision par port), routeur = couche 3 (un domaine de diffusion par interface) ; modem, passerelle, point d'accès",
+        "modèle OSI (7 couches) et TCP/IP (application, transport, Internet, accès réseau) ; trame vers un autre réseau adressée à la MAC de la passerelle, IP de destination inchangée ; NetBEUI non routable (nom NetBIOS, pas d'adresse réseau), remplacé par TCP/IP",
+        "IPv4 : préfixe et masque, réseau, diffusion, plage et nombre d'hôtes (2^(32 − préfixe) − 2), taille de bloc ou ET binaire ; adresses privées RFC 1918 (10/8, 172.16/12, 192.168/16), APIPA 169.254/16, bouclage 127/8 ; MAC 48 bits, bit I/G (groupe) et U/L (administrée localement) du premier octet",
+        "connexion directe : droit ou croisé, Auto MDI-X (un seul port suffit), même réseau et même masque, passerelle et DNS inutiles ; ping : délai dépassé (pare-feu, réponse impossible), impossible de joindre l'hôte (personne à cette adresse), défaillance générale ou Network is unreachable (aucune route)",
+        "mini-réseau : box = routeur, NAT, pare-feu, DHCP, relais DNS ; switch ; plan d'adressage (passerelle et DNS de la box, même masque, pas de doublon, adresses fixes hors de l'étendue DHCP) ; validation par ipconfig, ping, nslookup, impression",
+        "dépannage de bas en haut : lien, adresse, passerelle, Internet par adresse IP, puis nom (DNS) ; un ping d'adresse IP réussi et un nom introuvable = panne DNS, pas de connectivité ; route par défaut manquante ; APIPA et étendue DHCP épuisée (no address available) ; tracert arrêté à la box et box non synchronisée = liaison du fournisseur",
+        "rapport d'intervention : client, date, demande, constats chiffrés, diagnostic, actions, état final, recommandations",
+        "Wi-Fi : WPA3 ou WPA2/WPA3 en AES-CCMP (WEP et WPA/TKIP à refuser), clé longue sans nom, WPS désactivé, mot de passe d'administration et micrologiciel, SSID diffusé, invités isolés ; canaux 1, 6, 11 en 20 MHz, voisin fort ≥ −80 dBm à moins de 5 canaux ; dBm ≈ % ÷ 2 − 100 ; répéteur à une radio : plus faible des deux liens divisé par deux, à placer où il reçoit −67 dBm ou mieux ; point d'accès câblé préférable",
+        "partages : accès effectif par le réseau = le plus restrictif du partage et de NTFS, en local NTFS seul ; autorisations des groupes cumulées, refus explicite prioritaire, héritage désactivable ; groupes plutôt que comptes ; chemin UNC, net use, lecteur réseau ; imprimante réseau à adresse fixe hors étendue ou réservation, port TCP/IP, imprimante partagée par le serveur ; erreur 53 (chemin introuvable) contre erreur 5 (accès refusé), test du port 445",
+    ],
+    competencies=[
+        "Lire un plan et des relevés réseau, calculer un adressage IPv4 et identifier des adresses MAC et IP",
+        "Configurer une connexion directe, un mini-réseau et un point d'accès Wi-Fi sécurisé, et mettre en partage dossiers et imprimantes avec des droits justes",
+        "Diagnostiquer une panne d'accès au réseau ou à Internet dans l'ordre, la corriger durablement et rédiger le rapport",
+    ],
+    vocabulary=[
+        "étoile étendue", "domaine de collision", "domaine de diffusion", "passerelle", "CIDR",
+        "adresse de diffusion", "APIPA", "Auto MDI-X", "étendue DHCP", "route par défaut",
+        "résolution DNS", "nslookup", "tracert", "WPA3", "AES-CCMP", "répéteur", "NTFS", "UNC",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien dans un examen blanc /100 (10 points par "
+        "question) : accepter toute formulation, toute méthode (calcul binaire ou par taille de "
+        "bloc, écran ou commande) et tout ordre techniquement justes, sans exiger de mot-clé ni de "
+        "libellé exact ; toute adresse valide qui respecte les conventions du dossier est "
+        "acceptée ; suivre le barème de la question et noter en proportion. Pénaliser un calcul "
+        "d'adresse faux, la confusion d'une panne de connectivité IP et d'une panne DNS, une "
+        "adresse fixe placée dans l'étendue DHCP, une correction qui casse autre chose (box "
+        "réinitialisée, droits ouverts à tous), un Wi-Fi laissé en WEP ou WPA/TKIP, et la "
+        "confusion entre autorisations de partage et NTFS."
     ),
 )
 
@@ -1561,6 +1607,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Examen blanc écrit — câblage RJ45, BNC et fibre",
         items=EX03_ITEMS,
         context=_EX03_CONTEXT,
+    ),
+    PracticalCourse(
+        code="EX04",
+        title="Examen blanc écrit — réseau, configuration et dépannage",
+        items=EX04_ITEMS,
+        context=_EX04_CONTEXT,
     ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}
