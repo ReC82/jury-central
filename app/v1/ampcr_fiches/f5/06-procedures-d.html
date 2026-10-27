@@ -1,0 +1,127 @@
+<section class="fx-sec" id="f5-proc-d">
+<h2>3D. Procédures — Diagnostiquer avec méthode, clôturer, faire valider</h2>
+
+<article class="fx-proc" id="f5-procedure">
+<h3>P5.13 — Le sujet demande : « Rédige et justifie ta procédure de diagnostic »</h3>
+<p class="fx-sev">Fréquence : très fréquent (cœur de l'épreuve écrite) · Gravité : forte en points (méthode notée)</p>
+<h4>1. Symptômes observables</h4><ul><li>Consignes du type : « Décris dans l'ordre les vérifications », « Justifie chaque étape », « Quelle est la cause la plus probable et comment le prouves-tu ? », « Remets ces étapes dans l'ordre ».</li></ul>
+<h4>2. Causes possibles (erreurs de méthode classées)</h4><ol><li>Liste d'actions sans résultat attendu ni interprétation.</li><li>Ordre illogique : geste lourd ou destructif avant les vérifications simples.</li><li>Conclusion sur un seul symptôme non spécifique (« écran noir → carte graphique HS »).</li><li>Plusieurs variables changées à la fois (impossible de savoir laquelle a corrigé).</li><li>Pas de branche « si le test ne conclut pas ».</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Quelles sont les <strong>observations</strong> données par le sujet (à recopier comme faits) ?</li><li>Quelles hypothèses sont compatibles avec <strong>toutes</strong> les observations ?</li><li>Quel test sépare le mieux ces hypothèses, au moindre risque et au moindre coût ?</li></ul>
+<h4>4. Diagnostic pas à pas (règles d'ordre)</h4>
+<ol class="fx-steps">
+<li><strong>Observer et noter</strong> l'état initial (messages, voyants, sorties de commandes). <div class="fx-branch"><p class="fx-si"><b>SI</b> l'observation suffit à écarter une hypothèse → l'écrire (« le ventilateur tourne : l'alimentation délivre du courant »).</p><p class="fx-sinon"><b>SINON</b> → lister les hypothèses.</p></div></li>
+<li><strong>Classer les hypothèses</strong> : probabilité (changement récent, panne fréquente) puis coût du test (simple, non destructif, réversible d'abord). <div class="fx-branch"><p class="fx-si"><b>SI</b> deux hypothèses ont le même coût → tester d'abord la plus probable.</p><p class="fx-sinon"><b>SINON</b> → test le moins invasif d'abord.</p></div></li>
+<li><strong>Choisir un test discriminant</strong> : un test dont le résultat est <em>différent</em> selon que l'hypothèse est vraie ou fausse. Écrire le résultat attendu <em>avant</em> de faire le test. <div class="fx-branch"><p class="fx-si"><b>SI</b> le résultat confirme → hypothèse retenue, passer à la correction.</p><p class="fx-sinon"><b>SINON</b> → hypothèse écartée (le noter), hypothèse suivante.</p></div></li>
+<li><strong>Une seule variable à la fois</strong> ; procéder par couches (physique → configuration → service → application) ou par isolation (substitution par un élément connu bon, test croisé sur un autre poste). <div class="fx-branch"><p class="fx-si"><b>SI</b> la panne suit l'élément déplacé → l'élément est en cause.</p><p class="fx-sinon"><b>SINON</b> → la panne est liée à l'emplacement / l'environnement.</p></div></li>
+<li><strong>Test non concluant</strong> : le dire, chercher un test plus fin ou escalader. <div class="fx-branch"><p class="fx-si"><b>SI</b> toutes les hypothèses de ton niveau sont écartées → escalade avec la liste des tests (<a href="#f5-escalade">P5.9</a>).</p><p class="fx-sinon"><b>SINON</b> → hypothèse suivante.</p></div></li>
+</ol>
+<pre class="fx-diagram">
+ OBSERVATIONS (faits)
+      |
+ HYPOTHÈSES classées (probable + test léger d'abord)
+      |
+ H1 -> TEST discriminant -> attendu si H1 vraie : X
+      |
+   résultat = X ?  --oui--> cause confirmée -> correction
+      |                                     -> validation
+     non
+      |
+ H1 écartée (écrite) -> H2 -> ...
+      |
+ plus d'hypothèse de mon niveau -> ESCALADE + dossier
+</pre>
+<h4>5. Test de confirmation</h4><p>La cause est <strong>confirmée</strong> quand : 1) un test discriminant l'a désignée, et 2) la correction ciblée fait disparaître le symptôme, et 3) le retour en arrière (si sans risque) le fait réapparaître ou, à défaut, la validation tient dans la durée. Limites à citer : faux positif (le test « réussit » pour une autre raison), test négatif qui n'écarte qu'une partie (ping OK n'exclut pas un problème DNS).</p>
+<h4>6. Correction (forme de la réponse)</h4>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>N°</th><th>Hypothèse</th><th>Test discriminant</th><th>Attendu si vraie</th><th>Résultat</th><th>Conclusion / suite</th></tr></thead><tbody>
+<tr><td>1</td><td>Câble réseau débranché / abîmé</td><td>Voyant de lien sur la carte et le switch ; autre câble connu bon</td><td>Pas de voyant ; voyant revient avec l'autre câble</td><td>Voyant allumé</td><td>H1 écartée → H2</td></tr>
+<tr><td>2</td><td>Pas de bail DHCP</td><td>ipconfig /all</td><td>Adresse 169.254.x.x</td><td>169.254.12.7</td><td>H2 confirmée → vérifier le serveur DHCP / le port (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-dhcp">→ Fiche 4 · DHCP</a>)</td></tr>
+</tbody></table></div>
+<p>Modèle complet rédigé : <a href="#f5-modele-procedure">procédure de diagnostic justifiée</a>.</p>
+<h4>7. Validation</h4><ul><li>Chaque étape a : action, attendu, résultat, interprétation, suite ; la conclusion cite le test qui la prouve ; la validation reprend le symptôme initial.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Observations : écran noir, ventilateurs qui tournent, aucun bip, voyant de l'écran orange. Hypothèses classées : 1) écran sur la mauvaise entrée ou câble vidéo (simple, fréquent) ; 2) câble branché sur la sortie de la carte mère alors qu'une carte graphique est présente ; 3) RAM mal insérée ; 4) carte graphique défectueuse. Test 1 : vérifier la source de l'écran et le câble, essayer un câble connu bon — si image, H1 confirmée. Sinon test 2 : brancher sur la sortie de la carte graphique — si image, H2 confirmée. Sinon test 3 (consignation et ESD) : réinsérer la RAM, une barrette à la fois. Sinon test 4 : carte graphique de test connue bonne ; seule une image obtenue avec elle met la carte d'origine en cause. »</p><p>(Les gestes de chaque hypothèse matérielle : <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-post">→ Fiche 1 · POST et affichage</a>.) La méthode notée : faits → hypothèses classées → test discriminant avec attendu → conclusion → correction → validation.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> « je change la carte graphique » en premier ; pas de résultat attendu ; changer RAM + câble + écran en même temps ; « ça remarche donc c'était ça » sans test.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> « Moins invasif d'abord » n'est pas « le moins probable d'abord » : un test très léger mais inutile (redémarrer 5 fois) ne vaut rien s'il ne discrimine pas.</div><div class="fx-trap"><b>Piège</b> Conserver les preuves avant correction (message exact, capture, journal) : après un redémarrage, elles peuvent disparaître.</div><ul><li>Variante : exercice « remets ces étapes dans l'ordre » → appliquer : sécurité / sauvegarde → observation → simple et réversible → isolation → invasif → correction → validation → rapport.</li></ul>
+</article>
+
+<article class="fx-proc" id="f5-intermittent">
+<h3>P5.14 — Panne non reproductible devant le technicien (intermittente)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne à élevée (clôtures abusives, retours répétés)</p>
+<h4>1. Symptômes observables</h4><ul><li>« Ça arrive de temps en temps », « pas aujourd'hui évidemment » ; coupures réseau aléatoires, redémarrages occasionnels, gels.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Condition déclenchante non identifiée : chaleur, charge (export, jeu, compilation), heure (sauvegarde planifiée, mise à jour), appareil voisin (micro-ondes et Wi-Fi 2,4 GHz), mouvement d'un câble.</li><li>Composant en limite (alimentation, RAM, connecteur oxydé, câble abîmé).</li><li>Logiciel / pilote qui plante dans un cas précis.</li><li>Erreur d'usage (mauvaise manipulation récurrente).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>« Dernière fois : date, heure, ce que vous faisiez, message ? », « Combien de fois cette semaine ? », « Les collègues aussi, au même moment ? »</li><li>Données exposées si la panne survient (fichiers ouverts non enregistrés) → conseiller des enregistrements fréquents.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Mettre en place un journal d'incidents</strong> chez l'utilisateur (date, heure, activité, message, autres personnes). <div class="fx-branch"><p class="fx-si"><b>SI</b> une corrélation apparaît (toujours en fin de journée, toujours pendant un export) → étape 3.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Consulter les journaux du système</strong> aux heures signalées (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-commandes">→ Fiche 2 · Journaux et commandes</a>). <div class="fx-branch"><p class="fx-si"><b>SI</b> événement récurrent (arrêt inattendu, erreur de pilote) → hypothèse ciblée.</p><p class="fx-sinon"><b>SINON</b> → étape 3 avec test de charge prolongé.</p></div></li>
+<li><strong>Provoquer la condition</strong> : test de charge long avec relevé des températures, câble manipulé pendant un ping continu, réseau observé à l'heure suspecte. <div class="fx-branch"><p class="fx-si"><b>SI</b> la panne apparaît → panne devenue reproductible : diagnostic normal (<a href="#f5-procedure">P5.13</a>).</p><p class="fx-sinon"><b>SINON</b> → substitution ciblée d'un élément suspect (avec accord) et période d'observation.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Après correction, absence d'incident pendant une durée nettement supérieure à l'intervalle habituel entre deux pannes (ex. pannes tous les 2 jours → observation 5 à 10 jours ouvrables). Limite : un essai réussi devant le technicien ne prouve rien.</p>
+<h4>6. Correction</h4><ol><li>Corriger la cause corrélée seulement (une variable à la fois).</li><li>Ticket en « résolu — en observation » avec date de revue.</li></ol>
+<h4>7. Validation</h4><ul><li>Journal sans incident sur la période, confirmé par l'utilisateur ; clôture définitive ensuite.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« La panne n'apparaît pas pendant ma visite : je ne peux pas conclure. Je demande à l'utilisatrice de noter chaque coupure (heure, activité, message). Le journal de 5 jours montre 4 redémarrages, tous pendant des exports vidéo de plus de 20 minutes. Hypothèse : surchauffe sous charge. Test : export de 30 minutes avec relevé des températures ; le processeur atteint 98 °C et le PC s'éteint : panne reproduite. Après nettoyage (accord, consignation, ESD), même test : 72 °C maximum, pas d'arrêt. Ticket en observation 10 jours ouvrables avant clôture. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> « aucun problème constaté » et clôture ; remplacer plusieurs pièces au hasard ; clôturer après un seul essai réussi.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Deux causes intermittentes superposées (câble abîmé + Wi-Fi perturbé sur un portable qui alterne les deux) : séparer les incidents selon le type de connexion dans le journal.</div>
+</article>
+
+<article class="fx-proc" id="f5-rollback">
+<h3>P5.15 — La correction aggrave la situation : retour arrière (rollback)</h3>
+<p class="fx-sev">Fréquence : occasionnel · Gravité : élevée</p>
+<h4>1. Symptômes observables</h4><ul><li>Après mise à jour du pilote, d'un logiciel ou d'un réglage : nouveau problème, ou problème initial plus grave ; utilisateur : « c'était mieux avant ».</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Pilote / version incompatible.</li><li>Réglage modifié sans noter la valeur initiale.</li><li>Plusieurs changements simultanés.</li><li>Cause initiale mal identifiée (correction sans rapport).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>L'état initial est-il documenté (valeurs, versions, captures) ? Un point de restauration / une copie de configuration existe-t-il ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Relire le journal des opérations</strong> : dernier changement fait. <div class="fx-branch"><p class="fx-si"><b>SI</b> le problème est apparu juste après → annuler ce changement seul.</p><p class="fx-sinon"><b>SINON</b> → reprendre le diagnostic depuis l'état actuel.</p></div></li>
+<li><strong>Annuler</strong> : pilote précédent (Gestionnaire de périphériques → Propriétés → Pilote → « Restaurer le pilote »), désinstallation de la mise à jour, valeur initiale du réglage, point de restauration (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-restauration">→ Fiche 2 · Restauration</a>). <div class="fx-branch"><p class="fx-si"><b>SI</b> l'état initial revient → le changement était en cause ; chercher une autre correction.</p><p class="fx-sinon"><b>SINON</b> → escalade avec journal complet.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Retour exact des observations de départ (même comportement qu'avant l'intervention).</p>
+<h4>6. Correction</h4><p class="fx-warn"><b>Attention</b> Avant toute modification : noter la valeur ou la version initiale et créer un point de restauration ou une copie de configuration. Un changement non noté n'est pas réversible proprement.</p>
+<h4>7. Validation</h4><ul><li>État stable confirmé ; journal : changement, effet, retour arrière, décision.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Après installation du pilote 31.0 de la carte graphique, l'écran clignote. J'avais noté la version initiale (30.4) et créé un point de restauration. Je restaure le pilote précédent : le clignotement disparaît, le défaut initial (application qui se ferme) persiste. Le pilote 31.0 est écarté comme correction ; je reprends le diagnostic de l'application et je note tout dans le journal. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> enchaîner d'autres changements par-dessus ; ne pas avoir noté l'état initial.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Une correction qui « marche » en introduisant une régression ailleurs (imprimante qui ne fonctionne plus après mise à jour) : les tests de non-régression font partie de la validation.</div>
+</article>
+
+<article class="fx-proc" id="f5-validation">
+<h3>P5.16 — Faire valider par l'utilisateur ; validation refusée ou partielle</h3>
+<p class="fx-sev">Fréquence : très fréquent (toute clôture) · Gravité : moyenne</p>
+<h4>1. Symptômes observables</h4><ul><li>Fin d'intervention ; l'utilisateur dit « ce n'est pas réglé », ou refuse de signer, ou n'est pas présent.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Critère de réussite non fixé au départ (attentes différentes).</li><li>Problème réel persistant ou seconde panne non traitée.</li><li>Régression introduite (P5.15).</li><li>Nouvelle demande mêlée à l'ancienne.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>« Que constatez-vous exactement ? » ; comparer au critère de réussite écrit sur la fiche.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Refaire les tests de validation devant l'utilisateur</strong>, avec ses propres tâches (son fichier, son imprimante, son logiciel). <div class="fx-branch"><p class="fx-si"><b>SI</b> un test échoue → reprise du diagnostic, ticket rouvert.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Comparer à la demande initiale</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> l'attente porte sur autre chose → nouveau ticket, l'actuel est validé.</p><p class="fx-sinon"><b>SINON</b> → PV signé.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le PV liste chaque critère de réussite avec résultat OK/KO constaté par l'utilisateur.</p>
+<h4>6. Correction</h4><ul><li>Réserves écrites sur le PV si désaccord ; clôture partielle ou ticket laissé ouvert.</li><li>Utilisateur absent : validation par le responsable ou par courriel, ou clôture automatique après délai annoncé (selon la procédure de l'entreprise).</li><li>Modèle : <a href="#f5-modele-pv">PV de validation</a>.</li></ul>
+<h4>7. Validation</h4><ul><li>PV signé (ou réserves), ticket mis à jour, rapport remis.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Je refais avec M. Lambert les trois tests convenus : impression de sa facture sur l'imprimante du service (OK), impression recto verso (OK), impression depuis le logiciel de facturation (OK). Il signale aussi que le scanner ne fonctionne pas depuis un mois : ce n'est pas la demande initiale, j'ouvre un nouveau ticket P4. Il signe le PV pour l'impression. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> clôturer sans validation ; valider sur ses propres tests seulement ; traiter la nouvelle demande sans ticket.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> La validation n'est pas une formalité : utiliser les tâches réelles de l'utilisateur, pas une page de test générique seulement.</div>
+</article>
+
+<article class="fx-proc" id="f5-fin-vie">
+<h3>P5.17 — Appareil irréparable ou non rentable : remplacement, effacement des données, déchet</h3>
+<p class="fx-sev">Fréquence : occasionnel · Gravité : élevée (fuite de données, environnement)</p>
+<h4>1. Symptômes observables</h4><ul><li>Coût de réparation supérieur à la valeur de l'appareil ; matériel incompatible avec les besoins ou le système à jour ; pièce introuvable.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Usure / obsolescence.</li><li>Dommage physique (chute, liquide).</li><li>Fin de support du système et matériel non compatible avec la version suivante.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Données à migrer ? Licences à transférer ? Le client veut-il récupérer le disque ?</li><li>Données confidentielles → méthode d'effacement et certificat.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Comparer</strong> devis de réparation / remplacement (prix, délai, durée de vie). <div class="fx-branch"><p class="fx-si"><b>SI</b> le client choisit le remplacement → migration des données (P5.5).</p><p class="fx-sinon"><b>SINON</b> → réparation (P5.11).</p></div></li>
+<li><strong>Effacer avant de céder ou recycler</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> le disque est lisible → effacement sécurisé (HDD : réécriture complète ; SSD : effacement sécurisé par l'outil du fabricant ou du BIOS/UEFI).</p><p class="fx-sinon"><b>SINON</b> → destruction physique du support, attestée.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le support effacé ne montre plus aucune partition ni donnée lisible ; certificat d'effacement ou de destruction.</p>
+<h4>6. Correction</h4><p class="fx-warn"><b>Attention</b> Un formatage rapide ou la suppression des fichiers n'efface pas les données (récupérables). Prérequis : migration terminée et vérifiée, accord écrit du propriétaire. Alternative : remettre le disque au client.</p><ul><li>Déchets : filière DEEE (Recupel en Belgique) ; piles et batteries (Bebat) ; jamais à la poubelle ordinaire.</li></ul>
+<h4>7. Validation</h4><ul><li>Nouvel appareil validé par l'utilisateur ; ancien appareil sorti de l'inventaire ; certificat archivé.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« La réparation (carte mère, 280 €) dépasse la valeur du PC de 8 ans. Je propose un remplacement. Après accord écrit, je migre les données (copie vérifiée), je réinstalle les logiciels sous licence, l'utilisateur valide. L'ancien disque est effacé par réécriture complète, puis l'unité part en filière DEEE ; je remets au client l'attestation et je mets l'inventaire à jour. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> « je formate et je jette » ; oublier les licences ; jeter batterie et PC aux ordures.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Sur un SSD, la réécriture classique n'atteint pas toutes les cellules : utiliser l'effacement sécurisé ou un chiffrement intégral préalable, ou la destruction.</div>
+</article>
+</section>
