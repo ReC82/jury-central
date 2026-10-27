@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR15, PR16, PR20, PR24, EX01 et EX02),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR15, PR16, PR20, PR24, EX01 et EX02),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -352,6 +352,21 @@ une mise à jour de pilote et WinRE, sauvegarde vérifiée par SHA-256 et choix 
 d'arrêt) + l'échelle des interventions de PR12 en rappel de méthode ; prérequis, éditions,
 actions sur les partitions, swap, droits, empreintes **calculés par code** avec les règles des
 cours PR07–PR12 (`app/v1/ampcr_pratique_ex02_*.py`).
+
+**Dix-septième cours publié (ticket #216) : PR13 « Câbles UTP, FTP, STP et coaxial — choix et
+pose »** (`/uaa/ampcr-pratique-pr13`), même intégration, treizième cours de l'ordre pédagogique
+(position 13, après EX02 et avant PR15). 16 blocs (9 chapitres : paire torsadée, torsade,
+diaphonie, parasites, atténuation ; désignation X/YTP U/UTP, F/UTP, U/FTP, S/FTP et noms
+historiques ; continuité de l'écran et mise à la terre ; catégories 5e/6/6A, monobrin/multibrin,
+marquage ; 8P8C, prises, cordons, baie ; coaxial 50/75 Ω, 10BASE2 et vidéo ; choix selon les
+contraintes ; règles de pose (EN 50174-2, rayon de courbure, traction, fixation) ; longueurs,
+repérage, tests ; 5 cas de sélection résolus, pièges, exercices, mini-examen, mémo, sources).
+2 procédures illustrées et 9 figures SVG (coupes des quatre blindages dessinées depuis la
+désignation, continuité de l'écran, coupe coaxiale, arbre de choix, chaîne baie → prise,
+distances aux câbles d'énergie, rayons de courbure à l'échelle) ; désignation, règle de choix,
+rayons, distances, longueurs et repères **définis par code**
+(`app/v1/ampcr_pratique_pr13_figures.py`) et contrôlés par les tests. 17 exercices, mini-examen
+10 questions /20 ; aucune image générée.
 
 ## Administration
 

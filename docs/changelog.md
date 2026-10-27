@@ -2,6 +2,17 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR13 « Câbles UTP, FTP, STP et coaxial — choix et pose » (ticket #216)
+
+Dix-septième cours du parcours pratique et treizième dans l'ordre pédagogique (UAA PR13 du module
+`AMPCR-PRATIQUE`, position 13, après EX02, 16 blocs) : 4 paires torsadées, torsade, diaphonie,
+parasites, atténuation, catégorie ; X/YTP (U/UTP, F/UTP, U/FTP, S/FTP) et noms historiques ;
+continuité de l'écran et mise à la terre ; Cat5e/6/6A, monobrin/multibrin, marquage ; 8P8C,
+prises, cordons, baie ; coaxial 50/75 Ω, 10BASE2, vidéo ; règle de choix ; pose (EN 50174-2,
+rayon 4/8 × Ø, 110 N), longueurs, repérage, tests ; 2 procédures, 9 figures SVG ; 5 cas de
+sélection résolus, 17 exercices, mini-examen 10 questions /20 sans génération IA
+(`app/v1/ampcr_pratique_pr13_*.py`, `tests/test_ticket216_ampcr_pratique_pr13.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : examen blanc EX02 « installation et dépannage des systèmes » (ticket #231)
 
 Deuxième examen blanc du parcours pratique (UAA EX02 du module `AMPCR-PRATIQUE`, après PR12, 7
