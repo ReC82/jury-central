@@ -10,6 +10,7 @@ from app.slugify import slugify
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.v1.ampcr_plan import AMPCR_PLAN
 from app.v1.ampcr_pratique_ex01_course import EX01_TITLE, ex01_course_sections
+from app.v1.ampcr_pratique_ex02_course import EX02_TITLE, ex02_course_sections
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_course import PR01_TITLE, pr01_course_sections
 from app.v1.ampcr_pratique_pr02_course import PR02_TITLE, pr02_course_sections
@@ -5020,6 +5021,7 @@ PR09_BLOCKS = _fse_course_blocks(pr09_course_sections())  # ticket #209
 PR10_BLOCKS = _fse_course_blocks(pr10_course_sections())  # ticket #214
 PR12_BLOCKS = _fse_course_blocks(pr12_course_sections())  # ticket #215
 EX01_BLOCKS = _fse_course_blocks(ex01_course_sections())  # ticket #230 (sujet de l'examen blanc)
+EX02_BLOCKS = _fse_course_blocks(ex02_course_sections())  # ticket #231 (sujet de l'examen blanc)
 
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
@@ -5851,6 +5853,9 @@ def seed() -> None:
         _seed_uaa(db, practical_module, "PR09", PR09_TITLE, 9, PR09_BLOCKS, created, kept)  # ticket #209
         _seed_uaa(db, practical_module, "PR10", PR10_TITLE, 10, PR10_BLOCKS, created, kept)  # ticket #214
         _seed_uaa(db, practical_module, "PR12", PR12_TITLE, 12, PR12_BLOCKS, created, kept)  # ticket #215
+        # Ticket #231 : EX02 se place juste après PR12 (même position, créé après lui), comme EX01
+        # après PR06.
+        _seed_uaa(db, practical_module, "EX02", EX02_TITLE, 12, EX02_BLOCKS, created, kept)
 
         # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
         # n'était pas résolvable → nouvelle version (idempotent, sessions existantes

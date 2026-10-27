@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR15, PR16, PR20, PR24 et EX01),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR15, PR16, PR20, PR24, EX01 et EX02),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -338,6 +338,20 @@ interventions, empreintes (calculées par `hashlib`), espace disque et diagnosti
 par code** (`app/v1/ampcr_pratique_pr12_figures.py`) et contrôlés par les tests. 17 exercices,
 mini-examen 10 questions /20. Windows en français, Linux en anglais, libellés datés (octobre
 2026), situations fictives ; aucune image générée.
+
+**Deuxième examen blanc publié (ticket #231) : EX02 « Examen blanc écrit — installation et
+dépannage des systèmes »** (`/uaa/ampcr-pratique-ex02`), juste après PR12 dans le parcours, même
+modèle que EX01 (sujet imprimable sans corrigé, onglets « Sujet » et « Examen blanc », 10
+questions de 10 points à réponse libre, note /100, corrigé et barème après la remise). Partie 1
+(choix du système et de l'édition sur trois postes, GUI/CLI et service `cups` désactivé), dossier
+A bureau d'architectes (installation propre de Windows 11 sur un SSD neuf, pilotes manquants,
+comptes et groupe de travail), dossier B Repair Café (double démarrage Ubuntu, mode d'urgence dû à
+un `/dev/sdb1` dans fstab, permissions et sudo), dossier C agence immobilière (écran d'arrêt après
+une mise à jour de pilote et WinRE, sauvegarde vérifiée par SHA-256 et choix de la restauration).
+3 schémas SVG affichés dans les questions (écran de l'installateur, plan de partitions, écran
+d'arrêt) + l'échelle des interventions de PR12 en rappel de méthode ; prérequis, éditions,
+actions sur les partitions, swap, droits, empreintes **calculés par code** avec les règles des
+cours PR07–PR12 (`app/v1/ampcr_pratique_ex02_*.py`).
 
 ## Administration
 

@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -27,6 +27,7 @@ from app.ai.schemas import PedagogicalContext
 from app.models import UAA, Module
 from app.v1 import question_types  # noqa: F401 — enregistre les types (#40) au chargement
 from app.v1.ampcr_pratique_ex01_bank import ALL_ITEMS as EX01_ITEMS
+from app.v1.ampcr_pratique_ex02_bank import ALL_ITEMS as EX02_ITEMS
 from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
@@ -625,6 +626,51 @@ _EX01_CONTEXT = PedagogicalContext(
     ),
 )
 
+# Ticket #231 : EX02, examen blanc du module 2 (PR07 → PR12) — notions de ces six cours.
+_EX02_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-ex02",
+    course_title="AMPCR pratique écrite — EX02 Examen blanc écrit : installation et dépannage des systèmes",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : examen blanc /100 du module systèmes d'exploitation, réponses rédigées de "
+        "technicien à partir de dossiers fictifs (relevés, écrans d'installation, captures de WinRE "
+        "et du terminal Linux, plans de partitions, journaux)"
+    ),
+    allowed_notions=[
+        "choix d'un système : Windows 11 (prérequis : processeur 64 bits de la liste de compatibilité, 4 Go, 64 Go, firmware UEFI compatible démarrage sécurisé, TPM 2.0), Windows 10 plus pris en charge depuis le 14 octobre 2025, distributions Linux à support long (Ubuntu LTS, Linux Mint, Debian), ChromeOS Flex ; Famille ou Professionnel (BitLocker et sa console, hôte Bureau à distance, jonction à un domaine, Hyper-V, gpedit : Professionnel)",
+        "réglages avant Windows 11 : sauvegarde, mbr2gpt /validate puis /convert AVANT de passer le firmware en UEFI (CSM désactivé), activer le TPM (PTT, fTPM), démarrage sécurisé recommandé ; vérification msinfo32 (Mode BIOS, état du démarrage sécurisé), tpm.msc, Confirm-SecureBootUEFI, Get-Tpm",
+        "outils graphiques et commandes : Gestion des disques, diskpart, Get-Disk, lsblk -f, df -h ; Gestionnaire de périphériques, pnputil, Get-PnpDevice, lspci -k, lsusb ; ipconfig /all, ip a, ip route ; services.msc, sc query, Get-Service, systemctl status, sudo systemctl enable --now",
+        "installation propre de Windows : copie vérifiée du profil, même édition que la licence (licence numérique liée au PC), pilotes réseau sur clé, clé officielle, autres disques débranchés ou intouchés, sélection de l'espace non alloué du disque cible ; partitions créées : ESP FAT32 (≈ 100 Mo), MSR 16 Mo, C: NTFS, récupération NTFS ; UEFI ↔ GPT ; tailles affichées en Gio (1 To ≈ 931,5 Go)",
+        "pilotes : ID du matériel (PCI VEN_10EC Realtek, VEN_10DE NVIDIA, VEN_8086 Intel ; USB VID_04F9 Brother), Code 28 = pas de pilote, carte graphique de base Microsoft = pilote générique ; réseau d'abord (pilote copié depuis un autre PC), Windows Update, site du fabricant, point de restauration ; jamais de site « tous pilotes »",
+        "comptes : groupe de travail sans serveur (comptes locaux par poste), domaine Active Directory avec un contrôleur ; un compte par personne, standard par défaut (Utilisateurs), administrateur nominatif (Administrateurs), moindre privilège ; net user nom * /add, net localgroup Administrateurs nom /add, net user nom /active:no",
+        "double démarrage : copie vérifiée et accord écrit, clé BitLocker relevée, démarrage rapide désactivé, réduction de C: depuis Windows, image contrôlée par sha256sum, entrée UEFI, démarrage sécurisé actif ; ESP réutilisée sans formatage (/boot/efi), partitions Windows intouchées, / ext4 (25 Go au moins), swap (repère : 1 × la mémoire jusqu'à 8 Go sans hibernation, 2 × avec), /home facultatif ; GRUB, efibootmgr",
+        "mode d'urgence systemd : délai dépassé sur un périphérique de /etc/fstab, local-fs.target en échec ; noms /dev/sdX qui changent quand on ajoute un disque ; copie de fstab, ligne par UUID (blkid, lsblk -f), option nofail, findmnt --verify, systemctl daemon-reload, mount -a ; jamais formater un disque ni supprimer la ligne sans comprendre",
+        "permissions Linux : propriétaire, groupe, autres (première classe qui correspond), r w x, notation octale (770, 640, 660) ; x nécessaire pour entrer dans un dossier ; sudo réservé au groupe sudo ; sudo usermod -aG groupe nom puis reconnexion, chmod g+w ; jamais chmod -R 777 ni sudo pour tous",
+        "erreurs de démarrage Windows : écran d'arrêt (code d'arrêt, fichier en cause), réparation automatique après deux échecs, WinRE (outil de redémarrage système, paramètres et mode sans échec, invite de commandes, désinstaller des mises à jour, restauration du système, paramètres UEFI) ; restaurer le pilote en mode sans échec, puis point de restauration",
+        "restauration : échelle du moins au plus invasif (annuler le dernier changement, sfc/DISM, restauration du système, réinstaller via Windows Update, réinitialiser en conservant les fichiers, réinstallation complète) avec leurs effets et précautions ; sauvegarde vérifiée par empreinte SHA-256 (Get-FileHash, certutil -hashfile, sha256sum) ; accord écrit avant une réinitialisation",
+    ],
+    competencies=[
+        "Choisir et préparer l'installation d'un système (édition, prérequis, firmware, partitions) et la vérifier",
+        "Interpréter un écran d'erreur, une capture de WinRE ou du terminal Linux et rédiger une réparation ordonnée, sûre et justifiée",
+        "Organiser comptes, groupes et permissions selon le moindre privilège, et protéger les données du client avant toute restauration",
+    ],
+    vocabulary=[
+        "UEFI", "GPT", "MBR", "ESP", "MSR", "TPM 2.0", "démarrage sécurisé", "WinRE", "mode sans échec",
+        "point de restauration", "BitLocker", "GRUB", "fstab", "UUID", "systemd", "sudo", "chmod", "SHA-256",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien dans un examen blanc /100 (10 points par "
+        "question) : accepter toute formulation, toute commande et tout ordre techniquement justes, "
+        "sans exiger de mot-clé ni de libellé exact d'écran ; suivre le barème de la question et noter "
+        "en proportion. Pénaliser la suppression ou le formatage d'une partition ou d'un disque qui "
+        "n'est pas la cible ou sans sauvegarde vérifiée et accord écrit, le formatage de l'ESP, une "
+        "réinitialisation ou une réinstallation proposée avant les gestes moins invasifs, la "
+        "désactivation du démarrage sécurisé pour contourner un problème, un activateur ou une clé "
+        "trouvée sur Internet, un site « tous pilotes », chmod 777, sudo pour tous ou un compte "
+        "partagé, et une ligne fstab par /dev/sdX."
+    ),
+)
+
 _PR07_CONTEXT = PedagogicalContext(
     course_key="ampcr-pratique-pr07",
     course_title="AMPCR pratique écrite — PR07 Systèmes d'exploitation, GUI/CLI et prérequis d'installation",
@@ -972,6 +1018,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Examen blanc écrit — maintenance et dépannage matériel",
         items=EX01_ITEMS,
         context=_EX01_CONTEXT,
+    ),
+    PracticalCourse(
+        code="EX02",
+        title="Examen blanc écrit — installation et dépannage des systèmes",
+        items=EX02_ITEMS,
+        context=_EX02_CONTEXT,
     ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}
