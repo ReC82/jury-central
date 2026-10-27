@@ -164,7 +164,8 @@ def test_published_practical_courses_keep_their_code_and_subject():
     # PR06 (#193) est le seul cours publié : son code, son titre et son slug ne bougent pas.
     assert PRACTICAL_COURSES
     for course in PRACTICAL_COURSES:
-        slot = plan.COURSE_SLOTS_BY_CODE[course.code]
+        # Ticket #230 : un examen blanc publié (EX01…) garde aussi le code et le titre du ticket.
+        slot = plan.COURSE_SLOTS_BY_CODE.get(course.code) or plan.EXERCISE_SLOTS_BY_CODE[course.code]
         assert course.title == slot.title
         assert course.slug == f"ampcr-pratique-{course.code.lower()}"
     assert plan.COURSE_SLOTS_BY_CODE["PR06"].title == "Diagnostic des pannes matérielles"

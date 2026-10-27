@@ -26,7 +26,11 @@ from app.models import UAA, Module
 from app.templating import templates
 from app.v1.ai_usage import KIND_CORRECTION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_MODULE_CODE, get_plan_by_slug
-from app.v1.ampcr_pratique_bank import PRACTICAL_BANK_IMPORTERS, get_practical_course_by_slug
+from app.v1.ampcr_pratique_bank import (
+    PRACTICAL_BANK_IMPORTERS,
+    get_practical_course_by_slug,
+    is_practical_exam_slug,
+)
 from app.v1.ampcr_visual_bank import import_mc01_visual_questions
 from app.v1.auth import require_user, require_user_api, validate_csrf_token
 from app.v1.bank import get_uaa_by_slug, import_mc01_legacy_to_bank
@@ -473,6 +477,9 @@ async def start_practice_session(
     uaa = get_uaa_by_slug(db, uaa_slug)
     if uaa is None:
         raise HTTPException(status_code=404, detail="UAA introuvable")
+    # Ticket #230 : un examen blanc pratique (EX01…) n'a pas de réserve d'entraînement.
+    if is_practical_exam_slug(uaa.slug):
+        return RedirectResponse(url=f"/uaa/{uaa.slug}/exam", status_code=303)
 
     existing = _resumable_session_for_uaa(
         db, user_id=user.id, module_id=uaa.module_id, mode=SessionMode.PRACTICE, uaa=uaa

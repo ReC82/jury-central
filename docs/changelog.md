@@ -2,6 +2,17 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : examen blanc EX01 « maintenance et dépannage matériel » (ticket #230)
+
+Premier examen blanc du parcours pratique (UAA EX01 du module `AMPCR-PRATIQUE`, après PR06) :
+sujet imprimable sans corrigé (7 blocs), 10 questions /100 à réponse libre — identification sur
+plan lettré, sécurité/ESD, outillage, absence de POST après ajout de mémoire, vérification et
+compte rendu, compatibilité et calcul du bloc (567 W → 750 W), procédure de démontage/remontage,
+surchauffe, SSD non détecté (port SATA partagé avec M.2), SMART et protection des données ;
+schéma dans les documents de question (mise en page `figure`), pas d'entraînement propre
+(redirection vers l'examen), note /100 sur les résultats ; aucune génération IA
+(`app/v1/ampcr_pratique_ex01_*.py`, `tests/test_ticket230_ampcr_pratique_ex01.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR05 « Stockage, partitions, formatage et défragmentation » (ticket #206)
 
 Onzième cours du parcours pratique et cinquième dans l'ordre pédagogique (UAA PR05 du module

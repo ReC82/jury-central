@@ -39,6 +39,10 @@
         <h1 class="h3 mb-1">Score : {{ session.score }} / {{ session.question_count }}</h1>
         {# Ticket #193 : parcours AMPCR pratique écrite — note ramenée sur 20 (une question = 20 / nombre de questions points). #}
         {% if session.module and session.module.code == "AMPCR-PRATIQUE" and session.score is not none and session.question_count %}
+        {# Ticket #230 : examen blanc EX01… noté sur 100 (10 points par question). #}
+        {% if scope_label and scope_label.startswith("EX") %}
+        <p class="h5 mb-1" data-score-on-100>Soit {{ ("%.1f" | format(session.score * 100 / session.question_count)) | replace(".", ",") }} / 100</p>
+        {% endif %}
         <p class="h5 mb-1" data-score-on-20>Soit {{ ("%.1f" | format(session.score * 20 / session.question_count)) | replace(".", ",") }} / 20
             <small class="text-muted">(repère d'entraînement, pas une note officielle)</small></p>
         {% endif %}

@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
@@ -23,7 +23,7 @@ from app.templating import templates
 from app.v1 import models as v1_models  # noqa: F401 — enregistre les tables V1 (#38)
 from app.v1 import question_types as v1_question_types  # noqa: F401 — enregistre les 26 types (#40)
 from app.v1.ampcr_plan import get_plan_by_slug
-from app.v1.ampcr_pratique_bank import get_practical_course_by_slug
+from app.v1.ampcr_pratique_bank import get_practical_course_by_slug, is_practical_exam_slug
 from app.v1.auth import get_current_user, require_user
 from app.v1.course_memo import apply_course_memo
 from app.v1.francais_plan import get_francais_plan_by_slug
@@ -356,6 +356,10 @@ async def uaa_practice(
     user=Depends(require_user),  # noqa: B008
 ) -> HTMLResponse:
     uaa = _get_published_uaa(uaa_slug, db)
+    # Ticket #230 : un examen blanc pratique (EX01…) n'a pas d'entraînement propre (on
+    # s'entraîne dans les cours PR) : « S'entraîner » mène à son examen blanc.
+    if is_practical_exam_slug(uaa.slug):
+        return RedirectResponse(url=f"/uaa/{uaa.slug}/exam", status_code=303)
 
     # Ticket #55 : les UAA du programme AMPCR (MC01..MC38) utilisent désormais le
     # parcours de session V1 générique (banque + génération/correction par lot) plutôt

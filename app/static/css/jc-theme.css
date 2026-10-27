@@ -1439,3 +1439,16 @@ a.jc-quiz-row:hover { border-color: var(--jc-primary); color: var(--jc-ink); }
     .jc-pr-doc, .jc-exercise-card { break-inside: avoid; }
     .jc-exercise-correction[open] { break-before: auto; }
 }
+/* Ticket #230 : schéma d'un document de question (EX01) et sujet d'examen blanc imprimable. */
+.jc-sd-figure { margin: 0 0 .5rem; text-align: center; }
+.jc-sd-figure img { max-width: min(100%, 28rem); height: auto; }
+.jc-sd-figure-legend { columns: 2 16rem; margin: 0; padding-left: 1.1rem; }
+.jc-ex-question { border: 1px solid #c9d1e3; border-radius: var(--jc-radius-sm); padding: .75rem .9rem; margin: 1rem 0; }
+.jc-ex-question-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; font-weight: 700; }
+.jc-ex-answer { display: none; }
+@media print {
+    .jc-ex-question { break-inside: auto; }
+    .jc-ex-answer { display: block; margin-top: .5rem; }
+    .jc-ex-answer-line { border-bottom: 1px solid #888; height: 1.7em; }
+    .jc-ex-dossier { break-before: page; }
+}

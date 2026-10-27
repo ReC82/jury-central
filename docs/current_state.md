@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR11, PR15, PR16, PR20 et PR24),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR11, PR15, PR16, PR20, PR24 et EX01),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -257,6 +257,17 @@ partitions exacts) ; conversions d'unités, choix MBR/GPT, système de fichiers,
 lecture SMART (câble) **définis par code** (`app/v1/ampcr_pratique_pr05_figures.py`) et contrôlés
 par les tests. 4 cas résolus, 16 exercices, mini-examen 10 questions /20. Situations fictives ;
 aucune image générée.
+
+**Premier examen blanc publié (ticket #230) : EX01 « Examen blanc écrit — maintenance et
+dépannage matériel »** (`/uaa/ampcr-pratique-ex01`), juste après PR06 dans le parcours. La page
+de l'UAA est le **sujet** (version candidat imprimable A4, sans corrigé : présentation, barème
+global, partie 1, dossiers A fiduciaire / B studio vidéo / C clinique, méthode, sources) ; onglets
+« Sujet » et « Examen blanc » seulement (« S'entraîner » redirige vers l'examen). 10 questions de
+10 points, réponses libres, note /100 sur la page de résultats (plus le repère /20) ; corrigé et
+barème après la remise. 3 schémas SVG (plan lettré de carte mère, LED de diagnostic, courbe de
+température), dont 2 affichés dans les questions via des fichiers statiques identiques ; budget
+d'alimentation, verdicts de température et SMART **calculés par code** avec les règles des cours
+(`app/v1/ampcr_pratique_ex01_*.py`).
 
 ## Administration
 

@@ -284,6 +284,17 @@ Texte toujours issu de la version exacte du document ; rendu générique lisible
 {# Ticket #194 : capture de terminal / extrait de journal (AMPCR pratique), ligne à ligne. #}
 <pre class="jc-sd-console" tabindex="0">{{ layout.lines | join("\n") }}</pre>
 
+{% elif kind == "figure" %}
+{# Ticket #230 : schéma technique (SVG statique) + sa description textuelle complète. #}
+<figure class="jc-sd-figure">
+    <a href="{{ layout.src }}" target="_blank" rel="noopener" title="Agrandir le schéma">
+        <img src="{{ layout.src }}" alt="{{ layout.alt }}" loading="lazy" class="img-fluid rounded border bg-white">
+    </a>
+</figure>
+<ul class="jc-sd-figure-legend small">
+    {% for line in layout.lines %}<li>{{ line }}</li>{% endfor %}
+</ul>
+
 {% elif kind == "budget" %}
 <div class="jc-sd-budget">
     {% for section in layout.sections %}
