@@ -19,15 +19,32 @@ confortable des supports composés) ; la zone de réponse garde une largeur de l
             </div>
         </div>
 
+        {# Ticket #299 : consigne d'un exercice pratique structurée (contexte, documents,
+        données et règles, questions numérotées) ; sinon affichage d'origine. #}
+        {% import "_prompt_layout.html" as pl %}
+        {% set pl_layout = prompt_layout(display.public_payload.prompt) %}
+        {% if pl_layout %}
+        {% set pl_docs = [] %}
+        {% for doc in display.source_documents %}
+        {% set pl_heading = doc_heading(doc, doc_layout(doc), display.source_document_labels[loop.index0]) %}
+        {% set _ = pl_docs.append({"label": pl_heading.label, "title": pl_heading.title, "anchor": "doc-q" ~ doc.id}) %}
+        {% endfor %}
+        {{ pl.situation(pl_layout, pl_docs) }}
+        {% endif %}
+
         {% include "_source_documents.html" %}
 
         <div class="jc-q-card p-4 bg-white rounded shadow-sm mb-3">
             {% set assets = display.assets %}
             {% include "_question_assets.html" %}
+            {% if pl_layout %}
+            <div class="jc-q-prompt jc-q-prompt--structured">{{ pl.questions(pl_layout) }}</div>
+            {% else %}
             <div class="jc-q-prompt">
                 <span class="jc-q-prompt-label"><i class="bi bi-pencil-square" aria-hidden="true"></i> Consigne</span>
                 <p>{{ display.public_payload.prompt }}</p>
             </div>
+            {% endif %}
 
             <form method="post" action="/sessions/{{ session.id }}/answer">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

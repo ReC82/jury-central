@@ -78,6 +78,15 @@ Les mentions entre crochets deviennent une note discrète, les renvois de cours 
 annotations-réponses listés dans `omitted` ne sont plus affichés (ils restent dans le texte
 transmis à la correction). Voir `docs/claude-reports/2026-10-21_ticket-149-supports-visuels.md`.
 
+Consignes structurées des exercices pratiques AMPCR (ticket #299) : en entraînement, examen
+blanc et résultats, la consigne d'un exercice PR01–PR26 / EX01–EX04 s'affiche en blocs
+« Contexte » (avec repère « Partie n »), « Documents à consulter » (liens vers les documents
+de la page), « Données et règles » (encadré) et « Questions » (liste numérotée, sous-questions)
+via `app/templates/_prompt_layout.html` + `app/v1/prompt_layout.py`. La structure vient des
+champs `context`/`instructions` de l'exercice, retrouvé par le texte exact de la consigne
+enregistrée (sinon affichage d'origine) ; les annotations `ANNOTATIONS` ne déplacent que des
+extraits exacts (`validate_annotations`). Consigne en base, barème et correction inchangés.
+
 Références documentaires résolvables (ticket #151) : `short_answer`, `long_answer`,
 `classification` et `document_analysis` acceptent `source_document_version_ids` (tous les
 documents du dossier à montrer, document principal inclus) — l'élève et le correcteur

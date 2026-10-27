@@ -84,3 +84,13 @@ def _register_document_layouts() -> None:
 
 
 _register_document_layouts()
+
+
+def _register_prompt_layout() -> None:
+    """Ticket #299 : consignes structurées (`_prompt_layout.html`)."""
+    from app.v1.prompt_layout import prompt_layout
+
+    templates.env.globals["prompt_layout"] = prompt_layout
+
+
+_register_prompt_layout()
