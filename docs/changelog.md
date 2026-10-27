@@ -2,6 +2,18 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : examen blanc EX02 « installation et dépannage des systèmes » (ticket #231)
+
+Deuxième examen blanc du parcours pratique (UAA EX02 du module `AMPCR-PRATIQUE`, après PR12, 7
+blocs), même modèle que EX01 : 10 questions /100 à réponse libre — prérequis de Windows 11 et
+édition sur trois postes, GUI/CLI et service désactivé, installation propre sur un SSD neuf
+(UEFI/GPT/ESP, choix du disque), pilotes manquants (ID du matériel), comptes et groupe de travail,
+double démarrage Ubuntu, mode d'urgence systemd (fstab par UUID), permissions Linux et sudo, écran
+d'arrêt après une mise à jour de pilote (WinRE, mode sans échec, restauration), sauvegarde
+vérifiée par SHA-256 et choix de la restauration ; 3 schémas dans les documents de question ;
+aucune génération IA (`app/v1/ampcr_pratique_ex02_*.py`,
+`tests/test_ticket231_ampcr_pratique_ex02.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR12 « Dépannage logiciel et restauration du système » (ticket #215)
 
 Seizième cours du parcours pratique et douzième dans l'ordre pédagogique (UAA PR12 du module
