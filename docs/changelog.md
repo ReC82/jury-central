@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR29 « Contrôles finaux et rapport professionnel d'intervention » (ticket #228)
+
+Cours PR29 du parcours pratique (UAA PR29 du module `AMPCR-PRATIQUE`, position 29, après PR28,
+15 blocs) : critères d'acceptation avant / après (atteint, non atteint, non concluant ; verdict) ;
+six familles de contrôles finaux et contrôles exigés par type d'intervention ; journal des
+opérations et tests reproductibles ; retour arrière, restauration, réserve ; compte rendu en
+14 rubriques (identité non sensible, demande, symptômes, hypothèses, relevés, tests, résultats,
+action, pièces, validation, risques résiduels, recommandation, signature) ; vocabulaire,
+confidentialité, communication au client, escalade, documentation ; 5 rapports modèles complets ;
+4 procédures, 11 figures SVG + 2 schémas à compléter ; 3 formulaires A4 imprimables
+(`app/static/print/ampcr-pratique/pr29-*.html`) ; 22 exercices, mini-examen 10 questions /20 sans
+génération IA (`app/v1/ampcr_pratique_pr29_*.py`, `tests/test_ticket228_ampcr_pratique_pr29.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR28 « Outillage, sécurité et protection des données » (ticket #227)
 
 Cours PR28 du parcours pratique (UAA PR28 du module `AMPCR-PRATIQUE`, position 28, après PR27,

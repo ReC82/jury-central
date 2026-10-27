@@ -79,7 +79,7 @@ annotations-réponses listés dans `omitted` ne sont plus affichés (ils restent
 transmis à la correction). Voir `docs/claude-reports/2026-10-21_ticket-149-supports-visuels.md`.
 
 Consignes structurées des exercices pratiques AMPCR (ticket #299) : en entraînement, examen
-blanc et résultats, la consigne d'un exercice PR01–PR28 / EX01–EX04 s'affiche en blocs
+blanc et résultats, la consigne d'un exercice PR01–PR29 / EX01–EX04 s'affiche en blocs
 « Contexte » (avec repère « Partie n »), « Documents à consulter » (liens vers les documents
 de la page), « Données et règles » (encadré) et « Questions » (liste numérotée, sous-questions)
 via `app/templates/_prompt_layout.html` + `app/v1/prompt_layout.py`. La structure vient des
@@ -136,7 +136,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, PR26, PR27, PR28, EX01, EX02, EX03 et EX04),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, PR26, PR27, PR28, PR29, EX01, EX02, EX03 et EX04),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -477,6 +477,21 @@ compléter servis aussi en fichiers statiques ; droits effectifs (cumul, refus, 
 le plus restrictif, local = NTFS seul), matrice des droits, droits Unix/ACL/Samba et ordre des
 diagnostics d'accès et d'impression **calculés par code** (`app/v1/ampcr_pratique_pr23_figures.py`)
 et contrôlés par les tests. 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
+
+**Vingt-neuvième cours publié (ticket #228) : PR29 « Contrôles finaux et rapport professionnel
+d'intervention »** (`/uaa/ampcr-pratique-pr29`), même intégration, position 29 (après PR28). Cours
+de clôture d'une intervention (AP-16, complément AP-C01, appui sur AP-15) : 15 blocs (8 chapitres :
+critères d'acceptation avant / après ; six familles de contrôles finaux — fonctionnel, stabilité,
+performance, réseau local et Internet, sécurité, pilote et périphérique ; journal des opérations et
+tests reproductibles ; retour arrière, restauration et résultats non concluants ; compte rendu en
+6 parties et 14 rubriques ; faits, hypothèses, vocabulaire technique et confidentialité ;
+restitution au client, escalade et documentation ; formulaires imprimables et liste de clôture ;
+5 rapports modèles complets — PC, système, RJ45, réseau, partage ; pièges, exercices, mini-examen,
+mémo, sources). 4 procédures, 11 figures SVG, 2 schémas à compléter et 3 formulaires A4
+imprimables servis en fichiers statiques (`app/static/print/ampcr-pratique/pr29-*.html`).
+Contrôles exigés, résultats, verdicts, décisions, défauts de journal, rubriques manquantes,
+données sensibles et grille sur 20 **calculés par code** (`app/v1/ampcr_pratique_pr29_figures.py`).
+22 exercices, mini-examen 10 questions /20 ; aucune image générée.
 
 **Vingt-huitième cours publié (ticket #227) : PR28 « Outillage, sécurité et protection des
 données »** (`/uaa/ampcr-pratique-pr28`), même intégration, position 28 (après PR27). Cours des

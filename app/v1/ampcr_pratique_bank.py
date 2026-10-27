@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28 ; #228 : PR29) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -61,6 +61,7 @@ from app.v1.ampcr_pratique_pr25_bank import ALL_ITEMS as PR25_ITEMS
 from app.v1.ampcr_pratique_pr26_bank import ALL_ITEMS as PR26_ITEMS
 from app.v1.ampcr_pratique_pr27_bank import ALL_ITEMS as PR27_ITEMS
 from app.v1.ampcr_pratique_pr28_bank import ALL_ITEMS as PR28_ITEMS
+from app.v1.ampcr_pratique_pr29_bank import ALL_ITEMS as PR29_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -1594,6 +1595,57 @@ _PR28_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR29_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr29",
+    course_title="AMPCR pratique écrite — PR29 Contrôles finaux et rapport professionnel d'intervention",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : clôture d'une intervention — critères d'acceptation avant / après, contrôles "
+        "finaux, journal des opérations, tests reproductibles, retour arrière, résultats non "
+        "concluants, compte rendu structuré, communication au client, escalade et documentation ; "
+        "situations, relevés et rapports fictifs"
+    ),
+    allowed_notions=[
+        "critère d'acceptation : quoi mesurer, avec quel outil, quelle valeur cible ; écrit avec le client avant l'intervention ; « marche mieux », « client content » = critères vagues",
+        "avant / après : même mesure, mêmes conditions (outil, charge, compte, heure) ; résultat par critère : atteint, non atteint (même si mieux qu'avant), non concluant (mesure absente ou impossible)",
+        "verdict : un critère non atteint = non validé ; sinon un non concluant = validation avec réserve ; sinon validé",
+        "six familles de contrôles finaux : test fonctionnel (refaire ce qui échouait, conditions de l'utilisateur), stabilité (charge 30 min, redémarrages, journal), performance (mesure chiffrée), réseau local et Internet (passerelle, nom, site, partage), sécurité (protections actives, compte technique supprimé, capot fermé, câbles rangés), pilote et périphérique (Gestionnaire sans erreur, page de test) ; fonctionnel et sécurité toujours exigés",
+        "contrôles exigés (convention du cours) : pièce matérielle → fonctionnel, stabilité, performance, sécurité ; réinstallation du système → fonctionnel, performance, réseau, sécurité, pilote ; câblage → fonctionnel, performance, réseau, sécurité ; réseau → fonctionnel, stabilité, réseau, sécurité ; partage → fonctionnel, réseau, sécurité ; pilote ou périphérique → fonctionnel, sécurité, pilote",
+        "journal des opérations : une ligne par opération, ordre chronologique, une modification à la fois, résultat observé chiffré ; « OK », « fait », « ça marche » ou résultat vide = défaut",
+        "test reproductible : état de départ, outil ou commande exacte, étapes, résultat attendu, résultat obtenu avec la valeur, date, heure et durée",
+        "décision : tout validé → faire constater, signer, remettre le rapport ; non validé et état initial sauvegardé → retour arrière puis vérification de l'état initial ; non validé sans retour arrière possible ou hors de ses droits → escalade avec les relevés ; non concluant → réserve écrite, test complémentaire planifié, client informé ; régression = critère non atteint",
+        "arbre de clôture : contrôles exigés faits ? critères atteints ? résultats concluants ? client a constaté et accepte ? puis signature, rapport, archivage",
+        "compte rendu en 6 parties et 14 rubriques : référence (n°, date, technicien), équipement (identité non sensible : n° d'inventaire, modèle, emplacement), demande, symptômes, hypothèses, relevés, tests, résultats, action, pièces et logiciels (référence, n° de série), validation, risques résiduels et limites, recommandation datée, signature et accord (ou réserve du client)",
+        "rédaction : fait = valeur et unité, hypothèse écrite comme telle, conclusion seulement après un test ; jamais dans un rapport : mot de passe, code PIN, clé de récupération, numéro de carte bancaire, contenu des fichiers personnels ou courriels, jugement sur l'utilisateur",
+        "grille d'un rapport sur 20 : structure 3, faits et relevés 3, démarche 3, action et pièces 2, validation mesurée 4, limites et risques 2, communication 2, confidentialité 1",
+        "client : mots simples sans sigle, test montré sur sa tâche, limites dites, recommandation datée, signature ; jamais de promesse « plus jamais », jamais d'accusation ; escalade : poste, ce qui a été fait, relevés, demande précise, urgence ; documentation : rapport (client), journal (atelier), base de connaissances (collègues), inventaire du parc (pièce, n° de série, adresse IP)",
+    ],
+    competencies=[
+        "Définir des critères d'acceptation mesurables et conclure à partir des mesures avant / après",
+        "Choisir les contrôles finaux exigés, tenir un journal et décrire des tests reproductibles",
+        "Décider de la clôture : validation, retour arrière, escalade ou réserve",
+        "Rédiger un rapport d'intervention complet, exact, sans donnée sensible, et l'expliquer au client",
+    ],
+    vocabulary=[
+        "critère d'acceptation", "avant / après", "non concluant", "verdict", "réserve", "test fonctionnel",
+        "stabilité", "performance", "régression", "journal des opérations", "test reproductible",
+        "retour arrière", "point de restauration", "escalade", "risque résiduel", "recommandation",
+        "procès-verbal de réception", "base de connaissances", "inventaire du parc", "n° d'inventaire",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "justes, tout test équivalent et vérifiable, toute rubrique ou tout formulaire d'entreprise "
+        "équivalent au modèle du cours, sans exiger de mot-clé ni la reprise exacte du corrigé ; "
+        "suivre le barème de la question ; valoriser un verdict tiré des mesures, la séparation des "
+        "faits et des hypothèses, la réserve écrite et un message clair au client. Ne jamais "
+        "valider : « réparé » sans critère mesuré ou parce que c'est mieux qu'avant, un résultat "
+        "non concluant présenté comme réussi, « OK » comme résultat, une hypothèse présentée comme "
+        "un fait, un mot de passe, une clé ou le contenu de fichiers personnels recopiés dans le "
+        "rapport, des modifications enchaînées au hasard après un échec, une régression cachée, "
+        "une promesse que la panne ne reviendra jamais, une accusation de l'utilisateur."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1759,6 +1811,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Outillage, sécurité et protection des données",
         items=PR28_ITEMS,
         context=_PR28_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR29",
+        title="Contrôles finaux et rapport professionnel d'intervention",
+        items=PR29_ITEMS,
+        context=_PR29_CONTEXT,
     ),
     PracticalCourse(
         code="EX01",
