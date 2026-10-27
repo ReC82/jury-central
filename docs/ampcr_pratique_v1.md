@@ -56,6 +56,7 @@ le plan est du code (`app/v1/ampcr_pratique_plan.py`), lu en lecture seule.
 | PR14 — Débits, distances, atténuation et impédance (#217) | `/uaa/ampcr-pratique-pr14` | 19 exercices (entraînement, dont 3 remises en ordre et 5 classements) + 10 questions de mini-examen /20 (examen blanc) |
 | PR15 — Câblage RJ45 T568A/B — fabrication, schémas et tests (#197) | `/uaa/ampcr-pratique-pr15` | 16 exercices (entraînement, dont 3 classements et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |
 | PR16 — Câble coaxial et BNC — impédance, fabrication et diagnostic écrit (#198) | `/uaa/ampcr-pratique-pr16` | 16 exercices (entraînement, dont 3 classements et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |
+| PR17 — Fibre optique — choix, raccordement et diagnostic (#218) | `/uaa/ampcr-pratique-pr17` | 18 exercices (entraînement, dont 3 remises en ordre et 5 classements) + 10 questions de mini-examen /20 (examen blanc) |
 | PR20 — IPv4, MAC, masques et passerelles — configuration et diagnostics écrits (#199) | `/uaa/ampcr-pratique-pr20` | 20 exercices (entraînement, dont 3 classements et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |
 | PR24 — Dépannage réseau et Internet — dossiers d'intervention écrits (#200) | `/uaa/ampcr-pratique-pr24` | 20 exercices (entraînement, dont 1 classement et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |
 

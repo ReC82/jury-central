@@ -2,6 +2,16 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR17 « Fibre optique — choix, raccordement et diagnostic » (ticket #218)
+
+Dix-neuvième cours du parcours pratique et dix-septième dans l'ordre pédagogique (UAA PR17 du
+module `AMPCR-PRATIQUE`, position 17, après PR16, 18 blocs) : lumière guidée ; monomode ou
+multimode, OM/OS, portée selon le module ; LC/SC, UPC/APC ; SFP/SFP+, TX/RX, polarité ; pertes
+et puissance reçue ; épissure, pigtail, tiroir, brassage ; rayon de courbure ; comparaison avec
+le cuivre et le coaxial ; propreté, photométrie, OTDR ; sécurité laser et éclats ; diagnostic ;
+3 procédures, 9 figures SVG ; 5 cas résolus, 18 exercices, mini-examen 10 questions /20 sans
+génération IA (`app/v1/ampcr_pratique_pr17_*.py`, `tests/test_ticket218_ampcr_pratique_pr17.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR14 « Débits, distances, atténuation et impédance » (ticket #217)
 
 Dix-huitième cours du parcours pratique et quatorzième dans l'ordre pédagogique (UAA PR14 du
