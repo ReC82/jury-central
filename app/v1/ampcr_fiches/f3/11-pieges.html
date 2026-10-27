@@ -1,0 +1,34 @@
+<section class="fx-sec" id="f3-pieges">
+<h2>10. Pièges d'examen et confusions fréquentes</h2>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Confusion</th><th>Comment trancher</th></tr></thead>
+<tbody>
+<tr><td>T568A vs T568B</td><td>Seules les paires verte et orange échangent leur place (1-2 ↔ 3-6). Bleu sur 4-5, marron sur 7-8 dans les deux. B commence par blanc-orange, A par blanc-vert.</td></tr>
+<tr><td>Paire inversée vs paires croisées vs paire séparée</td><td>Inversée : 1→2/2→1 dans une paire. Croisées : 1→3, 2→6 (A/B). Séparée : wiremap parfait, seul un testeur de diaphonie la voit.</td></tr>
+<tr><td>Canal 100 m vs lien permanent 90 m</td><td>90 m pour le câble fixe panneau → prise ; 100 m avec les cordons (10 m au total).</td></tr>
+<tr><td>« Cat6 = 10 Gb/s »</td><td>10 Gb/s sur 100 m = Cat6A. Cat6 : 10 Gb/s seulement ≤ 55 m (37 m en environnement dense), certifié.</td></tr>
+<tr><td>100 Mb/s : panne ou capacité ?</td><td>Lire les capacités de chaque maillon et tester les 8 fils avant de conclure « panne ».</td></tr>
+<tr><td>Voyant éteint → reconfigurer l'IP</td><td>Non : sans lien physique, aucune configuration IP n'a d'effet. Couche physique d'abord.</td></tr>
+<tr><td>Testeur à LED « OK » = câble bon</td><td>Il prouve la continuité, pas la catégorie, la longueur ni l'absence de paires séparées.</td></tr>
+<tr><td>Blindé = toujours mieux</td><td>Seulement s'il est continu de bout en bout et relié à la terre ; sinon l'écran capte les parasites. Entre deux bâtiments : fibre.</td></tr>
+<tr><td>FTP / STP</td><td>Ambigus : écrire F/UTP, U/FTP, S/FTP (global / par paire). Le marquage de gaine et la fiche technique font foi.</td></tr>
+<tr><td>Monobrin vs multibrin</td><td>Monobrin (« /1 ») : câble fixe, poinçonné. Multibrin : cordons, fiches serties. Fiche inadaptée = contacts défaillants.</td></tr>
+<tr><td>Croisé obligatoire entre deux PC</td><td>Seulement sans Auto MDI-X. Avec Auto MDI-X, droit ou croisé fonctionnent.</td></tr>
+<tr><td>Coax 50 Ω vs 75 Ω</td><td>50 Ω : réseau 10BASE2/10BASE5, radio. 75 Ω : vidéo, TV, satellite. Le BNC existe dans les deux : lire le marquage.</td></tr>
+<tr><td>Ohmmètre 50 Ω sur un bus</td><td>Terminateur manquant OU coupure : une seconde mesure (autre T) ou l'inspection tranche. 25 Ω normal, 30 Ω = un 75 Ω, 0 Ω court-circuit, infini = aucun terminateur vu.</td></tr>
+<tr><td>Retirer un poste 10BASE2</td><td>Débrancher le T de la carte, jamais séparer les câbles du T (ouvre tout le bus).</td></tr>
+<tr><td>Multimode vs monomode</td><td>OM1–OM5 : multimode, 850/1 300 nm, centaines de mètres. OS1/OS2 : monomode, 1 310/1 550 nm, kilomètres. Module et fibre doivent correspondre.</td></tr>
+<tr><td>Portée vs budget</td><td>Deux limites indépendantes : une liaison peut tenir le budget et dépasser la portée (dispersion).</td></tr>
+<tr><td>dB vs dBm</td><td>dB = perte relative ; dBm = niveau absolu. Rx (dBm) = Tx (dBm) − perte (dB).</td></tr>
+<tr><td>Polarité : inverser où ?</td><td>À une seule extrémité. Inverser aux deux revient à l'erreur initiale.</td></tr>
+<tr><td>Épissure vs courbure (OTDR)</td><td>Même perte à 1 310 et 1 550 nm = épissure ; nettement plus à 1 550 nm = courbure.</td></tr>
+<tr><td>Position OTDR</td><td>Soustraire la bobine amorce.</td></tr>
+<tr><td>APC vs UPC</td><td>Vert (APC 8°) et bleu (UPC) ne se raccordent jamais ensemble.</td></tr>
+<tr><td>LC vs SC</td><td>LC 1,25 mm (SFP), SC 2,5 mm ; passage par jarretière LC-SC, pas par adaptation forcée.</td></tr>
+<tr><td>Certifié vs validé</td><td>Certification = câblage conforme. Validation = réseau fonctionnel (IP, passerelle, partage). Les deux sont exigées à la recette.</td></tr>
+<tr><td>Longueur sur plan</td><td>Trajet le long des murs + 3 m + 2 m de réserve, jamais à vol d'oiseau.</td></tr>
+</tbody></table></div>
+<div class="fx-trap"><b>Piège</b> Méthode : changer cordon, port et carte en même temps rétablit peut-être le service, mais ne prouve rien. Un changement à la fois, et note le résultat de chacun.</div>
+<div class="fx-trap"><b>Piège</b> Panne intermittente : un test réussi après rebranchement n'est pas une preuve ; teste en flexion, observe les compteurs dans la durée, corrèle avec les horaires.</div>
+<div class="fx-trap"><b>Piège</b> Réponse d'examen : « remplacer le câble » sans observation, test et validation vaut peu de points, même si c'est la bonne correction.</div>
+</section>

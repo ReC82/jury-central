@@ -1,0 +1,44 @@
+<section class="fx-sec" id="f3-dossiers-suite">
+<h2>9 bis. Dossiers d'examen résolus (suite)</h2>
+
+<article class="fx-case" id="f3-dossier-5">
+<h3>Dossier 5 — Liaison optique coupée après travaux, puis toujours muette</h3>
+<div class="fx-case-statement">
+<p>Liaison OS2 de 1 230 m entre les tiroirs A et B, modules 10GBASE-LR. Après le passage d'une pelleteuse, alarme LOS des deux côtés, Rx = −40 dBm. Trace OTDR à 1 550 nm depuis le tiroir A, bobine amorce de 150 m : pic de réflexion à 150 m ; petite marche de 0,3 dB sans pic à 600 m (même perte à 1 310 nm) ; grand pic puis bruit à 1 050 m.</p>
+<ol><li>Quelles précautions avant de raccorder l'OTDR ?</li><li>Interprète chaque événement et localise le défaut.</li><li>Rédige la réparation et le contrôle.</li><li>Après la réparation, le technicien rebranche les jarretières : toujours LOS des deux côtés ; au photomètre, chaque brin de la liaison mesure 1,9 dB. Conclus.</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Débrancher les jarretières des modules (ou désactiver les ports) aux deux extrémités : la lumière du module distant fausserait la mesure et peut endommager l'OTDR ; ne jamais regarder une férule ; inspecter et nettoyer la bobine amorce et la traversée ; capuchons sur les connecteurs libres ; régler l'indice de groupe (≈ 1,468).</p>
+<p><b>2.</b> 150 m : pic de réflexion = connecteur de la traversée du tiroir A (fin de la bobine amorce, début de la liaison). 600 m : marche sans pic, perte identique à 1 310 et 1 550 nm = épissure par fusion (normal, 0,3 dB, valeur du cours). 1 050 m : grand pic puis bruit = fin de fibre. La liaison devrait finir à 150 + 1 230 = 1 380 m : la trace s'arrête trop tôt, c'est une cassure à 1 050 − 150 = <b>900 m</b> du tiroir A, à rapprocher de la zone des travaux sur le plan.</p>
+<p><b>3.</b> Ouvrir le câble au point de casse (vérifier depuis le tiroir B : la casse doit apparaître vers 1 230 − 900 = 330 m), installer un boîtier d'épissure, deux épissures par fusion par fibre, protections. Nouveau bilan : 1,23 × 0,4 = 0,49 dB + 2 paires de connecteurs 1,5 dB + 3 épissures 0,9 dB = 2,89 dB. Contrôle : OTDR complet (fin à 1 380 m, épissures ≈ 0,3 dB), photomètre à 1 310 et 1 550 nm ≤ 2,89 dB, lien UP, rapport avec traces avant/après.</p>
+<p><b>4.</b> Chaque brin transmet (1,9 dB ≤ 2,89 dB) : la fibre est réparée. LOS des deux côtés avec des brins bons = les deux émetteurs n'arrivent pas sur les récepteurs : polarité inversée au rebranchement (TX sur TX). Inverser les deux brins à une seule extrémité, lien UP, Rx ≈ Tx − 1,9 dB dans la plage, plan de polarité mis à jour.</p>
+<p class="fx-lose"><b>Perd des points :</b> 1 050 m sans soustraire la bobine ; confondre épissure et casse ; changer les modules en question 4.</p></div>
+</article>
+
+<article class="fx-case" id="f3-dossier-6">
+<h3>Dossier 6 — Installer le réseau physique d'un cabinet comptable</h3>
+<div class="fx-case-statement">
+<p>Cabinet de 8 bureaux sur un plateau de 30 × 12 m. Besoins : 8 postes (2 prises chacun), 2 imprimantes, 1 point d'accès (classe 4), 2 caméras IP (classe 3), 3 téléphones IP (classe 2, branchés sur la deuxième prise de 3 postes). Local technique au centre du plateau avec l'arrivée de l'opérateur. Bureau le plus éloigné : 18 m en x et 7 m en y depuis la baie. Somme des longueurs calculées : 486 m, liens de 14 à 30 m.</p>
+<ol><li>Topologie, emplacement de la baie, support. Justifie.</li><li>Calcule : longueur du plus long lien, nombre de boîtes, taille du switch, budget PoE, taille de la baie (panneau 1 U, passe-câbles 1 U, switch 1 U, étagère box 2 U, bandeau 1 U).</li><li>Décris pose, repérage et raccordement.</li><li>Recette : le lien B1-P1-17 affiche « ouvert broche 2 ». Que fais-tu ? Puis comment valides-tu le réseau ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Étoile : chaque prise est reliée par son propre câble au panneau de brassage de la baie, au centre du plateau, dans le local fermé où arrive l'opérateur (box dans la baie). Support : Cat6 U/UTP monobrin (bureaux, 1 Gb/s, pas de sources de perturbations ; Cat6A si 10 Gb/s envisagé), cordons multibrin.</p>
+<p><b>2.</b> Plus long lien : 18 + 7 + 3 (montée/descente) + 2 (réserve) = 30 m ≤ 90 m. Liens : 8 × 2 + 2 + 1 + 2 = 21. Boîtes : 486 / 305 = 1,6 → 2 boîtes au minimum ; chaque lien fait au plus 30 m, donc chaque boîte perd moins de 30 m en chute : 2 boîtes suffisent (pas de raboutage). Switch : 21 × 1,2 = 25,2 → 26 + 1 lien montant = 27 ports → 48 ports (24 insuffisant). Panneau : 1 × 24 ports (21 liens). PoE : 30 + 2 × 15,4 + 3 × 7 = 81,8 W → switch PoE+ d'au moins ≈ 100 W de budget, plus de marge conseillée. Baie : 1 + 1 + 1 + 2 + 1 = 6 U × 1,25 = 7,5 → 8 → baie 9 U.</p>
+<p><b>3.</b> Repère identique aux deux bouts posé avant le tirage (B1-P1-01 à B1-P1-21) ; tirage ≤ 110 N, rayon ≥ 4 × Ø, faux plafond/goulottes séparés du courant fort (300 mm si classe inconnue), croisements à 90°, rien au sol dans les passages ; poinçonnage keystones et panneau en T568B partout, détorsadage ≤ 13 mm ; port n du panneau brassé sur le port n du switch ; tableau de brassage (repère, bureau, port switch, appareil).</p>
+<p><b>4.</b> Ouvert broche 2 (orange en T568B) : paire 1-2 incomplète, pas de lien. Distance au défaut pour savoir quel côté ; inspection du keystone et du panneau ; repoinçonner la terminaison fautive ; recertifier jusqu'au PASS. Validation réseau, prise par prise et dans l'ordre : voyant de lien → adresse IP obtenue → ping passerelle → ping d'un autre poste → site par son nom → partage (détail : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">→ Fiche 4 · Ordre des tests</a>). Dossier de recette : plan, nomenclature, rapports de certification, tableau de brassage, PV signé.</p>
+<p class="fx-lose"><b>Perd des points :</b> switch 24 ports sans réserve ; budget PoE avec les consommations « typiques » ; repérage oublié ; validation sans ordre.</p></div>
+</article>
+
+<article class="fx-case" id="f3-dossier-7">
+<h3>Dossier 7 — Poste lent et coupures : deux pannes concomitantes</h3>
+<div class="fx-case-statement">
+<p>Une comptable se plaint : copies vers le serveur très lentes, coupures de quelques secondes. Un technicien est passé la semaine dernière « pour régler un problème de lien ». Relevés : Get-NetAdapter « Up, 100 Mbps » ; propriété avancée « Speed &amp; Duplex : 100 Mbps Full Duplex » ; port du switch : 100 Mb/s half duplex, compteurs CRC et collisions tardives en hausse. Les postes voisins négocient 1 Gb/s.</p>
+<ol><li>Analyse les relevés et formule les hypothèses.</li><li>Propose les tests dans l'ordre et les conclusions attendues.</li><li>Rédige la correction complète et la validation.</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> La carte est forcée à 100 Mb/s full duplex ; le port du switch, en auto-négociation, détecte la vitesse mais pas le duplex et se met en half : désaccord de duplex, ce qui explique les collisions tardives, les erreurs CRC et la lenteur. Mais pourquoi le technicien a-t-il forcé 100 Mb/s ? Hypothèse : le lien ne montait pas ou était instable en 1 Gb/s, à cause d'un défaut de câblage sur les paires 4-5 ou 7-8. Il peut y avoir deux pannes à la fois : la configuration et le câble.</p>
+<p><b>2.</b> Test 1 : remettre la carte en négociation automatique (le switch l'est déjà). Attendu si le câble est bon : 1 Gb/s full. Obtenu : 100 Mb/s full : le désaccord de duplex est réglé, mais quelque chose empêche le 1 Gb/s. Test 2 : capacités : carte et port 1 Gb/s (voisins à 1 Gb/s sur le même switch). Test 3 : testeur sur le cordon de poste : broche 7 ouverte. Conclusion : cordon défectueux sur la paire 7-8 (1 Gb/s exige les quatre paires), masqué par le forçage à 100 Mb/s.</p>
+<p><b>3.</b> Remplacer le cordon par un cordon testé (ou le refaire), laisser l'auto-négociation des deux côtés. Validation : 1 Gb/s full duplex sur la carte et le port, compteurs CRC et collisions stables pendant une copie de plusieurs gigaoctets (≈ 110 Mo/s), aucune coupure sur une journée, confirmation de l'utilisatrice, rapport mentionnant les deux causes et le réglage annulé.</p>
+<p class="fx-lose"><b>Perd des points :</b> s'arrêter au duplex ; forcer aussi le switch à 100 full (masque la panne de câble) ; ne pas expliquer pourquoi l'auto côté switch donne half.</p></div>
+</article>
+</section>

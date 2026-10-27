@@ -1,0 +1,82 @@
+<section class="fx-sec" id="f3-proc-coax">
+<h2>5. Procédures coaxial BNC</h2>
+<p>Règles de décision : 10BASE2 = bus 10 Mb/s semi-duplex, RG-58 <b>50 Ω</b>, T BNC <b>directement</b> sur la carte, <b>un terminateur 50 Ω à chaque extrémité</b>, segment ≤ <b>185 m</b>, ≤ <b>30</b> postes, ≥ <b>0,5 m</b> entre deux T, terre en <b>un seul point</b>. Vidéo (caméra analogique, SDI) = <b>75 Ω</b> point à point (RG-59, BNC 75 Ω) ; TV/satellite = RG-6 75 Ω avec fiches F. Le BNC existe en 50 et 75 Ω : la forme ne dit pas l'impédance, le marquage oui. 10BASE5 = coaxial épais 50 Ω, 500 m, prise vampire + transceiver + câble AUI (≤ 50 m), connecteurs N.</p>
+<pre class="fx-diagram">
+ [T]──RG-58──[T]──RG-58──[T]──RG-58──[T]
+ 50Ω  |       |           |          |  50Ω
+ ⏚   PC-1    PC-2        PC-3      Serveur
+ (un seul point de terre, T vissé sur la carte)
+</pre>
+
+<article class="fx-proc" id="f3-coax">
+<h3>P5.1 — Bus 10BASE2 en panne (tout le segment ou une partie)</h3>
+<p class="fx-sev">Fréquence : fréquent à l'examen (EX03 dossier B) · Gravité : tout le segment tombe</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Aucun poste du segment ne communique (perte totale) ; ou erreurs/collisions ; ou un seul poste isolé.</li><li>Document fourni : schéma du bus, relevés d'ohmmètre entre âme et blindage à un T.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Terminateur absent, desserré ou retiré (perte totale).</li><li>Câbles séparés d'un T (un utilisateur a « débranché son PC » en défaisant le T).</li><li>Câble coupé ou BNC arraché.</li><li>Court-circuit âme/blindage (brin de tresse dans le connecteur, câble écrasé).</li><li>Terminateur de mauvaise valeur (75 Ω vidéo), tronçon 75 Ω (RG-59) mélangé.</li><li>Câble entre T et carte (dérivation qui réfléchit), deux points de terre (boucle de masse).</li><li>Longueur &gt; 185 m, &gt; 30 postes, T à moins de 0,5 m.</li><li>Un seul poste isolé : T, carte, pilote du poste.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Quelqu'un a-t-il déplacé un poste, ajouté une machine ? Le segment fonctionnait-il hier ?</li><li>Mesures à l'ohmmètre <b>réseau arrêté</b> (cartes non alimentées), câble hors tension. Ouvrir le bus coupe tout le segment : prévenir les utilisateurs.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Lire le schéma/inspecter dans l'ordre</strong> : topologie bus, T sur chaque carte, deux terminateurs 50 Ω, tronçons RG-58, limites, une terre.</li>
+<li><strong>Ohmmètre âme ↔ blindage au T d'un poste</strong>. Interpréter :
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Lecture</th><th>Signification</th><th>Suite</th></tr></thead>
+<tbody>
+<tr><td>≈ 25 Ω</td><td>Normal : deux 50 Ω en parallèle (50 × 50 / 100)</td><td>Câble sain en continu ; chercher défaut non résistif (sertissage, écrasement, impédance)</td></tr>
+<tr><td>≈ 50 Ω</td><td>Un seul terminateur « vu » : terminateur manquant <b>ou</b> coupure entre ce T et une extrémité</td><td>Contrôler les deux terminateurs ; mesurer à d'autres T pour situer la coupure</td></tr>
+<tr><td>≈ 30 Ω</td><td>50 ∥ 75 : un terminateur 75 Ω à la place d'un 50 Ω</td><td>Lire les marquages, remplacer</td></tr>
+<tr><td>≈ 0 Ω</td><td>Court-circuit âme/blindage</td><td>Inspecter BNC (brin de tresse), câble écrasé ; TDR</td></tr>
+<tr><td>Infini</td><td>Aucun terminateur vu : les deux manquent, ou coupures des deux côtés</td><td>Contrôler terminateurs puis continuité des tronçons</td></tr>
+</tbody></table></div>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> 50 Ω au PC-1 et 50 Ω au Serveur (autre bout), terminateurs présents → coupure entre eux : mesurer aux T intermédiaires ; là où la lecture bascule, le tronçon est coupé.</p><p class="fx-sinon"><b>SINON</b> → appliquer la ligne du tableau.</p></div></li>
+<li><strong>Si 25 Ω mais erreurs</strong> : marquages des tronçons (RG-58 50 Ω ?), câble entre T et carte, deux terres, connecteur mal serti (traction), câble écrasé. <div class="fx-branch"><p class="fx-si"><b>SI</b> rien de visible → réflectomètre (TDR) : distance = facteur de vélocité × c × t / 2 (ex. 0,66 × 0,3 m/ns × 400 ns / 2 ≈ 40 m).</p><p class="fx-sinon"><b>SINON</b> → corriger l'élément non conforme.</p></div></li>
+<li><strong>Un seul poste isolé</strong> : T sur sa carte, sa carte (autre poste au même T), ses réglages/pilote.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Après remplacement de l'élément suspect : 25 Ω à chaque T, communication rétablie. Limites : l'ohmmètre ne voit ni un connecteur mal serti ni un câble écrasé (pas de coupure franche) ; un TDR interprète une réflexion « même sens » comme un circuit ouvert ou une impédance plus élevée, « inversée » comme un court-circuit ou une impédance plus faible.</p>
+<h4>6. Correction</h4>
+<ul><li>Terminateur 50 Ω vissé sur la sortie libre du T de chaque extrémité ; un seul relié à la terre.</li><li>Tronçon coupé : deux BNC 50 Ω + raccord (barrel), ou tronçon neuf RG-58.</li><li>T directement sur la carte ; supprimer tout câble T–carte.</li><li>Remplacer tronçons/terminateurs 75 Ω par du 50 Ω.</li><li>Pour retirer un poste sans couper le bus : débrancher le T <b>de la carte</b>, jamais séparer les câbles du T.</li></ul>
+<h4>7. Validation</h4>
+<p>25 Ω à plusieurs T, schéma conforme (≤ 185 m, ≤ 30 postes, ≥ 0,5 m), communication entre tous les postes, rapport (mesures avant/après).</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Ohmmètre au T du PC-1 : 50 Ω ; tout le segment est en panne »</p>
+<p>Observation : 50 Ω au lieu de 25 Ω, réseau arrêté : un seul terminateur est vu depuis le PC-1. Hypothèses : terminateur manquant ou desserré à l'autre extrémité ; ou coupure entre le PC-1 et cette extrémité. Test : contrôle visuel du terminateur côté Serveur : absent. Conclusion : bus non terminé, les réflexions bloquent tout le segment. Correction : visser un terminateur 50 Ω sur la sortie libre du T du Serveur (sans le relier à la terre, la terre étant déjà côté PC-1). Validation : 25 Ω au T du PC-1 et du Serveur, communication de tous les postes, rapport.</p>
+<p class="fx-lose"><b>Perd des points :</b> mesurer réseau en marche ; oublier qu'il faut DEUX terminateurs ; proposer un terminateur 75 Ω ; mettre la terre aux deux bouts.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> 50 Ω peut signifier terminateur manquant OU coupure : une seule mesure ne tranche pas, mesure à un autre T ou inspecte les terminateurs.</div>
+<div class="fx-trap"><b>Piège</b> 10BASE5 n'est pas du 10BASE2 en plus gros : pas de T ni de BNC, prise vampire sur repères tous les 2,5 m, ≤ 100 transceivers, câble AUI ≤ 50 m.</div>
+</article>
+
+<article class="fx-proc" id="f3-bnc">
+<h3>P5.2 — Réaliser et contrôler un câble à connecteurs BNC (50 Ω réseau, 75 Ω vidéo)</h3>
+<p class="fx-sev">Fréquence : question officielle (« réalisation d'un câble avec connecteurs BNC ») · Gravité : court-circuit, intermittence, réflexions</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Sujet rédactionnel « décris la réalisation » ; ou câble neuf qui ne fonctionne pas, qui coupe quand on le bouge, image vidéo dégradée.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Brin de tresse touchant l'âme ou le contact (court-circuit).</li><li>Contact central mal serti ou mal positionné (en retrait ou trop sorti).</li><li>Âme entaillée (casse ultérieure).</li><li>Bague non sertie (tourne) : tresse mal tenue, intermittence.</li><li>Impédance incohérente : connecteur 75 Ω sur RG-58, ou 50 Ω sur RG-59.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Quel usage (10BASE2 50 Ω, vidéo 75 Ω) ? Quelle référence de câble et de connecteur ? Notice (cotes de dénudage) ?</li><li>Câble non raccordé ; installation TV/satellite : débrancher (le récepteur peut alimenter la tête de parabole). Ramasser les chutes de tresse.</li></ul>
+<h4>4. Diagnostic pas à pas (réalisation contrôlée)</h4>
+<ol class="fx-steps">
+<li><strong>Choisir câble et connecteurs de même impédance</strong> (lire gaine et connecteur).</li>
+<li><strong>Enfiler manchon et bague</strong> avant tout.</li>
+<li><strong>Couper franc, dénuder en gradins</strong> aux cotes de la notice (gaine, tresse, diélectrique) avec un dénudeur coaxial calibré — attendu : âme et tresse intactes. <div class="fx-branch"><p class="fx-si"><b>SI</b> âme entaillée ou tresse coupée → recouper et recommencer.</p><p class="fx-sinon"><b>SINON</b> → contact central.</p></div></li>
+<li><strong>Sertir le contact central</strong> (ou souder selon modèle), âme en butée.</li>
+<li><strong>Pousser le corps</strong> jusqu'à l'enclenchement du contact ; tresse étalée sur le fût, aucun brin libre.</li>
+<li><strong>Ramener et sertir la bague</strong> avec la matrice adaptée (jamais une pince RJ45).</li>
+<li><strong>Contrôler</strong> : visuel (hauteur du contact, aucun brin), mécanique (bague fixe, traction ferme), multimètre câble non raccordé : âme↔âme et tresse↔tresse quelques ohms ; âme↔tresse <b>infini</b>. <div class="fx-branch"><p class="fx-si"><b>SI</b> âme↔tresse ≈ 0 Ω → court-circuit : refaire le connecteur suspect (brin de tresse).</p><p class="fx-sinon"><b>SINON</b> → test en service.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Continuité OK, isolement infini, intégré au bus : 25 Ω au T, communication ; en vidéo : image stable. Limite : un mauvais sertissage peut passer le multimètre et faillir en flexion : tester en bougeant le connecteur.</p>
+<h4>6. Correction</h4><p>Couper le connecteur fautif et en remonter un neuf (on ne réutilise pas un BNC serti).</p>
+<h4>7. Validation</h4><p>Mesures notées, test fonctionnel, étiquetage, rapport.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Décris la réalisation d'un cordon RG-58 à deux BNC pour un réseau 10BASE2 »</p>
+<p>Matériel : RG-58 50 Ω, deux BNC mâles 50 Ω à sertir pour RG-58, coupe-câble, dénudeur coaxial réglé aux cotes de la notice, pince à sertir à matrice adaptée, multimètre. 1) Enfiler manchon et bague. 2) Coupe franche, dénudage en gradins sans entailler l'âme ni couper la tresse. 3) Sertir le contact central sur l'âme en butée. 4) Engager le corps jusqu'à l'enclenchement du contact, tresse étalée sur le fût, aucun brin vers l'âme. 5) Sertir la bague sur la tresse. 6) Autre extrémité identique. 7) Contrôles : visuel ; traction ; continuité âme et tresse ; âme-tresse infini. 8) Mise en service : T sur la carte, terminateurs 50 Ω aux deux bouts du bus, 25 Ω mesuré réseau arrêté. 9) Étiqueter, consigner.</p>
+<p class="fx-lose"><b>Perd des points :</b> oublier l'impédance cohérente ; oublier les contrôles ; citer des cotes « universelles » au lieu de la notice.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> BNC 50 Ω et 75 Ω s'emboîtent mécaniquement : le mélange ne se voit pas à l'œil mais crée des réflexions. Lis le marquage.</div>
+<div class="fx-trap"><b>Piège</b> Vidéo : une liaison 75 Ω est point à point, entrée du récepteur à 75 Ω ; pas de T ni de terminateur de bus.</div>
+</article>
+</section>
