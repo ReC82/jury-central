@@ -79,7 +79,7 @@ annotations-réponses listés dans `omitted` ne sont plus affichés (ils restent
 transmis à la correction). Voir `docs/claude-reports/2026-10-21_ticket-149-supports-visuels.md`.
 
 Consignes structurées des exercices pratiques AMPCR (ticket #299) : en entraînement, examen
-blanc et résultats, la consigne d'un exercice PR01–PR29 / EX01–EX04 s'affiche en blocs
+blanc et résultats, la consigne d'un exercice PR01–PR30 / EX01–EX04 s'affiche en blocs
 « Contexte » (avec repère « Partie n »), « Documents à consulter » (liens vers les documents
 de la page), « Données et règles » (encadré) et « Questions » (liste numérotée, sous-questions)
 via `app/templates/_prompt_layout.html` + `app/v1/prompt_layout.py`. La structure vient des
@@ -136,7 +136,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, PR26, PR27, PR28, PR29, EX01, EX02, EX03 et EX04),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, PR26, PR27, PR28, PR29, PR30, EX01, EX02, EX03 et EX04),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -477,6 +477,21 @@ compléter servis aussi en fichiers statiques ; droits effectifs (cumul, refus, 
 le plus restrictif, local = NTFS seul), matrice des droits, droits Unix/ACL/Samba et ordre des
 diagnostics d'accès et d'impression **calculés par code** (`app/v1/ampcr_pratique_pr23_figures.py`)
 et contrôlés par les tests. 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
+
+**Trentième cours publié (ticket #229) : PR30 « Grand laboratoire écrit — installation et
+dépannage d'un réseau complet »** (`/uaa/ampcr-pratique-pr30`), même intégration, position 30
+(après PR29). Dossier intégrateur d'une PME fictive (Géomètres Lambert & Associés : 2 salles,
+6 postes Windows 11 Pro / Ubuntu 24.04 LTS, switch, box, point d'accès, imprimante, serveur de
+fichiers) ; exigences officielles AP-36, AP-37, AP-38 et, cas par cas, celles qu'il mobilise ;
+compléments signalés. 16 blocs : 8 chapitres (dossier ; inventaire, dimensionnement et budget
+indicatif **sans prix** ; câblage T568B, baie, brassage, recette des liens ; plan IPv4, DHCP,
+DNS ; groupe de travail ou domaine, comptes, partages, droits ; installation des systèmes ;
+Wi-Fi personnel/invités et sécurité ; pannes de mise en service, recette et rapport), **8 études
+de cas graduées** (niveaux 1 à 4, corrigé intégral et variantes acceptées), pièges, exercices,
+mini-examen, mémo, sources. Toutes les valeurs sont **calculées par les règles déjà vérifiées**
+de PR07, PR18, PR20, PR22, PR23, PR25, PR27 et PR29 (`app/v1/ampcr_pratique_pr30_figures.py`) ;
+4 procédures, 10 figures SVG, 2 schémas à compléter. 23 exercices transversaux, mini-examen
+10 questions /20 ; aucune image générée.
 
 **Vingt-neuvième cours publié (ticket #228) : PR29 « Contrôles finaux et rapport professionnel
 d'intervention »** (`/uaa/ampcr-pratique-pr29`), même intégration, position 29 (après PR28). Cours
