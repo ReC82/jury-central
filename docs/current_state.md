@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR24, EX01, EX02 et EX03),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR24, EX01, EX02 et EX03),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -443,6 +443,19 @@ DNS, plan d'adressage ; erreurs liaison, DHCP, doublon, masque ; mise en service
 ping selon la configuration, plans d'adressage et ordre du diagnostic **calculés par code**
 (`app/v1/ampcr_pratique_pr21_figures.py`, modèle d'adressage de PR20) et contrôlés par les tests.
 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
+
+**Vingt-troisième cours publié (ticket #222) : PR22 « Domaine, groupe de travail, comptes et
+groupes »** (`/uaa/ampcr-pratique-pr22`), même intégration, position 22 (après PR21, avant
+PR24). 16 blocs (9 chapitres : groupe de travail et comptes locaux ; domaine Active Directory,
+contrôleur, DNS, authentification ; domaine DNS, domaine d'administration et noms de connexion ;
+jonction d'un poste ; comptes locaux ou du domaine, administrateur ou utilisateur ; groupes et
+stratégies ; mots de passe, moindre privilège, désactivation ; dépannage réseau, DNS, heure,
+compte, droits ; organisations de 3 à 20 postes ; 5 cas résolus ; pièges, exercices,
+mini-examen, mémo, sources). 3 procédures, 11 figures SVG et 4 schémas à compléter servis aussi
+en fichiers statiques ; comptes locaux d'un groupe de travail, choix du modèle, prérequis de
+jonction, droits par les groupes, audit d'une fiche de comptes et ordre du diagnostic **calculés
+par code** (`app/v1/ampcr_pratique_pr22_figures.py`) et contrôlés par les tests. 20 exercices,
+mini-examen 10 questions /20 ; aucune image générée.
 
 ## Administration
 

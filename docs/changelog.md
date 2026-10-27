@@ -2,6 +2,18 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR22 « Domaine, groupe de travail, comptes et groupes » (ticket #222)
+
+Cours PR22 du parcours pratique, vingt-deuxième dans l'ordre pédagogique (UAA PR22 du module
+`AMPCR-PRATIQUE`, position 22, après PR21, 16 blocs) : groupe de travail et comptes locaux ;
+domaine Active Directory (contrôleur, DNS, Kerberos, comptes d'ordinateurs) ; domaine DNS et
+domaine d'administration, noms de connexion ; jonction ; comptes et groupes, stratégies ; mots de
+passe, moindre privilège, désactivation ; dépannage réseau/DNS/heure/compte/droits ;
+organisations de 3 à 20 postes ; 3 procédures, 11 figures SVG + 4 schémas à compléter (fichiers
+statiques `app/static/img/ampcr-pratique/pr22-*.svg`) ; 5 cas résolus, 20 exercices, mini-examen
+10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr22_*.py`,
+`tests/test_ticket222_ampcr_pratique_pr22.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR21 « Connexion directe de deux PC et mini-réseau » (ticket #221)
 
 Cours PR21 du parcours pratique, vingt et unième dans l'ordre pédagogique (UAA PR21 du module

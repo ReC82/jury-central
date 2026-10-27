@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -53,6 +53,7 @@ from app.v1.ampcr_pratique_pr18_bank import ALL_ITEMS as PR18_ITEMS
 from app.v1.ampcr_pratique_pr19_bank import ALL_ITEMS as PR19_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
 from app.v1.ampcr_pratique_pr21_bank import ALL_ITEMS as PR21_ITEMS
+from app.v1.ampcr_pratique_pr22_bank import ALL_ITEMS as PR22_ITEMS
 from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.models import (
     GenerationSource,
@@ -1249,6 +1250,55 @@ _PR21_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR22_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr22",
+    course_title="AMPCR pratique écrite — PR22 Domaine, groupe de travail, comptes et groupes",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : groupe de travail et comptes locaux, domaine Active Directory (contrôleur, "
+        "DNS, authentification, comptes d'utilisateurs et d'ordinateurs), jonction d'un poste, "
+        "groupes et stratégies, mots de passe, moindre privilège, désactivation, dépannage de "
+        "l'ouverture de session ; organisations de 3 à 20 postes ; personnes et relevés fictifs"
+    ),
+    allowed_notions=[
+        "groupe de travail : pas de serveur, chaque poste a sa propre base de comptes locaux et vérifie lui-même les mots de passe (gestion décentralisée) ; il faut un compte avec mot de passe sur chaque poste où l'on ouvre une session et sur le poste qui partage un dossier ; le nom du groupe de travail (WORKGROUP par défaut) ne donne aucun droit",
+        "domaine Active Directory : annuaire des comptes d'utilisateurs, groupes, comptes d'ordinateurs et stratégies, tenu par un ou plusieurs contrôleurs de domaine (deux conseillés) ; gestion centralisée ; un compte par personne valable sur tous les postes membres",
+        "contrôleur : adresse IP fixe, serveur DNS du domaine ; DNS des postes = le contrôleur seul (pas la box, pas un DNS public, même en second) ; il relaie les noms d'Internet ; la box reste la passerelle ; authentification Kerberos, écart d'heure de 5 minutes au plus par défaut",
+        "domaine DNS (nom dans le système de noms) et domaine d'administration (Active Directory) ; nom DNS du domaine (sous-domaine d'un nom public possédé, ex. ad.dupont.example) et nom NetBIOS court (DUPONT, 15 caractères au plus) ; éviter .local et le nom exact du site public ; DUPONT\\nom et nom@ad.dupont.example = compte du domaine ; .\\nom et POSTE\\nom = compte local",
+        "jonction : Windows Professionnel/Entreprise/Éducation (pas Famille), nom unique, réseau, DNS = contrôleur, heure, compte autorisé du domaine ; Système → Domaine ou groupe de travail ou sysdm.cpl, ou Add-Computer -DomainName … -Restart ; redémarrage ; contrôles whoami, whoami /groups, gpresult /r, nltest /sc_query",
+        "comptes : local (un poste, compte de secours) ou du domaine ; utilisateur standard ou administrateur ; Admins du domaine devient membre du groupe local Administrateurs et Utilisateurs du domaine du groupe local Utilisateurs à la jonction ; Invité désactivé ; un compte par personne, pas de compte commun ; technicien : compte quotidien standard + compte d'administration séparé",
+        "groupes : droits donnés aux groupes (groupes métier G_…), comptes placés dans les groupes ; un ajout à un groupe compte à la prochaine ouverture de session (whoami /groups) ; stratégies de groupe (GPO) liées aux unités d'organisation, gpupdate /force, gpresult /r",
+        "mots de passe : personnels, initial temporaire à changer à la prochaine ouverture de session, longs ; verrouillage après essais faux → déverrouiller (sans réinitialiser si la personne connaît son mot de passe) ; oubli → réinitialiser après vérification d'identité ; moindre privilège ; départ : désactiver le jour même, retirer des groupes, supprimer plus tard après sauvegarde",
+        "dépannage dans l'ordre : réseau (ping du contrôleur) → DNS (ipconfig /all, nslookup du domaine) → heure (≤ 5 min, w32tm /resync) → relation d'approbation du poste (nltest /sc_query, Test-ComputerSecureChannel -Repair ou sortir et rejoindre le domaine) → compte (actif, verrouillé, mot de passe) → droits (groupe, reconnexion) ; un seul compte touché = compte, un seul poste = poste",
+        "repère du cours : groupe de travail jusqu'à une dizaine de postes stables sans règle commune ; au-delà ou avec rotation du personnel, itinérance ou règles imposées : domaine avec serveur",
+    ],
+    competencies=[
+        "Choisir et justifier groupe de travail ou domaine pour une organisation de 3 à 20 postes",
+        "Organiser comptes, groupes et droits selon le moindre privilège, et gérer la vie d'un compte",
+        "Joindre un poste au domaine et diagnostiquer un échec de connexion ou un accès refusé à partir de relevés",
+    ],
+    vocabulary=[
+        "groupe de travail", "compte local", "domaine", "Active Directory", "contrôleur de domaine", "DNS",
+        "Kerberos", "compte d'ordinateur", "jonction", "NetBIOS", "UPN", "Admins du domaine",
+        "Utilisateurs du domaine", "groupe", "stratégie de groupe", "unité d'organisation", "moindre privilège",
+        "désactiver", "verrouillé", "relation d'approbation",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si l'idée est claire ; "
+        "accepter une autre solution juste et justifiée (autre nom de domaine cohérent, autre "
+        "convention de nommage des groupes, réparation du canal sécurisé ou nouvelle jonction, "
+        "seuil de postes différent s'il est justifié par la situation) ; valoriser le choix "
+        "justifié, le diagnostic prouvé par les relevés et la procédure ; suivre le barème de la "
+        "question. Ne jamais valider : la box ou un DNS public comme DNS d'un poste du domaine, le "
+        "nom du groupe de travail présenté comme donnant des droits, un compte commun, un "
+        "utilisateur ordinaire dans Admins du domaine, la suppression immédiate d'un compte au "
+        "départ présentée comme meilleure que la désactivation, un droit donné directement à une "
+        "personne au lieu d'un groupe, la jonction d'un Windows Famille, la désactivation du "
+        "verrouillage ou de l'UAC comme solution."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1372,6 +1422,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Connexion directe de deux PC et mini-réseau",
         items=PR21_ITEMS,
         context=_PR21_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR22",
+        title="Domaine, groupe de travail, comptes et groupes",
+        items=PR22_ITEMS,
+        context=_PR22_CONTEXT,
     ),
     PracticalCourse(
         code="PR24",
