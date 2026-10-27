@@ -67,6 +67,7 @@ from app.seed import (
     PR20_BLOCKS,
     PR21_BLOCKS,
     PR22_BLOCKS,
+    PR23_BLOCKS,
     PR24_BLOCKS,
     UAA1_BLOCKS,
     UAA1_TITLE,
@@ -336,8 +337,9 @@ def test_seed_is_idempotent(db_session):
     # #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ; #205 : PR04 ;
     # #206 : PR05 ; #230 : EX01 (premier examen blanc, même module) ; #207 : PR07 ; #208 : PR08 ;
     # #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #231 : EX02 ; #216 : PR13 ; #217 : PR14 ;
-    # #218 : PR17 ; #232 : EX03 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22.
-    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 20 + 17 + 26
+    # #218 : PR17 ; #232 : EX03 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ;
+    # #223 : PR23.
+    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 20 + 17 + 27
     assert db_session.query(LessonBlock).count() == (
         len(UAA1_BLOCKS) + len(UAA2_BLOCKS) + len(MC01_BLOCKS) + len(MC02_BLOCKS)
         + len(MC03_BLOCKS)
@@ -370,6 +372,7 @@ def test_seed_is_idempotent(db_session):
         + len(PR19_BLOCKS)
         + len(PR21_BLOCKS)
         + len(PR22_BLOCKS)
+        + len(PR23_BLOCKS)
         + len(EX03_BLOCKS)
     )
 

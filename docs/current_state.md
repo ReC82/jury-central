@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR24, EX01, EX02 et EX03),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, EX01, EX02 et EX03),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -456,6 +456,18 @@ en fichiers statiques ; comptes locaux d'un groupe de travail, choix du modèle,
 jonction, droits par les groupes, audit d'une fiche de comptes et ordre du diagnostic **calculés
 par code** (`app/v1/ampcr_pratique_pr22_figures.py`) et contrôlés par les tests. 20 exercices,
 mini-examen 10 questions /20 ; aucune image générée.
+
+**Vingt-quatrième cours publié (ticket #223) : PR23 « Partage de dossiers, imprimantes et
+permissions »** (`/uaa/ampcr-pratique-pr23`), même intégration, position 23 (après PR22, avant
+PR24). 16 blocs (9 chapitres : partage SMB et chemins UNC ; profil réseau, découverte, pare-feu
+et authentification ; permissions de partage et NTFS ; combinaison effective, héritage et
+groupes ; Linux Samba, rwx et ACL ; imprimantes partagées ; diagnostic d'un accès ; imprimante
+hors connexion et file bloquée ; protection des données et moindre privilège ; 5 cas résolus ;
+pièges, exercices, mini-examen, mémo, sources). 3 procédures, 12 figures SVG et 4 schémas à
+compléter servis aussi en fichiers statiques ; droits effectifs (cumul, refus, héritage, réseau =
+le plus restrictif, local = NTFS seul), matrice des droits, droits Unix/ACL/Samba et ordre des
+diagnostics d'accès et d'impression **calculés par code** (`app/v1/ampcr_pratique_pr23_figures.py`)
+et contrôlés par les tests. 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
 
 ## Administration
 

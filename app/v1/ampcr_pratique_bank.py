@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -54,6 +54,7 @@ from app.v1.ampcr_pratique_pr19_bank import ALL_ITEMS as PR19_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
 from app.v1.ampcr_pratique_pr21_bank import ALL_ITEMS as PR21_ITEMS
 from app.v1.ampcr_pratique_pr22_bank import ALL_ITEMS as PR22_ITEMS
+from app.v1.ampcr_pratique_pr23_bank import ALL_ITEMS as PR23_ITEMS
 from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.models import (
     GenerationSource,
@@ -1299,6 +1300,54 @@ _PR22_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR23_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr23",
+    course_title="AMPCR pratique écrite — PR23 Partage de dossiers, imprimantes et permissions",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : partages Windows SMB, chemins UNC, profil réseau et authentification, "
+        "permissions de partage et NTFS, combinaison effective, héritage et groupes, Linux Samba "
+        "et droits rwx, imprimantes partagées, diagnostic d'un accès ou d'une impression, "
+        "protection des données ; serveurs, personnes et relevés fictifs"
+    ),
+    allowed_notions=[
+        "partage Windows : protocole SMB sur TCP 445 (SMB2/SMB3 ; SMB1 obsolète, à ne pas réactiver) ; Propriétés → Partage → Partage avancé (nom du partage, Autorisations) ; net share, New-SmbShare ; partages administratifs C$, ADMIN$ ; ne pas partager un disque entier",
+        "chemin UNC \\\\serveur\\partage\\chemin, serveur par son nom ou son adresse IP ; lecteur réseau net use Z: \\\\SRV-FICH\\Compta /persistent:yes ; net view \\\\serveur liste les partages",
+        "réseau : profil Privé ou Domaine (Public bloque le partage de fichiers) ; règle de pare-feu « Partage de fichiers et d'imprimantes » ; découverte du réseau = affichage seulement, un chemin UNC fonctionne sans elle ; un ping refusé ne prouve pas que le serveur est éteint, Test-NetConnection -Port 445 est la preuve",
+        "authentification : en domaine le compte de la session ; en groupe de travail un compte du serveur avec mot de passe (compte sans mot de passe refusé par le réseau, accès invité bloqué) ; un seul compte par serveur et par session (erreur 1219 : net use /delete, cmdkey)",
+        "autorisations du partage (réseau seulement : Lecture, Modifier, Contrôle total) et NTFS (local et réseau, onglet Sécurité : Lecture et exécution, Modification, Contrôle total…, héritage) ; Lecture = ouvrir, copier, lancer ; Modification = + créer, enregistrer, supprimer ; Contrôle total = + changer les autorisations, prendre possession (administrateurs)",
+        "combinaison : dans une barrière les droits des groupes se cumulent ; un refus explicite l'emporte ; une autorisation explicite bat un refus hérité ; par le réseau le plus restrictif du partage et de NTFS ; en session sur le serveur NTFS seul ; partage large pour les utilisateurs authentifiés et détail dans NTFS, ou les deux réglés pareil",
+        "héritage : un sous-dossier reçoit les autorisations du parent ((I) dans icacls) ; dossier confidentiel : désactiver l'héritage (convertir) puis retirer les groupes non autorisés ; icacls /grant, /remove, /inheritance:d ; droits aux groupes, ajout à un groupe pris en compte à la prochaine ouverture de session",
+        "Linux : ls -ld, propriétaire/groupe/autres (classes non cumulées), r=4 w=2 x=1, dossier : r lister, w créer/supprimer, x entrer ; chmod 2770 (setgid), chown root:groupe ; ACL setfacl -m g:groupe:r-x (+ dans ls), getfacl ; Samba smb.conf valid users, read only, write list, testparm, smbpasswd -a, reload smbd ; accès = plus restrictif de Samba et Unix",
+        "imprimantes : USB partagée par un poste (hôte allumé), imprimante réseau à adresse fixe ou réservée, serveur d'impression \\\\SRV-FICH\\IMP-COMPTA ; file d'attente = spouleur de l'hôte ; pilote 64 bits du modèle, installation par un administrateur depuis août 2021 ; droits Imprimer, Gérer les documents ; pare-feu ; page de test",
+        "dépannage accès : adresse IP → nom (DNS) → port 445 → nom du partage (net view) → compte → permissions ; erreurs 53 chemin réseau introuvable, 67 nom réseau introuvable, 86 mot de passe, 1219 deux comptes, 5 accès refusé ; dépannage impression : hôte → imprimante et adresse → file et spouleur (net stop/start spooler, vider spool\\PRINTERS) → pilote → droit",
+        "protection des données : moindre privilège, groupes, retirer Tout le monde, jamais Tout le monde Contrôle total partage + NTFS, pas de disque entier partagé, sauvegarde testée, matrice des droits écrite et revue",
+    ],
+    competencies=[
+        "Mettre en partage un dossier ou une imprimante et régler partage, NTFS (ou Samba et rwx) selon le moindre privilège",
+        "Calculer l'accès effectif d'un compte et rédiger une matrice des droits",
+        "Diagnostiquer un accès refusé, un nom introuvable ou une imprimante hors connexion à partir de relevés",
+    ],
+    vocabulary=[
+        "partage", "SMB", "chemin UNC", "lecteur réseau", "profil réseau", "pare-feu", "autorisations du partage",
+        "NTFS", "Lecture", "Modification", "Contrôle total", "refus", "héritage", "icacls", "matrice des droits",
+        "Samba", "rwx", "ACL", "file d'attente", "spouleur", "pilote", "moindre privilège",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si l'idée est claire ; "
+        "accepter une autre solution juste et justifiée (partage réglé comme NTFS ou partage large "
+        "et détail NTFS, autre nom de groupe, ACL ou ajout à un groupe sous Linux, réservation DHCP ou "
+        "adresse fixe, impression directe par IP ou serveur d'impression) ; valoriser l'accès "
+        "effectif calculé, le diagnostic prouvé par les relevés et la correction minimale ; suivre le "
+        "barème de la question. Ne jamais valider : Tout le monde en Contrôle total sur le partage et "
+        "NTFS comme solution, la désactivation du pare-feu, la réactivation de SMB1 ou de l'accès "
+        "invité, chmod 777, le partage d'un disque entier, des droits d'administration donnés à un "
+        "utilisateur pour installer un pilote, l'adresse IP présentée comme correction définitive "
+        "d'une panne de nom, un refus présenté comme meilleur que de ne pas accorder."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1428,6 +1477,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Domaine, groupe de travail, comptes et groupes",
         items=PR22_ITEMS,
         context=_PR22_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR23",
+        title="Partage de dossiers, imprimantes et permissions",
+        items=PR23_ITEMS,
+        context=_PR23_CONTEXT,
     ),
     PracticalCourse(
         code="PR24",
