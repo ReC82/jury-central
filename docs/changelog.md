@@ -2,6 +2,20 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR25 « Wi-Fi : configuration, couverture, sécurité et diagnostic » (ticket #224)
+
+Cours PR25 du parcours pratique, vingt-cinquième dans l'ordre pédagogique (UAA PR25 du module
+`AMPCR-PRATIQUE`, position 25, après PR24, 16 blocs) : architecture (point d'accès, client,
+routeur, répéteur, mesh, SSID/BSSID) ; normes 802.11 et bandes 2,4/5/6 GHz ; canaux, largeur et
+interférences ; portée, obstacles, débit réel, répéteur et roaming ; association,
+authentification, DHCP, DNS ; sécurité WEP/WPA-TKIP obsolètes, WPA2 AES-CCMP, WPA3 SAE, Personnel
+ou Entreprise 802.1X/RADIUS, WPS, mot de passe fort, invités isolés ; configuration d'un point
+d'accès ; diagnostics réseau invisible, mauvaise clé, mauvaise IP, connecté sans Internet,
+interférence, répéteur mal placé ; 3 procédures, 13 figures SVG + 4 schémas à compléter (fichiers
+statiques `app/static/img/ampcr-pratique/pr25-*.svg`) ; 5 cas résolus, 20 exercices, mini-examen
+10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr25_*.py`,
+`tests/test_ticket224_ampcr_pratique_pr25.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR23 « Partage de dossiers, imprimantes et permissions » (ticket #223)
 
 Cours PR23 du parcours pratique, vingt-troisième dans l'ordre pédagogique (UAA PR23 du module

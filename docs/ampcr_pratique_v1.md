@@ -64,6 +64,7 @@ le plan est du code (`app/v1/ampcr_pratique_plan.py`), lu en lecture seule.
 | PR22 — Domaine, groupe de travail, comptes et groupes (#222) | `/uaa/ampcr-pratique-pr22` | 20 exercices (entraînement, dont 3 remises en ordre, 4 classements, 4 schémas à compléter, 5 relevés de commandes et 3 fiches comptes et groupes) + 10 questions de mini-examen /20 (examen blanc) |
 | PR23 — Partage de dossiers, imprimantes et permissions (#223) | `/uaa/ampcr-pratique-pr23` | 20 exercices (entraînement, dont 3 remises en ordre, 4 classements, 4 schémas à compléter, 6 matrices de droits et 6 relevés de commandes) + 10 questions de mini-examen /20 (examen blanc) |
 | PR24 — Dépannage réseau et Internet — dossiers d'intervention écrits (#200) | `/uaa/ampcr-pratique-pr24` | 20 exercices (entraînement, dont 1 classement et 1 remise en ordre) + 10 questions de mini-examen /20 (examen blanc) |
+| PR25 — Wi-Fi : configuration, couverture, sécurité et diagnostic (#224) | `/uaa/ampcr-pratique-pr25` | 20 exercices (entraînement, dont 3 remises en ordre, 4 classements, 4 schémas à compléter, 7 relevés de commandes et 6 choix de configuration) + 10 questions de mini-examen /20 (examen blanc) |
 
 Intégration d'un cours pratique (modèle posé par PR06, à réutiliser par PR11, PR15…) :
 
