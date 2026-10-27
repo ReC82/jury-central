@@ -1,0 +1,17 @@
+{# Liste des fiches #302 (paramètre facultatif : only = liste de Fiche). #}
+<ul class="list-unstyled mb-0">
+    {% for f in (only if only is defined else fiches.FICHES) %}
+    <li class="d-flex flex-wrap justify-content-between align-items-center gap-2 py-1">
+        {% if fiches.is_available(f.number) %}
+        <a href="{{ f.url }}"><i class="bi bi-tools" aria-hidden="true"></i> <strong>Fiche {{ f.number }}</strong> — {{ f.title }}</a>
+        <span class="d-flex gap-2">
+            <span class="small text-muted">{{ f.courses }}</span>
+            <a class="jc-pill" href="{{ f.download_url }}" download="{{ f.filename }}"><i class="bi bi-download" aria-hidden="true"></i> HTML</a>
+        </span>
+        {% else %}
+        <span class="text-muted"><i class="bi bi-tools" aria-hidden="true"></i> <strong>Fiche {{ f.number }}</strong> — {{ f.title }}</span>
+        <span class="jc-pill"><i class="bi bi-hourglass" aria-hidden="true"></i> En cours de rédaction</span>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
