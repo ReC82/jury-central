@@ -71,6 +71,7 @@ def test_theory_links_point_to_existing_mc_courses():
 
 def test_status_never_validated_without_course_exercise_and_explicit_validation(monkeypatch):
     req = "AP-04"  # PR02 + EX01 (audit #236)
+    monkeypatch.setattr(plan, "VALIDATED_REQUIREMENT_IDS", frozenset())  # avant l'audit #235
     assert plan.requirement_status(req, set()) == plan.STATUS_TODO
     assert plan.requirement_status(req, {"PR02"}) == plan.STATUS_PARTIAL
     assert plan.requirement_status(req, {"PR02", "EX01"}) == plan.STATUS_PARTIAL

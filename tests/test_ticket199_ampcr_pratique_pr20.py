@@ -18,6 +18,7 @@ import pytest
 from app.models import UAA, Module
 from app.seed import seed
 from app.v1 import ampcr_pratique_plan as plan
+from app.v1.ampcr_pratique_audit import proven_requirement_ids as audit_proven_ids
 from app.v1.ampcr_pratique_bank import (
     PRACTICAL_BANK_IMPORTERS,
     PRACTICAL_COURSES_BY_CODE,
@@ -520,7 +521,7 @@ def test_practical_home_and_matrix_show_pr20(client, db_session):
     home = client.get("/ampcr-pratique").text
     assert f'href="/uaa/{SLUG}"' in home and "cours publiés" in home  # PR24 (#200) publié ensuite
     assert plan.requirement_status("AP-30", {"PR20"}) == plan.STATUS_PARTIAL
-    assert plan.VALIDATED_REQUIREMENT_IDS == frozenset()
+    assert plan.VALIDATED_REQUIREMENT_IDS == audit_proven_ids()  # « validé » : preuves de l'audit #235
     assert client.get("/ampcr-pratique/matrice").status_code == 200
 
 

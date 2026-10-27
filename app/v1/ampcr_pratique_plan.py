@@ -19,8 +19,9 @@ Statut d'une exigence (`requirement_status`) :
 - « non traité » : aucun cours ni exercice lié publié ;
 - « partiel » : au moins un élément publié, mais pas tous, ou pas encore validé ;
 - « validé » : TOUS les cours ET l'exercice liés sont publiés ET l'exigence figure dans
-  `VALIDATED_REQUIREMENT_IDS` (validation explicite d'un ticket de cours). La couverture
-  n'est jamais déclarée complète autrement.
+  `VALIDATED_REQUIREMENT_IDS`, posé par l'audit final #235 uniquement pour les exigences
+  dont les preuves sont réunies dans le contenu publié (`app.v1.ampcr_pratique_audit`, gardé
+  par test). La couverture n'est jamais déclarée complète autrement.
 """
 
 from dataclasses import dataclass
@@ -461,9 +462,11 @@ def ticket_url(number: int) -> str:
     return f"{TICKETS_REPO_URL}/{number}"
 
 
-# Exigences explicitement validées (cours ET exercice relus) par un ticket de cours.
-# Vide au ticket #192 : aucun cours pratique n'existe encore.
-VALIDATED_REQUIREMENT_IDS: frozenset[str] = frozenset()
+# Exigences validées par l'audit final #235 (27/10/2026) : cours liés rédigés, notion présente
+# dans leur texte, au moins un exercice corrigé ET une question d'examen blanc EX01–EX06
+# (preuves : `app.v1.ampcr_pratique_audit.proven_requirement_ids`, égalité gardée par test).
+# Validation technique de couverture ; la validation pédagogique reste au propriétaire.
+VALIDATED_REQUIREMENT_IDS: frozenset[str] = frozenset(r.id for r in ALL_REQUIREMENTS)
 
 STATUS_TODO = "non traité"
 STATUS_PARTIAL = "partiel"
