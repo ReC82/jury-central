@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -50,6 +50,7 @@ from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
 from app.v1.ampcr_pratique_pr17_bank import ALL_ITEMS as PR17_ITEMS
 from app.v1.ampcr_pratique_pr18_bank import ALL_ITEMS as PR18_ITEMS
+from app.v1.ampcr_pratique_pr19_bank import ALL_ITEMS as PR19_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
 from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.models import (
@@ -1156,6 +1157,51 @@ _PR18_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR19_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr19",
+    course_title="AMPCR pratique écrite — PR19 Topologies, OSI, TCP/IP, NetBEUI et équipements",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : topologies, modèles OSI et TCP/IP, encapsulation, trame Ethernet, adresses "
+        "MAC et IP, ARP, ports TCP/UDP, NetBEUI, équipements, domaines de collision et de "
+        "diffusion, chemin d'un paquet, diagnostic par couche ; réseaux, adresses et relevés fictifs"
+    ),
+    allowed_notions=[
+        "topologies : bus (câble commun, bouchons ; câble coupé ou bouchon absent : tout le segment s'arrête), étoile (un câble par poste ; câble coupé : un poste ; switch central : tout), anneau (de station en station, jeton ; simple : une coupure arrête tout ; double : rebouclage), maillage (plusieurs chemins ; complet : n × (n − 1) ÷ 2 liaisons) ; topologie physique et logique (hub = étoile physique, bus logique)",
+        "modèle OSI : 1 physique (bits), 2 liaison de données (trames, MAC), 3 réseau (paquets, IP, ICMP), 4 transport (segments TCP, datagrammes UDP, ports), 5 session, 6 présentation, 7 application (HTTP, HTTPS, DNS, DHCP, SMTP, SMB) ; modèle TCP/IP : accès réseau (1-2), Internet (3), transport (4), application (5-7)",
+        "encapsulation : données → segment (+ TCP 20 ou UDP 8 octets) → paquet (+ IPv4 20) → trame (+ Ethernet 14 + FCS 4) ; données de trame 46 à 1 500 octets (bourrage sous 46), trame 64 à 1 518 octets, préambule non compté ; champs : MAC destination, MAC source, type (0x0800 IPv4, 0x0806 ARP, 0x86DD IPv6), données, FCS ; FF-FF-FF-FF-FF-FF = diffusion",
+        "adresses : MAC dans le réseau local, IP de bout en bout, port = programme ; ARP traduit IP → MAC (table arp -a) ; TCP fiable avec accusés de réception, UDP sans ; ports HTTP 80, HTTPS 443, DNS 53, DHCP 67/68, SMTP 25/587, IMAP 143/993, FTP 20/21, SSH 22, SMB 445, RDP 3389",
+        "protocole = règles d'échange ; service = fonction rendue par un programme serveur sur un port ; équipement = matériel (peut héberger des services : DHCP de la box)",
+        "NetBEUI : IBM puis Microsoft, transport de NetBIOS, noms NetBIOS sans adresse réseau, diffusion, non routable (ne traverse pas un routeur), remplacé par TCP/IP ; IPX/SPX routable, historique",
+        "équipements : répéteur et hub couche 1 (recopient les bits, un seul domaine de collision) ; pont, switch (table MAC, un domaine de collision par port, ne sépare pas les diffusions sauf VLAN), point d'accès couche 2 ; routeur couche 3 (relie des réseaux IP, sépare les diffusions) ; modem (signal de la ligne : VDSL, DOCSIS ; ONT sur fibre) ; passerelle par défaut = adresse du routeur ; box = modem + routeur NAT + switch + point d'accès + DHCP/DNS",
+        "chemin d'un paquet : destination locale → trame vers la MAC du destinataire ; sinon vers la MAC de la passerelle ; le switch ne change rien ; chaque routeur refait la trame (MAC changent) ; IP de destination inchangée ; la box remplace l'IP source privée par son IP publique (NAT)",
+        "diagnostic de bas en haut avec preuve : 1 voyant, câble, testeur ; 2 port du switch, VLAN, arp -a ; 3 ipconfig, ping de la passerelle, tracert ; 4 port du service, pare-feu, Test-NetConnection -Port ; 7 nslookup, service, identifiants",
+    ],
+    competencies=[
+        "Reconnaître une topologie, ses avantages, ses défauts et l'effet d'une panne",
+        "Situer protocoles, équipements et pannes dans les modèles OSI et TCP/IP ; suivre l'encapsulation et le chemin d'un paquet",
+        "Choisir et justifier un équipement réseau ; mener un diagnostic couche par couche",
+    ],
+    vocabulary=[
+        "topologie", "bus", "étoile", "anneau", "maillage", "OSI", "TCP/IP", "encapsulation", "trame",
+        "paquet", "segment", "MAC", "ARP", "port", "TCP", "UDP", "NetBEUI", "hub", "switch", "pont",
+        "routeur", "passerelle", "modem", "point d'accès", "répéteur", "domaine de collision",
+        "domaine de diffusion", "VLAN", "NAT",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si l'idée est claire ; "
+        "accepter une autre solution technique juste et justifiée (par exemple un switch de couche 3 "
+        "au lieu d'un routeur pour relier deux VLAN, un maillage partiel argumenté) ; valoriser le "
+        "diagnostic prouvé par les relevés, le choix argumenté par la couche et le rôle, le calcul "
+        "juste ; suivre le barème de la question. Ne jamais valider : un switch présenté comme "
+        "capable de relier deux réseaux IP, un switch qui sépare les diffusions sans VLAN, un hub "
+        "qui sépare les collisions, NetBEUI présenté comme routable, la MAC du serveur d'Internet "
+        "dans la trame émise par le poste, DNS ou DHCP placés à la couche réseau, ni l'ouverture "
+        "sans besoin de ports comme 445 ou 3389 vers Internet."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1261,6 +1307,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Installation physique d'un mini-réseau",
         items=PR18_ITEMS,
         context=_PR18_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR19",
+        title="Topologies, OSI, TCP/IP, NetBEUI et équipements",
+        items=PR19_ITEMS,
+        context=_PR19_CONTEXT,
     ),
     PracticalCourse(
         code="PR20",
