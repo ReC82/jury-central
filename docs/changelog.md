@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR07 « Systèmes d'exploitation, GUI/CLI et prérequis d'installation » (ticket #207)
+
+Douzième cours du parcours pratique et septième dans l'ordre pédagogique (UAA PR07 du module
+`AMPCR-PRATIQUE`, position 7, après EX01, 21 blocs) : fonctions d'un système (noyau, pilotes,
+système de fichiers, comptes, services, interface), systèmes du marché et éditions de Windows,
+outils GUI/CLI Windows et Linux, 32/64 bits et ARM, UEFI/CSM, démarrage sécurisé, TPM 2.0 et
+mbr2gpt, prérequis Windows 11 (verdicts tel quel / après réglages / non compatible) et Linux,
+sauvegarde, licences, installation propre ou mise à niveau (arbre de décision), média contrôlé
+par SHA-256, menu de démarrage UEFI, partitions et pilotes (VMD/RST), comptes et sécurité
+initiale, virtualisation ; 3 procédures illustrées, 8 figures SVG depuis des données testées ;
+4 scénarios corrigés, 16 exercices, mini-examen 10 questions /20 sans génération IA
+(`app/v1/ampcr_pratique_pr07_*.py`, `tests/test_ticket207_ampcr_pratique_pr07.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : examen blanc EX01 « maintenance et dépannage matériel » (ticket #230)
 
 Premier examen blanc du parcours pratique (UAA EX01 du module `AMPCR-PRATIQUE`, après PR06) :

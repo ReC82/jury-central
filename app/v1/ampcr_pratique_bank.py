@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -36,6 +36,7 @@ from app.v1.ampcr_pratique_pr04_bank import ALL_ITEMS as PR04_ITEMS
 from app.v1.ampcr_pratique_pr05_bank import ALL_ITEMS as PR05_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
+from app.v1.ampcr_pratique_pr07_bank import ALL_ITEMS as PR07_ITEMS
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
@@ -620,6 +621,53 @@ _EX01_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR07_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr07",
+    course_title="AMPCR pratique écrite — PR07 Systèmes d'exploitation, GUI/CLI et prérequis d'installation",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : choix justifiés d'un système et d'une édition, vérification des prérequis "
+        "matériels et du firmware, lecture de relevés fictifs (Informations système, terminal, "
+        "menu de démarrage) et plans d'installation rédigés"
+    ),
+    allowed_notions=[
+        "rôle d'un système d'exploitation : noyau (temps processeur, mémoire protégée, accès au matériel), pilotes (un par matériel), système de fichiers (emplacement et droits), comptes et droits, services (arrière-plan : spouleur, mises à jour, systemd), interface graphique (GUI) ou ligne de commande (CLI) ; application → noyau → pilote → matériel",
+        "systèmes du marché : Windows (propriétaire, OEM, fin de support publiée, Windows 10 plus pris en charge depuis le 14 octobre 2025 sauf mises à jour étendues payantes), distributions Linux libres (Ubuntu, Debian, Linux Mint, Fedora ; LTS ; GNOME, KDE Plasma, Xfce ; apt, dnf ; serveur sans interface graphique), macOS (Mac uniquement), ChromeOS et ChromeOS Flex ; choix : logiciels indispensables, domaine, matériel, durée de support",
+        "éditions : Windows 11 Famille (usage courant, Defender, client Bureau à distance) ; Professionnel nécessaire pour jonction à un domaine Active Directory, BitLocker et sa console, hôte Bureau à distance, Hyper-V, gpedit.msc ; l'édition installée doit correspondre à la licence",
+        "GUI et CLI : msinfo32, Gestion des disques, Gestionnaire de périphériques, services.msc, tpm.msc ; systeminfo, ipconfig /all, Get-ComputerInfo, Get-Tpm, Confirm-SecureBootUEFI, Get-FileHash ; cat /etc/os-release, uname -m, uname -r, nproc, free -h, lsblk, ip a, systemctl status, mokutil --sb-state, sha256sum, sudo, SSH ; CLI = exacte, reproductible, scriptable, à distance",
+        "architecture : x64 (x86_64) ou ARM64 (aarch64) ; un système 32 bits adresse 4 Gio au plus (environ 3,2 à 3,5 Gio utilisables) ; Windows 11 uniquement 64 bits ; pas de mise à niveau de 32 à 64 bits",
+        "firmware : UEFI + GPT + ESP ou mode hérité (CSM) + MBR ; démarrage sécurisé seulement en UEFI (« Non pris en charge » en mode hérité) ; TPM 2.0 (puce, Intel PTT, AMD fTPM, parfois désactivé) ; mbr2gpt /validate puis /convert /allowFullOS avant de basculer le firmware en UEFI ; shim signé : Ubuntu, Debian, Fedora, Mint démarrent avec le démarrage sécurisé ; pilote NVIDIA propriétaire → enregistrement d'une clé MOK ; clé de récupération BitLocker avant de toucher au firmware",
+        "prérequis Windows 11 publiés (octobre 2026) : processeur 64 bits de la liste de compatibilité, 2 cœurs, 1 GHz, 4 Go, 64 Go, UEFI compatible démarrage sécurisé, TPM 2.0, DirectX 12 / WDDM 2.0, écran 9 pouces 720p, Internet et compte Microsoft pour Famille ; verdicts : compatible tel quel, après réglages du firmware (mode UEFI, TPM à activer), non compatible (processeur hors liste, TPM 1.2, mémoire ou stockage insuffisants) ; démarrage sécurisé désactivé mais pris en charge = recommandation, pas blocage ; pas de contournement d'un blocage matériel ; Ubuntu Desktop recommandé : 2 GHz double cœur, 4 Go, 25 Go",
+        "avant l'installation : accord écrit, sauvegarde vérifiée sur un autre support, édition et licence relevées, logiciels et leurs clés, clé BitLocker ; licences OEM (liée au premier PC, non transférable, réactivation automatique de la même édition), commerciale (transférable si retirée de l'ancien PC), volume (organisation), Linux libre",
+        "installation propre ou mise à niveau sur place : mise à niveau seulement si prérequis respectés, même famille et architecture, système sain, programmes à garder ; sinon installation propre (32 → 64 bits, passage à Linux, système infecté, disque neuf) ; prérequis non respectés → autre système ou matériel",
+        "média : image ISO officielle, somme SHA-256 identique à celle publiée, clé USB d'au moins 8 Go effacée, outil de création, Rufus (GPT pour UEFI), balenaEtcher, dd ; FAT32 limite 4 Gio par fichier ; menu de démarrage ponctuel (F12, F11, F8, Échap selon le fabricant), entrée « UEFI: » de la clé ; entrée sans UEFI → mode hérité → l'installateur refuse un disque GPT",
+        "partitions et pilotes : disposition standard créée par l'installateur (ESP, MSR, récupération ; ESP, racine, swap), partition de données séparée, double démarrage (Windows d'abord) ; pilote de stockage Intel VMD/RST « F6 » via « Charger un pilote » quand l'installateur ne voit aucun lecteur ; pilotes réseau sur clé ; chipset et graphique après ; Linux : pilotes dans le noyau, firmware, Pilotes additionnels",
+        "sécurité initiale : un compte par personne, administrateur protégé par mot de passe, compte standard au quotidien, UAC, sudo, comptes du domaine en entreprise ; mises à jour, Microsoft Defender, pare-feu (ufw à activer sous Ubuntu), chiffrement (BitLocker, chiffrement de l'appareil, chiffrement de l'installateur Linux) et clé de récupération hors du PC",
+        "virtualisation : hyperviseur type 2 (VirtualBox, VMware Workstation, sur un système hôte) ou type 1 (Hyper-V, Proxmox VE/KVM, ESXi) ; VT-x ou AMD-V à activer dans le firmware ; mémoire de l'hôte = totale − VM en marche, au moins 4 Go laissés à l'hôte (convention du cours) ; VM Windows 11 : EFI, démarrage sécurisé, TPM virtuel 2.0 ; instantané ≠ sauvegarde",
+    ],
+    competencies=[
+        "Choisir et justifier un système d'exploitation et son édition selon les logiciels, l'environnement, le matériel et la durée de support",
+        "Vérifier les prérequis matériels et du firmware à partir de relevés GUI ou CLI et conclure : compatible, après réglages ou non compatible",
+        "Rédiger un plan d'installation sûr : sauvegarde, licences, démarche propre ou mise à niveau, média contrôlé, démarrage UEFI, pilotes, comptes et sécurité initiale",
+    ],
+    vocabulary=[
+        "noyau", "pilote", "service", "GUI", "CLI", "PowerShell", "bash", "sudo", "distribution", "LTS",
+        "édition", "OEM", "x64", "UEFI", "CSM", "Secure Boot", "TPM", "mbr2gpt", "ESP", "GPT", "SHA-256",
+        "ISO", "MOK", "VMD", "hyperviseur", "VT-x",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si le choix ou le "
+        "geste est clair ; accepter d'autres distributions ou outils équivalents bien justifiés ; "
+        "suivre le barème de la question. Ne jamais valider une installation sans sauvegarde "
+        "vérifiée, l'édition Famille pour un domaine ou BitLocker, une mise à niveau de 32 à 64 "
+        "bits ou d'un système infecté, la bascule du firmware en UEFI avant la conversion "
+        "mbr2gpt, la désactivation du démarrage sécurisé ou du TPM « par sécurité », le "
+        "contournement d'un blocage matériel de Windows 11, une image non officielle ou dont la "
+        "somme ne correspond pas, ni un compte administrateur partagé sans mot de passe."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -653,6 +701,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     ),
     PracticalCourse(
         code="PR06", title="Diagnostic des pannes matérielles", items=PR06_ITEMS, context=_PR06_CONTEXT
+    ),
+    PracticalCourse(
+        code="PR07",
+        title="Systèmes d'exploitation, GUI/CLI et prérequis d'installation",
+        items=PR07_ITEMS,
+        context=_PR07_CONTEXT,
     ),
     PracticalCourse(
         code="PR11",

@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR11, PR15, PR16, PR20, PR24 et EX01),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR11, PR15, PR16, PR20, PR24 et EX01),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -268,6 +268,19 @@ barème après la remise. 3 schémas SVG (plan lettré de carte mère, LED de di
 température), dont 2 affichés dans les questions via des fichiers statiques identiques ; budget
 d'alimentation, verdicts de température et SMART **calculés par code** avec les règles des cours
 (`app/v1/ampcr_pratique_ex01_*.py`).
+
+**Douzième cours publié (ticket #207) : PR07 « Systèmes d'exploitation, GUI/CLI et prérequis
+d'installation »** (`/uaa/ampcr-pratique-pr07`), même intégration, septième cours de l'ordre
+pédagogique (après EX01). 21 blocs (14 chapitres : rôle et fonctions d'un système, systèmes du
+marché, éditions et cycle de vie, GUI/CLI, architecture 32/64 bits, firmware UEFI/CSM, démarrage
+sécurisé et TPM, prérequis Windows 11 et Linux, sauvegarde et licences, installation propre ou
+mise à niveau, média d'installation, démarrage sur le média, partitions et pilotes, comptes et
+sécurité initiale, virtualisation ; 4 scénarios corrigés, pièges, exercices, mini-examen, mémo,
+sources). 3 procédures illustrées et 8 figures SVG ; verdicts de compatibilité Windows 11,
+édition nécessaire, limite 32 bits, choix propre/mise à niveau et plan de mémoire des machines
+virtuelles **définis par code** (`app/v1/ampcr_pratique_pr07_figures.py`) et contrôlés par les
+tests. 16 exercices, mini-examen 10 questions /20. Prérequis datés (octobre 2026), situations
+fictives ; aucune image générée.
 
 ## Administration
 
