@@ -1,0 +1,255 @@
+<section class="fx-sec" id="f4-sec-partages">
+<h2>3 D. Procédures : domaine, comptes, partages, imprimantes</h2>
+<p>Règles de décision (groupe de travail / domaine) : groupe de travail = comptes LOCAUX sur chaque PC (pour accéder à un partage de PC-A, il faut un compte de PC-A) ; domaine = comptes centralisés sur le contrôleur de domaine, le poste doit joindre le DC (réseau + DNS + heure). Au-delà d'environ 10 postes ou s'il faut centraliser comptes et stratégies → proposer un domaine. Comptes locaux, UAC, <code>net user</code> local : <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-commandes">→ Fiche 2 · Commandes</a>.</p>
+
+<article class="fx-proc" id="f4-p-domaine">
+<h3>P3.15 — Ouverture de session de domaine impossible</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : bloquante pour l'utilisateur</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>« Le nom d'utilisateur ou le mot de passe est incorrect. »</li><li>« Le compte référencé est actuellement verrouillé et vous ne pourrez peut-être pas vous y connecter. » / « Votre compte a été désactivé. Contactez votre administrateur système. » / « Votre mot de passe a expiré et doit être changé. »</li><li>« La relation d'approbation entre cette station de travail et le domaine principal a échoué. »</li><li>« Aucun serveur d'authentification n'est actuellement disponible pour traiter la demande d'ouverture de session. » (DC injoignable)</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Utilisateur : Verr. Maj, clavier QWERTY/AZERTY, mauvais compte/domaine (session ouverte en local « .\ » au lieu de « ENTREPRISE\ »).</li><li>Compte : mot de passe expiré ou changé ailleurs, verrouillé après trop d'essais, désactivé, horaires d'ouverture.</li><li>Poste : canal sécurisé cassé (relation d'approbation), DNS du poste ne pointe pas vers le DC, heure décalée (Kerberos tolère 5 minutes par défaut).</li><li>Réseau : poste hors ligne (session en cache possible seulement si déjà ouverte), DC éteint.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Identité de l'utilisateur vérifiée avant toute réinitialisation de mot de passe (procédure de l'entreprise). Pas de communication de mot de passe par écrit/en clair ; mot de passe temporaire + « doit changer à la prochaine ouverture ».</li><li>« Avez-vous changé votre mot de passe récemment ? Sur un autre appareil (smartphone qui réessaie l'ancien → verrouillage) ? »</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Lire le message exact et vérifier la saisie</strong> (afficher le mot de passe avec l'œil, Verr. Maj, langue clavier, champ « Se connecter à : ENTREPRISE »).</li>
+<li><strong>Même compte sur un autre poste / autre compte sur ce poste</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> le compte échoue partout → compte : état dans « Utilisateurs et ordinateurs Active Directory » (verrouillé, désactivé, expiré) — action de l'administrateur.</p><p class="fx-sinon"><b>SINON</b> (seul ce poste échoue) → poste : étape 3.</p></div></li>
+<li><strong>Session admin locale sur le poste</strong> : <code>ipconfig /all</code> (DNS = DC ?), <code>nltest /dsgetdc:entreprise.local</code> (DC trouvé ?), heure (<code>w32tm /query /status</code>), <code>Test-ComputerSecureChannel</code> (PowerShell admin).<div class="fx-branch"><p class="fx-si"><b>SI</b> Test-ComputerSecureChannel = False → relation d'approbation cassée.</p><p class="fx-sinon"><b>SINON SI</b> DNS = box/8.8.8.8 → DC introuvable (corriger DNS) ; écart d'heure &gt; 5 min → resynchroniser.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Après déverrouillage / correction du DNS / de l'heure / du canal, la session s'ouvre ; <code>whoami</code> renvoie <code>entreprise\jdupont</code> ; <code>whoami /groups</code> liste les groupes attendus.</p>
+<h4>6. Correction</h4>
+<ul><li>Compte : déverrouiller, réinitialiser avec changement obligatoire, réactiver (droits d'administrateur du domaine, sinon escalade).</li><li>Relation d'approbation : <code>Test-ComputerSecureChannel -Repair -Credential ENTREPRISE\admin</code> ; à défaut, retirer le poste du domaine (groupe de travail temporaire) puis le rejoindre, redémarrer (compte admin LOCAL connu indispensable avant).</li><li>Heure : <code>w32tm /resync</code> (le poste se synchronise sur le DC).</li><li>DNS : DNS du poste = IP du DC (via DHCP de préférence).</li></ul>
+<h4>7. Validation</h4>
+<p>Ouverture de session, lecteurs réseau montés, <code>gpupdate /force</code> sans erreur, accès aux ressources ; l'utilisateur change son mot de passe temporaire.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le message indique que le compte est verrouillé. Je vérifie avec l'utilisateur : il a changé son mot de passe hier et son smartphone continue d'utiliser l'ancien pour la messagerie, ce qui provoque des échecs répétés. Après vérification de son identité, l'administrateur déverrouille le compte ; je mets à jour le mot de passe sur le smartphone. Validation : ouverture de session réussie, plus de verrouillage le lendemain. »</p><p class="fx-lose"><b>Perd des points :</b> réinstaller le poste ; réinitialiser un mot de passe sans vérifier l'identité ; confondre compte local et compte du domaine.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Portable hors du bureau : il ouvre la session avec les identifiants en cache, mais si le mot de passe a été changé ailleurs, l'ANCIEN fonctionne hors ligne et le nouveau non. Un poste restauré depuis une ancienne image = relation d'approbation cassée typique.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-jonction">
+<h3>P3.16 — La jonction d'un poste au domaine échoue</h3>
+<p class="fx-sev">Fréquence : fréquent en installation · Gravité : moyenne</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>sysdm.cpl → Modifier → Domaine « entreprise.local » → « Un contrôleur de domaine Active Directory (AD DC) pour le domaine “entreprise.local” n'a pas pu être contacté. »</li><li>Ou : « Accès refusé » (compte sans droit de jonction), « Le nom d'ordinateur existe déjà ».</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>DNS du poste = box ou DNS public → l'enregistrement du DC (SRV) est introuvable.</li><li>DC injoignable (réseau, VLAN, pare-feu).</li><li>Édition Windows Famille (ne peut pas joindre un domaine : il faut Professionnel/Entreprise/Éducation).</li><li>Compte utilisé sans droit de jonction, nom d'ordinateur en double.</li><li>Heure très décalée.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Compte autorisé à joindre des postes ; nom d'ordinateur conforme à la convention ; compte admin local connu (en cas d'échec après redémarrage).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Édition de Windows</strong> (Paramètres → Système → Informations système).<div class="fx-branch"><p class="fx-si"><b>SI</b> Famille → mise à niveau Pro nécessaire.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong><code>nslookup entreprise.local</code></strong> — attendu : IP du DC.<div class="fx-branch"><p class="fx-si"><b>SI</b> échec / « Serveur : box » → DNS : corriger vers l'IP du DC.</p><p class="fx-sinon"><b>SINON</b> → <code>ping</code> du DC, heure, compte utilisé.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p><code>nslookup -type=SRV _ldap._tcp.dc._msdcs.entreprise.local</code> renvoie le DC une fois le bon DNS configuré.</p>
+<h4>6. Correction</h4>
+<p>DNS = IP du DC ; puis Paramètres → Système → Informations système → « Domaine ou groupe de travail » (sysdm.cpl → Modifier) → Domaine → identifiants autorisés → redémarrer. PowerShell : <code>Add-Computer -DomainName entreprise.local -Credential ENTREPRISE\admin -Restart</code>.</p>
+<h4>7. Validation</h4>
+<p>Message « Bienvenue dans le domaine entreprise.local », redémarrage, ouverture de session avec un compte du domaine, objet ordinateur présent dans AD, <code>gpupdate /force</code> OK.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le poste reçoit son DNS de la box (192.168.1.1), qui ne connaît pas le domaine interne entreprise.local : nslookup entreprise.local échoue, donc Windows ne trouve aucun contrôleur de domaine. Je configure le DNS du poste sur le contrôleur de domaine 192.168.1.10 (idéalement dans les options du DHCP), nslookup répond alors avec l'adresse du DC, et la jonction réussit. Je redémarre et j'ouvre une session avec un compte du domaine. »</p><p class="fx-lose"><b>Perd des points :</b> mettre le DNS en 8.8.8.8 ; oublier le redémarrage ; tenter la jonction avec Windows Famille.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Domaine DNS (entreprise.local, nom) ≠ domaine d'administration (ensemble des comptes et stratégies) — mais c'est le même nom qu'on saisit. « Groupe de travail WORKGROUP » identique sur tous les PC n'apporte AUCUNE authentification commune : seulement la découverte.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-introuvable">
+<h3>P3.17 — « Windows ne peut pas accéder à \\SRV01 » : chemin réseau introuvable (0x80070035 / erreur 53)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante pour l'accès aux fichiers</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Explorateur : « Windows ne peut pas accéder à \\SRV01\Compta … Code d'erreur : 0x80070035. Le chemin d'accès réseau n'a pas été trouvé. »</li><li><code>net use P: \\SRV01\Compta</code> → « Erreur système 53. Le chemin réseau n'a pas été trouvé. »</li><li>Variante : « Erreur système 67. Nom de réseau introuvable. » (le serveur répond mais le NOM DU PARTAGE n'existe pas).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Nom du serveur non résolu (DNS, NetBIOS désactivé, pas de suffixe) → par IP ça marche.</li><li>Serveur éteint / injoignable (réseau).</li><li>Port SMB 445 bloqué : pare-feu du serveur (règle « Partage de fichiers et d'imprimantes »), profil Public sur le client ou le serveur, pare-feu tiers.</li><li>Service « Serveur » (LanmanServer) arrêté sur l'hôte ; service « Station de travail » arrêté sur le client.</li><li>Partage supprimé ou renommé (→ erreur 67), faute de frappe.</li><li>NAS ancien en SMBv1 seulement (désactivé sur Windows 10/11 récents).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Tous les postes ou un seul ? Le partage a-t-il fonctionné ? Un changement (box, serveur renommé) ? »</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>ping SRV01</code></strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> « n'a pas pu trouver l'hôte » → essayer <code>ping 192.168.1.10</code> et <code>\\192.168.1.10\Compta</code> : si l'IP fonctionne → résolution de nom (P3.7).</p><p class="fx-sinon"><b>SINON</b> (nom résolu) → étape 2.</p></div></li>
+<li><strong>Le serveur répond-il ?</strong> (ping ou arp -a)<div class="fx-branch"><p class="fx-si"><b>SI</b> non → serveur éteint/réseau.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong><code>Test-NetConnection SRV01 -Port 445</code></strong>.<pre class="fx-out">ComputerName     : SRV01
+RemoteAddress    : 192.168.1.10
+RemotePort       : 445
+InterfaceAlias   : Ethernet
+SourceAddress    : 192.168.1.37
+TcpTestSucceeded : False</pre><div class="fx-branch"><p class="fx-si"><b>SI</b> False → SMB injoignable : si AUCUN poste n'accède → serveur (service Serveur, pare-feu du serveur) ; si SEUL ce poste échoue → ce poste (profil Public, pare-feu sortant, antivirus).</p><p class="fx-sinon"><b>SINON</b> (True) → nom du partage : <code>net view \\SRV01</code> liste les partages ; erreur 67 → partage renommé/supprimé.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Après correction de la cause, <code>TcpTestSucceeded : True</code> et <code>net use</code> réussit. Erreur 53 ≠ erreur 5 : avec 53, on n'atteint même pas l'étape des droits — ne pas toucher aux permissions.</p>
+<h4>6. Correction</h4>
+<ul><li>Nom : DNS / suffixe (P3.7) ; contournement temporaire par IP.</li><li>Pare-feu : profil Privé/Domaine, règle « Partage de fichiers et d'imprimantes » activée (serveur), pare-feu tiers.</li><li>Services : <code>services.msc</code> → « Serveur » (hôte) et « Station de travail » (client) démarrés, type Automatique.</li><li>Partage : recréer/renommer (P3.19). NAS SMBv1 : mettre à jour le NAS (activer SMB2/3) plutôt que réactiver SMBv1 (faille de sécurité).</li></ul>
+<h4>7. Validation</h4>
+<p>Port 445 True, <code>net use P: \\SRV01\Compta /persistent:yes</code> → « La commande s'est terminée correctement. », ouverture d'un fichier, test depuis un second poste.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Sur le portable de Tom, ping SRV01 est résolu en 192.168.1.10 et répond : le DNS, l'adresse IP et le réseau fonctionnent. Test-NetConnection SRV01 -Port 445 renvoie False : le service de partage SMB n'est pas joignable depuis ce poste. L'erreur 53 indique “chemin réseau introuvable”, pas “accès refusé” (erreur 5) : les droits ne sont pas en cause. Les autres postes ouvrent les partages, donc le serveur fonctionne : le blocage est du côté du portable, dont la connexion est passée en profil Public avec la nouvelle box. Je repasse le profil en Privé, le test du port 445 donne True, net use P: réussit et Tom ouvre un fichier. »</p><p class="fx-lose"><b>Perd des points :</b> modifier les permissions NTFS pour une erreur 53 ; « réinstaller le serveur » alors que les autres postes y accèdent.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> La découverte du réseau (voir les PC dans « Réseau ») est désactivée en profil Public et dépend de services (Hôte du fournisseur de découverte de fonctions, Publication des ressources de découverte de fonctions) : un PC absent de la liste « Réseau » peut être parfaitement accessible par <code>\\NOM</code> ou <code>\\IP</code>. Ne pas diagnostiquer sur l'absence dans la liste.</div>
+</article>
+
+<article class="fx-proc" id="f4-partage">
+<h3>P3.18 — « Accès refusé » ou lecture seule : calculer le droit effectif (partage + NTFS)</h3>
+<p class="fx-sev">Fréquence : très fréquent (et très fréquent à l'examen) · Gravité : moyenne ; sécurité des données en jeu</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>« Vous n'avez actuellement pas l'autorisation d'accéder à ce dossier » / « Accès refusé » / « Erreur système 5. L'accès est refusé. »</li><li>L'utilisateur ouvre les fichiers mais « Vous avez besoin d'une autorisation pour effectuer cette action » à l'enregistrement → lecture seule.</li><li>Un stagiaire voit un dossier qu'il ne devrait pas voir (droits trop larges).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Permission de PARTAGE plus restrictive que la NTFS (ex. Tout le monde : Lecture par défaut).</li><li>Permission NTFS insuffisante pour l'utilisateur et ses groupes.</li><li>Refus explicite (Refuser) hérité d'un groupe dont l'utilisateur fait partie.</li><li>Utilisateur ajouté au groupe mais session non rouverte (le jeton d'accès contient les groupes du moment de l'ouverture de session).</li><li>Connexion au partage avec d'autres identifiants mémorisés (P3.20).</li><li>Héritage désactivé sur un sous-dossier, fichier ouvert/verrouillé par un autre utilisateur.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Quel accès est NÉCESSAIRE (lire ? modifier ? supprimer ?) et validé par le responsable des données ? » Moindre privilège : jamais « Tout le monde : Contrôle total » pour « faire fonctionner ». Relever les permissions existantes avant modification.</li></ul>
+<h4>4. Diagnostic pas à pas : le calcul en 4 temps</h4>
+<ol class="fx-steps">
+<li><strong>Lister les groupes de l'utilisateur</strong> : <code>whoami /groups</code> (sur sa session) ou <code>net user jdupont /domain</code> (ligne « Appartient aux groupes globaux »).</li>
+<li><strong>Couche PARTAGE</strong> (Propriétés → Partage → Partage avancé → Autorisations) : additionner les autorisations de l'utilisateur ET de tous ses groupes → la plus large l'emporte (cumul), SAUF un « Refuser » qui l'emporte sur tout.</li>
+<li><strong>Couche NTFS</strong> (Propriétés → Sécurité ; « Avancé » → onglet « Accès effectif ») : même règle de cumul + refus prioritaire.</li>
+<li><strong>Droit effectif à travers le réseau = le PLUS RESTRICTIF des deux résultats</strong>. En local (session ouverte sur le serveur lui-même) seule la NTFS s'applique.</li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Cas</th><th>Partage (cumul)</th><th>NTFS (cumul)</th><th>Effectif réseau</th><th>Pourquoi</th></tr></thead>
+<tbody>
+<tr><td>1. Julie (Compta) ; partage : Tout le monde = Lecture ; NTFS : Compta = Modification</td><td>Lecture</td><td>Modification</td><td><b>Lecture</b></td><td>Le partage limite : le plus restrictif des deux.</td></tr>
+<tr><td>2. Marc (Compta + Utilisateurs) ; partage : Tout le monde = Contrôle total ; NTFS : Compta = Modification, Utilisateurs = Lecture</td><td>Contrôle total</td><td>Modification (cumul Lecture + Modification)</td><td><b>Modification</b></td><td>Cumul dans la couche NTFS, puis NTFS plus restrictive.</td></tr>
+<tr><td>3. Léa (Compta + Stagiaires) ; partage : Compta = Modifier ; NTFS : Compta = Modification, Stagiaires = Refuser Modification</td><td>Modifier</td><td>Modification refusée → reste Lecture et exécution</td><td><b>Lecture</b> (pas d'écriture)</td><td>Le refus explicite l'emporte sur l'autorisation du groupe Compta.</td></tr>
+<tr><td>4. Paul (Commercial) ; partage : Compta = Modifier ; NTFS : Commercial = Lecture</td><td>Aucune (Commercial absent du partage)</td><td>Lecture</td><td><b>Aucun accès</b></td><td>Absent d'une couche = rien (accès refusé à la connexion).</td></tr>
+<tr><td>5. Direction ; partage : Direction = Contrôle total ; NTFS : Direction = Contrôle total</td><td>Contrôle total</td><td>Contrôle total</td><td><b>Contrôle total</b></td><td>Les deux couches l'accordent (peut aussi modifier les permissions : à réserver).</td></tr>
+<tr><td>6. Julie, session ouverte localement sur le serveur ; NTFS : Compta = Modification</td><td>(ne s'applique pas)</td><td>Modification</td><td><b>Modification</b></td><td>En local, seules les permissions NTFS comptent.</td></tr>
+</tbody></table></div>
+<h4>5. Test de confirmation</h4>
+<p>Onglet Sécurité → Avancé → Accès effectif → « Sélectionner un utilisateur » → affichage des droits NTFS (prend en compte les groupes ; ne montre PAS toujours la couche partage → calculer la combinaison). Test pratique : avec le compte de l'utilisateur (ou ses identifiants, avec son accord), créer et modifier un fichier test.</p>
+<h4>6. Correction</h4>
+<ul><li>Bonne pratique : partage = « Utilisateurs authentifiés » ou les groupes concernés en Modifier (ou Contrôle total pour les admins), et le contrôle fin en NTFS ; ou partage aussi précis que la NTFS.</li><li>Accorder au GROUPE (pas à l'individu) : ajouter l'utilisateur au groupe Compta ; retirer un refus inutile (préférer « ne pas autoriser » à « Refuser »).</li><li>L'utilisateur ferme et rouvre sa session (ou <code>klist purge</code> + reconnexion) pour que le nouveau groupe soit pris en compte.</li><li>Commandes : <code>icacls D:\Partages\Compta /grant "ENTREPRISE\Compta:(OI)(CI)M"</code> ; <code>Grant-SmbShareAccess -Name Compta -AccountName "ENTREPRISE\Compta" -AccessRight Change</code>.</li></ul>
+<h4>7. Validation</h4>
+<p>L'utilisateur crée, modifie, enregistre un fichier test puis le supprime ; un compte qui ne doit PAS accéder est bien refusé (test négatif) ; documenter la modification (qui, quoi, validé par qui).</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Léa est membre des groupes Compta et Stagiaires. Permissions de partage : Compta = Modifier, donc Modifier pour Léa. Permissions NTFS : Compta = Modification, mais Stagiaires = Refuser Modification ; le refus explicite l'emporte sur l'autorisation, son droit NTFS est donc Lecture et exécution. À travers le réseau, le droit effectif est le plus restrictif des deux couches : Lecture. Cela explique qu'elle ouvre les fichiers sans pouvoir enregistrer. Si le responsable confirme qu'elle doit modifier, je la retire du groupe Stagiaires (ou je supprime ce refus s'il n'a plus de raison d'être), elle rouvre sa session, et je vérifie qu'elle peut créer et modifier un fichier test, puis qu'un autre stagiaire reste en lecture. »</p><p class="fx-lose"><b>Perd des points :</b> additionner partage et NTFS ; prendre « le plus permissif des deux couches » ; donner Contrôle total à Tout le monde ; oublier la reconnexion après ajout au groupe ; ignorer le Refuser.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Le cumul (le plus large) s'applique À L'INTÉRIEUR d'une couche ; le plus restrictif s'applique ENTRE les deux couches. Le Refuser explicite bat l'Autoriser explicite ; nuance rare : une autorisation explicite posée sur l'objet l'emporte sur un refus seulement hérité du dossier parent. Linux/Samba : droits Unix <code>rwx</code> (ex. <code>drwxrwx---</code> propriétaire et groupe en lecture-écriture, autres rien) combinés aux droits Samba (<code>read only = no</code>, <code>valid users = @compta</code>) : même logique du plus restrictif.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-partage-creer">
+<h3>P3.19 — Mettre un dossier en partage et le connecter en lecteur réseau</h3>
+<p class="fx-sev">Fréquence : classique d'examen (procédure) · Gravité : —</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Demande : « Le service Comptabilité doit partager le dossier D:\Partages\Compta ; les comptables modifient, la direction lit, personne d'autre. »</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>(Procédure de mise en œuvre — les erreurs fréquentes sont : partage sur un dossier système, droits individuels au lieu de groupes, Tout le monde Contrôle total, oubli du test négatif.)</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Qui lit, qui modifie, qui ne doit rien voir ; validation par le responsable ; sauvegarde du dossier prévue ; données personnelles (RGPD).</li></ul>
+<h4>4. Diagnostic pas à pas (étapes de mise en œuvre)</h4>
+<ol class="fx-steps">
+<li><strong>Créer les groupes</strong> (domaine : GG_Compta, GG_Direction ; groupe de travail : groupes locaux sur l'hôte + comptes locaux avec mot de passe identiques à ceux des postes ou saisis à la connexion).</li>
+<li><strong>NTFS</strong> : Propriétés → Sécurité → Modifier → ajouter GG_Compta = Modification, GG_Direction = Lecture et exécution ; retirer « Utilisateurs » si hérité (Avancé → Désactiver l'héritage → Convertir les autorisations héritées), garder Administrateurs et Système en Contrôle total.</li>
+<li><strong>Partage</strong> : Partage avancé → Partager ce dossier → nom « Compta » (ajouter « $ » à la fin pour un partage masqué) → Autorisations : Utilisateurs authentifiés = Modifier (la NTFS affine), retirer Tout le monde.</li>
+<li><strong>Connexion des postes</strong> : Explorateur → Ce PC → Connecter un lecteur réseau → P: → <code>\\SRV01\Compta</code> → « Se reconnecter lors de la connexion » ; ou <code>net use P: \\SRV01\Compta /persistent:yes</code> ; en domaine, par GPO.</li>
+</ol>
+<pre class="fx-cmd">C:\&gt; net share Compta=D:\Partages\Compta /grant:"Utilisateurs authentifiés",CHANGE
+C:\&gt; icacls D:\Partages\Compta /grant "ENTREPRISE\GG_Compta:(OI)(CI)M" "ENTREPRISE\GG_Direction:(OI)(CI)RX"
+C:\&gt; net share</pre>
+<pre class="fx-out">Nom partage   Ressource                       Remarque
+
+-------------------------------------------------------------------------------
+C$            C:\                             Partage par défaut
+IPC$                                          IPC distant
+ADMIN$        C:\Windows                      Administration à distance
+Compta        D:\Partages\Compta
+La commande s'est terminée correctement.</pre>
+<h4>5. Test de confirmation</h4>
+<p>Test positif (comptable crée/modifie), test lecture (direction ouvre, ne peut pas enregistrer), test négatif (commercial : accès refusé).</p>
+<h4>6. Correction</h4>
+<p>Ajuster les groupes, pas les individus ; documenter (chemin UNC, groupes, droits, date, demandeur).</p>
+<h4>7. Validation</h4>
+<p>Les trois tests ci-dessus, lecteur P: présent après redémarrage, sauvegarde du dossier incluse dans le plan de sauvegarde.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Je crée les groupes GG_Compta et GG_Direction. Sur D:\Partages\Compta, je règle les permissions NTFS : GG_Compta Modification, GG_Direction Lecture et exécution, Administrateurs et Système Contrôle total ; je supprime l'héritage du groupe Utilisateurs. Je partage le dossier sous le nom Compta avec la permission de partage Modifier pour les Utilisateurs authentifiés et je retire Tout le monde : le droit effectif sera le plus restrictif des deux couches, donc celui de la NTFS. Les postes connectent \\SRV01\Compta en P:. Je vérifie avec un comptable (création et modification d'un fichier), un directeur (lecture seule) et un commercial (accès refusé). »</p><p class="fx-lose"><b>Perd des points :</b> partage « Tout le monde – Contrôle total » sans NTFS ; droits nominatifs ; oubli du test négatif.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Partage par défaut Windows (assistant simplifié « Donner l'accès à ») : modifie partage ET NTFS en même temps — vérifier les deux onglets après. Les partages administratifs C$, ADMIN$ sont normaux, ne pas les supprimer. Linux Samba : <code>sudo smbpasswd -a julie</code> (compte Samba) puis <code>testparm</code> et <code>sudo systemctl restart smbd</code>.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-identifiants">
+<h3>P3.20 — Lecteur réseau déconnecté, identifiants mémorisés, erreurs 1219 / 86</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : faible</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Lecteur P: avec croix rouge, « Impossible de rétablir toutes les connexions aux lecteurs réseau » au démarrage.</li><li>« Erreur système 1219. Plusieurs connexions à un serveur ou à une ressource partagée par le même utilisateur, en utilisant plus d'un nom d'utilisateur, ne sont pas autorisées. »</li><li>« Erreur système 86. Le mot de passe réseau spécifié est incorrect. » ; demande d'identifiants en boucle.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Lecteur reconnecté avant que le Wi-Fi/réseau soit prêt (croix rouge mais accès OK au clic).</li><li>Identifiants mémorisés obsolètes (mot de passe changé) dans le Gestionnaire d'identification.</li><li>Connexion déjà ouverte au même serveur avec un autre compte (1219).</li><li>Serveur renommé / changé d'adresse (lecteur mappé par IP).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Avez-vous changé de mot de passe ? Le lecteur s'ouvre-t-il quand vous cliquez ? » Ne pas enregistrer un compte admin dans le Gestionnaire d'identification d'un utilisateur.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Cliquer sur le lecteur</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> il s'ouvre → simple reconnexion tardive (pas de panne).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong><code>net use</code></strong> : liste des connexions (État : OK / Déconnecté / Non disponible) ; repérer une connexion au même serveur sous un autre nom (IP vs nom).</li>
+<li><strong>Panneau de configuration → Gestionnaire d'identification → Informations d'identification Windows</strong> : entrée pour SRV01 avec un ancien compte/mot de passe ?</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Après suppression des anciennes connexions/identifiants, la connexion avec le bon compte réussit.</p>
+<h4>6. Correction</h4>
+<pre class="fx-cmd">C:\&gt; net use * /delete /y
+C:\&gt; cmdkey /list
+C:\&gt; cmdkey /delete:SRV01
+C:\&gt; net use P: \\SRV01\Compta /user:ENTREPRISE\jdupont /persistent:yes</pre>
+<p class="fx-warn"><b>Attention</b> <code>net use * /delete</code> ferme TOUTES les connexions réseau de la session (fichiers ouverts sur le réseau non enregistrés → perte). Prérequis : faire enregistrer et fermer les documents ouverts. Alternative prudente : <code>net use P: /delete</code> pour le seul lecteur concerné.</p>
+<h4>7. Validation</h4>
+<p>Fermeture/ouverture de session ou redémarrage : P: reconnecté sans demande d'identifiants, fichiers accessibles.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« L'erreur 1219 signifie qu'une connexion au serveur existe déjà avec un autre compte : net use montre \\SRV01\Scans connecté avec le compte “scanner”. Après avoir fait fermer les documents ouverts, je supprime cette connexion et l'identifiant mémorisé (cmdkey /delete:SRV01), puis je reconnecte P: avec le compte de l'utilisatrice. Je vérifie après redémarrage que P: se reconnecte seul. »</p><p class="fx-lose"><b>Perd des points :</b> modifier les permissions du serveur pour une erreur d'identifiants côté client.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> \\SRV01 et \\192.168.1.10 sont vus comme deux serveurs différents par Windows : moyen de contournement (tester un autre compte par IP), mais source de confusion. Croix rouge ≠ panne.</div>
+</article>
+
+<article class="fx-proc" id="f4-imprimante">
+<h3>P3.21 — Imprimante réseau « Hors connexion » (ou ping OK mais n'imprime pas)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : moyenne</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>File d'attente : « Imprimante hors connexion », documents « Erreur – Impression » ou en attente ; tous les postes ou un seul.</li><li>Souvent après remplacement de la box, coupure de courant, déménagement de l'imprimante.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Imprimante éteinte, en veille profonde, bourrage/papier/toner (panneau en erreur).</li><li>Adresse IP de l'imprimante changée (DHCP, nouvelle box) alors que les postes visent l'ancienne dans leur port TCP/IP.</li><li>Imprimante sur le Wi-Fi déconnectée (changement de clé) / câble.</li><li>Adresse fixe de l'imprimante dans un ancien réseau (nouvelle box avec un autre réseau).</li><li>Protocole SNMP de statut qui signale à tort « hors connexion ».</li><li>Pilote (P3.22).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Tous les postes ? Depuis quand ? Changement de box ? » Documents confidentiels en file : ne pas les réimprimer sans accord.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Panneau de l'imprimante</strong> : allumée, prête, sans erreur ; imprimer la page de configuration réseau (adresse, masque, passerelle, DHCP/statique).</li>
+<li><strong>Comparer avec le port des postes</strong> : Propriétés de l'imprimante → Ports → « Standard TCP/IP Port » → adresse (PowerShell : <code>Get-PrinterPort</code>).<div class="fx-branch"><p class="fx-si"><b>SI</b> adresses différentes (port 192.168.1.50, imprimante 192.168.1.137) → adresse changée : correction.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong><code>ping</code> de l'adresse de l'imprimante</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> « Impossible de joindre l'hôte de destination » (réponse de sa propre IP) → personne à cette adresse : imprimante absente du réseau (câble, Wi-Fi, autre réseau).</p><p class="fx-sinon"><b>SINON</b> (ping OK) → <code>Test-NetConnection 192.168.1.50 -Port 9100</code> (RAW) ; ouvrir <code>http://192.168.1.50</code> (interface web) ; désactiver « État SNMP activé » dans le port si le statut est faux.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Page de configuration ≠ adresse du port ; après mise à jour du port, page de test OK. Limite : une imprimante peut ne pas répondre au ping et imprimer quand même (port 9100 ouvert).</p>
+<h4>6. Correction</h4>
+<ul><li>Adresse fixe HORS étendue dans la plage imprimantes (ex. 192.168.1.20) sur le panneau / interface web, ou réservation DHCP sur la box (MAC de l'imprimante → 192.168.1.20).</li><li>Mettre à jour le port TCP/IP de chaque poste (Propriétés de l'imprimante → Ports → Ajouter un port → Standard TCP/IP Port), ou mieux : partager l'imprimante depuis un serveur (<code>\\SRV01\Traceur-A1</code>) → un seul port à maintenir.</li><li>Relancer les documents en attente ou les supprimer avec l'accord des utilisateurs ; mettre à jour le plan d'adressage.</li></ul>
+<h4>7. Validation</h4>
+<p>Page de test depuis CHAQUE poste (ou au moins deux), file vide, statut « Prêt », adresse stable après redémarrage de l'imprimante et de la box.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Les postes impriment vers le port 192.168.1.50 ; la page de configuration du traceur indique 192.168.1.137, obtenue par DHCP : la nouvelle box a redistribué les adresses et le traceur a changé d'adresse. Le ping de 192.168.1.50 répond “Impossible de joindre l'hôte de destination” : plus personne n'a cette adresse, d'où l'état hors connexion. Je donne au traceur l'adresse fixe 192.168.1.20, hors de l'étendue DHCP, puis je mets à jour le port TCP/IP des postes (ou je partage le traceur depuis le serveur pour n'avoir qu'un port à tenir à jour). Vérification : page de test depuis chaque poste, documents en attente relancés, plan d'adressage mis à jour. »</p><p class="fx-lose"><b>Perd des points :</b> réinstaller le pilote d'emblée ; fixer une adresse DANS l'étendue ; ne vérifier que depuis un seul poste.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Un seul poste en « hors connexion » alors que les autres impriment → port/pilote de CE poste (ou hôte de partage éteint s'il passe par un PC). Imprimante Wi-Fi : après changement de clé Wi-Fi, elle ne se reconnecte pas seule → reconfigurer son Wi-Fi depuis le panneau (WPS désactivé = saisir la clé).</div>
+</article>
+
+<article class="fx-proc" id="f4-p-spouleur">
+<h3>P3.22 — File d'impression bloquée, spouleur, pilote ou imprimante partagée</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : faible à moyenne</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Un document en « Erreur » en tête de file, les suivants bloqués ; impossible de supprimer (« Suppression… » indéfiniment).</li><li>Connexion à <code>\\PC-ACCUEIL\HP-Accueil</code> : « Windows ne peut pas se connecter à l'imprimante » (ex. code 0x0000011b, 0x00000709), demande d'installation de pilote, accès refusé.</li><li>Service « Spouleur d'impression » arrêté → aucune imprimante visible.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Document corrompu/volumineux bloquant la file.</li><li>Service Spouleur planté.</li><li>Pilote absent pour l'architecture du client (x64), pilote incompatible, installation de pilote bloquée sans droits admin (durcissement de sécurité Windows).</li><li>PC hôte du partage éteint, en veille, pare-feu (profil Public).</li><li>Permissions de l'imprimante partagée (onglet Sécurité : Imprimer) .</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Le vidage de file supprime les travaux de TOUS les utilisateurs : prévenir.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Ouvrir la file</strong> → annuler le document en erreur.<div class="fx-branch"><p class="fx-si"><b>SI</b> la file repart → document fautif.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>services.msc → Spouleur d'impression</strong> : état.<div class="fx-branch"><p class="fx-si"><b>SI</b> arrêté/bloqué → redémarrage et vidage (correction).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Imprimante partagée</strong> : l'hôte est allumé, ping, accès <code>\\PC-ACCUEIL</code> ; onglet Partage (« Partager cette imprimante ») ; pilote installé pour x64 ; permission « Imprimer » pour le groupe.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Page de test après redémarrage du spouleur ; l'impression repart.</p>
+<h4>6. Correction</h4>
+<p class="fx-warn"><b>Attention</b> La suppression du contenu de <code>C:\Windows\System32\spool\PRINTERS</code> efface tous les travaux en attente de tous les utilisateurs. Prérequis : utilisateurs prévenus, service arrêté avant suppression. Alternative prudente : annuler d'abord les documents un par un depuis la file, puis simple redémarrage du service.</p>
+<pre class="fx-cmd">C:\&gt; net stop spooler
+C:\&gt; del /Q C:\Windows\System32\spool\PRINTERS\*
+C:\&gt; net start spooler</pre>
+<ul><li>Pilote : installer le pilote du fabricant (bonne architecture) en administrateur sur le client, puis reconnecter l'imprimante partagée ; maintenir hôte et clients à jour (ne pas désactiver les protections de sécurité de l'impression).</li><li>Hôte de partage : alimentation/veille désactivée, profil Privé, ou passer à une imprimante IP directe / serveur d'impression.</li></ul>
+<h4>7. Validation</h4>
+<p>Page de test, impression d'un document réel depuis l'application de l'utilisateur, file vide, service Spouleur en démarrage Automatique.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le premier document de la file est en état “Erreur” et bloque les suivants ; il refuse de s'annuler. J'informe les utilisateurs que la file va être vidée, j'arrête le service Spouleur d'impression, je supprime les fichiers du dossier spool\PRINTERS, je redémarre le service, puis j'imprime une page de test et je fais relancer les documents nécessaires. »</p><p class="fx-lose"><b>Perd des points :</b> supprimer le spool sans arrêter le service ni prévenir ; réinstaller Windows.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Imprimante partagée par un PC : si ce PC est éteint, TOUS les autres sont « hors connexion » → ce n'est pas l'imprimante. Scanner réseau vers dossier partagé en échec = souvent mot de passe du compte de numérisation changé ou SMBv1 seul sur le copieur.</div>
+</article>
+</section>

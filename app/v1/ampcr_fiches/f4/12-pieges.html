@@ -1,0 +1,70 @@
+<section class="fx-sec" id="f4-pieges">
+<h2>6. Pièges d'examen et confusions fréquentes</h2>
+<h3>Distinguer deux causes qui se ressemblent</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Symptômes proches</th><th>Cause A</th><th>Cause B</th><th>Test qui tranche</th></tr></thead>
+<tbody>
+<tr><td>« Pas d'Internet »</td><td>Connectivité (passerelle, box, FAI)</td><td>DNS</td><td><code>ping 8.8.8.8</code> : répond → DNS ; ne répond pas → connectivité</td></tr>
+<tr><td>Ping « Délai d'attente dépassé »</td><td>Hôte absent / éteint</td><td>Pare-feu qui filtre l'ICMP</td><td><code>arp -a</code> après le ping : MAC présente → pare-feu ; absente → hôte absent</td></tr>
+<tr><td>Ping en échec</td><td>« Délai d'attente » (demande partie, pas de réponse)</td><td>« Impossible de joindre l'hôte » (pas de réponse ARP ; regarder QUI répond)</td><td>Lire le message et l'adresse qui répond (propre IP = segment local ; passerelle = au-delà)</td></tr>
+<tr><td>169.254.x.x</td><td>Pas de lien jusqu'au DHCP (câble, VLAN)</td><td>Serveur DHCP arrêté / étendue pleine</td><td>Voisin sur le même switch OK ? journal DHCP montre la demande ? (« no free leases » = étendue)</td></tr>
+<tr><td>Adresse dans un autre réseau</td><td>DHCP parasite</td><td>Mauvais VLAN / SSID invités</td><td>« Serveur DHCP » dans ipconfig /all : inconnu → parasite ; serveur officiel d'un autre réseau → VLAN</td></tr>
+<tr><td>Joint une partie du LAN</td><td>Masque erroné</td><td>Conflit IP / pare-feu de certains postes</td><td>Calcul du réseau des deux machines ; arp -a</td></tr>
+<tr><td>\\SRV01 inaccessible</td><td>Erreur 53 / 0x80070035 : chemin introuvable (nom, réseau, port 445, service)</td><td>Erreur 5 : accès refusé (droits)</td><td>Le code d'erreur ; <code>Test-NetConnection -Port 445</code> ; erreur 67 = nom du partage</td></tr>
+<tr><td>Lecture seule sur un partage</td><td>Permission de partage (Lecture)</td><td>NTFS (refus, droit insuffisant) ou session non rouverte</td><td>Calcul des deux couches + whoami /groups</td></tr>
+<tr><td>Imprimante « hors connexion »</td><td>Imprimante changée d'adresse</td><td>Spouleur/pilote, hôte de partage éteint</td><td>Page de configuration vs port TCP/IP ; tous les postes ou un seul</td></tr>
+<tr><td>Wi-Fi « Impossible de se connecter »</td><td>Clé/profil obsolète</td><td>Incompatibilité WPA3, filtrage MAC</td><td>Oublier le réseau et ressaisir ; autre appareil avec la même clé</td></tr>
+<tr><td>Wi-Fi « connecté sans Internet »</td><td>Portail captif</td><td>DHCP/DNS/box</td><td>ipconfig de la carte Wi-Fi + page http simple</td></tr>
+<tr><td>Wi-Fi lent</td><td>Signal faible (couverture)</td><td>Canal saturé/interférences</td><td>Signal % / dBm à l'endroit : faible → couverture ; bon → canal</td></tr>
+<tr><td>Tous les postes sans Internet</td><td>Box/FAI</td><td>Conflit avec l'IP de la passerelle, DNS de la box</td><td>tracert (s'arrête après la box ?) ; arp -a (MAC de la passerelle qui change ?) ; ping 8.8.8.8</td></tr>
+<tr><td>Échec de session de domaine</td><td>Compte (verrouillé, expiré)</td><td>Poste (relation d'approbation, DNS, heure)</td><td>Même compte sur un autre poste / autre compte sur ce poste</td></tr>
+</tbody></table></div>
+
+<h3>Erreurs de méthode qui coûtent des points</h3>
+<ul>
+<li>Changer la configuration IP alors que le lien physique est absent (« Média déconnecté »).</li>
+<li>Commencer par <code>ping www.google.be</code> : un échec ne dit pas si c'est le DNS ou la connectivité ; suivre l'ordre 127.0.0.1 → propre IP → passerelle → 8.8.8.8 → nom.</li>
+<li>Croire que <code>ping 127.0.0.1</code> ou le ping de sa propre IP testent la carte ou le câble : ils ne sortent pas du poste.</li>
+<li>Lire les statistiques du ping (« reçus = 4 ») au lieu de l'adresse qui répond.</li>
+<li>Conclure « carte HS », « switch HS », « box HS » sur un seul symptôme, sans permutation (cordon, port, poste voisin).</li>
+<li>« Désactiver le pare-feu » ou « Tout le monde : Contrôle total » comme solution définitive.</li>
+<li>Fixer une adresse dans l'étendue DHCP ; attribuer l'adresse réseau ou de diffusion à un hôte ; passerelle hors du réseau du poste.</li>
+<li>Mettre 8.8.8.8 comme DNS sur un poste de domaine.</li>
+<li>Additionner permissions de partage et NTFS, ou prendre la plus permissive des deux.</li>
+<li>Oublier la validation (refaire toute la chaîne de tests + test métier) et la mise à jour du plan d'adressage / de la documentation.</li>
+<li>Redémarrer la box ou faire un reset usine sans relever les voyants ni sauvegarder la configuration.</li>
+<li><code>ipconfig /release</code> lancé à distance (prise en main) : tu perds la connexion au poste.</li>
+</ul>
+
+<h3>Confusions de vocabulaire à ne pas commettre à l'écrit</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Ne pas confondre</th><th>Règle pratique</th></tr></thead>
+<tbody>
+<tr><td>Protocole / service / équipement</td><td>DHCP est un protocole, le « serveur DHCP » un service, la box l'équipement qui l'héberge. Écrire « le service DHCP de la box ne répond pas », pas « le DHCP est cassé ».</td></tr>
+<tr><td>Hub / switch / routeur</td><td>Hub = répète (couche 1, collisions) ; switch = adresses MAC (couche 2) ; routeur = adresses IP, relie des réseaux (couche 3).</td></tr>
+<tr><td>Passerelle / DNS</td><td>Passerelle = où envoyer les paquets hors réseau ; DNS = qui traduit les noms. Peuvent être la même box, mais ce sont deux réglages distincts.</td></tr>
+<tr><td>Point d'accès / répéteur / routeur Wi-Fi</td><td>AP = relié en câble ; répéteur = sans câble, réémet ; routeur Wi-Fi = crée un réseau et un DHCP (à passer en mode AP).</td></tr>
+<tr><td>Groupe de travail / domaine</td><td>Groupe de travail = comptes locaux sur chaque PC, aucune authentification commune ; domaine = comptes centralisés sur le DC, poste joint, DNS = DC.</td></tr>
+<tr><td>Domaine DNS / domaine Windows</td><td>Même nom (entreprise.local) mais le premier sert à résoudre des noms, le second à gérer comptes et stratégies.</td></tr>
+<tr><td>Adresse MAC / IP</td><td>MAC = 6 octets hexadécimaux, carte, segment local ; IPv4 = 4 nombres 0–255, routable, configurée.</td></tr>
+<tr><td>NetBEUI / TCP/IP</td><td>NetBEUI : historique, non routable, petits réseaux locaux uniquement ; TCP/IP : routable, standard actuel.</td></tr>
+<tr><td>Débit radio / débit utile</td><td>« 866 Mbit/s » affiché = débit de liaison ; le débit réel mesuré est nettement inférieur.</td></tr>
+</tbody></table></div>
+
+<h3>Topologies : panne typique à reconnaître</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Topologie</th><th>Panne qui touche tout le monde</th><th>Panne qui touche un seul poste</th><th>Premier test</th></tr></thead>
+<tbody>
+<tr><td>Étoile (switch central)</td><td>Switch central sans courant / en défaut, liaison montante vers la box</td><td>Câble, prise ou port de ce poste</td><td>Voyants et alimentation du switch ; permutation de port</td></tr>
+<tr><td>Bus (coaxial historique)</td><td>Coupure du câble ou bouchon de terminaison 50 Ω absent : tout le segment tombe</td><td>Rare (connecteur T)</td><td>Contrôle des terminaisons et du câble (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-coax">→ Fiche 3 · Coaxial</a>)</td></tr>
+<tr><td>Anneau</td><td>Un nœud ou un câble coupé interrompt l'anneau (sauf double anneau)</td><td>—</td><td>Repérer le tronçon coupé</td></tr>
+<tr><td>Maillage</td><td>Rare : chemins redondants (attention aux boucles sans STP)</td><td>Lien isolé : le trafic passe ailleurs</td><td>État des liens redondants</td></tr>
+</tbody></table></div>
+
+<h3>Pannes concomitantes et intermittentes : réflexes</h3>
+<ul>
+<li>Corriger une cause puis REFAIRE toute la chaîne de tests : une seconde panne peut se cacher derrière (masque faux ET passerelle fausse ; DNS faux ET heure fausse).</li>
+<li>Intermittent : <code>ping -t</code> horodaté par l'observation, relever les horaires, chercher ce qui change (appareil allumé, sauvegarde, micro-ondes, conflit IP, bail DHCP qui expire, canal DFS).</li>
+<li>Symptôme général + cause locale possible : conflit avec l'IP de la passerelle, boucle de câblage, DHCP parasite.</li>
+</ul>
+</section>

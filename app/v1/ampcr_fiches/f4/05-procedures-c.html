@@ -1,0 +1,96 @@
+<section class="fx-sec" id="f4-sec-mini">
+<h2>3 C. Procédures : deux PC en direct, mini-réseau, switch et VLAN</h2>
+
+<article class="fx-proc" id="f4-deux-pc">
+<h3>P3.12 — Relier deux PC en direct (et dépanner quand ils ne se voient pas)</h3>
+<p class="fx-sev">Fréquence : classique d'examen · Gravité : faible</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Deux PC reliés par un câble RJ45 : pas de voyant, ou voyant mais ping KO, ou ping OK mais partage inaccessible.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Adresses incohérentes : un PC en DHCP (169.254.x.x/16) et l'autre en statique 192.168.10.x/24 → réseaux différents.</li><li>Pare-feu (profil Public) bloque ping et partage → P3.9.</li><li>Câble droit entre deux cartes anciennes (10/100) sans Auto MDI-X → pas de lien ; il faut un croisé (les cartes Gigabit gèrent l'Auto MDI-X).</li><li>Câble défectueux (F3).</li><li>Partage non créé / compte sans droit / identifiants (le PC distant exige un compte LOCAL de ce PC avec mot de passe).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>But (copier des données ? jouer ? migrer ?) → partage temporaire, droits minimaux, arrêt du partage à la fin. Sauvegarde des données avant une copie massive.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Voyants des deux cartes</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> aucun lien → câble (tester, F3) ; cartes 10/100 anciennes → câble croisé.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong><code>ipconfig</code> sur les deux</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> 169.254.x.x d'un côté et 192.168.10.x de l'autre → mettre les deux en statique dans le MÊME réseau.</p><p class="fx-sinon"><b>SINON</b> (même réseau) → étape 3.</p></div></li>
+<li><strong><code>ping</code> dans les deux sens</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> « Délai d'attente » → pare-feu (profil Public) : P3.9.</p><p class="fx-sinon"><b>SINON</b> (« Impossible de joindre l'hôte » depuis sa propre IP) → l'autre ne répond pas à l'ARP : adresse mal tapée, carte désactivée.</p></div></li>
+<li><strong>Accès au partage</strong> <code>\\192.168.10.1\Agenda</code> (par IP : pas besoin de DNS).</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Avec 192.168.10.1/24 et 192.168.10.2/24, sans passerelle, ping OK dans les deux sens et <code>arp -a</code> montre la MAC de l'autre PC.</p>
+<h4>6. Correction (procédure de mise en service)</h4>
+<ol><li>Câble RJ45 testé (droit si Auto MDI-X, croisé T568A/T568B pour matériel ancien — <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-rj45">→ Fiche 3 · RJ45</a>).</li><li>PC-A : 192.168.10.1, masque 255.255.255.0, passerelle VIDE, DNS vide. PC-B : 192.168.10.2, même masque. (<code>netsh interface ipv4 set address name="Ethernet" static 192.168.10.1 255.255.255.0</code>.)</li><li>Profil réseau Privé sur les deux (ou règle d'écho ICMP + partage de fichiers).</li><li>Sur le PC source : clic droit sur le dossier → Propriétés → Partage → Partage avancé → Partager ce dossier → Autorisations (Lecture pour le compte prévu) ; un compte local avec mot de passe sur ce PC.</li><li>Sur l'autre PC : Explorateur → <code>\\192.168.10.1\Agenda</code> → identifiants <code>PC-A\compte</code>.</li></ol>
+<h4>7. Validation</h4>
+<p>Ping dans les deux sens ; ouverture d'un fichier copié (intégrité) ; arrêt du partage temporaire et retour à la configuration DHCP initiale si les PC retournent sur le réseau de l'entreprise.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Relevé 1 : le portable a 169.254.12.40/16 (APIPA, aucun DHCP sur un lien direct) et PC-ACCUEIL 192.168.10.1/24 : ils ne sont pas dans le même réseau. Je configure le portable en 192.168.10.2, masque 255.255.255.0, sans passerelle ni DNS (réseau isolé). Le ping répond alors “Délai d'attente dépassé” : la demande part, mais PC-ACCUEIL ne répond pas ; arp -a montre sa MAC, c'est son pare-feu qui bloque, la connexion étant en profil Public. Je passe le profil en Privé : réponses. Je partage le dossier Agenda en lecture pour le compte prévu, je l'ouvre en \\192.168.10.1\Agenda avec un compte de PC-ACCUEIL, je copie, j'ouvre un fichier copié pour vérifier, puis j'arrête le partage temporaire. »</p><p class="fx-lose"><b>Perd des points :</b> mettre une passerelle « 192.168.1.1 » ; affirmer qu'un câble croisé est OBLIGATOIRE avec des cartes Gigabit ; partager « Tout le monde – Contrôle total ».</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Les deux PC en DHCP sans serveur : chacun prend 169.254.x.x/16 et ils PEUVENT communiquer (même réseau) — solution acceptable mais lente à apparaître et non maîtrisée ; préférer le statique. Adresses .0 ou .255 en /24 interdites (réseau / diffusion). Linux en face : partage Samba, accès <code>smb://192.168.10.1/Agenda</code>.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-mini">
+<h3>P3.13 — Mettre en service un mini-réseau (3 à 20 postes) / deux groupes de postes qui ne communiquent pas</h3>
+<p class="fx-sev">Fréquence : classique d'examen · Gravité : moyenne</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Création : le client veut relier 5 PC, une imprimante, un NAS et Internet.</li><li>Panne : les postes du premier étage voient le NAS mais pas ceux du rez ; plan d'adressage incohérent (masques ou plages différents).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Plan d'adressage incohérent : deux réseaux IP différents sur le même switch sans routeur (ex. 192.168.1.0/24 et 192.168.2.0/24).</li><li>Adresses fixes dans l'étendue DHCP, adresse réseau/diffusion attribuée à un hôte.</li><li>Un hub/switch en cascade éteint ou mal relié (lien inter-switch).</li><li>Second DHCP (P3.3), VLAN (P3.14).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Nombre de postes actuels et futurs, équipements à adresse fixe (NAS, imprimante, serveur, AP), Wi-Fi invités, distances (100 m max par segment cuivre), emplacement de la box.</li></ul>
+<h4>4. Diagnostic pas à pas (contrôle d'un plan)</h4>
+<ol class="fx-steps">
+<li><strong>Calculer l'adresse réseau de CHAQUE hôte</strong> (adresse ET masque, voir <a href="#f4-ipv4">4 A</a>).<div class="fx-branch"><p class="fx-si"><b>SI</b> deux réseaux différents sans routeur → incohérence : renuméroter dans un seul réseau, ou ajouter un routeur si la séparation est voulue.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Vérifier chaque adresse fixe</strong> : dans le réseau, hors étendue DHCP, ni adresse réseau ni diffusion, pas de doublon.</li>
+<li><strong>Vérifier passerelle et DNS</strong> : même valeur sur tous les postes, passerelle dans le réseau.</li>
+<li><strong>Vérifier la topologie physique</strong> : chaque switch alimenté, liaisons inter-switch actives, pas de boucle.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Tableau du plan : pour chaque ligne, réseau calculé identique ; un ping croisé entre un poste de chaque groupe réussit après correction.</p>
+<h4>6. Correction : plan type d'un mini-réseau 192.168.1.0/24</h4>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Plage</th><th>Usage</th><th>Exemple</th></tr></thead>
+<tbody>
+<tr><td>192.168.1.1</td><td>Passerelle (box/routeur), DNS relais</td><td>Box</td></tr>
+<tr><td>192.168.1.2 – .19</td><td>Infrastructure fixe : switch administrable, point d'accès Wi-Fi, NAS, serveur</td><td>AP .2, NAS .10</td></tr>
+<tr><td>192.168.1.20 – .29</td><td>Imprimantes (fixe ou réservation DHCP)</td><td>Imprimante .20</td></tr>
+<tr><td>192.168.1.100 – .199</td><td>Étendue DHCP (postes, portables, smartphones) : 100 adresses</td><td>PC, invités</td></tr>
+<tr><td>192.168.1.255</td><td>Diffusion (jamais attribuée)</td><td>—</td></tr>
+</tbody></table></div>
+<ol><li>Topologie en étoile : box → switch (8 ou 16 ports) → postes, NAS, imprimante ; AP sur le switch.</li><li>Masque 255.255.255.0 partout, passerelle 192.168.1.1, DNS 192.168.1.1 (ou serveur interne).</li><li>Choix d'équipement : switch (pas hub) pour multiplier les prises ; routeur/box pour Internet et séparer des réseaux ; AP pour le Wi-Fi (<a href="#f4-equipements">tableau 4 B</a>).</li><li>Repérage des prises et du brassage (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-installation">→ Fiche 3 · Installation</a>).</li><li>Documenter : schéma, plan d'adressage, identifiants d'administration en lieu sûr.</li></ol>
+<h4>7. Validation (recette)</h4>
+<p>Pour chaque poste : ipconfig conforme au plan, ping passerelle, ping NAS, ping 8.8.8.8, ping nom ; accès au partage avec le compte prévu ; page de test de l'imprimante ; Wi-Fi : connexion d'un portable et d'un smartphone ; procès-verbal signé.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue (contrôle d'un plan)</p><p>« Le PC-05 est configuré en 192.168.2.15/24 : son réseau est 192.168.2.0/24 alors que tous les autres équipements sont dans 192.168.1.0/24. Sans routeur entre ces deux réseaux, il ne peut pas joindre le NAS ni la passerelle. L'imprimante en 192.168.1.150 est dans l'étendue DHCP (.100 à .199) : risque de conflit. Corrections : PC-05 en DHCP (ou 192.168.1.15 si une adresse fixe est exigée, hors étendue) ; imprimante en 192.168.1.20 (plage des imprimantes) avec mise à jour des ports d'impression. Vérification : ping croisés PC-05 ↔ NAS, page de test, plan mis à jour. »</p><p class="fx-lose"><b>Perd des points :</b> attribuer 192.168.1.0 ou 192.168.1.255 à un hôte ; oublier de vérifier les adresses fixes par rapport à l'étendue ; proposer un hub.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Deux réseaux IP sur le MÊME switch : physiquement reliés, logiquement séparés → il faut un routeur (ou renuméroter), un switch ne route pas. À l'inverse, deux postes dans le même réseau IP mais sur deux switchs NON reliés ne se verront pas : vérifier le câble inter-switch.</div>
+</article>
+
+<article class="fx-proc" id="f4-vlan">
+<h3>P3.14 — Port de switch, VLAN, brassage, boucle</h3>
+<p class="fx-sev">Fréquence : occasionnel (réseaux avec switch administrable) · Gravité : locale (VLAN) à totale (boucle)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Le poste fonctionne sur une prise, pas sur une autre : 169.254 ou adresse d'un autre réseau (réseau invités, téléphonie).</li><li>Boucle : tout le réseau s'effondre juste après l'ajout d'un câble, voyants de tous les ports qui clignotent en continu, CPU des postes en hausse, pings perdus partout.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Prise brassée sur un port d'un autre VLAN (ex. VLAN 20 invités au lieu de VLAN 10 bureau) ou sur le mauvais switch.</li><li>Port désactivé (shutdown) ou bloqué par la sécurité de port (MAC non autorisée).</li><li>Câble reliant deux prises du même réseau / deux ports du même switch → boucle sans STP.</li><li>Petit switch de bureau non administrable ajouté qui crée une boucle avec un second câble.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Accès au switch administrable = droits d'administrateur réseau : intervention à demander/escalader ; relever la configuration du port avant modification.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Brancher un poste connu sur la prise suspecte, et le poste suspect sur une prise connue</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> le défaut suit la PRISE → brassage/port/VLAN : étape 2.</p><p class="fx-sinon"><b>SINON</b> → le défaut suit le POSTE : configuration du poste.</p></div></li>
+<li><strong>Suivre le repérage</strong> : prise B12 → panneau de brassage port 12 → port du switch ; voyant du port.</li>
+<li><strong>Configuration du port sur le switch</strong> (interface web) : VLAN d'accès, état, sécurité.<div class="fx-branch"><p class="fx-si"><b>SI</b> VLAN ≠ VLAN prévu pour les postes → corriger.</p><p class="fx-sinon"><b>SINON</b> port désactivé / « err-disabled » → réactiver après avoir compris la cause.</p></div></li>
+<li><strong>Boucle</strong> : débrancher le dernier câble ajouté (ou débrancher un à un les petits switchs) jusqu'au retour à la normale.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Le même poste obtient une adresse du bon réseau sur le port corrigé ; pour la boucle, le réseau revient dès le retrait du câble et retombe si on le remet (ne pas répéter inutilement).</p>
+<h4>6. Correction</h4>
+<ul><li>Rebrasser sur un port du bon VLAN ou modifier le VLAN d'accès du port ; mettre à jour l'étiquetage et le cahier de brassage.</li><li>Supprimer la liaison redondante ; activer STP/RSTP si les switchs le permettent (redondance voulue) ; interdire les switchs personnels.</li></ul>
+<h4>7. Validation</h4>
+<p>Adresse dans la bonne plage, ping passerelle/serveur ; voyants normaux ; ping continu stable sur plusieurs postes pendant quelques minutes.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le portable obtient 192.168.20.34 (réseau invités) sur la prise B12 et 192.168.10.x sur la prise B11 : le défaut suit la prise, pas le poste. Le repérage indique que B12 est brassée sur le port 12 du switch, configuré dans le VLAN 20 (invités). Je demande à l'administrateur de passer ce port dans le VLAN 10 (bureau) et je mets à jour le cahier de brassage. Vérification : ipconfig /renew → 192.168.10.x, accès au serveur et à l'imprimante. »</p><p class="fx-lose"><b>Perd des points :</b> modifier l'IP du poste en fixe pour « forcer » le bon réseau (le port reste dans le mauvais VLAN, rien ne passe).</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Deux postes dans deux VLAN différents ne communiquent pas même avec des adresses du même réseau IP : le VLAN sépare au niveau 2, il faut un routage inter-VLAN. Un hub (ancien) répète tout sur tous les ports : collisions, lenteur — à remplacer, ce n'est pas une « panne » à configurer.</div>
+</article>
+</section>

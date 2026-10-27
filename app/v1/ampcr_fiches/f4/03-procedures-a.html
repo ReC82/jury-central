@@ -1,0 +1,161 @@
+<section class="fx-sec" id="f4-sec-lien-ip">
+<h2>3 A. Procédures : lien, adressage, DHCP, conflit, masque</h2>
+
+<article class="fx-proc" id="f4-p-lien">
+<h3>P3.1 — « Câble réseau non connecté » / aucun voyant de lien</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante pour le poste, faible pour le réseau</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Icône réseau : globe barré ou écran avec croix ; « Câble réseau non connecté » / « Non connecté ».</li><li><code>ipconfig</code> : « Statut du média . . . : Média déconnecté » ; Linux <code>ip link</code> : <code>state DOWN</code>, <code>NO-CARRIER</code>.</li><li>Voyants de la carte et du port du switch éteints (ou orange fixe sans activité selon le modèle).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Cordon débranché ou mal enfiché (clip cassé) — utilisateur/câble.</li><li>Cordon de brassage ou cordon poste abîmé — câble.</li><li>Port du switch éteint, désactivé (switch administrable) ou switch hors tension — équipement.</li><li>Carte réseau désactivée dans Windows (« Désactivé ») ou pilote absent — OS.</li><li>Prise murale / câble capillaire coupé, mauvais brassage au panneau — câblage (Fiche 3).</li><li>Carte réseau défectueuse — matériel (rare, à prouver par élimination).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Avez-vous déplacé le PC, fait le ménage, changé de bureau ? » « Les collègues ont-ils le réseau ? »</li><li>Ne pas débrancher de câble au switch/panneau sans repérage (étiquette) : tu pourrais couper un autre utilisateur ou le serveur.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Vérifier l'enfichage aux deux bouts (clic du connecteur)</strong> — attendu : voyant de lien qui s'allume en 2–3 s.<div class="fx-branch"><p class="fx-si"><b>SI</b> le voyant s'allume → cause : cordon mal enfiché ; contrôler que le clip tient.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Panneau de configuration → Centre Réseau et partage → Modifier les paramètres de la carte</strong> (Windows 10/11 : <code>ncpa.cpl</code>) — attendu : carte « Ethernet » non grisée.<div class="fx-branch"><p class="fx-si"><b>SI</b> « Désactivé » → clic droit → Activer. Si la carte n'apparaît pas → Gestionnaire de périphériques (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-pilote">→ Fiche 2 · Pilote</a>).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Remplacer le cordon poste–prise par un cordon testé</strong> — attendu : lien.<div class="fx-branch"><p class="fx-si"><b>SI</b> le lien revient → cordon défectueux.</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Brancher le poste sur une prise voisine qui fonctionne (ou un portable connu sur la prise suspecte)</strong> — isole poste / infrastructure.<div class="fx-branch"><p class="fx-si"><b>SI</b> le poste a le lien ailleurs → problème de prise / câble capillaire / brassage / port de switch : vérifier le voyant du port au switch, changer de port, tester le lien avec un testeur <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-testeur">→ Fiche 3 · Testeur</a>.</p><p class="fx-sinon"><b>SINON</b> (pas de lien nulle part, même avec cordon neuf) → carte ou pilote : tester une carte USB-Ethernet ; si elle fonctionne → carte intégrée en défaut.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Le symptôme suit l'élément suspect quand on le déplace (le cordon défectueux casse aussi le lien d'un poste sain). Limite : un câble qui « donne le lien » peut encore être défectueux (paires inversées ou split pair → lien à 100 Mb/s ou erreurs) : validation au testeur (F3).</p>
+<h4>6. Correction</h4>
+<ul><li>Remplacer le cordon / réparer ou ré-sertir la prise (F3) / réactiver la carte ou le port / changer de port et mettre à jour le repérage.</li><li>Carte HS : carte additionnelle PCIe ou USB-Ethernet, désactivation de l'intégrée dans le BIOS si conflit.</li></ul>
+<h4>7. Validation</h4>
+<p>Voyant fixe + activité ; « État » de la carte : vitesse 1,0 Gbit/s (pas 100 Mbit/s si câble Cat5e/6 et matériel Gigabit) ; <code>ipconfig</code> montre une adresse valide ; ping passerelle ; test utilisateur.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Observation : ipconfig indique “Média déconnecté” et les voyants de la carte sont éteints : aucun lien physique, le problème est en couche 1, la configuration IP n'est pas en cause. Je vérifie que la carte est activée (ncpa.cpl), puis je remplace le cordon par un cordon testé : pas de lien. Je branche le poste sur la prise voisine : le lien apparaît. Conclusion : la prise murale ou son câble/brassage est défectueux ; je contrôle le port au switch puis je teste la liaison au testeur de câble avant réparation. Validation : voyant allumé, liaison à 1 Gbit/s, ping de la passerelle réussi. »</p><p class="fx-lose"><b>Perd des points :</b> faire <code>ipconfig /renew</code> ou changer l'IP alors qu'il n'y a pas de lien ; conclure « carte HS » sans avoir changé de cordon et de prise.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Lien présent mais à 10/100 Mbit/s : souvent une paire coupée (le Gigabit utilise les 4 paires, le 100 Mbit/s 2 paires) → câble à tester, pas « réseau lent » à chercher côté IP. Lien qui tombe quand on bouge le câble = connecteur mal serti (intermittent). Portable avec dock : la carte réseau est celle du dock (pilote du dock).</div>
+</article>
+
+<article class="fx-proc" id="f4-dhcp">
+<h3>P3.2 — Adresse 169.254.x.x (APIPA) : pas d'adresse DHCP</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante (le poste ne voit que les autres 169.254)</p>
+<h4>1. Symptômes observables</h4>
+<pre class="fx-out">Carte Ethernet Ethernet :
+   Suffixe DNS propre à la connexion. . . :
+   Description. . . . . . . . . . . . . . : Intel(R) Ethernet Connection I219-V
+   Adresse physique . . . . . . . . . . . : 3C-52-82-1A-2B-01
+   DHCP activé. . . . . . . . . . . . . . : Oui
+   Configuration automatique activée. . . : Oui
+   Adresse IPv6 de liaison locale. . . . .: fe80::8d4c:2a1b:9e3f:12c4%12(préféré)
+   Adresse d'autoconfiguration IPv4 . . . : 169.254.83.17(préféré)
+   Masque de sous-réseau. . . . . . . . . : 255.255.0.0
+   Passerelle par défaut. . . . . . . . . :
+   Serveurs DNS. . .  . . . . . . . . . . : fec0:0:0:ffff::1%1
+                                       fec0:0:0:ffff::2%1
+                                       fec0:0:0:ffff::3%1</pre>
+<ul><li>Lignes clés : « DHCP activé : Oui » + « Adresse d'autoconfiguration IPv4 » 169.254.x.x + masque 255.255.0.0 + AUCUNE passerelle + pas de « Serveur DHCP » ni de bail.</li><li>Icône « Réseau non identifié » / « Pas d'accès Internet ». Linux : pas d'adresse <code>inet</code> sur l'interface (ou 169.254 si avahi-autoipd).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Le poste n'atteint pas le serveur DHCP : lien physique dégradé, mauvais port/VLAN, Wi-Fi associé mais authentification en cours.</li><li>Serveur/box DHCP arrêté, planté ou DHCP désactivé dans la box (souvent après remplacement de matériel).</li><li>Étendue DHCP épuisée (« no address available ») : trop d'appareils, baux trop longs (invités, smartphones).</li><li>Filtrage : contrôle d'accès MAC sur la box, port sécurisé 802.1X, pare-feu tiers.</li><li>Service « Client DHCP » arrêté sur le poste (rare), pilote.</li><li>Poste relié en direct à un autre PC sans DHCP : APIPA est NORMAL dans ce cas (voir P3.12).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Un seul poste ou plusieurs ? » « Le poste a-t-il déjà fonctionné ici ? » « Quelque chose a changé (box, switch, nombre d'appareils) ? »</li><li>Avant de toucher à l'étendue DHCP d'un serveur : autorisation de l'administrateur, relevé de la configuration existante (adresses fixes et réservations à ne pas chevaucher).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Vérifier le lien</strong> (voyants, « Média déconnecté » ?) — APIPA exige un lien.<div class="fx-branch"><p class="fx-si"><b>SI</b> pas de lien → P3.1.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong><code>ipconfig /release</code> puis <code>ipconfig /renew</code></strong> — attendu : adresse dans la plage du réseau (ex. 192.168.1.100–199).<pre class="fx-out">Une erreur s'est produite lors du renouvellement de l'interface Ethernet :
+Impossible de contacter votre serveur DHCP. Le délai d'attente de la demande a expiré.</pre><div class="fx-branch"><p class="fx-si"><b>SI</b> une adresse correcte arrive → incident passager (box redémarrée, câble rebranché) ; noter et surveiller.</p><p class="fx-sinon"><b>SINON</b> (message ci-dessus) → étape 3.</p></div></li>
+<li><strong>Comparer avec un poste voisin</strong> (même switch, même VLAN) : <code>ipconfig</code>.<div class="fx-branch"><p class="fx-si"><b>SI</b> le voisin a une adresse valide → problème propre au poste ou à son port : brancher le poste à la place du voisin (même câble/port). Fonctionne → port/prise/VLAN (P3.14) ; ne fonctionne pas → poste (étape 5).</p><p class="fx-sinon"><b>SINON</b> (tous en 169.254, ou les nouveaux postes seulement) → côté serveur DHCP : étape 4.</p></div></li>
+<li><strong>Côté serveur DHCP / box</strong> : état du service, journal, nombre de baux / taille de l'étendue.<div class="fx-branch"><p class="fx-si"><b>SI</b> service arrêté / DHCP désactivé → le démarrer/activer.</p><p class="fx-sinon"><b>SINON SI</b> journal « DHCPDISCOVER from 3c:52:82:1a:2b:01 … no address available » → étendue épuisée : la demande arrive (câble et réseau OK) mais il n'y a plus d'adresse libre. <b>SINON</b> (aucune trace de la demande) → la requête n'arrive pas : VLAN, relais DHCP, filtrage.</p></div></li>
+<li><strong>Côté poste</strong> : <code>services.msc</code> → « Client DHCP » démarré ; propriétés IPv4 = « Obtenir une adresse IP automatiquement » ; désactiver temporairement le pare-feu tiers ; mettre à jour le pilote.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Étendue pleine : nb d'adresses de l'étendue = dernière − première + 1 (ex. 192.168.50.100 à 192.168.50.149 → 149 − 100 + 1 = 50 adresses) comparé au nombre de baux actifs (50) → pleine. Panne du serveur : TOUS les nouveaux baux échouent alors que les postes avec bail encore valide continuent à fonctionner (piège : la panne n'apparaît qu'au fil des renouvellements). Test discriminant ultime : une adresse fixe temporaire HORS étendue (ex. 192.168.50.250/24) permet de pinguer la passerelle → le réseau est bon, seul le DHCP manque.</p>
+<h4>6. Correction</h4>
+<ul><li>Lien/VLAN : voir P3.1 / P3.14.</li><li>Service : redémarrer le service DHCP / réactiver le DHCP de la box ; vérifier qu'un seul DHCP est actif.</li><li>Étendue épuisée : agrandir l'étendue (ex. 192.168.50.100 → 192.168.50.199, soit 100 adresses) sans chevaucher les adresses fixes (serveurs, imprimantes) ; raccourcir les baux (8 h–1 jour pour un réseau à visiteurs) ; réseau invités séparé.</li><li>Ne PAS « réparer » en fixant à la main une adresse prise DANS l'étendue : elle sera redistribuée → conflit (P3.4).</li><li>Poste : <code>ipconfig /renew</code> après correction ; si le service Client DHCP était arrêté → le remettre en Automatique.</li></ul>
+<h4>7. Validation</h4>
+<p><code>ipconfig /all</code> : adresse dans la plage, masque du plan, passerelle, DNS, « Serveur DHCP » = serveur officiel, « Bail obtenu »/« Bail expirant » datés ; ping passerelle, 8.8.8.8, nom ; journal DHCP : DHCPACK pour la MAC du poste.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le portable a l'adresse 169.254.83.17 avec un masque 255.255.0.0 et sans passerelle : c'est une adresse APIPA, que Windows s'attribue lorsqu'aucun serveur DHCP ne lui a répondu. Le lien est présent (voyants allumés), donc ce n'est pas un problème de câble seul. Le journal du serveur montre les DHCPDISCOVER portant la MAC 3C-52-82-1A-2B-01 du portable avec la réponse “no address available” : la demande arrive, le serveur refuse faute d'adresse. L'étendue 192.168.50.100–149 compte 50 adresses et 50 baux sont actifs : l'étendue est épuisée. Correction : étendre l'étendue à 192.168.50.100–199 (hors adresses fixes) et réduire la durée des baux à 1 jour. Vérification : ipconfig /release puis /renew → adresse 192.168.50.1xx, DHCPACK dans le journal, ping de la passerelle puis d'Internet. Je ne donne pas au portable une adresse fixe de l'étendue, elle serait redistribuée. »</p><p class="fx-lose"><b>Perd des points :</b> écrire « 169.254 = pas de câble » ou « 169.254 = adresse privée de la box » ; oublier que des postes avec bail valide peuvent encore fonctionner ; ne pas calculer la taille de l'étendue (+1 oublié).</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Deux PC en direct sans DHCP s'attribuent chacun 169.254.x.x/16 : ils PEUVENT communiquer entre eux (même réseau 169.254.0.0/16), mais pas avec Internet. En Wi-Fi, APIPA juste après une nouvelle clé = souvent authentification incomplète ou isolation. Si l'adresse obtenue est valide mais d'un autre réseau, ce n'est PAS APIPA → P3.3. Linux sans adresse : <code>sudo dhclient -v enp3s0</code> ou <code>nmcli con up "Connexion filaire 1"</code> pour voir l'échange DISCOVER/OFFER.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-dhcp-parasite">
+<h3>P3.3 — Adresse valide mais dans le mauvais réseau (DHCP parasite, second routeur)</h3>
+<p class="fx-sev">Fréquence : fréquent (après ajout d'un routeur Wi-Fi) · Gravité : moyenne, perturbe plusieurs postes au hasard</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Certains postes reçoivent 192.168.0.x (passerelle 192.168.0.1) alors que le plan prévoit 192.168.1.0/24 ; ils n'accèdent plus au serveur ni à l'imprimante, parfois encore à Internet (via le second routeur, en double NAT).</li><li>Problème « aléatoire » : dépend du serveur DHCP qui répond le plus vite.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Routeur Wi-Fi grand public branché sur le LAN en mode routeur, avec son DHCP actif.</li><li>Ancienne box laissée branchée après remplacement.</li><li>Poste raccordé au SSID invités ou à un port de switch dans un autre VLAN (dans ce cas le serveur DHCP est légitime mais pour un autre réseau → P3.14).</li><li>Partage de connexion Internet Windows (ICS) actif sur un PC, qui distribue 192.168.137.x.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« A-t-on ajouté un routeur, une borne Wi-Fi, un switch récemment ? » Demander l'accès aux équipements avant de les débrancher.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>ipconfig /all</code> : ligne « Serveur DHCP »</strong> — attendu : IP du serveur officiel (ex. 192.168.1.1).<div class="fx-branch"><p class="fx-si"><b>SI</b> Serveur DHCP = 192.168.0.1 (inconnu du plan) → DHCP parasite : étape 2.</p><p class="fx-sinon"><b>SINON</b> → configuration statique erronée (DHCP activé : Non) ou mauvais VLAN.</p></div></li>
+<li><strong><code>arp -a</code> après <code>ping 192.168.0.1</code></strong> → relever la MAC du serveur parasite ; les 3 premiers octets (OUI) identifient le fabricant (ex. routeur TP-Link) ; rechercher la MAC dans la table d'adresses du switch administrable pour trouver le port.</li>
+<li><strong>Inspection physique</strong> : suivre le câble depuis ce port ; un routeur branché par son port LAN sur le réseau = coupable typique.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Débrancher (ou désactiver le DHCP de) l'équipement suspect, puis <code>ipconfig /release</code> + <code>/renew</code> sur un poste touché : le bail vient maintenant du serveur officiel.</p>
+<h4>6. Correction</h4>
+<ul><li>Passer le routeur Wi-Fi en mode « Point d'accès » / « Bridge » (DHCP désactivé), le relier par un port LAN, lui donner une IP fixe hors étendue dans le réseau officiel pour l'administrer.</li><li>Retirer l'ancienne box ; désactiver ICS sur le PC.</li><li>Sur switch administrable : DHCP snooping (ports de confiance) si disponible.</li><li>Renouveler les baux de tous les postes touchés (/release /renew ou redémarrage).</li></ul>
+<h4>7. Validation</h4>
+<p>Sur plusieurs postes, « Serveur DHCP » = serveur officiel ; accès serveur, imprimante et Internet ; tracert 8.8.8.8 : premier saut = passerelle officielle (plus de double saut 192.168.0.1 puis 192.168.1.1).</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le poste a reçu 192.168.0.23/24 avec la passerelle 192.168.0.1 alors que le réseau de l'entreprise est 192.168.1.0/24. ipconfig /all montre “Serveur DHCP : 192.168.0.1”, qui n'est pas le serveur prévu : un second serveur DHCP répond sur le réseau. Il s'agit du routeur Wi-Fi ajouté la semaine dernière, branché en mode routeur. Je désactive son DHCP et je le configure en point d'accès avec l'adresse fixe 192.168.1.250, hors de l'étendue. Je renouvelle les baux des postes (ipconfig /release puis /renew) et je vérifie que le serveur DHCP indiqué est bien 192.168.1.1 et que les postes accèdent au serveur et à Internet. »</p><p class="fx-lose"><b>Perd des points :</b> corriger poste par poste en adresses fixes sans supprimer le second DHCP ; confondre avec APIPA.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Double NAT (box + routeur Wi-Fi en mode routeur, chacun son réseau) : Internet fonctionne en Wi-Fi mais l'imprimante et le partage du réseau filaire sont injoignables depuis le Wi-Fi (et l'inverse). La correction est la même : mode point d'accès. Adresse 192.168.137.x = partage de connexion Windows.</div>
+</article>
+
+<article class="fx-proc" id="f4-conflit">
+<h3>P3.4 — Conflit d'adresse IP (doublon)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne à forte (si le doublon est l'adresse d'un serveur ou de la passerelle, tout le monde est touché)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Windows : « Windows a détecté un conflit d'adresses IP » ; <code>ipconfig /all</code> : « Adresse IPv4 . . . : 192.168.1.50(Doublon) » et, souvent, une adresse 169.254 de repli (« Adresse d'autoconfiguration IPv4 »).</li><li>Coupures alternées entre deux appareils, connexions qui « sautent », imprimante qui répond une fois sur deux.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Adresse fixe saisie DANS l'étendue DHCP (imprimante, NAS, PC configuré à la main) → le DHCP la donne à un autre.</li><li>Deux postes configurés en statique avec la même adresse (clonage d'image, copie de configuration).</li><li>Réservation DHCP sur une adresse déjà utilisée en fixe.</li><li>Équipement remplacé qui a repris l'adresse de l'ancien encore branché.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Un appareil a-t-il été ajouté ou reconfiguré ? » Consulter le plan d'adressage (adresses fixes, étendue). Si le doublon est un serveur : prévenir les utilisateurs avant intervention.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Relever MAC et IP du poste</strong> : <code>ipconfig /all</code> → Adresse physique 3C-52-82-1A-2B-01, IP 192.168.1.50.</li>
+<li><strong>Depuis un AUTRE poste</strong> : <code>ping 192.168.1.50</code> puis <code>arp -a</code>.<pre class="fx-out">Interface : 192.168.1.20 --- 0xc
+  Adresse Internet      Adresse physique      Type
+  192.168.1.1           f4-ca-e5-11-22-33     dynamique
+  192.168.1.50          00-80-77-4d-5e-6f     dynamique
+  192.168.1.255         ff-ff-ff-ff-ff-ff     statique
+  224.0.0.22            01-00-5e-00-00-16     statique</pre><div class="fx-branch"><p class="fx-si"><b>SI</b> la MAC associée à 192.168.1.50 (00-80-77-…) ≠ MAC du poste (3C-52-82-…) → une autre machine utilise cette adresse : étape 3.</p><p class="fx-sinon"><b>SINON</b> → refaire le test le poste éteint : si l'adresse répond encore, c'est l'autre appareil.</p></div></li>
+<li><strong>Identifier l'autre appareil</strong> : OUI 00-80-77 → fabricant (ici Brother, imprimante) ; liste des baux DHCP de la box ; table MAC du switch ; page de configuration des imprimantes.</li>
+<li><strong>Vérifier si l'adresse est dans l'étendue DHCP</strong> (ex. étendue 192.168.1.20–199 : 50 est dedans).</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Éteindre/débrancher l'un des deux : l'autre fonctionne sans coupure ; <code>arp -d *</code> (admin) puis nouveau ping → la MAC affichée change selon l'appareil allumé. Limite : la table ARP garde l'entrée quelques dizaines de secondes, vider avant de conclure.</p>
+<h4>6. Correction</h4>
+<ul><li>Équipement fixe (imprimante, NAS, serveur) : adresse fixe HORS étendue (ex. 192.168.1.210) OU réservation DHCP liée à sa MAC ; mettre à jour les ports d'impression/raccourcis qui visent l'ancienne adresse.</li><li>Poste client : repasser en « Obtenir une adresse IP automatiquement ».</li><li>Puis <code>ipconfig /release</code>, <code>ipconfig /renew</code> sur le poste ; mettre à jour le plan d'adressage.</li></ul>
+<h4>7. Validation</h4>
+<p>Plus de message de conflit ; <code>arp -a</code> depuis un tiers : chaque IP associée à UNE seule MAC attendue ; <code>ping -t</code> sans pertes pendant 2 minutes ; impression et accès réseau OK.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« ipconfig /all affiche 192.168.1.50(Doublon) : Windows a détecté qu'une autre machine répond déjà à cette adresse. Depuis le poste 192.168.1.20, après un ping de 192.168.1.50, arp -a associe cette adresse à la MAC 00-80-77-4D-5E-6F, qui n'est pas celle du poste (3C-52-82-1A-2B-01) : c'est l'imprimante, configurée à la main en 192.168.1.50, adresse située dans l'étendue DHCP 192.168.1.20–199 ; le serveur DHCP l'a donc aussi attribuée au poste. Je donne à l'imprimante l'adresse fixe 192.168.1.210, hors étendue, je mets à jour le port TCP/IP des postes, puis je renouvelle le bail du poste. Vérification : plus de doublon, arp -a cohérent, page de test et accès réseau OK, plan d'adressage mis à jour. »</p><p class="fx-lose"><b>Perd des points :</b> « changer l'IP du poste » sans traiter la cause (l'adresse fixe dans l'étendue) ; ne pas identifier l'autre appareil par sa MAC.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Doublon avec la PASSERELLE (un PC configuré en 192.168.1.1) : tout le réseau perd Internet par intermittence — symptôme général pour une cause locale. Linux ne signale pas toujours le doublon : utiliser <code>arping -D -I enp3s0 192.168.1.50</code> (réponse = adresse déjà prise). Conflit intermittent = l'autre appareil n'est allumé qu'une partie du temps (portable, imprimante en veille).</div>
+</article>
+
+<article class="fx-proc" id="f4-masque">
+<h3>P3.5 — Masque de sous-réseau incorrect</h3>
+<p class="fx-sev">Fréquence : fréquent en configuration manuelle (examen : très fréquent) · Gravité : partielle et trompeuse</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Le poste joint CERTAINS postes du réseau et pas d'autres ; ou la passerelle est injoignable alors que le câble est bon ; ou Internet fonctionne mais pas un autre sous-réseau.</li><li>Masque différent de celui des autres postes (comparer <code>ipconfig</code>).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Masque trop LONG (ex. 255.255.255.128 au lieu de 255.255.255.0) : le poste croit que la moitié du réseau est « distante ».</li><li>Masque trop COURT (ex. 255.255.0.0 au lieu de 255.255.255.0) : le poste croit locales des adresses distantes.</li><li>Faute de frappe dans l'adresse elle-même (192.168.11.25 au lieu de 192.168.1.25).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Le poste est-il en adresse fixe ? Qui l'a configuré ? » Relever la configuration avant modification (réversibilité).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Calculer le réseau du poste avec SON masque</strong>. Ex. poste 192.168.1.200 masque 255.255.255.128 : bloc 256 − 128 = 128 ; 200 est entre 128 et 255 → réseau 192.168.1.128/25, hôtes .129 à .254.</li>
+<li><strong>Situer la passerelle et les cibles</strong> : passerelle 192.168.1.1 → réseau 192.168.1.0/25 (≠ 192.168.1.128/25).<div class="fx-branch"><p class="fx-si"><b>SI</b> la passerelle n'est pas dans le réseau calculé du poste → configuration incohérente, le poste ne peut normalement pas la joindre : Windows peut même refuser la configuration (« passerelle par défaut n'est pas sur le même segment de réseau »). Internet KO, postes .1 à .127 KO, postes .129 à .254 OK : signature du masque trop long.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Masque trop court</strong> : poste 192.168.1.50 masque 255.255.0.0 → réseau 192.168.0.0/16. Il croit 192.168.2.10 (serveur d'un autre sous-réseau) local, envoie une requête ARP qui reste sans réponse → « Impossible de joindre l'hôte de destination » venant de 192.168.1.50 ; Internet, lui, fonctionne (la passerelle 192.168.1.1 est bien dans 192.168.0.0/16).</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Le calcul (ET logique adresse/masque) des deux côtés donne deux réseaux différents pour des machines qui DEVRAIENT être dans le même ; la comparaison avec un poste qui fonctionne montre un masque différent. Après correction temporaire du masque, les postes inaccessibles répondent.</p>
+<h4>6. Correction</h4>
+<ul><li>Saisir le masque du plan d'adressage (Paramètres → Réseau et Internet → Ethernet → Attribution IP → Modifier ; ou <code>ncpa.cpl</code> → Propriétés IPv4) ou, mieux, repasser en DHCP si le poste n'a pas besoin d'une adresse fixe.</li><li>En ligne de commande (admin) : <code>netsh interface ipv4 set address name="Ethernet" static 192.168.1.200 255.255.255.0 192.168.1.1</code>.</li><li>Linux (NetworkManager) : <code>nmcli con mod "Connexion filaire 1" ipv4.addresses 192.168.1.200/24</code> puis <code>nmcli con up "Connexion filaire 1"</code>.</li></ul>
+<h4>7. Validation</h4>
+<p>Ping d'un hôte de chaque « moitié » (ex. .20 et .220), de la passerelle, de 8.8.8.8 et d'un nom ; <code>ipconfig</code> : masque identique aux autres postes.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le poste a l'adresse 192.168.1.200 avec le masque 255.255.255.128 (/25). Avec ce masque, son réseau est 192.168.1.128/25 (bloc de 128 : de .128 à .255), alors que la passerelle 192.168.1.1 appartient au réseau 192.168.1.0/25 : le poste considère la passerelle comme hors de son réseau : configuration incohérente, elle n'est pas joignable normalement ; il ne joint que les hôtes .129 à .254. Les autres postes utilisent 255.255.255.0 : le masque du poste est erroné. Je le corrige en 255.255.255.0 (réseau 192.168.1.0/24, hôtes .1 à .254) et je vérifie par un ping de 192.168.1.20, de la passerelle et de 8.8.8.8. »</p><p class="fx-lose"><b>Perd des points :</b> dire « masque faux » sans montrer le calcul ; ne pas expliquer pourquoi CERTAINS postes répondent ; confondre masque trop long et trop court.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Le ping vers une machine « que le poste croit distante » est envoyé à la passerelle : si la passerelle est joignable, elle peut renvoyer le paquet (redirection ICMP) et ça « marche à moitié ». La communication est asymétrique : A (masque faux) peut croire B distant alors que B croit A local. Toujours raisonner SUR LES DEUX MACHINES.</div>
+</article>
+</section>
