@@ -2,6 +2,17 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : examen blanc global avancé EX06 « Examen blanc global avancé — dossiers complexes » (ticket #234)
+
+UAA EX06 du module `AMPCR-PRATIQUE` (position 30, après EX05, 13 blocs : présentation, barème et
+couverture comparée avec EX05, documents communs et dossiers A à D des deux variantes, méthode,
+sources). 12 situations à réponse libre (8 ou 9 points, /100) sur quatre dossiers complexes ;
+2 variantes de données vérifiées par les règles des cours ; 4 schémas SVG sans verdict
+(`app/static/img/ampcr-pratique/ex06-v*-plan-{reseau,wifi}.svg`) ; réserve `exam` seule.
+Moteur : `exam_variant_length` (`app/v1/ampcr_pratique_bank.py`) ; `session_length_options`
+(`app/v1/session_service.py`) propose la longueur d'une variante pour un examen à variantes
+(`app/v1/ampcr_pratique_ex06_*.py`, `tests/test_ticket234_ampcr_pratique_ex06.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : examen blanc global EX05 « Examen blanc global standard — épreuve pratique écrite » (ticket #201)
 
 UAA EX05 du module `AMPCR-PRATIQUE` (position 30, après PR30, 9 blocs : présentation et barème,

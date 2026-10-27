@@ -40,6 +40,7 @@ from app.v1.ai_bridge import (
 from app.v1.ai_usage import KIND_CORRECTION, KIND_GENERATION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
 from app.v1.ampcr_pratique_bank import (
+    exam_variant_length,
     get_practical_context,
     has_exam_variants,
     is_practical_code,
@@ -578,7 +579,11 @@ def _limit_near_duplicate_clusters(pool: list[Question], *, max_per_cluster: int
 
 def session_length_options(*, uaa_id: int | None, uaa_code: str | None) -> tuple[int, ...]:
     """Ticket #86 : longueurs proposables pour un parcours — 50 en plus pour MC38 et le
-    parcours global AMPCR (`uaa_id=None`), jamais pour un mini-cours isolé."""
+    parcours global AMPCR (`uaa_id=None`), jamais pour un mini-cours isolé. Ticket #234 :
+    examen blanc à variantes (EX05, EX06) — une seule longueur, celle d'une variante."""
+    variant_length = exam_variant_length(uaa_code)
+    if variant_length is not None:
+        return (variant_length,)
     if uaa_id is None or uaa_code == MC38_CODE:
         return GLOBAL_SESSION_LENGTH_OPTIONS
     return SESSION_LENGTH_OPTIONS
@@ -595,9 +600,9 @@ def available_session_lengths(
     toujours au moins la plus courte (session éventuellement plus courte, comme avant).
     Ticket #193 : les cours AMPCR pratique sont strictement banque, réserve du `mode`."""
     options = session_length_options(uaa_id=uaa_id, uaa_code=uaa_code)
-    # Ticket #201 : examen blanc à variantes (EX05) — une session = une variante entière.
+    # Ticket #201 : examen blanc à variantes (EX05, EX06) — une session = une variante entière.
     if has_exam_variants(uaa_code):
-        return options[:1]
+        return options
     can_generate = (
         uaa_code not in (FSE17_CODE, FR20_CODE)
         and not is_practical_code(uaa_code)

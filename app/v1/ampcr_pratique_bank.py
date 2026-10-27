@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28 ; #228 : PR29 ; #229 : PR30) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule) et examen blanc global EX05 (#201 : deux variantes de données, une variante entière par session, `select_exam_variant`).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28 ; #228 : PR29 ; #229 : PR30) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule) et examens blancs globaux EX05 (#201 : deux variantes de données, une variante entière par session, `select_exam_variant`) et EX06 (#234 : dossiers complexes, deux variantes, même mécanisme).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -32,6 +32,8 @@ from app.v1.ampcr_pratique_ex03_bank import ALL_ITEMS as EX03_ITEMS
 from app.v1.ampcr_pratique_ex04_bank import ALL_ITEMS as EX04_ITEMS
 from app.v1.ampcr_pratique_ex05_bank import ALL_ITEMS as EX05_ITEMS
 from app.v1.ampcr_pratique_ex05_bank import VARIANT_KEYS as EX05_VARIANT_KEYS
+from app.v1.ampcr_pratique_ex06_bank import ALL_ITEMS as EX06_ITEMS
+from app.v1.ampcr_pratique_ex06_bank import VARIANT_KEYS as EX06_VARIANT_KEYS
 from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
@@ -825,6 +827,54 @@ _EX05_CONTEXT = PedagogicalContext(
         "intervention sous tension, une sécurité désactivée sans raison, un calcul d'adresse faux, "
         "la confusion d'une panne de connectivité IP et d'une panne DNS, et la confusion entre "
         "autorisations de partage et NTFS."
+    ),
+)
+
+# Ticket #234 : EX06, examen blanc global avancé (tout le parcours, quatre dossiers complexes).
+_EX06_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-ex06",
+    course_title="AMPCR pratique écrite — EX06 Examen blanc global avancé : dossiers complexes",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : examen blanc global avancé /100 (12 questions de 8 ou 9 points), réponses "
+        "rédigées de technicien sur quatre dossiers fictifs d'une même journée chez un client "
+        "(poste qui ne démarre plus et données ; devis, Windows et Linux ; cordon RJ45 et segment "
+        "coaxial ; agrandissement du réseau, Wi-Fi, partages et rapport), avec plusieurs causes à "
+        "départager par des tests discriminants"
+    ),
+    allowed_notions=[
+        "chaîne de démarrage : disque vu ou non par le micrologiciel, autre câble/port/PC pour départager ; INACCESSIBLE_BOOT_DEVICE après un changement du mode du contrôleur (AHCI ↔ RST/RAID) : remettre le mode d'installation avant toute réparation ; WinRE, désinstaller une mise à jour ; disque mort (cliquetis, invisible partout) ; pile CR2032 3 V nominal, usée si nettement en dessous (date perdue) mais n'empêche pas de voir un disque",
+        "stockage : MBR limité à 2 Tio (secteurs de 512 octets) et 4 partitions principales, GPT pour UEFI et grands disques ; To annoncés (10^12) et « To » affichés par Windows (2^40) ; NTFS (Windows), exFAT (échange Windows/macOS, fichiers > 4 Gio), FAT32 (appareils anciens, fichiers < 4 Gio) ; défragmentation des seuls HDD, TRIM/optimisation pour les SSD",
+        "données : règle 3-2-1 (3 copies, 2 types de supports, 1 hors site), contrôle d'une copie par tailles et empreintes SHA-256, prérequis d'une opération qui efface (sauvegarde vérifiée, accord écrit daté d'une personne habilitée, licences notées), effacement sécurisé avant don",
+        "compatibilité : socket, type de mémoire (DDR4/DDR5), format carte/boîtier, longueur de carte graphique, hauteur de ventirad, connecteurs PCIe ; budget de puissance = somme des fiches + 30 % arrondi au palier de 50 W, jamais sous la recommandation de la carte graphique",
+        "Windows 11 : « aucun lecteur » avec Intel VMD → pilote RST/VMD F6 par « Charger un pilote » ; disque MBR en UEFI → sauvegarde, mbr2gpt /validate puis /convert /allowFullOS, jamais repasser en mode hérité ; édition installée = édition de la licence pour l'activation",
+        "Linux en double démarrage : sauvegarde vérifiée et accord écrit avant tout partitionnement, ESP réutilisée sans formatage, partitions Windows intactes, Linux dans l'espace libre (/, swap, /home) ; swap = mémoire jusqu'à 8 Go, 4 Go au-delà sans hibernation ; sha256sum -c OK/FAILED ; efibootmgr BootOrder et efibootmgr -o",
+        "RJ45 T568B ; 100BASE-TX sur 1-2 et 3-6, 1000BASE-T sur 4 paires : paire 4-5 ou 7-8 ouverte → lien à 100 Mb/s ; paires séparées (ordre des couleurs côte à côte) invisibles au testeur de continuité, diaphonie (NEXT) au certificateur, erreurs CRC",
+        "10BASE2 : RG-58 50 Ω, T directement sur la carte, terminateurs 50 Ω aux deux bouts (25 Ω à l'ohmmètre), une seule mise à la terre, 185 m au plus ; 50 Ω partout = une terminaison perdue (coupure) ; localiser en mesurant chaque tronçon seul ; fabrication d'un câble BNC à sertir",
+        "IPv4 : plus petit préfixe pour N hôtes (2^(32−n) − 2), réseau, diffusion, plage ; étendue DHCP épuisée → APIPA 169.254 ; masque, passerelle, DNS et adresse fixe hors de l'étendue",
+        "Wi-Fi : signal = 20 dBm − espace libre − obstacles (pertes du cours), objectif −67 dBm ; canaux 1, 6, 11 et voisins au-dessus de −80 dBm ; WEP et WPA à refuser, WPA2/WPA3 ou WPA3, clé longue, WPS coupé, mot de passe d'administration, invités isolés, une seule source DHCP ; répéteur (débit divisé) ou point d'accès câblé",
+        "partages : accès par le réseau = le plus restrictif du partage et de NTFS ; NTFS : groupes cumulés, refus explicite prioritaire, héritage désactivé ; en session locale, NTFS seul ; correction sur le groupe",
+        "rapport d'une journée : dossiers, constats chiffrés, causes, actions, état final, reste à faire ; durée facturable = somme des interventions (pause exclue), amplitude ; vocabulaire expliqué au client",
+    ],
+    competencies=[
+        "Départager plusieurs causes d'une panne par des tests discriminants et écarter les faux indices",
+        "Calculer et justifier (puissance, unités, masques, signal, résistances, accès effectifs, durées)",
+        "Décrire des installations et interventions complètes en protégeant les données, puis rédiger le rapport",
+    ],
+    vocabulary=[
+        "INACCESSIBLE_BOOT_DEVICE", "AHCI", "GPT", "exFAT", "TRIM", "3-2-1", "empreinte", "socket",
+        "VMD", "mbr2gpt", "efibootmgr", "paires séparées", "NEXT", "terminateur", "APIPA",
+        "préfixe", "dBm", "WPA3", "héritage", "refus explicite",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien dans un examen blanc global avancé /100 "
+        "(8 ou 9 points par question) : accepter toute formulation, toute méthode et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de libellé exact ; suivre le barème de la "
+        "question et noter en proportion. Valoriser l'élimination justifiée des fausses pistes. "
+        "Pénaliser une action destructive sans sauvegarde ni accord écrit, une réinstallation "
+        "inutile, une sécurité désactivée pour contourner un blocage, un calcul faux, la confusion "
+        "entre testeur de continuité et certification, et la confusion entre autorisations de "
+        "partage et NTFS."
     ),
 )
 
@@ -1955,6 +2005,13 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         context=_EX05_CONTEXT,
         variants=EX05_VARIANT_KEYS,
     ),
+    PracticalCourse(
+        code="EX06",
+        title="Examen blanc global avancé — dossiers complexes",
+        items=EX06_ITEMS,
+        context=_EX06_CONTEXT,
+        variants=EX06_VARIANT_KEYS,
+    ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}
 PRACTICAL_COURSES_BY_SLUG: dict[str, PracticalCourse] = {c.slug: c for c in PRACTICAL_COURSES}
@@ -2132,9 +2189,16 @@ def question_usage(question: Question) -> str | None:
 
 
 def has_exam_variants(uaa_code: str | None) -> bool:
-    """Examen blanc à variantes de données (ticket #201 : EX05)."""
+    """Examen blanc à variantes de données (ticket #201 : EX05 ; ticket #234 : EX06)."""
     course = PRACTICAL_COURSES_BY_CODE.get(uaa_code or "")
     return course is not None and len(course.variants) > 1
+
+
+def exam_variant_length(uaa_code: str | None) -> int | None:
+    """Nombre de questions d'une variante (ticket #234 : 12 pour EX06, 10 pour EX05)."""
+    if not has_exam_variants(uaa_code):
+        return None
+    return len(PRACTICAL_COURSES_BY_CODE[uaa_code].variants[0])
 
 
 def _item_key_by_prompt(course: PracticalCourse) -> dict[str, str]:
