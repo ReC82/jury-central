@@ -1,0 +1,232 @@
+<section class="fx-sec" id="f1-proc-stockage">
+<h2>5. Procédures : stockage, SMART, partitions, formatage, entretien des disques</h2>
+<p class="fx-warn"><b>Attention</b> Règle d'or de toute cette section : <strong>identifier → lire l'état (SMART) → sauvegarder sur un autre support et vérifier la copie → agir → contrôler</strong>. Initialiser, partitionner, formater, convertir, <code>clean</code>, <code>mklabel</code> détruisent l'accès aux données.</p>
+
+<article class="fx-proc" id="f1-stockage">
+<h3>P1.12 — Disque SATA non détecté dans l'UEFI (ou détecté par intermittence)</h3>
+<p class="fx-sev">Fréquence : très fréquent (ajout de disque, montage) · Gravité : moyenne à critique (données)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Écran Stockage de l'UEFI : port SATA « Not Present / Aucun » ; LED BOOT ; « No bootable device » si c'était le disque système.</li>
+<li>Variante intermittente : disque qui disparaît en charge, bruits (clic, cliquetis, rotation qui s'arrête), Windows qui gèle pendant les accès.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Câble de données SATA ou d'alimentation SATA débranché (côté disque ou carte).</li>
+<li>Port SATA désactivé par un SSD M.2 installé dans un emplacement partagé (manuel), ou port désactivé dans l'UEFI.</li>
+<li>Câble SATA défectueux ou connecteur abîmé ; adaptateur Molex → SATA défaillant.</li>
+<li>Mode du contrôleur (RAID/Intel RST/VMD) qui masque le disque au programme d'installation (côté système : Fiche 2).</li>
+<li>Disque défaillant (électronique, moteur, têtes).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Le disque contient-il des données ? Y a-t-il une sauvegarde, de quand ? (si bruits : <strong>arrêter</strong> de le solliciter).</li>
+<li>Qu'a-t-on modifié (ajout d'un M.2, déplacement de câbles) ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>PC débranché : vérifier les deux extrémités du câble de données et l'alimentation SATA</strong> ; écouter au démarrage (rotation d'un HDD).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> câble mal enfoncé → corriger, UEFI.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Lire le manuel : ports partagés avec les emplacements M.2</strong>, et l'écran UEFI des ports activés.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le port est désactivé par un M.2 → brancher le disque sur un autre port non partagé.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Autre câble de données, autre port, autre câble d'alimentation.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> détecté → câble/port en cause.</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Disque dans un autre PC ou un boîtier/adaptateur USB.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> détecté → PC (port, contrôleur, réglage).</p><p class="fx-sinon"><b>SINON</b> → disque défaillant : données uniques → laboratoire de récupération (on n'ouvre jamais un disque dur) ; sinon remplacement.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le disque est détecté dès qu'on change un seul élément (port, câble) et le reste sur 3 démarrages. Pour l'intermittence : SMART <code>UDMA_CRC_Error_Count</code> qui n'augmente plus après changement de câble.</p>
+<h4>6. Correction</h4><ul><li>Câble neuf, port non partagé, réglage UEFI ; disque défaillant : copie/clonage si lisible, puis remplacement (SATA 2,5/3,5 pouces, capacité, accord).</li></ul>
+<h4>7. Validation</h4><p>Disque listé dans l'UEFI au bon port, visible dans Gestion des disques, copie de plusieurs Go sans erreur ; SMART relevé et noté.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Le SSD SATA ajouté sur SATA_5 n'apparaît pas dans l'écran Stockage de l'UEFI (document C2), alors qu'un SSD M.2 SATA est installé dans M.2_2. Selon le manuel (C3), un M.2 SATA dans M.2_2 désactive SATA_5 et SATA_6 : le port utilisé est désactivé. Le disque n'est donc pas forcément défectueux. PC débranché, bracelet ESD, je déplace le câble de données sur un port non partagé (SATA_3). Validation : le SSD apparaît dans l'UEFI sur SATA_3, puis dans Gestion des disques où je l'initialise (disque neuf et vide, P1.14).</p></div>
+<p class="fx-lose"><b>Perd des points :</b> déclarer le disque défectueux sans avoir changé de port/câble ; ignorer le manuel fourni ; réinstaller le système « pour voir ».</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Disque présent dans l'UEFI mais absent de l'installateur Windows = mode RAID/VMD du contrôleur (pilote à charger) : <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-boot">→ Fiche 2</a>, pas une panne matérielle.</div>
+<div class="fx-trap"><b>Piège</b> Disque présent dans l'UEFI mais « No boot device » : détection OK, cherche l'ordre/mode de démarrage (Fiche 2).</div>
+</article>
+
+<article class="fx-proc" id="f1-m2">
+<h3>P1.13 — SSD M.2 non détecté ou lent (SATA ou NVMe ?)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne</p>
+<h4>1. Symptômes observables</h4><ul><li>SSD M.2 absent de l'UEFI ; ou détecté mais débit très inférieur à l'annonce ; ou disque SATA voisin qui disparaît depuis la pose du M.2.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Module mal inséré (pas au fond du connecteur à 30°) ou non vissé (entretoise à la mauvaise longueur, 2280 le plus courant).</li><li>Emplacement qui n'accepte que NVMe (PCIe) alors que le SSD est M.2 SATA, ou l'inverse.</li><li>Emplacement partagé : désactivé par l'usage d'un port SATA ou d'un emplacement PCIe (manuel).</li><li>Emplacement relié au chipset en PCIe 3.0 x2/x4 au lieu du processeur (débit plus faible, pas une panne).</li><li>Firmware ancien, SSD défectueux.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Référence exacte du SSD (étiquette : « NVMe » ou « SATA », clé M ou B+M), format (2242, 2260, 2280).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Comparer le type du SSD aux types acceptés par chaque emplacement</strong> (manuel).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> incompatible → déplacer dans un emplacement compatible ou changer de SSD.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>PC débranché : réinsertion à 30°, rabattre, vis M.2 ou loquet ; film du dissipateur retiré.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> détecté → contact.</p><p class="fx-sinon"><b>SINON</b> → autre emplacement, version du firmware, SSD dans un adaptateur/autre PC.</p></div></li></ol>
+<h4>5. Test de confirmation</h4><p>Détection dans un emplacement compatible ; débit mesuré (outil de test de débit) conforme à l'interface de l'emplacement.</p>
+<h4>6. Correction</h4><p>Bon emplacement, fixation, mise à jour du firmware si exigée, remplacement si défaut prouvé.</p>
+<h4>7. Validation</h4><p>UEFI : SSD et interface ; Gestion des disques ; SMART (usure, température) noté.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le SSD posé est un M.2 SATA ; le manuel indique que M.2_1 n'accepte que des SSD PCIe (NVMe). Le format M.2 ne dit rien de l'interface : je déplace le SSD dans M.2_2 qui accepte SATA et PCIe, en notant que SATA_5/6 seront désactivés ; je vérifie qu'aucun disque n'y est branché.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> confondre « M.2 » (format) et « NVMe » (protocole) ; ne pas vérifier les ports partagés.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Un SSD NVMe dans un emplacement relié au chipset fonctionne mais plus lentement : ce n'est pas une panne, c'est une contrainte de la carte.</div>
+</article>
+
+<article class="fx-proc" id="f1-partition">
+<h3>P1.14 — Disque visible dans l'UEFI mais absent de l'Explorateur : initialiser, partitionner, formater</h3>
+<p class="fx-sev">Fréquence : très fréquent (disque neuf) · Gravité : faible si disque neuf, critique si le disque contenait des données</p>
+<h4>1. Symptômes observables</h4><ul><li>Gestion des disques : « Inconnu, Non initialisé », « Non alloué », volume sans lettre, disque « Hors connexion ».</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Disque neuf jamais initialisé (normal).</li><li>Volume existant sans lettre (lettre retirée, conflit avec un lecteur réseau).</li><li>Disque hors connexion (conflit de signature, stratégie).</li><li>Disque qui contenait des données et apparaît non initialisé/RAW → <strong>P1.15, ne rien initialiser</strong>.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Le disque est-il <strong>neuf et vide</strong> ? Confirmation écrite si doute. Quel usage (données Windows, échange, Linux) ? PC en UEFI ? Taille &gt; 2 Tio ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Ouvrir Gestion des disques</strong> (<code>diskmgmt.msc</code>, ou clic droit sur Démarrer) et identifier le disque par sa taille et son numéro.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> « Non initialisé » sur un disque neuf → étape 2.</p><p class="fx-sinon"><b>SINON</b> si volume sain sans lettre → « Modifier la lettre de lecteur et les chemins d'accès » (aucune donnée touchée) ; si « Hors connexion » → clic droit « En ligne ».</p></div></li>
+<li><strong>Initialiser en GPT</strong> (choix par défaut sur PC UEFI, obligatoire au-delà de 2 Tio et pour plus de 4 partitions principales ; MBR seulement pour un disque de démarrage d'un PC BIOS sans UEFI).</li>
+<li><strong>Nouveau volume simple</strong> : taille (en Mo, qui sont des Mio : 300 Gio = 307 200), lettre, système de fichiers (NTFS pour un disque interne Windows), nom de volume, formatage rapide sur disque neuf.</li>
+</ol>
+<h4>Équivalent en ligne de commande (Windows)</h4>
+<p class="fx-warn"><b>Attention</b> <code>clean</code> et <code>convert</code> détruisent la table de partitions du disque sélectionné. Prérequis : <code>list disk</code> puis <code>detail disk</code> pour vérifier numéro, taille et contenu ; sauvegarde vérifiée si données. Alternative prudente : Gestion des disques, qui montre visuellement le disque.</p>
+<pre class="fx-cmd">C:\&gt; diskpart
+DISKPART&gt; list disk
+DISKPART&gt; select disk 1
+DISKPART&gt; detail disk
+DISKPART&gt; convert gpt
+DISKPART&gt; create partition primary
+DISKPART&gt; format fs=ntfs quick label="Donnees"
+DISKPART&gt; assign letter=D
+DISKPART&gt; list volume</pre>
+<pre class="fx-out">  N° disque  Statut         Taille   Libre    Dyn  GPT
+  ---------  -------------  -------  -------  ---  ---
+  Disque 0   En ligne        476 G octets      0 octets        *
+  Disque 1   En ligne       1863 G octets  1863 G octets</pre>
+<p>Lecture : le disque 1 de 1863 Go (Gio) est le disque vendu « 2 To », entièrement libre, pas encore GPT (pas d'astérisque) : c'est bien le disque neuf. Le disque 0 (GPT, rien de libre) est le disque système : ne pas le sélectionner.</p>
+<h4>Équivalent sous Linux (Debian/Ubuntu)</h4>
+<p class="fx-warn"><b>Attention</b> <code>parted … mklabel gpt</code> efface la table existante. Prérequis : <code>lsblk -f</code> montre un disque sans partition ni point de montage, de la bonne taille.</p>
+<pre class="fx-cmd">$ lsblk -f
+$ sudo parted /dev/sdb mklabel gpt
+$ sudo parted -a optimal /dev/sdb mkpart donnees ext4 0% 100%
+$ sudo mkfs.ext4 -L donnees /dev/sdb1
+$ sudo mkdir -p /srv/donnees
+$ sudo mount /dev/sdb1 /srv/donnees
+$ sudo blkid /dev/sdb1
+$ sudo nano /etc/fstab      (ajouter la ligne avec l'UUID)
+$ sudo mount -a
+$ df -h /srv/donnees</pre>
+<pre class="fx-out">UUID=3f1c2a9e-7b4d-4c1e-9a55-0d2e6b8f1a21  /srv/donnees  ext4  defaults  0  2</pre>
+<p>Ligne fstab à base d'UUID (exemple fictif) : le nom <code>/dev/sdb1</code> peut changer d'un démarrage à l'autre. <code>mount -a</code> sans message d'erreur = ligne correcte ; une erreur dans fstab peut bloquer le démarrage.</p>
+<h4>5. Test de confirmation</h4><p>Le volume apparaît avec sa lettre/point de montage et la capacité attendue ; un fichier test est écrit, relu puis supprimé.</p>
+<h4>6. Correction</h4><p>Celle des étapes ci-dessus selon le cas (lettre, en ligne, initialisation d'un disque neuf).</p>
+<h4>7. Validation</h4><p>Explorateur/<code>df -h</code> : taille et système de fichiers ; redémarrage : volume toujours présent (fstab) ; noter table, système de fichiers, lettre.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le disque de 2 To est détecté par l'UEFI, mais Gestion des disques l'affiche « Non initialisé » : c'est normal pour un disque neuf, il n'a pas de table de partitions. Après avoir vérifié qu'il est neuf et vide (taille, aucune partition) : 1) initialisation en GPT (PC UEFI, disque de données récent) ; 2) Nouveau volume simple sur tout l'espace ; 3) lettre D: ; 4) NTFS (disque interne Windows : journal, droits, gros fichiers), nom « Photos », formatage rapide. Contrôle : D: visible avec environ 1,81 To (calcul Go/Gio), fichier test écrit et relu.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> initialiser un disque qui contenait des données ; choisir MBR pour un disque de plus de 2 Tio ; <code>select disk</code> sans <code>list disk</code>.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> « Étendre le volume » grisé pour C: : l'espace non alloué doit suivre immédiatement C: ; une partition de récupération placée entre les deux bloque l'extension. Ne pas la supprimer à la légère : documenter et demander conseil.</div>
+</article>
+
+<article class="fx-proc" id="f1-raw">
+<h3>P1.15 — Disque de données « RAW », « non initialisé » ou « Vous devez formater le disque »</h3>
+<p class="fx-sev">Fréquence : moyen · Gravité : critique (risque de perte définitive par une mauvaise manipulation)</p>
+<h4>1. Symptômes observables</h4><ul><li>Windows : « Vous devez formater le disque dans le lecteur D: avant de pouvoir l'utiliser » ; Gestion des disques : volume « RAW » ou disque « Non initialisé » alors qu'il contenait des fichiers.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Liaison : câble SATA, boîtier/adaptateur USB défaillant, alimentation insuffisante d'un disque externe.</li><li>Système de fichiers endommagé (débranchement à chaud, coupure).</li><li>Table de partitions endommagée.</li><li>Disque physiquement défaillant (secteurs illisibles).</li><li>Système de fichiers non lu par ce système (ext4 sous Windows, APFS) : ce n'est pas une panne.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Données uniques ? Dernière sauvegarde ? Accord écrit pour la récupération et son coût ?</li></ul>
+<p class="fx-warn"><b>Attention</b> Ne <strong>jamais</strong> cliquer sur « Formater », « Initialiser », ni lancer <code>chkdsk /f</code> en premier sur un disque qui contient des données uniques et qui peut être défaillant : ces opérations écrivent sur le disque. Alternative prudente : SMART, puis image ou copie vers un autre support, réparation seulement sur la copie ou après sauvegarde.</p>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Changer la liaison</strong> : autre câble/port, disque externe sur un port arrière ou dans un autre boîtier.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le volume réapparaît normalement → liaison en cause.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Lire le SMART</strong> (P1.16).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> secteurs en attente/illisibles &gt; 0 ou bruits → arrêter, image secteur par secteur ou laboratoire si données critiques.</p><p class="fx-sinon"><b>SINON</b> (SMART sain) → logiciel de récupération en lecture seule vers un <em>autre</em> disque.</p></div></li>
+<li><strong>Données récupérées et vérifiées</strong> → seulement alors réparation (<code>chkdsk</code>) ou reformatage, avec accord.</li></ol>
+<h4>5. Test de confirmation</h4><p>Les fichiers copiés s'ouvrent sur le support de destination ; SMART stable.</p>
+<h4>6. Correction</h4><p>Récupération, puis reformatage/réutilisation si le disque est sain, ou remplacement s'il est dégradé ; la sauvegarde est mise en place.</p>
+<h4>7. Validation</h4><p>Liste des dossiers récupérés validée par le client ; disque (ou remplaçant) contrôlé ; plan de sauvegarde 3-2-1 conseillé.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le disque D: contient les seuls exemplaires des dossiers comptables et Windows propose de le formater : je refuse le formatage, qui effacerait l'accès aux données. Je contrôle d'abord la liaison (autre câble SATA, autre port), puis l'état SMART. Le SMART montre 12 secteurs en attente : le disque faiblit. Avec l'accord écrit du client, je fais une image du disque vers un disque sain, puis je récupère les fichiers à partir de l'image ; le client vérifie les fichiers. Le disque est remplacé.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> formater, initialiser ou lancer une réparation en écriture avant d'avoir sauvé les données ; « sauvegarder » sur une autre partition du même disque.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Une clé formatée ext4 apparaît « illisible » sous Windows : rien n'est cassé, le système ne lit pas ce système de fichiers.</div>
+</article>
+
+<article class="fx-proc" id="f1-smart">
+<h3>P1.16 — Lenteurs d'accès, erreurs de lecture, clics : lire le SMART et décider</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : critique (perte de données imminente possible)</p>
+<h4>1. Symptômes observables</h4><ul><li>Fichiers lents à ouvrir, « erreur de lecture », gels pendant les accès, journal avec erreurs disque ; HDD qui clique, gratte ou redémarre son moteur.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Secteurs défectueux (HDD vieillissant).</li><li>Liaison SATA (erreurs CRC).</li><li>Surchauffe du disque.</li><li>SSD usé (endurance consommée) ou contrôleur défaillant.</li><li>Lenteur logicielle (Fiche 2).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Date de la dernière sauvegarde ; données uniques ? Si bruits : réduire l'usage au minimum, copier le plus important en premier.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Relever les attributs SMART</strong> (CrystalDiskInfo, <code>smartctl -a</code>, outil du fabricant), pas seulement le résumé.</li>
+<li><strong>Appliquer la règle du cours</strong> :
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Attribut (nom smartctl)</th><th>Valeur brute</th><th>Décision</th></tr></thead><tbody>
+<tr><td>Current_Pending_Sector (en attente)</td><td>&gt; 0</td><td>Sauvegarde immédiate, remplacement</td></tr>
+<tr><td>Offline_Uncorrectable (illisibles)</td><td>&gt; 0</td><td>Sauvegarde immédiate, remplacement</td></tr>
+<tr><td>Reallocated_Sector_Ct (réalloués)</td><td>&gt; 0, stable</td><td>À surveiller (relevé périodique) ; s'il augmente : remplacer</td></tr>
+<tr><td>UDMA_CRC_Error_Count</td><td>&gt; 0</td><td>Câble/connecteur SATA à changer ; le compteur ne redescend pas, vérifier qu'il n'augmente plus</td></tr>
+<tr><td>Percentage_Used (SSD NVMe)</td><td>≥ 80 % / ≥ 100 %</td><td>Surveiller / remplacer</td></tr>
+<tr><td>Available_Spare (SSD NVMe)</td><td>sous le seuil</td><td>Remplacer</td></tr>
+</tbody></table></div>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> en attente ou illisibles &gt; 0 → disque à remplacer, données d'abord.</p><p class="fx-sinon"><b>SINON</b> si seulement CRC → câble ; tout à 0 → chercher ailleurs (Fiche 2 lenteurs), SMART n'étant qu'un indice.</p></div></li></ol>
+<h4>5. Test de confirmation</h4><p>Deux relevés espacés (évolution des compteurs) ; test long du fabricant (après sauvegarde). Limite : un SMART sain ne garantit rien, un disque peut lâcher sans alerte.</p>
+<h4>6. Correction</h4>
+<ul><li>Disque à remplacer : copie/clonage vers un disque neuf (accord), remplacement, ancien disque effacé ou détruit selon accord.</li>
+<li>CRC : câble SATA neuf, branché à fond ; nouveau relevé après quelques jours.</li>
+<li>Interdit sur un disque à remplacer : défragmentation, redimensionnement, réparation lourde avant copie.</li></ul>
+<h4>7. Validation</h4><p>Copie vérifiée (ouverture de fichiers, nombres et tailles) ; nouveau disque : SMART relevé, système/données accessibles ; valeurs notées dans le rapport.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le résumé indique « PASSED », mais les attributs montrent : secteurs réalloués 24, secteurs en attente 8, illisibles 8, CRC 0. Selon la règle, des secteurs en attente et illisibles supérieurs à 0 imposent le remplacement ; les erreurs CRC à 0 écartent le câble. La dernière sauvegarde a trois semaines : je copie immédiatement les dossiers les plus récents vers un disque externe et vérifie la copie, sans défragmenter ni réparer. Avec l'accord du client, je remplace le disque, je restaure les données, je relève le SMART du nouveau disque et je conseille une sauvegarde automatique quotidienne.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> « disque OK car PASSED » ; défragmenter un disque qui a des secteurs en attente ; accuser le disque quand seul le compteur CRC augmente.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Valeurs « normalisées » (100, 200…) et seuils du fabricant ≠ valeur brute : à l'examen, raisonne sur la valeur brute fournie.</div>
+</article>
+
+<article class="fx-proc" id="f1-capacite">
+<h3>P1.17 — Capacité affichée « plus petite » que la capacité achetée</h3>
+<p class="fx-sev">Fréquence : très fréquent (question de client, question d'examen) · Gravité : nulle (explication) ou moyenne (MBR)</p>
+<h4>1. Symptômes observables</h4><ul><li>Disque « 1 To » affiché 931 Go ; « 2 To » affiché 1,81 To ; disque de 3 To dont seuls 2 To sont utilisables (le reste « Non alloué » impossible à utiliser).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Unités : fabricant en décimal (1 Go = 10^9 octets), Windows en binaire (Gio = 2^30) mais écrit « Go ».</li><li>Table MBR : adresses sur 32 bits × 512 octets = 2 Tio maximum.</li><li>Partitions de récupération/EFI déjà présentes ; espace non alloué.</li><li>Boîtier USB ancien qui ne gère pas plus de 2 Tio (rare).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Le disque contient-il des données (conversion MBR → GPT : disque vide ou sauvegarde) ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Poser le calcul</strong> : octets ÷ 1 073 741 824. 1 To = 10^12 ÷ 2^30 ≈ 931,3 Gio ; 2 To ≈ 1 862,6 Gio ≈ 1,82 Tio (Windows affiche 1,81 To en tronquant). Repère : × 0,93.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'écart correspond (≈ 7 %) → aucune anomalie, expliquer.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Gestion des disques : type de table</strong> (Propriétés du disque → Volumes → Style de partition).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> MBR et plafond vers 2 Tio → table inadaptée.</p><p class="fx-sinon"><b>SINON</b> → partitions existantes, espace non alloué à attribuer.</p></div></li></ol>
+<h4>5. Test de confirmation</h4><p>Le calcul tombe juste ; ou après conversion GPT la totalité est utilisable.</p>
+<h4>6. Correction</h4><p class="fx-warn"><b>Attention</b> Convertir MBR → GPT avec Gestion des disques/diskpart exige un disque <strong>vide</strong> : sauvegarde vérifiée, suppression des volumes, conversion. Alternative pour un disque système : <code>mbr2gpt</code> (Windows) sans perte, mais avec sauvegarde quand même et passage du firmware en UEFI : <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-boot">→ Fiche 2</a>.</p>
+<h4>7. Validation</h4><p>Capacité complète affichée et utilisable ; données restaurées et vérifiées.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le disque vendu 2 To contient 2 × 10^12 octets. Windows divise par 2^30 = 1 073 741 824 : 2 × 10^12 ÷ 1 073 741 824 ≈ 1 862,6 Gio, soit environ 1,82 Tio, affiché « 1,81 To ». Il ne manque rien : même nombre d'octets, deux unités différentes. Le disque n'est ni défectueux ni « pris par Windows ».</p></div>
+<p class="fx-lose"><b>Perd des points :</b> calcul non posé (puissances 10^9 et 2^30) ; attribuer l'écart à Windows ou à une panne.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Linux (<code>lsblk</code>, <code>df -h</code>) affiche « G » et « T » pour des Gio et Tio : même écart.</div>
+</article>
+
+<article class="fx-proc" id="f1-fs">
+<h3>P1.18 — Clé ou disque externe : fichier refusé, support illisible sur un autre appareil (choix du système de fichiers)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : faible (si sauvegarde avant reformatage)</p>
+<h4>1. Symptômes observables</h4><ul><li>« Le fichier est trop volumineux pour le système de fichiers de destination » (vidéo de 6 Go sur clé FAT32).</li><li>Clé NTFS que le Mac lit mais n'écrit pas ; TV/autoradio qui ne voit pas une clé exFAT ou NTFS ; clé ext4 « à formater » sous Windows.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>FAT32 : fichier limité à 4 Gio moins 1 octet.</li><li>NTFS : écrit par Windows, lu seulement par macOS (sans outil).</li><li>Appareil ancien qui ne lit que FAT32.</li><li>ext4 non lu par Windows.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Qui doit lire et écrire le support ? Taille du plus gros fichier ? Besoin de droits/journal ? Contenu actuel sauvegardé ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Propriétés du support : système de fichiers actuel.</strong></li>
+<li><strong>Appliquer la règle</strong> :
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Usage</th><th>Choix</th><th>Justification</th></tr></thead><tbody>
+<tr><td>Partition système ou disque interne Windows</td><td>NTFS</td><td>Journal, droits, gros fichiers</td></tr>
+<tr><td>Partition Linux</td><td>ext4</td><td>Natif, journal, droits</td></tr>
+<tr><td>Partition EFI (ESP)</td><td>FAT32</td><td>Exigé par le firmware UEFI</td></tr>
+<tr><td>Échange Windows/macOS/Linux, fichiers &gt; 4 Gio</td><td>exFAT</td><td>Lu et écrit partout, pas de limite à 4 Gio</td></tr>
+<tr><td>Appareil ancien (TV, autoradio, mise à jour de firmware)</td><td>FAT32</td><td>Seul système lu ; fichiers &lt; 4 Gio</td></tr>
+</tbody></table></div></li></ol>
+<h4>5. Test de confirmation</h4><p>Le fichier se copie et s'ouvre sur l'appareil cible après reformatage dans le système choisi.</p>
+<h4>6. Correction</h4><p class="fx-warn"><b>Attention</b> Formater efface l'accès au contenu de la clé : copier son contenu ailleurs et vérifier la copie avant. Alternative si l'appareil n'accepte que FAT32 : découper le fichier ou réencoder la vidéo, pas de reformatage.</p>
+<h4>7. Validation</h4><p>Copie du gros fichier, lecture sur chaque appareil concerné, contenu d'origine recopié.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>La clé est en FAT32, qui n'accepte pas de fichier de plus de 4 Gio : la vidéo de 6 Go est refusée. La clé doit être lue sous Windows et macOS : je choisis exFAT (lu et écrit par les deux, sans limite à 4 Gio). Je copie d'abord le contenu de la clé sur le PC et je vérifie la copie, je formate en exFAT, je recopie le contenu et la vidéo, puis je contrôle la lecture sur le Mac.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> FAT32 « parce que ça marche partout » pour de gros fichiers ; NTFS pour une clé qu'un Mac doit modifier ; reformater sans sauvegarde.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Formatage rapide ≠ effacement : les données restent récupérables (voir P1.26 pour un support qui change de main).</div>
+</article>
+
+<article class="fx-proc" id="f1-defrag">
+<h3>P1.19 — Lenteur de disque : défragmenter, TRIM ou rien ?</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : faible (mais une défragmentation sur un disque mourant aggrave)</p>
+<h4>1. Symptômes observables</h4><ul><li>PC lent à ouvrir des fichiers, disque dur sollicité ; « Optimiser les lecteurs » indique un pourcentage de fragmentation.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Fragmentation d'un disque dur (HDD).</li><li>Disque presque plein (moins de 15 % libre).</li><li>Disque qui faiblit (P1.16).</li><li>Système/logiciels (Fiche 2 lenteurs). Un SSD n'est pas ralenti par la fragmentation.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Type de chaque support (HDD/SSD) ? SMART sain ? Espace libre ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>« Optimiser les lecteurs » (<code>dfrgui</code>) : colonne Type de support et État.</strong></li>
+<li><strong>SMART du lecteur concerné.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> secteurs en attente/illisibles → <strong>pas</strong> de défragmentation : sauvegarde, P1.16.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Décider selon le type</strong> :
+<div class="fx-branch"><p class="fx-si"><b>SI</b> disque dur fragmenté à plus de 10 % (convention du cours) et ≥ 15 % d'espace libre → optimiser (défragmenter).</p><p class="fx-sinon"><b>SINON</b> si SSD → TRIM (« Optimiser » envoie le TRIM ; état « dernier découpage »), jamais de défragmentation ; disque presque plein → libérer de l'espace d'abord (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-lenteur">→ Fiche 2 · Lenteurs et espace</a>).</p></div></li></ol>
+<pre class="fx-cmd">C:\&gt; defrag D: /A /U        (analyse seule, Windows)
+C:\&gt; defrag D: /O /U        (optimisation adaptée au support)
+$ sudo fstrim -v /          (TRIM manuel, Linux)
+$ systemctl status fstrim.timer</pre>
+<h4>5. Test de confirmation</h4><p>Pourcentage fragmenté après optimisation proche de 0 % ; temps d'ouverture mesuré avant/après.</p>
+<h4>6. Correction</h4><p>Optimisation planifiée (hebdomadaire par défaut sous Windows) ; libération d'espace ; remplacement du HDD système par un SSD si le client veut un vrai gain.</p>
+<h4>7. Validation</h4><p>État après optimisation, planification active, temps mesuré.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>C: est un SSD (« Disque SSD », OK) : on ne le défragmente pas, la fragmentation ne le ralentit pas et la défragmentation consomme de l'endurance ; l'optimisation y envoie le TRIM. D: est un disque dur fragmenté à 23 %, SMART sain, 40 % libre : je lance l'optimisation de D:, puis je vérifie qu'elle est planifiée chaque semaine.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> défragmenter un SSD ; défragmenter un disque avec des secteurs en attente ; oublier de justifier par le type de support.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Sous Linux (ext4), on ne défragmente généralement pas ; on vérifie le TRIM (<code>fstrim.timer</code>) pour un SSD.</div>
+</article>
+</section>

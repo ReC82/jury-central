@@ -1,0 +1,140 @@
+<section class="fx-sec" id="f1-dossiers">
+<h2>8. Dossiers d'examen résolus</h2>
+<p>Format de l'épreuve : un contexte, des documents (fiche d'intervention, extrait de manuel, capture UEFI, relevé), des questions numérotées. La réponse attendue est rédigée, ordonnée, justifiée par les documents, avec précautions et validation.</p>
+
+<article class="fx-case" id="f1-dossier-1">
+<h3>Dossier 1 — Cabinet Dubois : écran noir après ajout de mémoire</h3>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Cabinet d'architectes Dubois, poste PC-ARCHI-02 (tour ATX, carte mère à 4 emplacements DDR4 : A1, A2, B1, B2, Windows 11). Le stagiaire a ajouté deux barrettes « pour aller plus vite ». Depuis, les ventilateurs tournent, l'écran reste noir. Les plans sont sur le serveur du cabinet (sauvegarde nocturne vérifiée). Autorisation : diagnostic et remise en état jusqu'à 80 € sans autre accord.</p>
+<p><strong>Document 1 — LED relevées :</strong> CPU éteinte · DRAM allumée fixe · VGA éteinte · BOOT éteinte.</p>
+<p><strong>Document 2 — Extrait du manuel (fictif) :</strong> LED DRAM = mémoire non détectée ou défaillante ; deux barrettes : A2 et B2 ; quatre barrettes : fréquence éventuellement abaissée ; mélanger des barrettes : préférer un kit identique de la liste de compatibilité.</p>
+<p><strong>Document 3 — Barrettes relevées (PC débranché) :</strong> A1 : 8 Go DDR4-2666, clip gauche ouvert · A2 : 8 Go DDR4-3200 (origine) · B1 : 8 Go DDR4-2666 · B2 : 8 Go DDR4-3200 (origine).</p>
+<p><strong>Questions.</strong> 1) Interprète les documents 1 et 3. 2) Décris ton diagnostic pas à pas avec les branches. 3) Rédige la conclusion et la correction. 4) Comment valides-tu ?</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1)</strong> Les ventilateurs tournent : le bloc démarre. La LED DRAM reste allumée : selon le manuel, le POST s'arrête à l'étape mémoire (« non détectée ou défaillante »). C'est une indication d'étape, pas la preuve qu'une barrette est défectueuse. Le document 3 montre deux anomalies : la barrette en A1 a un clip ouvert (insertion incomplète probable) et les barrettes ajoutées (DDR4-2666) ne sont pas du même modèle que celles d'origine (DDR4-3200) : mélange de kits.</p>
+<p><strong>2)</strong> Précautions : données sur le serveur, sauvegarde vérifiée ; PC débranché, interrupteur sur 0, bouton appuyé, bracelet relié au châssis.</p>
+<ol>
+<li>Réinsérer la barrette A1 jusqu'au clic des deux clips ; démarrer et <strong>attendre plusieurs minutes</strong> sans couper (entraînement mémoire). SI image et 32 Go → contact en cause, passer à la validation. SINON → étape 2.</li>
+<li>Remettre la configuration d'origine (deux barrettes 3200 en A2 et B2). SI le PC démarre → les barrettes ajoutées ou leur association sont en cause → étape 3. SINON → barrettes d'origine/slots : une barrette à la fois.</li>
+<li>Tester chaque barrette ajoutée seule en A2. SI l'une ne démarre pas → elle est défectueuse. SI les deux démarrent seules → mélange incompatible des deux kits (ou fréquence) : réglages par défaut (CMOS) et essai des quatre ; si échec, ne pas les associer.</li>
+</ol>
+<p><strong>3)</strong> Exemple de conclusion : « La barrette A1 n'était pas enfoncée (clip ouvert). Après réinsertion, le PC démarre après 2 min 30 et l'UEFI affiche 32 Go, à 2666 MT/s (la mémoire fonctionne à la vitesse de la plus lente). » Correction : réinsertion ; je signale au client que le mélange réduit la fréquence et je propose, sur devis (au-delà de 80 €), un kit identique de 4 × 8 Go de la liste de compatibilité.</p>
+<p><strong>4)</strong> Validation : UEFI 32 Go, 4 slots reconnus ; test mémoire complet hors système, 4 passes, 0 erreur ; trois démarrages à froid ; logiciel de CAO ouvert par l'utilisateur, accès au serveur ; rapport (constat, tests, cause, intervention, résultat, conseil : ne plus intervenir sans le technicien).</p>
+</div>
+<p class="fx-lose"><b>Perd des points :</b> « RAM HS » sans croisement ; couper après 30 s ; tester plusieurs barrettes à la fois ; dépasser l'autorisation de 80 € sans devis.</p>
+</article>
+
+<article class="fx-case" id="f1-dossier-2">
+<h3>Dossier 2 — Studio Pixel : extinctions en rendu et évolution de la carte graphique</h3>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Station de montage vidéo. Depuis un mois, les rendus longs ralentissent et le PC s'est éteint deux fois en plein rendu. Le client a remplacé lui-même le ventilateur du ventirad il y a un mois. Il veut aussi une carte graphique plus puissante.</p>
+<p><strong>Document 1 — Relevé pendant un rendu :</strong></p>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Minute</th><th>T° CPU (°C)</th><th>Fréquence CPU (GHz)</th><th>Ventilateur CPU (tr/min)</th></tr></thead><tbody>
+<tr><td>0</td><td>48</td><td>4,9</td><td>1 100</td></tr><tr><td>5</td><td>86</td><td>4,6</td><td>1 100</td></tr><tr><td>10</td><td>97</td><td>3,1</td><td>1 100</td></tr><tr><td>14</td><td>100</td><td>2,0</td><td>1 100</td></tr></tbody></table></div>
+<p><strong>Document 2 — Observations :</strong> UEFI : ventilateur du ventirad sur SYS_FAN2 à vitesse fixe, CPU_FAN : aucun ; filtre de façade couvert de poussière ; pâte d'origine (4 ans). Limite du processeur (fiche) : 100 °C.</p>
+<p><strong>Document 3 — Configuration après évolution (puissances max) :</strong> CPU 180 W, nouvelle carte graphique 300 W (bloc conseillé 750 W, 2 × PCIe 8 broches, longueur 320 mm), carte mère 50 W, mémoire 15 W, SSD 8 W, HDD 9 W, ventilateurs 4 × 3 W. Bloc actuel : 650 W, un câble PCIe 6+2. Boîtier : carte graphique 330 mm max.</p>
+<p><strong>Questions.</strong> 1) Interprète le relevé. 2) Cause et intervention. 3) Le bloc convient-il après évolution ? Calcul. 4) La carte entre-t-elle dans le boîtier ? 5) Validation et prévention.</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1)</strong> La température passe de 48 à 100 °C en 14 minutes, atteignant la limite de la fiche ; dès 10 minutes (97 °C, moins de 10 °C de la limite), la fréquence chute (4,9 → 2,0 GHz) : le processeur se protège en réduisant sa fréquence (ralentissement), puis s'arrête (extinctions). Le ventilateur reste à 1 100 tr/min : il n'accélère pas avec la charge.</p>
+<p><strong>2)</strong> Cause : refroidissement insuffisant, par trois facteurs concomitants : ventilateur branché sur SYS_FAN2 à vitesse fixe (depuis l'intervention du client, ce qui correspond au début des symptômes), poussière dans le filtre, pâte de 4 ans. Intervention, PC débranché, bracelet : rebrancher le ventilateur sur CPU_FAN, courbe automatique dans l'UEFI ; nettoyer filtre et ailettes (air sec par impulsions, pales bloquées) ; démonter le ventirad, retirer l'ancienne pâte à l'alcool isopropylique, pâte neuve (noisette), serrage en croix.</p>
+<p><strong>3)</strong> Somme : 180 + 300 + 50 + 15 + 8 + 9 + 12 = 574 W. Avec 30 % de marge : 574 × 1,3 ≈ 746 W. Le fabricant de la carte conseille 750 W. Le bloc de 650 W est insuffisant, et il n'a qu'un câble PCIe 6+2 alors que la carte en demande deux. → Bloc ATX de 750 W minimum (80 PLUS), avec au moins deux câbles PCIe 6+2 séparés ; remplacement hors tension, câbles du nouveau bloc uniquement.</p>
+<p><strong>4)</strong> 320 mm ≤ 330 mm : la carte entre (10 mm de marge) ; vérifier aussi l'épaisseur (emplacements) et l'accès aux connecteurs.</p>
+<p><strong>5)</strong> Validation : même rendu, même durée (30 min) : température maximale relevée et nettement sous la limite, fréquence stable, vitesse du ventilateur qui augmente, aucune extinction ; après évolution : charge combinée CPU + GPU 30 min. Prévention : nettoyage du filtre tous les 3 à 6 mois, ne pas brancher les ventilateurs sans vérifier le connecteur.</p>
+</div>
+<p class="fx-lose"><b>Perd des points :</b> accuser le bloc pour les extinctions alors que le relevé prouve la surchauffe ; oublier la marge ou les connecteurs PCIe ; pas de valeurs avant/après.</p>
+</article>
+
+<article class="fx-case" id="f1-dossier-3">
+<h3>Dossier 3 — Clinique Vétérinaire du Parc : SSD ajouté invisible et disque de données qui faiblit</h3>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Un collègue a ajouté un SSD SATA 2,5 pouces neuf de 1 To, branché sur SATA_6 avec un câble neuf. Il n'apparaît pas dans Windows. Par ailleurs, certains dossiers du disque de données D: (HDD 2 To) s'ouvrent lentement avec parfois « erreur de lecture ». Dernière sauvegarde de D: : il y a trois semaines.</p>
+<p><strong>Document 1 — Écran Stockage de l'UEFI :</strong> SATA_1 : HDD 2 To · SATA_2 à SATA_4 : aucun · SATA_5 : non disponible · SATA_6 : non disponible · M.2_1 : SSD NVMe 512 Go · M.2_2 : SSD M.2 SATA 256 Go.</p>
+<p><strong>Document 2 — Manuel (fictif) :</strong> un SSD M.2 SATA dans M.2_2 désactive SATA_5 et SATA_6 ; un SSD NVMe dans M.2_2 ne désactive rien.</p>
+<p><strong>Document 3 — SMART de D: :</strong> résultat global PASSED ; Reallocated_Sector_Ct 16 ; Current_Pending_Sector 5 ; Offline_Uncorrectable 5 ; UDMA_CRC_Error_Count 0 ; Power_On_Hours 31 200.</p>
+<p><strong>Questions.</strong> 1) Pourquoi le SSD n'apparaît-il pas ? Corrige. 2) Prépare le SSD pour stocker les radiographies. 3) Interprète le SMART et décide. 4) Ordre des actions.</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1)</strong> Le SSD est absent de l'UEFI : le problème est matériel/branchement, pas Windows. SATA_6 est « non disponible » : selon le manuel, le SSD M.2 SATA installé dans M.2_2 désactive SATA_5 et SATA_6. Le SSD neuf n'est donc probablement pas défectueux. Correction, PC débranché et bracelet : déplacer le câble de données sur SATA_2 (libre, non partagé). Contrôle : le SSD apparaît dans l'UEFI sur SATA_2.</p>
+<p><strong>2)</strong> Dans Gestion des disques, le SSD apparaît « Non initialisé » (normal, neuf). Après avoir vérifié sa taille (≈ 931 Go) et qu'il est vide : initialisation GPT (PC UEFI) ; nouveau volume simple sur tout l'espace ; lettre E: ; NTFS (disque interne Windows, gros fichiers, droits), nom « Radios ». Contrôle : fichier test écrit et relu.</p>
+<p><strong>3)</strong> Le résumé PASSED ne suffit pas. Secteurs en attente 5 et illisibles 5 (&gt; 0) : selon la règle, disque à remplacer ; 16 réalloués confirment la dégradation ; CRC 0 : le câble n'est pas en cause. Les « erreurs de lecture » concordent. Décision : sauvegarde immédiate des données de D: (copie depuis trois semaines manquante), aucune défragmentation ni réparation en écriture, remplacement du disque avec l'accord du client.</p>
+<p><strong>4)</strong> Ordre : (a) accord du responsable ; (b) copie immédiate de D: vers un disque externe sain, en commençant par les dossiers modifiés depuis trois semaines, puis vérification de la copie (ouverture de fichiers, nombre et taille) ; (c) correction du branchement du SSD et préparation ; (d) remplacement du HDD (ou transfert des données sur le nouveau support, selon décision du client) ; (e) restauration et vérification par l'utilisateur ; (f) ancien disque effacé ou détruit selon accord ; (g) mise en place d'une sauvegarde automatique quotidienne ; rapport avec les valeurs SMART.</p>
+</div>
+<p class="fx-lose"><b>Perd des points :</b> « SSD défectueux » ; initialiser avant de vérifier qu'on a le bon disque ; « disque OK, PASSED » ; défragmenter D: ; préparer le SSD avant de sauver les données de D:.</p>
+</article>
+
+<article class="fx-case" id="f1-dossier-4">
+<h3>Dossier 4 — École Saint-Luc : PC totalement inerte après un orage</h3>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Après un orage pendant le week-end, le PC du secrétariat ne réagit plus : aucun voyant, aucun ventilateur. Les autres appareils du bureau fonctionnent sur la même multiprise. Le PC (tour, bloc ATX 500 W, 6 ans) contient la base des élèves (sauvegarde de vendredi sur le NAS).</p>
+<p><strong>Document — Journal du technicien :</strong> 10:05 câble secteur de l'écran sur le PC : aucune réaction · 10:15 PC ouvert (débranché, bracelet), LED de veille de la carte éteinte une fois rebranché · 10:25 testeur d'alimentation : aucun affichage · 10:40 bloc 550 W connu fonctionnel : le PC démarre, UEFI normal.</p>
+<p><strong>Questions.</strong> 1) Reconstitue le raisonnement en indiquant ce que prouve chaque étape. 2) Conclusion et correction. 3) Validation et prévention. 4) Que vérifier encore après un orage ?</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1)</strong> Les autres appareils fonctionnent sur la même multiprise : la prise est bonne. 10:05 : un autre câble secteur ne change rien → câble écarté. 10:15 : LED de veille éteinte → le bloc ne fournit même pas le +5 VSB, ou la carte n'est pas alimentée ; le bouton de façade n'est pas en cause (il n'intervient qu'après la veille). 10:25 : le testeur reste muet → le bloc ne fournit aucune tension (hypothèse forte). 10:40 : avec un bloc connu fonctionnel, le PC démarre → <strong>preuve</strong> : le bloc d'origine est défectueux, la carte mère fonctionne au moins jusqu'à l'UEFI.</p>
+<p><strong>2)</strong> Conclusion : bloc d'alimentation défectueux, probablement endommagé par la surtension de l'orage. Correction : bloc ATX neuf, puissance ≥ 500 W (configuration inchangée), connecteurs identiques, remplacement hors tension avec ses propres câbles ; l'ancien bloc n'est pas ouvert, il part en filière DEEE.</p>
+<p><strong>3)</strong> Validation : trois démarrages à froid, tensions dans ±5 % (testeur et surveillance), 30 min de charge, base des élèves ouverte par la secrétaire. Prévention : multiprise parafoudre ou onduleur, débrancher en cas d'orage annoncé.</p>
+<p><strong>4)</strong> Un orage peut toucher plusieurs éléments (pannes concomitantes) : port réseau (lien, débit), ports USB, disque (SMART), carte mère (instabilités) ; tout tester avant la remise.</p>
+</div>
+<p class="fx-lose"><b>Perd des points :</b> conclure « bloc HS » au testeur seul sans le dire comme hypothèse ; ouvrir le bloc ; ne pas tester le reste après un orage.</p>
+</article>
+
+<article class="fx-case" id="f1-dossier-5">
+<h3>Dossier 5 — Atelier : premier démarrage d'un PC monté</h3>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Tu as monté une tour : carte ATX, processeur LGA1700 (avec iGPU), 2 × 16 Go DDR5, SSD NVMe M.2, carte graphique (2 × PCIe 8 broches), bloc 750 W, ventirad à tour.</p>
+<p><strong>Document — Écran principal de l'UEFI au premier démarrage :</strong> CPU : reconnu · Mémoire : 16 384 Mo (DIMM_A2 : 16 Go ; DIMM_B2 : —) · Stockage : aucun périphérique · CPU Temp : 91 °C (repos) · CPU_FAN : N/A · Date : 01/01/2024.</p>
+<p><strong>Questions.</strong> 1) Liste l'ordre de montage que tu aurais dû suivre et justifie trois choix. 2) Pour chaque écart de l'écran, donne la cause de montage probable et la correction. 3) Quels tests avant la remise ?</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1)</strong> Ordre : processeur, mémoire, SSD M.2 et ventirad sur la carte posée sur son carton → entretoises comparées aux trous et plaque d'E/S → carte dans le boîtier → bloc et disques → carte graphique → câblage (ATX 24, EPS, façade, ventilateurs) → contrôle visuel → premier démarrage boîtier ouvert → lecture de l'UEFI. Justifications : la carte équipée hors du boîtier évite de tordre les broches du socket et de faire fléchir la carte ; la mémoire avant le ventirad car celui-ci peut masquer les slots ; la carte graphique en dernier car elle masque les connecteurs SATA, M.2 et de façade.</p>
+<p><strong>2)</strong> Toute correction PC débranché, bouton appuyé, bracelet relié, un écart à la fois :</p>
+<ul>
+<li>Mémoire 16 Go, DIMM_B2 vide : barrette en B2 pas enfoncée jusqu'au clic → réinsérer jusqu'au clic des deux clips. Contrôle : 32 768 Mo.</li>
+<li>Aucun stockage : SSD M.2 mal inséré ou non vissé → réinsérer à 30°, vis sur l'entretoise 2280 ; vérifier l'emplacement (NVMe accepté). Contrôle : SSD listé.</li>
+<li>91 °C au repos et CPU_FAN N/A : ventilateur du ventirad non branché sur CPU_FAN, et/ou film plastique laissé sous la semelle → brancher sur CPU_FAN ; démonter le ventirad, retirer le film, nettoyer, pâte neuve, serrage en croix. Contrôle : 30 à 40 °C au repos, vitesse affichée.</li>
+<li>Date 01/01/2024 : normal sur une carte neuve → régler date et heure.</li>
+</ul>
+<p><strong>3)</strong> Tests : test mémoire plusieurs passes (0 erreur), SMART du SSD, températures repos/charge comparées à la limite, ports et façade (USB, audio, Power, Reset, LED), stabilité 30 min de charge ; activation du profil XMP/EXPO seulement après ce test, puis nouveau test ; compte rendu chiffré.</p>
+</div>
+<p class="fx-lose"><b>Perd des points :</b> commander une barrette ou un SSD neuf alors que l'écart vient du montage ; corriger plusieurs écarts sans revérifier ; laisser tourner le PC à 91 °C.</p>
+</article>
+
+<article class="fx-case" id="f1-dossier-6">
+<h3>Dossier 6 — Reconditionnement de trois portables d'une ASBL</h3>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> L'ASBL Horizon donne trois anciens portables à une école. Le président a signé l'accord d'effacement ; les données ont été archivées sur le serveur (vérifié).</p>
+<p><strong>Document — Diagnostic initial :</strong></p>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Portable</th><th>Stockage</th><th>SMART</th><th>Batterie (pleine / origine)</th><th>Observation</th></tr></thead><tbody>
+<tr><td>P1</td><td>HDD 500 Go</td><td>Pending 0, Uncorrectable 0, Reallocated 0</td><td>40 100 / 48 000 mWh</td><td>Grilles encrassées, 92 °C en charge (limite 100 °C)</td></tr>
+<tr><td>P2</td><td>SSD SATA 256 Go</td><td>Usure 18 %</td><td>29 800 / 45 000 mWh</td><td>—</td></tr>
+<tr><td>P3</td><td>SSD NVMe 512 Go</td><td>Illisible, non détecté</td><td>—</td><td>Coque déformée au niveau du pavé tactile</td></tr>
+</tbody></table></div>
+<p><strong>Questions.</strong> 1) Nomme l'opération et justifie. 2) Technique d'effacement pour chaque portable. 3) Décisions sur batteries et refroidissement (calculs). 4) Documents à remettre.</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1)</strong> Les portables changent de propriétaire (don à l'école) : reconditionnement, avec effacement sécurisé obligatoire ; l'accord écrit du propriétaire (président de l'ASBL) est présent et les données sont archivées.</p>
+<p><strong>2)</strong> P1 (HDD) : écrasement complet du disque (une passe suffit sur un disque récent) ou commande d'effacement sécurisé du disque ; vérification. P2 (SSD SATA) : commande d'effacement intégrée au SSD (Secure Erase) via l'outil du fabricant ou le firmware, car un écrasement logiciel n'atteint pas les cellules de réserve ; vérification. P3 : SSD illisible, impossible à effacer → retrait et destruction par une filière agréée, avec certificat ; SSD neuf si le portable est conservé.</p>
+<p><strong>3)</strong> P1 : 40 100 ÷ 48 000 × 100 ≈ 84 % → conservée (≥ 80 %). P2 : 29 800 ÷ 45 000 × 100 ≈ 66 % → à remplacer (référence exacte). P3 : coque déformée au pavé tactile = batterie probablement gonflée → arrêt de la charge, déconnexion prudente, isolement, filière spécialisée, remplacement quelle que soit sa capacité. P1 : 92 °C en charge, à moins de 10 °C de la limite → à surveiller : nettoyage interne (grilles, radiateur, ventilateur bloqué), pâte neuve, nouvelle mesure dans les mêmes conditions.</p>
+<p><strong>4)</strong> Certificats d'effacement (support, numéro de série, technique, vérification, date, technicien, signature) et certificat de destruction pour P3 ; rapport de reconditionnement par portable (pièces remplacées avec numéros de série, tests chiffrés : RAM, SMART, températures avant/après, batterie, ports, stabilité) ; check-list de remise signée.</p>
+</div>
+<p class="fx-lose"><b>Perd des points :</b> « formatage » ou « réinitialisation » comme effacement ; même technique pour HDD et SSD ; garder une batterie gonflée parce qu'elle tient la charge.</p>
+</article>
+
+<article class="fx-case" id="f1-dossier-7">
+<h3>Dossier 7 — Stockage : disque de 4 To, clé d'échange et capacité contestée</h3>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Un photographe (PC UEFI, Windows 11) a acheté un disque dur de 4 To pour ses archives et se plaint : « Windows n'affiche que 3,63 To et un ami m'a dit de l'initialiser en MBR ». Il veut aussi une clé de 128 Go pour transmettre des vidéos de 8 Go à un client sous macOS. Son ancien disque D: (HDD) est fragmenté à 27 %, SMART sain.</p>
+<p><strong>Questions.</strong> 1) Explique la capacité affichée (calcul). 2) MBR ou GPT ? Justifie. 3) Système de fichiers du disque d'archives et de la clé ? 4) Que faire pour D: ? 5) Écris la procédure diskpart sûre pour le disque de 4 To.</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1)</strong> 4 To = 4 × 10^12 octets. Windows divise par 2^40 = 1 099 511 627 776 : 4 × 10^12 ÷ 1 099 511 627 776 ≈ 3,64 Tio, affiché 3,63 To (troncature). Il ne manque rien : même nombre d'octets, unités différentes.</p>
+<p><strong>2)</strong> GPT : en MBR, seuls 2 Tio seraient utilisables (adresses sur 32 bits × 512 octets) ; le PC est en UEFI et GPT est le choix par défaut pour un disque de données récent.</p>
+<p><strong>3)</strong> Disque d'archives interne : NTFS (journal, droits, gros fichiers). Clé d'échange avec macOS et vidéos de 8 Go : exFAT (lu et écrit par Windows et macOS, pas de limite à 4 Gio comme FAT32 ; NTFS serait lu mais pas écrit par macOS sans outil).</p>
+<p><strong>4)</strong> D: est un disque dur sain fragmenté à 27 % (&gt; 10 %) : optimisation (défragmentation) via « Optimiser les lecteurs », en vérifiant au moins 15 % d'espace libre ; vérifier la planification hebdomadaire. Si C: est un SSD, on ne le défragmente pas (TRIM).</p>
+<p><strong>5)</strong> <code>diskpart</code> → <code>list disk</code> (repérer le disque d'environ 3 726 Go, vide) → <code>select disk N</code> → <code>detail disk</code> (vérifier : aucun volume) → <code>convert gpt</code> → <code>create partition primary</code> → <code>format fs=ntfs quick label="Archives"</code> → <code>assign letter=F</code> → <code>list volume</code> (contrôle). Avertissement : ne jamais exécuter <code>clean</code> ou <code>convert</code> sans avoir vérifié numéro, taille et contenu ; alternative : Gestion des disques.</p>
+</div>
+<p class="fx-lose"><b>Perd des points :</b> calcul sans puissances ; MBR sur 4 To ; FAT32 pour des vidéos de 8 Go ; défragmenter le SSD.</p>
+</article>
+</section>
