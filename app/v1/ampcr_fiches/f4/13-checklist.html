@@ -1,0 +1,44 @@
+<section class="fx-sec" id="f4-checklist">
+<h2>7. Checklist finale de maîtrise</h2>
+<h3>Je sais diagnostiquer</h3>
+<ul class="fx-check">
+<li>Je sais délimiter le périmètre (un poste / tous, filaire / Wi-Fi, Internet / nom / partage) avant toute commande.</li>
+<li>Je sais lire ipconfig /all ligne par ligne et ip addr / ip route, et repérer APIPA, doublon, masque, passerelle, DNS, serveur DHCP anormaux.</li>
+<li>Je sais dérouler l'ordre 127.0.0.1 → propre IP → passerelle → 8.8.8.8/1.1.1.1 → nom → service, et dire ce que prouve chaque réussite et chaque échec.</li>
+<li>Je sais différencier « Délai d'attente dépassé », « Impossible de joindre l'hôte » (venant de ma propre IP ou de la passerelle), « échec de la transmission », « n'a pas pu trouver l'hôte », « Network is unreachable ».</li>
+<li>Je sais lire un tracert (premier saut = passerelle, où ça s'arrête) et un nslookup (quel serveur, timeout, Non-existent domain, réponse ne faisant pas autorité).</li>
+<li>Je sais utiliser arp -a pour distinguer hôte absent / pare-feu et pour identifier un conflit d'adresse ou un DHCP parasite.</li>
+<li>Je sais diagnostiquer une étendue DHCP épuisée par le calcul (dernière − première + 1) et le journal.</li>
+<li>Je sais distinguer erreur 53 / 67 / 5 / 1219 / 86 sur un partage, et utiliser Test-NetConnection -Port 445.</li>
+<li>Je sais diagnostiquer une imprimante hors connexion (page de config vs port TCP/IP) et une file bloquée.</li>
+<li>Je sais diagnostiquer un échec de session ou de jonction au domaine (compte / DNS / heure / relation d'approbation).</li>
+<li>Je sais diagnostiquer un Wi-Fi invisible, refusé, « sans Internet », lent (signal, canal, interférences, répéteur).</li>
+<li>Je sais reconnaître une boucle, un mauvais VLAN, un second routeur, une topologie et son point de défaillance.</li>
+</ul>
+<h3>Je sais agir</h3>
+<ul class="fx-check">
+<li>Je sais calculer réseau, diffusion, plage, nombre d'hôtes pour tout préfixe /8 à /30, et choisir le plus petit bloc pour N postes.</li>
+<li>Je sais configurer une adresse fixe / DHCP sous Windows (interface, netsh) et Linux (nmcli), de façon persistante.</li>
+<li>Je sais utiliser ipconfig /release, /renew, /flushdns au bon moment (et pas à distance pour /release).</li>
+<li>Je sais relier deux PC en direct (adresses, pas de passerelle, profil Privé, partage temporaire) et monter un mini-réseau avec un plan d'adressage cohérent.</li>
+<li>Je sais créer un partage avec groupes, permissions de partage et NTFS, et connecter un lecteur réseau.</li>
+<li>Je sais déplacer une imprimante vers une adresse fixe hors étendue ou une réservation, et mettre à jour les ports.</li>
+<li>Je sais vider proprement une file d'impression (avec avertissement) et réinitialiser la pile TCP/IP (avec relevé préalable).</li>
+<li>Je sais configurer et sécuriser un point d'accès (admin, firmware, WPA2/WPA3, WPS off, canal 1/6/11, invités isolés, mode AP).</li>
+</ul>
+<h3>Je sais justifier</h3>
+<ul class="fx-check">
+<li>Je sais écrire pour chaque test : ce que je fais, le résultat, ce qu'il prouve, la suite.</li>
+<li>Je sais calculer et expliquer un droit effectif : cumul dans une couche, refus prioritaire, plus restrictif entre partage et NTFS, NTFS seule en local.</li>
+<li>Je sais justifier un choix d'équipement (switch, routeur, AP, répéteur, modem) et de canal/bande Wi-Fi.</li>
+<li>Je sais expliquer pourquoi une adresse fixe doit être hors étendue, pourquoi le DNS d'un poste de domaine est le DC, pourquoi NetBEUI ne traverse pas un routeur.</li>
+<li>Je ne présente jamais une hypothèse comme une preuve : je cite le test discriminant.</li>
+</ul>
+<h3>Je sais contrôler</h3>
+<ul class="fx-check">
+<li>Après correction, je refais toute la chaîne de tests et le test métier (site, partage, impression, connexion Wi-Fi).</li>
+<li>Je fais un test négatif quand il s'agit de droits ou de sécurité (un compte non autorisé est refusé, le réseau invités ne voit pas le LAN).</li>
+<li>Je vérifie la persistance (redémarrage) et l'absence de régression sur un second poste.</li>
+<li>Je mets à jour le plan d'adressage, le repérage, la documentation, et je rédige le rapport (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-rapport">→ Fiche 5 · Rapport</a>).</li>
+</ul>
+</section>

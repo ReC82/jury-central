@@ -1,0 +1,206 @@
+<section class="fx-sec" id="f4-wifi">
+<h2>3 E. Procédures : Wi-Fi</h2>
+<p>Ordre de diagnostic Wi-Fi : 1) radio activée et SSID visible → 2) association/authentification (clé, sécurité compatible) → 3) adresse IP (DHCP) → 4) passerelle/Internet/portail → 5) DNS → 6) qualité (signal, canal, interférences, charge). Repère : les règles de décision suivent ce même découpage.</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Critère</th><th>2,4 GHz</th><th>5 GHz</th><th>Décision pratique</th></tr></thead>
+<tbody>
+<tr><td>Portée / murs</td><td>Meilleure portée, traverse mieux</td><td>Portée plus courte, plus atténué par les murs</td><td>Pièce éloignée, objets connectés → 2,4 GHz</td></tr>
+<tr><td>Débit / encombrement</td><td>Plus faible, très encombré (voisins, Bluetooth, micro-ondes vers 2,45 GHz, babyphones)</td><td>Plus élevé, beaucoup plus de canaux</td><td>Bureau, visioconférence, PC portables récents → 5 GHz</td></tr>
+<tr><td>Canaux</td><td>Europe 1 à 13, espacés de 5 MHz pour une largeur de 20 MHz → seuls 1, 6 et 11 ne se chevauchent pas ; garder 20 MHz</td><td>36–48 sans contrainte ; 52–144 avec DFS (l'AP peut changer de canal s'il détecte un radar → coupure de ~1 min)</td><td>2,4 GHz : choisir 1, 6 ou 11, le moins occupé ; 5 GHz : 36–48 si coupures DFS</td></tr>
+<tr><td>Compatibilité</td><td>Tous les appareils</td><td>Pas les très vieux clients ni beaucoup d'objets connectés</td><td>Client qui ne voit pas le SSID → vérifier la bande</td></tr>
+</tbody></table></div>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Sécurité affichée</th><th>Verdict</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Ouvert (aucune)</td><td>Inacceptable hors réseau invités à portail</td><td>Activer WPA2/WPA3</td></tr>
+<tr><td>WEP, WPA (TKIP)</td><td>Obsolète, cassable</td><td>Remplacer par WPA2-AES (CCMP) ou WPA3 ; changer le matériel s'il ne le gère pas</td></tr>
+<tr><td>WPA2-Personnel (PSK) AES/CCMP</td><td>Correct avec une clé longue (≥ 12–15 caractères, aléatoire)</td><td>Minimum acceptable</td></tr>
+<tr><td>WPA3-Personnel (SAE)</td><td>Recommandé (résiste aux attaques par dictionnaire hors ligne)</td><td>Mode transition WPA2/WPA3 si de vieux clients doivent se connecter ; 6 GHz = WPA3 obligatoire</td></tr>
+<tr><td>WPA2/WPA3-Entreprise (802.1X, RADIUS)</td><td>Un identifiant par utilisateur</td><td>Organisations avec serveur d'authentification</td></tr>
+<tr><td>WPS activé</td><td>Faille (code PIN)</td><td>Désactiver</td></tr>
+</tbody></table></div>
+
+<article class="fx-proc" id="f4-p-wifi-invisible">
+<h3>P3.23 — Le réseau Wi-Fi n'apparaît pas dans la liste</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : bloquante pour le client</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Liste vide, ou les réseaux voisins apparaissent mais pas le SSID attendu ; icône Wi-Fi absente (carte désactivée).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Wi-Fi coupé sur le client : mode avion, touche Fn/interrupteur, carte désactivée.</li><li>Trop loin / obstacles (béton, métal, ascenseur) → signal trop faible.</li><li>Client ne gérant pas la bande (2,4 GHz seulement, AP en 5 GHz seul) ou le canal (12/13 non autorisés sur un appareil importé ; canal DFS).</li><li>SSID masqué (diffusion désactivée).</li><li>AP éteint, radio désactivée, programmation horaire du Wi-Fi sur la box.</li><li>Pilote Wi-Fi absent/défaillant (Fiche 2).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Les autres appareils voient-ils le réseau, ici et ailleurs ? Depuis quand ? »</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Mode avion désactivé, Wi-Fi activé</strong>, carte présente (ncpa.cpl).</li>
+<li><strong>Un autre appareil au même endroit voit-il le SSID ?</strong><div class="fx-branch"><p class="fx-si"><b>SI</b> oui → problème du client : bande/canal pris en charge (<code>netsh wlan show drivers</code> → « Types de radio pris en charge »), pilote.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Se rapprocher de l'AP</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> le SSID apparaît près de l'AP → couverture : P3.26/P3.27.</p><p class="fx-sinon"><b>SINON</b> → interface de l'AP : radio activée, SSID diffusé, bande, canal, planification.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p><code>netsh wlan show networks mode=bssid</code> liste le SSID (avec canal et signal) une fois la cause corrigée. Un SSID masqué n'apparaît pas mais se connecte par « Réseau masqué » + nom exact.</p>
+<h4>6. Correction</h4>
+<p>Activer la radio ; activer la bande 2,4 GHz (ou SSID identique sur les deux bandes) ; canal 1, 6 ou 11 ; diffuser le SSID (le masquer n'apporte pas de sécurité réelle) ; rapprocher/ajouter un AP ; mettre à jour le pilote.</p>
+<h4>7. Validation</h4>
+<p>SSID visible, connexion, adresse IP correcte, navigation, signal relevé.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Les smartphones voient le réseau “Linea-Pro”, mais pas l'ancien portable. netsh wlan show drivers indique que sa carte ne prend en charge que 802.11b/g/n en 2,4 GHz, alors que le point d'accès n'émet ce SSID qu'en 5 GHz. J'active la bande 2,4 GHz sur le point d'accès (canal 1, 6 ou 11, largeur 20 MHz) avec la même sécurité ; le SSID apparaît et le portable se connecte. »</p><p class="fx-lose"><b>Perd des points :</b> conclure « carte Wi-Fi HS » sans comparer avec un autre appareil ni vérifier la bande.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Réseau qui disparaît une minute de temps en temps en 5 GHz → changement de canal DFS (radar), pas une panne de l'AP. SSID masqué : le client émet en permanence le nom du réseau qu'il cherche — ce n'est pas une mesure de sécurité.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-wifi-connexion">
+<h3>P3.24 — « Impossible de se connecter à ce réseau » / clé refusée</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante pour le client</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>« Impossible de se connecter à ce réseau » ; « La clé de sécurité réseau n'est pas correcte » ; connexion qui échoue après « Vérification de la configuration requise ».</li><li>Souvent après changement de clé, de box, ou de mode de sécurité (passage en WPA3 seul).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Mauvaise clé (majuscules, 0/O, l/1, clavier).</li><li>Profil enregistré avec l'ancienne clé ou l'ancienne sécurité.</li><li>Sécurité incompatible : AP en WPA3 seul, client ancien (WPA2 seulement).</li><li>Filtrage MAC sur l'AP (et MAC aléatoire activée sur le client, qui change d'adresse).</li><li>Trop de clients / limite atteinte sur l'AP ; signal trop faible pendant l'authentification.</li><li>Pilote Wi-Fi obsolète.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Obtenir la clé auprès du responsable ; ne pas l'afficher/l'écrire là où elle serait vue. Récupérer une clé enregistrée (<code>netsh wlan show profile name="X" key=clear</code>) seulement sur un poste autorisé.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Oublier le réseau</strong> (Paramètres → Réseau et Internet → Wi-Fi → Gérer les réseaux connus → Oublier ; ou <code>netsh wlan delete profile name="Linea-Pro"</code>) puis ressaisir la clé en l'affichant.<div class="fx-branch"><p class="fx-si"><b>SI</b> ça fonctionne → profil obsolète.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Un autre appareil se connecte-t-il avec la même clé ?</strong><div class="fx-branch"><p class="fx-si"><b>SI</b> oui → client : compatibilité WPA3 (<code>netsh wlan show drivers</code>), pilote, filtrage MAC, MAC aléatoire.</p><p class="fx-sinon"><b>SINON</b> → AP : clé réellement configurée, mode de sécurité, limite de clients, redémarrage.</p></div></li>
+<li><strong>Journal de l'AP</strong> (si disponible) : « authentication failed / wrong password » (clé) vs « MAC address not allowed » (filtrage).</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Connexion réussie après la correction ciblée ; <code>netsh wlan show interfaces</code> affiche « État : connecté » et l'authentification attendue.</p>
+<h4>6. Correction</h4>
+<p>Ressaisir la clé ; passer l'AP en mode mixte WPA2/WPA3 (transition) si des clients anciens doivent se connecter ; mettre à jour le pilote ; ajouter la MAC au filtrage (ou désactiver l'« adresse matérielle aléatoire » pour ce réseau si le filtrage est imposé) ; augmenter la limite de clients ou ajouter un AP.</p>
+<h4>7. Validation</h4>
+<p>Connexion automatique après redémarrage du client, adresse IP correcte, navigation.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Depuis le changement de la clé Wi-Fi, le portable affiche “Impossible de se connecter à ce réseau” alors que les smartphones se connectent : le point d'accès fonctionne. Le portable tente toujours le profil enregistré avec l'ancienne clé. Je supprime le profil (Oublier), je ressaisis la nouvelle clé : connexion établie, adresse 192.168.1.1xx obtenue, navigation OK. »</p><p class="fx-lose"><b>Perd des points :</b> repasser l'AP en WEP ou en ouvert pour « dépanner » un vieux client.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Connexion réussie MAIS adresse 169.254 → ce n'est plus un problème de clé : DHCP (P3.25). Filtrage MAC = protection faible (MAC visible et usurpable) ; avec la MAC aléatoire, une réservation DHCP ou un filtrage cesse de fonctionner.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-wifi-internet">
+<h3>P3.25 — Wi-Fi « Connecté, sans Internet » / portail captif</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : moyenne</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Icône Wi-Fi avec globe ou « Aucun accès Internet » ; « Connecté, sécurisé » mais pages qui ne s'ouvrent pas ; ou « Action requise » / « Se connecter » (portail).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Portail captif (hôtel, gare, réseau invités) non validé.</li><li>Pas de bail DHCP (169.254) : DHCP de l'AP/box saturé ou AP en mode pont sans DHCP derrière.</li><li>DNS (P3.7) ; passerelle (AP en mode routeur derrière la box, double NAT mal configuré).</li><li>Box sans Internet (P3.8) — alors le filaire est touché aussi.</li><li>Isolation des clients/réseau invités qui bloque l'accès au LAN (voulu) — confondu avec une panne.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Le filaire fonctionne-t-il ? Les autres appareils Wi-Fi ? Réseau public/hôtel ? » Sur un portail public, ne pas saisir d'identifiants professionnels ; préférer le VPN de l'entreprise une fois connecté.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>ipconfig</code> (section « Carte réseau sans fil Wi-Fi »)</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> 169.254.x.x → DHCP : vérifier le serveur DHCP du réseau Wi-Fi (box/AP), nombre de baux (P3.2).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Ouvrir un site en http simple</strong> (ex. http://neverssl.com).<div class="fx-branch"><p class="fx-si"><b>SI</b> redirection vers une page de connexion → portail captif : s'authentifier / accepter les conditions.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Ping passerelle → 8.8.8.8 → nom</strong> (ordre des tests).<div class="fx-branch"><p class="fx-si"><b>SI</b> passerelle OK, 8.8.8.8 KO → box/route : P3.8 (si le filaire aussi) ou passerelle distribuée par un AP en mode routeur mal relié.</p><p class="fx-sinon"><b>SINON</b> (8.8.8.8 OK, nom KO) → DNS : P3.7.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Le même appareil en filaire (ou un smartphone en Wi-Fi) donne le même résultat → cause commune ; sinon, propre au client ou au Wi-Fi.</p>
+<h4>6. Correction</h4>
+<p>Valider le portail ; corriger DHCP/DNS ; mettre le point d'accès en mode pont/AP (le DHCP reste à la box) ; si isolation invités voulue : expliquer, ne pas la supprimer, connecter le portable au SSID professionnel.</p>
+<h4>7. Validation</h4>
+<p>Adresse dans la bonne plage, ping passerelle, 8.8.8.8, nom ; navigation HTTPS ; reconnexion automatique (sauf portail, qui redemande périodiquement).</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le portable est associé au Wi-Fi de l'hôtel et a reçu 10.20.4.57/22 avec la passerelle 10.20.4.1 : l'association et le DHCP fonctionnent. Le ping de la passerelle répond, mais aucun site ne s'ouvre ; en ouvrant http://neverssl.com, le navigateur est redirigé vers la page de connexion de l'hôtel : c'est un portail captif qui bloque le trafic tant que l'utilisateur ne s'est pas identifié. L'utilisateur saisit le code de sa chambre ; la navigation fonctionne. Je lui conseille d'activer le VPN de l'entreprise sur ce réseau public. »</p><p class="fx-lose"><b>Perd des points :</b> changer la configuration IP ou le pilote alors que l'adresse est correcte.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> DNS forcé à la main (8.8.8.8) sur le portable : le portail captif peut ne jamais s'afficher (il s'appuie sur le DNS du réseau). Réseau invités : Internet OK mais imprimante et partage inaccessibles → c'est l'isolation, voulue.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-wifi-lent">
+<h3>P3.26 — Wi-Fi lent, déconnexions, débit variable (signal, canal, interférences)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : moyenne, intermittente</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Lenteurs dans une pièce, aux heures de pointe ou quand le micro-ondes fonctionne ; déconnexions ; « Signal » faible ; débit de liaison bas (« Réception : 72 Mbits/s » au lieu de plusieurs centaines).</li></ul>
+<pre class="fx-cmd">C:\&gt; netsh wlan show interfaces</pre>
+<pre class="fx-out">    Nom                    : Wi-Fi
+    Description            : Intel(R) Wi-Fi 6 AX201 160MHz
+    Adresse physique       : 5a:1b:3c:7e:22:91
+    État                   : connecté
+    SSID                   : Linea-Pro
+    BSSID                  : f4:ca:e5:44:55:66
+    Type de réseau         : Infrastructure
+    Type de radio          : 802.11n
+    Authentification       : WPA2 - Personnel
+    Chiffrement            : CCMP
+    Mode de connexion      : Profil
+    Bande                  : 2,4 GHz
+    Canal                  : 3
+    Réception (Mbits/s)    : 72,2
+    Transmission (Mbits/s) : 72,2
+    Signal                 : 38%
+    Profil                 : Linea-Pro</pre>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Signal faible : distance, murs porteurs, métal, aquarium, étage ; AP posé au sol, dans une armoire, derrière l'écran.</li><li>Canal 2,4 GHz encombré ou chevauchant (canal 3 chevauche 1 et 6) ; largeur 40 MHz en 2,4 GHz.</li><li>Interférences non Wi-Fi : micro-ondes, Bluetooth, babyphone, caméras sans fil.</li><li>Trop de clients / un client gourmand (sauvegarde, streaming) ; vieux client 802.11b/g qui ralentit la cellule.</li><li>Client collé à un AP lointain (roaming), répéteur mal placé (P3.27).</li><li>Économie d'énergie de la carte, pilote.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Où, quand, combien d'utilisateurs ? En filaire, est-ce rapide ? » → distinguer lenteur Wi-Fi et lenteur Internet.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Comparer filaire / Wi-Fi au même moment</strong> (test de débit).<div class="fx-branch"><p class="fx-si"><b>SI</b> filaire lent aussi → liaison Internet/saturation (P3.10/P3.8).</p><p class="fx-sinon"><b>SINON</b> → Wi-Fi : étape 2.</p></div></li>
+<li><strong>Signal à l'endroit du problème</strong> (Signal %, ou dBm avec un analyseur : −50 excellent, −67 limite confortable, −75 médiocre, −80 inutilisable).<div class="fx-branch"><p class="fx-si"><b>SI</b> signal faible (&lt; 50 %, &lt; −70 dBm) → couverture : déplacer/surélever l'AP, AP supplémentaire, 2,4 GHz pour la portée.</p><p class="fx-sinon"><b>SINON</b> (signal bon mais lent) → étape 3.</p></div></li>
+<li><strong>Réseaux voisins et canaux</strong> : <code>netsh wlan show networks mode=bssid</code> (Linux : <code>nmcli dev wifi list</code>) — compter les réseaux par canal.<div class="fx-branch"><p class="fx-si"><b>SI</b> canal occupé/chevauchant → choisir 1, 6 ou 11 le moins chargé (ou passer en 5 GHz).</p><p class="fx-sinon"><b>SINON</b> → interférences non Wi-Fi (lenteur corrélée au micro-ondes) ou charge (nb de clients).</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Mesure AVANT/APRÈS au même endroit, même heure, même appareil : signal, débit de liaison, test de débit, ping -t passerelle sans pertes. Limite : un seul test ne suffit pas pour une gêne intermittente.</p>
+<h4>6. Correction</h4>
+<ul><li>Placement : hauteur, centre de la zone, dégagé, loin des masses métalliques et du micro-ondes.</li><li>Canal 1/6/11 en 2,4 GHz (20 MHz) ; 5 GHz pour les clients compatibles (même SSID sur les deux bandes = band steering, ou SSID séparés).</li><li>Second AP câblé (même SSID, même sécurité, canaux différents) plutôt qu'un répéteur ; mesh.</li><li>Désactiver les débits hérités 802.11b ; mettre à jour firmware et pilotes ; QoS si nécessaire.</li></ul>
+<h4>7. Validation</h4>
+<p>Signal ≥ 60–70 % (≈ −65 dBm) dans la zone, débit mesuré et noté, plus de déconnexion sur la période critique, retour utilisateur.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Dans la salle de dessin, netsh wlan show interfaces indique un signal de 38 % en 2,4 GHz sur le canal 3, à 72 Mbit/s ; en filaire, le débit est normal : le problème est lié au Wi-Fi. Le canal 3 chevauche les canaux 1 et 6, utilisés par quatre réseaux voisins, et le point d'accès est posé au sol derrière une armoire métallique. Je déplace le point d'accès en hauteur, dégagé ; je règle le 2,4 GHz sur le canal 11 (le moins occupé) en 20 MHz et j'active le 5 GHz pour les portables récents. Après : signal 78 %, liaison 5 GHz à 866 Mbit/s, test de débit triplé, plus de déconnexion constatée. »</p><p class="fx-lose"><b>Perd des points :</b> « augmenter la puissance au maximum » comme seule solution ; choisir un canal au hasard (2, 3, 4…) ; ne mesurer ni avant ni après.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Le débit affiché (Réception 866 Mbit/s) est un débit de liaison radio, pas le débit utile (souvent la moitié ou moins). Des barres pleines peuvent coexister avec un Wi-Fi lent (canal saturé). Un client loin de l'AP ralentit toute la cellule (temps d'antenne).</div>
+</article>
+
+<article class="fx-proc" id="f4-p-repeteur">
+<h3>P3.27 — Répéteur : zone blanche persistante ou débit pire qu'avant</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : faible à moyenne</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Répéteur ajouté dans la pièce mal couverte : signal fort affiché près du répéteur mais débit très faible, déconnexions ; clients qui restent sur l'AP principal lointain.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Répéteur placé DANS la zone morte : il reçoit lui-même un signal faible et ne peut répéter que ce peu.</li><li>Répéteur mono-bande : il reçoit et réémet sur la même radio → débit divisé par deux environ.</li><li>SSID différent (« Linea-EXT ») : les clients ne basculent pas ; sécurité différente.</li><li>Canal / interférences.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Possibilité de tirer un câble (AP câblé, meilleure solution) ou CPL ? Budget mesh ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Lire le signal reçu PAR le répéteur</strong> (voyant de liaison, interface).<div class="fx-branch"><p class="fx-si"><b>SI</b> faible (voyant orange/rouge, &lt; −70 dBm) → le rapprocher de l'AP : à mi-chemin, là où le signal de l'AP est encore bon (≥ 60–70 %).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>SSID/sécurité</strong> : identiques à l'AP pour le roaming ; mêmes clé et mode WPA2/WPA3.</li>
+<li><strong>Débit utile mesuré</strong> près du répéteur vs près de l'AP.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Mesure dans la zone visée avant/après repositionnement ; le débit s'améliore quand le répéteur reçoit mieux.</p>
+<h4>6. Correction</h4>
+<p>Repositionner à mi-distance ; choisir un répéteur bi-bande / mesh ; ou mieux, point d'accès relié par câble (backhaul filaire) en mode AP ; même SSID et même sécurité ; mot de passe d'administration changé.</p>
+<h4>7. Validation</h4>
+<p>Signal et débit mesurés dans la zone, déplacement d'un portable entre zones sans coupure, plan de couverture documenté.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le répéteur est installé dans la salle du fond, où le signal de la box n'est que de 25 % : il reçoit mal et ne peut répéter qu'un signal médiocre, d'où le débit très faible malgré des barres pleines. Je le déplace dans le couloir, à mi-chemin, là où il reçoit 70 % du signal de la box ; je lui donne le même SSID et la même sécurité WPA2/WPA3. Mesure dans la salle du fond : signal 65 %, débit multiplié par quatre. Solution durable proposée : un point d'accès relié par câble au switch. »</p><p class="fx-lose"><b>Perd des points :</b> placer le répéteur là où il n'y a pas de signal ; ignorer la division du débit.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Répéteur ≠ point d'accès : le répéteur réémet sans câble ; l'AP est relié au réseau filaire. Un « répéteur » configuré en mode routeur crée un second réseau et un second DHCP (P3.3).</div>
+</article>
+
+<article class="fx-proc" id="f4-p-ap-config">
+<h3>P3.28 — Configurer et sécuriser un point d'accès / une box Wi-Fi</h3>
+<p class="fx-sev">Fréquence : classique d'examen (procédure) · Gravité : sécurité</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>AP neuf, ou audit : SSID par défaut, Wi-Fi ouvert ou WEP/WPA-TKIP, WPS activé, mot de passe admin d'usine, firmware ancien, invités sur le réseau interne.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Configuration d'usine jamais modifiée ; matériel trop ancien pour WPA2-AES/WPA3.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Accès admin autorisé, sauvegarde de la configuration existante, fenêtre de coupure annoncée (les clients devront ressaisir la clé), inventaire des clients anciens.</li></ul>
+<h4>4. Diagnostic pas à pas (étapes de configuration)</h4>
+<ol class="fx-steps">
+<li><strong>Connexion en filaire</strong> à l'interface (http://IP de l'AP) ; changer IMMÉDIATEMENT le mot de passe administrateur ; mettre à jour le firmware.</li>
+<li><strong>Mode</strong> : point d'accès/pont (DHCP désactivé) si une box/un serveur fait déjà le DHCP ; adresse IP fixe hors étendue (ex. 192.168.1.2).</li>
+<li><strong>SSID</strong> neutre (ni nom d'entreprise sensible, ni modèle), diffusé ; même SSID sur 2,4 et 5 GHz ou deux SSID explicites.</li>
+<li><strong>Sécurité</strong> : WPA3-Personnel (SAE) ou mixte WPA2/WPA3 ; jamais WEP/TKIP ; clé longue aléatoire ; WPS désactivé.</li>
+<li><strong>Radio</strong> : 2,4 GHz canal 1, 6 ou 11, 20 MHz ; 5 GHz canal 36–48 (ou auto) ; puissance adaptée à la zone.</li>
+<li><strong>Réseau invités</strong> : SSID séparé, isolation des clients, pas d'accès au LAN, éventuellement portail et limite de débit.</li>
+<li><strong>Placement</strong> : central, en hauteur, dégagé.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Depuis un client : authentification WPA2/WPA3 (netsh wlan show interfaces → « Authentification : WPA3 - Personnel » ou WPA2), adresse IP de la box, Internet ; depuis le réseau invités : Internet OK, ping du NAS KO (isolation confirmée).</p>
+<h4>6. Correction</h4>
+<p>Exporter/sauvegarder la configuration finale ; consigner SSID, sécurité, canal, IP d'administration ; identifiants en coffre-fort de mots de passe, pas sur un post-it.</p>
+<h4>7. Validation</h4>
+<p>Tous les clients reconnectés ; mesure du signal dans chaque zone ; tentative de connexion avec mauvaise clé refusée ; WPS inactif.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Je me connecte en filaire à l'interface du point d'accès, je change le mot de passe administrateur et je mets le firmware à jour. Je le passe en mode point d'accès (DHCP désactivé, la box distribue les adresses) avec l'adresse fixe 192.168.1.2, hors étendue. SSID “Linea-Pro” en WPA2/WPA3-Personnel (AES), clé aléatoire de 16 caractères, WPS désactivé ; 2,4 GHz sur le canal 11 en 20 MHz, 5 GHz sur le canal 36. Je crée un SSID “Linea-Invites” isolé du réseau interne. Je place l'AP au centre de l'atelier, en hauteur. Vérification : connexion d'un portable (WPA3), accès Internet et au NAS depuis Linea-Pro, Internet seul depuis le réseau invités. »</p><p class="fx-lose"><b>Perd des points :</b> recommander WEP, WPA-TKIP ou le masquage du SSID comme « sécurité » ; laisser WPS ; oublier le mot de passe administrateur.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Filtrage MAC et SSID masqué ne remplacent pas WPA2/WPA3. Changer la clé déconnecte tous les clients, y compris imprimantes Wi-Fi et objets connectés : prévoir leur reconfiguration (P3.21).</div>
+</article>
+</section>

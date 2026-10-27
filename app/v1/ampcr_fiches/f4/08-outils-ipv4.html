@@ -1,0 +1,115 @@
+<section class="fx-sec" id="f4-ipv4">
+<h2>4 A. Calculs IPv4 / CIDR pas à pas (tous vérifiés)</h2>
+<h3>La méthode en 5 gestes (à écrire sur la copie)</h3>
+<ol class="fx-steps">
+<li><strong>Préfixe ↔ masque</strong> : /n = n bits à 1. Octets possibles du masque : 128 (/25), 192 (/26), 224 (/27), 240 (/28), 248 (/29), 252 (/30), 254, 255. Ex. /20 = 255.255.240.0 (8 + 8 + 4 bits).</li>
+<li><strong>Octet significatif</strong> = le premier octet du masque différent de 255. <strong>Taille du bloc</strong> = 256 − cet octet.</li>
+<li><strong>Adresse réseau</strong> : dans l'octet significatif, le multiple du bloc juste inférieur ou égal à l'octet de l'adresse ; octets suivants à 0.</li>
+<li><strong>Diffusion (broadcast)</strong> = réseau + bloc − 1 dans l'octet significatif, octets suivants à 255.</li>
+<li><strong>Plage d'hôtes</strong> = réseau + 1 → diffusion − 1. <strong>Nombre d'hôtes</strong> = 2<sup>(32 − n)</sup> − 2.</li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Préfixe</th><th>Masque</th><th>Bloc</th><th>Hôtes</th><th>Préfixe</th><th>Masque</th><th>Bloc (3e octet)</th><th>Hôtes</th></tr></thead>
+<tbody>
+<tr><td>/24</td><td>255.255.255.0</td><td>256</td><td>254</td><td>/23</td><td>255.255.254.0</td><td>2</td><td>510</td></tr>
+<tr><td>/25</td><td>255.255.255.128</td><td>128</td><td>126</td><td>/22</td><td>255.255.252.0</td><td>4</td><td>1 022</td></tr>
+<tr><td>/26</td><td>255.255.255.192</td><td>64</td><td>62</td><td>/21</td><td>255.255.248.0</td><td>8</td><td>2 046</td></tr>
+<tr><td>/27</td><td>255.255.255.224</td><td>32</td><td>30</td><td>/20</td><td>255.255.240.0</td><td>16</td><td>4 094</td></tr>
+<tr><td>/28</td><td>255.255.255.240</td><td>16</td><td>14</td><td>/16</td><td>255.255.0.0</td><td>256 (3e) </td><td>65 534</td></tr>
+<tr><td>/29</td><td>255.255.255.248</td><td>8</td><td>6</td><td>/12</td><td>255.240.0.0</td><td>16 (2e octet)</td><td>1 048 574</td></tr>
+<tr><td>/30</td><td>255.255.255.252</td><td>4</td><td>2</td><td>/8</td><td>255.0.0.0</td><td>256 (1er)</td><td>16 777 214</td></tr>
+</tbody></table></div>
+
+<h3>Exemple 1 détaillé : 192.168.40.77/26</h3>
+<ol>
+<li>/26 → masque 255.255.255.192 (26 = 8 + 8 + 8 + 2 bits ; 11000000 = 128 + 64 = 192).</li>
+<li>Octet significatif : le 4e (192) ; bloc = 256 − 192 = 64 → réseaux .0, .64, .128, .192.</li>
+<li>77 est entre 64 et 127 → réseau <b>192.168.40.64</b>.</li>
+<li>Diffusion = 64 + 64 − 1 = 127 → <b>192.168.40.127</b>.</li>
+<li>Hôtes : <b>192.168.40.65 à 192.168.40.126</b>, soit 2<sup>6</sup> − 2 = <b>62</b>.</li>
+</ol>
+<p>Vérification binaire (ET logique) sur le 4e octet : 77 = 0100 1101 ; 192 = 1100 0000 ; 0100 1101 ET 1100 0000 = 0100 0000 = 64 ✔.</p>
+
+<h3>Exemple 2 détaillé (bloc dans le 3e octet) : 172.16.45.200/20</h3>
+<ol>
+<li>/20 → 255.255.240.0 (3e octet : 4 bits à 1 = 11110000 = 240).</li>
+<li>Octet significatif : 3e ; bloc = 256 − 240 = 16 → 0, 16, 32, 48…</li>
+<li>45 est entre 32 et 47 → réseau <b>172.16.32.0</b> (4e octet à 0).</li>
+<li>Diffusion : 32 + 16 − 1 = 47, 4e octet à 255 → <b>172.16.47.255</b>.</li>
+<li>Hôtes : <b>172.16.32.1 à 172.16.47.254</b> ; 2<sup>12</sup> − 2 = <b>4 094</b>.</li>
+</ol>
+<p>Binaire : 45 = 0010 1101 ; 240 = 1111 0000 ; ET = 0010 0000 = 32 ✔.</p>
+
+<h3>Tableau d'entraînement (résultats calculés et contrôlés)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Adresse</th><th>Masque</th><th>Bloc</th><th>Réseau</th><th>Diffusion</th><th>Plage d'hôtes</th><th>Hôtes</th></tr></thead>
+<tbody>
+<tr><td>192.168.5.130/25</td><td>255.255.255.128</td><td>128</td><td>192.168.5.128</td><td>192.168.5.255</td><td>.129 – .254</td><td>126</td></tr>
+<tr><td>192.168.40.130/26</td><td>255.255.255.192</td><td>64</td><td>192.168.40.128</td><td>192.168.40.191</td><td>.129 – .190</td><td>62</td></tr>
+<tr><td>192.168.1.200/27</td><td>255.255.255.224</td><td>32</td><td>192.168.1.192</td><td>192.168.1.223</td><td>.193 – .222</td><td>30</td></tr>
+<tr><td>192.168.10.37/28</td><td>255.255.255.240</td><td>16</td><td>192.168.10.32</td><td>192.168.10.47</td><td>.33 – .46</td><td>14</td></tr>
+<tr><td>192.168.100.5/30</td><td>255.255.255.252</td><td>4</td><td>192.168.100.4</td><td>192.168.100.7</td><td>.5 – .6</td><td>2</td></tr>
+<tr><td>192.168.0.10/23</td><td>255.255.254.0</td><td>2 (3e)</td><td>192.168.0.0</td><td>192.168.1.255</td><td>192.168.0.1 – 192.168.1.254</td><td>510</td></tr>
+<tr><td>10.10.10.100/22</td><td>255.255.252.0</td><td>4 (3e)</td><td>10.10.8.0</td><td>10.10.11.255</td><td>10.10.8.1 – 10.10.11.254</td><td>1 022</td></tr>
+<tr><td>172.20.130.5/18</td><td>255.255.192.0</td><td>64 (3e)</td><td>172.20.128.0</td><td>172.20.191.255</td><td>172.20.128.1 – 172.20.191.254</td><td>16 382</td></tr>
+<tr><td>10.1.2.3/8</td><td>255.0.0.0</td><td>256 (1er)</td><td>10.0.0.0</td><td>10.255.255.255</td><td>10.0.0.1 – 10.255.255.254</td><td>16 777 214</td></tr>
+</tbody></table></div>
+<div class="fx-trap"><b>Piège</b> En /23, 192.168.0.255 et 192.168.1.0 sont des adresses d'HÔTES valides (le réseau est 192.168.0.0 et la diffusion 192.168.1.255). Ne raisonne jamais « .0 et .255 sont toujours interdits » hors /24.</div>
+
+<h3>Deux machines sont-elles dans le même réseau ?</h3>
+<p>Calculer l'adresse réseau de CHACUNE avec SON masque ; identiques (et mêmes masques) → communication directe ; différentes → il faut un routeur (passerelle).</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>A</th><th>B</th><th>Réseau A</th><th>Réseau B</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>192.168.40.77/26</td><td>192.168.40.130/26</td><td>192.168.40.64</td><td>192.168.40.128</td><td>Différents → routeur nécessaire</td></tr>
+<tr><td>192.168.1.100/25</td><td>192.168.1.130/25</td><td>192.168.1.0</td><td>192.168.1.128</td><td>Différents (bien que « proches »)</td></tr>
+<tr><td>10.10.9.20/22</td><td>10.10.11.200/22</td><td>10.10.8.0</td><td>10.10.8.0</td><td>Même réseau (3e octet différent pourtant)</td></tr>
+<tr><td>172.16.45.200/20</td><td>172.16.50.1/20</td><td>172.16.32.0</td><td>172.16.48.0</td><td>Différents</td></tr>
+<tr><td>192.168.0.255/23</td><td>192.168.1.10/23</td><td>192.168.0.0</td><td>192.168.0.0</td><td>Même réseau</td></tr>
+</tbody></table></div>
+
+<h3>Choisir le plus petit bloc pour N postes</h3>
+<p>Trouver le plus petit n tel que 2<sup>(32 − n)</sup> − 2 ≥ N (penser à la passerelle, aux imprimantes, à la croissance).</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Besoin</th><th>Bloc</th><th>Masque</th><th>Hôtes</th><th>Pourquoi pas plus petit</th></tr></thead>
+<tbody>
+<tr><td>6</td><td>/29</td><td>255.255.255.248</td><td>6</td><td>/30 = 2</td></tr>
+<tr><td>14</td><td>/28</td><td>255.255.255.240</td><td>14</td><td>/29 = 6</td></tr>
+<tr><td>25 ou 30</td><td>/27</td><td>255.255.255.224</td><td>30</td><td>/28 = 14</td></tr>
+<tr><td>50 ou 62</td><td>/26</td><td>255.255.255.192</td><td>62</td><td>/27 = 30</td></tr>
+<tr><td>63 à 126 (ex. 100, 120)</td><td>/25</td><td>255.255.255.128</td><td>126</td><td>/26 = 62</td></tr>
+<tr><td>200</td><td>/24</td><td>255.255.255.0</td><td>254</td><td>/25 = 126</td></tr>
+<tr><td>300 ou 500</td><td>/23</td><td>255.255.254.0</td><td>510</td><td>/24 = 254</td></tr>
+<tr><td>1 000</td><td>/22</td><td>255.255.252.0</td><td>1 022</td><td>/23 = 510</td></tr>
+</tbody></table></div>
+
+<h3>Découper un réseau</h3>
+<p>192.168.10.0/24 en 4 sous-réseaux égaux : 4 = 2<sup>2</sup> → emprunter 2 bits → /26, bloc 64.</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Sous-réseau</th><th>Réseau</th><th>Plage d'hôtes</th><th>Diffusion</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>192.168.10.0/26</td><td>.1 – .62</td><td>.63</td></tr>
+<tr><td>2</td><td>192.168.10.64/26</td><td>.65 – .126</td><td>.127</td></tr>
+<tr><td>3</td><td>192.168.10.128/26</td><td>.129 – .190</td><td>.191</td></tr>
+<tr><td>4</td><td>192.168.10.192/26</td><td>.193 – .254</td><td>.255</td></tr>
+</tbody></table></div>
+<p>Besoins inégaux (100, 50 et 20 postes dans 192.168.20.0/24) : commencer par le plus grand → 192.168.20.0/25 (.1–.126, 126 hôtes) ; 192.168.20.128/26 (.129–.190, 62) ; 192.168.20.192/27 (.193–.222, 30) ; il reste 192.168.20.224/27 libre.</p>
+
+<h3>Identifier une adresse : MAC ou IPv4, et de quel type</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Valeur</th><th>Nature</th><th>Comment le reconnaître / conclusion</th></tr></thead>
+<tbody>
+<tr><td>3C-52-82-1A-2B-01</td><td>MAC</td><td>6 octets hexadécimaux. 1er octet 3C = 0011 1100 : bit de poids faible (I/G) = 0 → individuelle (unicast) ; bit suivant (U/L) = 0 → universelle, les 3 premiers octets (OUI) identifient le fabricant.</td></tr>
+<tr><td>DA-A1-19-5C-7E-02</td><td>MAC</td><td>DA = 1101 1010 : I/G = 0 → unicast ; U/L = 1 → administrée localement (typique d'une MAC Wi-Fi aléatoire) : l'OUI ne désigne pas de fabricant.</td></tr>
+<tr><td>01-00-5E-00-00-FB</td><td>MAC</td><td>01 = 0000 0001 : I/G = 1 → adresse de groupe (multicast IPv4).</td></tr>
+<tr><td>FF-FF-FF-FF-FF-FF</td><td>MAC</td><td>Diffusion (tous les postes du segment).</td></tr>
+<tr><td>192.168.1.37 / 10.4.5.6 / 172.20.1.1</td><td>IPv4 privée</td><td>Plages privées : 10.0.0.0/8, 172.16.0.0/12 (172.16 à 172.31), 192.168.0.0/16 → non routées sur Internet (NAT de la box).</td></tr>
+<tr><td>172.32.0.5</td><td>IPv4 publique</td><td>172.32 est HORS de 172.16.0.0/12 (qui s'arrête à 172.31.255.255).</td></tr>
+<tr><td>169.254.83.17</td><td>Lien local (APIPA)</td><td>Auto-attribuée faute de DHCP (P3.2).</td></tr>
+<tr><td>127.0.0.1</td><td>Boucle locale</td><td>Le poste lui-même (127.0.0.0/8).</td></tr>
+<tr><td>100.70.1.2 (adresse WAN de la box)</td><td>Partagée FAI (CGNAT, 100.64.0.0/10)</td><td>La box n'a pas d'IP publique propre : accès à distance/redirections de ports impossibles.</td></tr>
+<tr><td>224.0.0.251</td><td>Multicast</td><td>224.0.0.0/4 : jamais attribuée à un hôte.</td></tr>
+<tr><td>8.8.8.8 / 1.1.1.1</td><td>Publiques</td><td>Serveurs DNS publics (Google / Cloudflare) : cibles de test Internet par IP.</td></tr>
+</tbody></table></div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue (calcul)</p><p>« 192.168.10.37/28 : le masque /28 vaut 255.255.255.240 ; la taille du bloc est 256 − 240 = 16 ; les réseaux commencent à 0, 16, 32, 48… ; 37 est compris entre 32 et 47, donc l'adresse réseau est 192.168.10.32, la diffusion 192.168.10.47, la plage des hôtes de 192.168.10.33 à 192.168.10.46, soit 2<sup>4</sup> − 2 = 14 hôtes. »</p><p class="fx-lose"><b>Perd des points :</b> oublier le « − 2 » ; donner la diffusion comme hôte ; ne pas montrer la méthode sur au moins une ligne ; confondre bloc et nombre d'hôtes.</p></div>
+</section>
