@@ -1,0 +1,75 @@
+<section class="fx-sec" id="f6-dossiers-d">
+<h2>4. Dossiers intégrés résolus — D. Fausses pistes logicielles et supports anciens (dossiers 10 et 11)</h2>
+
+<article class="fx-case" id="f6-dossier-10">
+<h3>Dossier 10 — « Mon PC a un virus » : lenteur, gels et arrêts brutaux l'après-midi</h3>
+<p class="fx-sev">Domaines : matériel (thermique) + système (espace, journaux) + méthode · Type : fausse piste « virus », deux causes réelles · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Agence de communication Pixel. Le PC du graphiste (tour sous le bureau, posée sur la moquette contre le mur, Windows 11, SSD 256 Go) est « de plus en plus lent » depuis des mois et s'éteint brutalement 2 à 3 fois par semaine, surtout l'après-midi pendant les rendus vidéo. Le graphiste a lancé trois analyses antivirus complètes : aucune menace. Il veut « une réinstallation complète, c'est sûrement un virus caché ».</p>
+<p><strong>Document 1 — Gestionnaire des tâches pendant un rendu.</strong> Processeur : 100 % — vitesse 0,80 GHz (vitesse de base 3,60 GHz). Disque 0 (C:) : 3,2 Go libres sur 237 Go.</p>
+<p><strong>Document 2 — Logiciel de surveillance matérielle pendant le rendu.</strong></p>
+<pre class="fx-out">CPU Package : 99 °C (max 100 °C)
+CPU Fan     : 640 RPM
+Système     : 46 °C</pre>
+<p><strong>Document 3 — Observateur d'événements → Système.</strong> Plusieurs « Kernel-Power, ID 41, Critique : le système a redémarré sans s'arrêter correctement au préalable », toujours entre 14 h et 17 h.</p>
+<p><strong>Document 4 — Constat à l'ouverture (après accord).</strong> Radiateur du processeur colmaté par un feutre de poussière ; filtre avant obstrué.</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>La réinstallation demandée est-elle justifiée ? Argumente à partir des documents. (4 pts)</li>
+<li>Explique le lien entre les documents 1, 2, 3 et 4. Que prouve et que ne prouve pas l'événement 41 ? (5 pts)</li>
+<li>Décris l'intervention thermique dans l'ordre, avec la sécurité. (5 pts)</li>
+<li>Traite le manque d'espace sans perdre de données. (3 pts)</li>
+<li>Validation. (3 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Réinstallation (4 pts).</strong> Non, pas en première intention. Trois analyses antivirus complètes sont négatives, et les documents montrent deux causes matérielles et de configuration mesurables : le processeur tourne à 0,80 GHz au lieu de 3,60 GHz à 99 °C (limitation thermique) et C: n'a plus que 3,2 Go libres (≈ 1,3 %). Une réinstallation coûterait des heures, comporterait un risque pour les données et ne réglerait ni la poussière ni le remplissage du disque : les symptômes reviendraient. Je l'explique au graphiste et je propose une intervention ciblée et réversible.</p>
+<p><strong>2. Liens entre documents (5 pts).</strong> Le radiateur colmaté et le filtre obstrué (document 4), la tour posée sur la moquette contre le mur, empêchent l'évacuation de la chaleur. En charge (rendu), le processeur atteint 99 °C (document 2), il réduit sa fréquence pour se protéger (0,80 GHz, document 1) : c'est la lenteur. Lorsque la limite est dépassée, la protection coupe le PC : arrêts brutaux enregistrés comme Kernel-Power 41 (document 3), à l'heure où le bureau est le plus chaud et les rendus les plus nombreux. L'événement 41 prouve seulement que Windows ne s'est pas arrêté proprement ; il ne désigne pas la cause (thermique, alimentation, coupure secteur, plantage). C'est la corrélation avec la température qui oriente vers la surchauffe ; l'alimentation reste une hypothèse secondaire à tester si les arrêts persistent après correction. Le ventilateur tourne (640 tr/min) : il n'est pas bloqué, mais il brasse un radiateur bouché. Le disque plein ajoute de la lenteur (fichier d'échange, fichiers temporaires de rendu) mais n'explique pas les arrêts.</p>
+<p><strong>3. Intervention thermique (5 pts).</strong></p>
+<ol>
+<li>Accord, sauvegarde des projets en cours (rendu possible pendant le nettoyage si interruption), arrêt de Windows, secteur débranché, décharge, bracelet ESD (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ Fiche 5 · Sécurité, ESD</a>).</li>
+<li>Nettoyage à l'extérieur du bureau : air sec en bombe ou soufflette, <strong>pales des ventilateurs bloquées</strong> pendant le soufflage, pinceau antistatique ; filtre avant nettoyé ; pas d'aspirateur ménager sur les composants.</li>
+<li>Remontage, premier test de charge. Si la température en charge reste élevée : démonter le radiateur, nettoyer l'ancienne pâte (alcool isopropylique), nouvelle pâte thermique en fine couche, remontage serré en croix (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-surchauffe">→ Fiche 1 · Surchauffe</a>).</li>
+<li>Emplacement : tour surélevée (pas sur la moquette), à au moins une dizaine de centimètres du mur, entrées et sorties d'air dégagées ; vérifier le sens de circulation des ventilateurs du boîtier (entrée avant, sortie arrière).</li>
+</ol>
+<p><strong>4. Espace disque (3 pts).</strong> Paramètres → Système → Stockage : identifier ce qui occupe C:. Sans perte : Nettoyage de disque (fichiers temporaires, fichiers d'optimisation de distribution, mises à jour nettoyées), vider la corbeille avec accord, désinstaller les logiciels inutilisés ; déplacer les rushes et rendus terminés vers un disque de données ou le NAS de l'agence <strong>avec l'accord du graphiste</strong>, en vérifiant la copie avant suppression ; régler le dossier de rendu par défaut sur l'espace de stockage de données. Objectif : au moins 15 à 20 % libres. À terme : SSD plus grand (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-lenteur">→ Fiche 2 · Lenteurs, espace disque</a>).</p>
+<p><strong>5. Validation (3 pts).</strong> Rendu test ou test de charge de 30 minutes : température stabilisée nettement sous la limite (par ex. sous 85 °C), fréquence maintenue proche ou au-dessus de la base, aucun arrêt ; comparaison chiffrée avant/après (température, fréquence, durée d'un même rendu) ; surveillance de l'Observateur d'événements pendant 2 semaines (aucun nouvel ID 41) ; C: avec l'espace libre visé. Rapport + conseil d'entretien (dépoussiérage tous les 6 mois).</p>
+<p class="fx-lose"><b>Perd des points :</b> accepter la réinstallation sans diagnostic ; conclure « alimentation HS » sur le seul ID 41 ; nettoyer sans couper le secteur ; supprimer des fichiers de l'utilisateur sans accord ; valider en regardant le bureau Windows au repos.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f6-dossier-11">
+<h3>Dossier 11 — Archives communales : segment coaxial muet et liaison fibre perdue après travaux</h3>
+<p class="fx-sev">Domaines : câblage (coaxial, fibre) + méthode (sécurité optique, recommandations) · Type : deux pannes de support physique · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Les archives communales conservent provisoirement, dans la réserve, 4 anciens postes reliés en bus coaxial RG-58 (10 Mb/s, connecteurs BNC, T et bouchons). Le bâtiment annexe est relié au bâtiment principal par une liaison fibre multimode (modules SFP 1000BASE-SX 850 nm des deux côtés, cordons LC-LC). Lundi : on a retiré de la réserve le poste situé en bout de bus avec son T et son bouchon ; depuis, les 3 postes restants ne communiquent plus entre eux. Mardi : un électricien a déplacé le tiroir optique de l'annexe et rebranché les cordons ; depuis, l'annexe n'a plus de réseau.</p>
+<p><strong>Document 1 — Mesure à l'ohmmètre entre l'âme et le blindage, sur un T du bus (cartes débranchées).</strong> 50 Ω.</p>
+<p><strong>Document 2 — Liaison fibre.</strong> Voyant de lien éteint sur les deux modules SFP. Fiche de recette d'origine : atténuation mesurée 1,8 dB pour 180 m ; atténuation maximale admise par l'installateur pour cette liaison : 3,5 dB. Cordons trouvés : deux cordons duplex LC-LC de couleur jaune dans le tiroir de l'annexe (ceux d'origine, couleur aqua, ont été posés sur le côté).</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Interprète la mesure du document 1 et donne les valeurs attendues dans les autres cas. (5 pts)</li>
+<li>Corrige le segment coaxial et formule une recommandation. (3 pts)</li>
+<li>Liste, dans l'ordre, les causes possibles de la panne fibre et les tests, avec la sécurité. (7 pts)</li>
+<li>Décris la validation des deux liaisons et le contenu du rapport. (5 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Mesure coaxiale (5 pts).</strong> Un bus coaxial 50 Ω doit être fermé à <strong>chaque extrémité</strong> par un bouchon de 50 Ω. Vus depuis un point du bus, les deux bouchons sont en parallèle : 50 × 50 / (50 + 50) = <strong>25 Ω</strong> attendus. La mesure de 50 Ω indique qu'<strong>un seul bouchon</strong> est présent : l'extrémité où se trouvait le poste retiré est restée ouverte. Les signaux s'y réfléchissent et brouillent tout le segment : c'est pourquoi les 3 postes sont touchés, pas seulement le dernier. Autres valeurs : environ 0 Ω → court-circuit (connecteur BNC mal serti, âme qui touche la tresse) ; résistance infinie → les deux bouchons manquent ou le câble est coupé entre le point de mesure et les bouchons (mesurer à plusieurs T pour localiser) (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-coax">→ Fiche 3 · Coaxial, BNC</a>).</p>
+<p><strong>2. Correction coaxiale (3 pts).</strong> Placer un bouchon 50 Ω à l'extrémité libre du bus, sur le T du dernier poste restant (ou sur un T en bout de câble) — jamais directement sur la carte réseau sans T ; si la longueur de câble devenue inutile pend, la retirer en refaisant une extrémité BNC propre. Mesure de contrôle : 25 Ω. Recommandation : ce support à 10 Mb/s partagés, où un seul défaut coupe tout le segment, est à remplacer par un câblage en étoile cat. 6 U/UTP et un switch dès que les anciens postes sont retirés.</p>
+<p><strong>3. Panne fibre (7 pts).</strong></p>
+<p class="fx-warn"><b>Attention</b> Ne jamais regarder l'extrémité d'une fibre ou d'un module SFP, même si le lien semble éteint (l'infrarouge 850 nm est invisible). Embouts protégés par leurs capuchons quand ils sont débranchés.</p>
+<ol>
+<li>Cordons inadaptés (cause la plus probable, document 2) : les cordons jaunes sont en général <strong>monomodes</strong> (OS1/OS2), les aqua des <strong>multimodes</strong> OM3/OM4. Les modules 1000BASE-SX et la liaison sont multimodes : un cordon monomode (cœur d'environ 9 µm) ne capte qu'une infime partie de la lumière d'un module multimode et provoque une atténuation énorme. Test : remettre les cordons aqua d'origine.</li>
+<li>Émission et réception inversées : sur un duplex, l'émission (Tx) d'un côté doit arriver sur la réception (Rx) de l'autre. Après rebranchement, si les deux voyants restent éteints, inverser les deux fibres d'un cordon <strong>à une seule extrémité</strong> (ou retourner le duplex LC) et observer le voyant.</li>
+<li>Connecteurs sales : à chaque débranchement, poussière sur les férules. Nettoyage avec un nettoyeur adapté (stylo ou cassette), puis inspection au microscope à fibre si disponible, avant chaque reconnexion.</li>
+<li>Fibre ou cordon endommagé (rayon de courbure trop serré lors du déplacement du tiroir) : contrôle visuel, puis mesure d'atténuation au photomètre (source + mesureur) à comparer à la recette : si la valeur dépasse 3,5 dB ou s'écarte fortement de 1,8 dB → localiser (cordon, tiroir, épissure) et faire réparer par un installateur fibre (soudure = escalade).</li>
+<li>Module SFP défectueux ou mal enfiché : réenficher, puis échanger par un module identique si tout le reste est validé.</li>
+</ol>
+<p>Détails des gestes : <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-fibre">→ Fiche 3 · Fibre</a>.</p>
+<p><strong>4. Validation et rapport (5 pts).</strong> Coaxial : mesure 25 Ω, puis communication entre les 3 postes (accès à une ressource partagée, ping). Fibre : voyants de lien allumés des deux côtés, lien à 1 Gbit/s, mesure d'atténuation dans la tolérance (≤ 3,5 dB, proche de 1,8 dB), poste de l'annexe : ping du serveur du bâtiment principal, accès aux partages et à Internet ; copie d'un gros fichier. Rapport : causes (bouchon manquant ; cordons monomodes et/ou Tx/Rx inversés selon le test qui a rétabli le lien), gestes, mesures avant/après, cordons aqua étiquetés et rangés dans le tiroir, consigne pour les intervenants (ne pas débrancher la fibre sans technicien), recommandation de migration du bus coaxial.</p>
+<p class="fx-lose"><b>Perd des points :</b> regarder dans la fibre « pour voir s'il y a de la lumière » ; bouchon de 75 Ω (télévision) ; conclure « fibre coupée » sans avoir essayé les bons cordons ni l'inversion Tx/Rx ; oublier que le défaut d'un bout de bus coaxial touche tout le segment.</p>
+</div>
+</article>
+</section>

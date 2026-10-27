@@ -1,0 +1,34 @@
+<section class="fx-sec" id="f3-demarche">
+<h2>1. Face à un problème de câblage : la démarche en 60 secondes</h2>
+<p>Règle d'or : on prouve la couche physique <b>maillon par maillon</b> (carte → cordon de poste → prise murale → câble permanent → panneau → cordon de brassage → port du switch) avant de toucher à la configuration IP. Un seul changement à la fois, du moins coûteux au plus coûteux.</p>
+<ol class="fx-steps">
+<li><strong>Lire le support et l'énoncé</strong> — quel média (paire torsadée, coaxial, fibre), quel débit attendu, quelle longueur, quel environnement (néons, moteurs, variateurs, câbles d'énergie), quel document fourni (wiremap, rapport de certification, mesure d'ohmmètre, puissance optique, trace OTDR, plan).</li>
+<li><strong>Observer les voyants des deux côtés</strong> — carte réseau ET port du switch (ou module SFP).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> voyant éteint des deux côtés → problème physique ou port/carte désactivé : <a href="#f3-pas-de-lien">P4.1</a> (cuivre), <a href="#f3-fibre">P6.1</a> (fibre).</p><p class="fx-sinon"><b>SINON</b> voyant allumé → relever la vitesse et le duplex (couleur du voyant, <code>Get-NetAdapter</code>, <code>ethtool</code>) : vitesse trop basse → <a href="#f3-100mbs">P4.2</a> ; erreurs/coupures → <a href="#f3-erreurs">P4.3</a> ; tout est correct → passer à la <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">→ Fiche 4 · Ordre des tests</a>.</p></div></li>
+<li><strong>Échanger le cordon par un cordon testé bon</strong> — test le moins cher et le plus discriminant.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le défaut disparaît → le cordon d'origine est en cause : le tester au testeur pour le prouver, le jeter ou le refaire.</p><p class="fx-sinon"><b>SINON</b> → tester le lien permanent (panneau → prise) au testeur, puis changer de port de switch.</p></div></li>
+<li><strong>Tester au testeur dans le bon ordre</strong> — wiremap (8 fils, paires) → longueur (≤ 90 m permanent, ≤ 100 m canal) → performance (qualification/certification). Le premier critère en échec désigne la cause ; les suivants ne prouvent rien tant qu'il n'est pas corrigé.</li>
+<li><strong>Comparer à la règle</strong> — catégorie suffisante pour le débit, blindage adapté et continu jusqu'à la terre, séparation des câbles d'énergie, rayon de courbure, impédance (coax 50 Ω partout en 10BASE2, 75 Ω en vidéo/TV), type de fibre et modules identiques et compatibles.</li>
+<li><strong>Corriger, retester, documenter</strong> — refaire la terminaison fautive, retester le lien complet, comparer avant/après, consigner (repère du lien, mesure, correction) dans le rapport.</li>
+</ol>
+<pre class="fx-diagram">
+ Voyant ?  ──éteint──▶ cordon connu bon ──OK──▶ cordon fautif
+   │                       │KO
+   │                       ▼
+   │                  testeur sur lien permanent
+   │                  wiremap → longueur → certif
+   │                       │OK
+   │                       ▼
+   │                  autre port / carte / config port
+   │
+   └─allumé─▶ vitesse ? ─100 Mb/s au lieu de 1G─▶ paires 4-5/7-8,
+                │                                 Cat5, forçage
+                └─ok─▶ erreurs ? ─oui─▶ split pair, EMI,
+                         │              détorsade, duplex
+                         └─non─▶ Fiche 4 (IP, DHCP, DNS)
+</pre>
+<p class="fx-warn"><b>Attention</b> Fibre : ne regarde jamais une férule ni une traversée, même « éteinte » : la lumière de 850 à 1 550 nm est invisible. Coupe ou retire le module, vérifie au photomètre, capuchonne. Cuivre : un port PoE envoie jusqu'à 90 W ; pas de court-circuit volontaire sur un câble branché. Avant d'ouvrir une baie ou de débrancher un brassage en production : autorisation et repérage (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ Fiche 5 · Sécurité</a>).</p>
+<div class="fx-answer"><p class="fx-answer-title">Squelette de réponse à recopier mentalement</p>
+<p>« Observation : … (voyants, affichage du testeur, mesure). Hypothèses classées : 1) … 2) … 3) …. Test discriminant : … ; résultat attendu si l'hypothèse 1 est vraie : … ; obtenu : …. Conclusion : la cause est …, parce que …. Correction : … (gestes dans l'ordre, matériel). Validation : nouveau test au testeur PASS, voyant à 1 Gb/s full duplex, test fonctionnel, consignation dans le rapport. »</p>
+<p class="fx-lose"><b>Perd des points :</b> conclure « câble HS » sans test ; reconfigurer l'IP alors que le voyant est éteint ; changer plusieurs éléments à la fois ; oublier la validation et la trace écrite.</p></div>
+</section>

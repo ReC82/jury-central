@@ -1,0 +1,49 @@
+<section class="fx-sec" id="f5-demarche">
+<h2>1. Face à une demande : la démarche en 60 secondes</h2>
+<p>À l'examen écrit, presque chaque dossier commence par une demande (appel, courriel, ticket) et se termine par une trace écrite. Le correcteur note la <strong>méthode</strong> autant que la solution : une bonne cause trouvée sans sauvegarde, sans accord ni validation perd des points.</p>
+<pre class="fx-diagram">
+ DEMANDE (mots du client)
+   |
+ 1 RECUEILLIR  qui / quand / quoi exactement / contact
+   |
+ 2 IDENTIFIER  n° inventaire, modèle, OS, réseau, garantie
+   |
+ 3 QUESTIONNER depuis quand ? changement ? qui d'autre ?
+   |           à chaque fois ou parfois ? message exact ?
+   |
+ 4 QUALIFIER   observation (O) / hypothèse (H)
+   |           reproductible / intermittente
+   |
+ 5 PRIORISER   impact x urgence -> P1..P4 + délai
+   |
+ 6 SÉCURISER   incident sécurité ? droits ? données
+   |           sauvegardées ? compétence ? budget ?
+   |      un "non" -> ARRÊT + ESCALADE / accord écrit
+   |
+ 7 DIAGNOSTIQUER  H1 -> test discriminant -> résultat
+   |              du simple / non destructif au lourd
+   |
+ 8 CORRIGER    avec accord, réversible si possible
+   |
+ 9 CONTRÔLER   critères de réussite avant/après
+   |
+10 FAIRE VALIDER + RAPPORT + CLÔTURE du ticket
+</pre>
+<ol class="fx-steps">
+<li><strong>Recopie la demande telle qu'elle est dite</strong> — attendu : demandeur, service, contact, date et heure, mots exacts. <div class="fx-branch"><p class="fx-si"><b>SI</b> la demande contient une cause supposée (« c'est la carte mère », « un virus ») → range-la dans les hypothèses, pas dans les symptômes.</p><p class="fx-sinon"><b>SINON</b> → passe à l'identification.</p></div></li>
+<li><strong>Identifie l'appareil sans ambiguïté</strong> — attendu : n° d'inventaire recoupé avec l'étiquette et l'inventaire, modèle, n° de série, garantie. <div class="fx-branch"><p class="fx-si"><b>SI</b> l'appareil est sous garantie → pas d'ouverture du boîtier : escalade fabricant (<a href="#f5-escalade">P5.9</a>).</p><p class="fx-sinon"><b>SINON</b> → questionne.</p></div></li>
+<li><strong>Pose les 5 questions discriminantes</strong> — depuis quand ; qu'est-ce qui a changé ; qui d'autre est touché ; à chaque fois ou parfois ; message exact. <div class="fx-branch"><p class="fx-si"><b>SI</b> plusieurs personnes sont touchées → cherche l'élément commun (serveur, switch, box, licence), un seul ticket « parent ».</p><p class="fx-sinon"><b>SINON</b> → le problème est probablement local au poste ou au compte.</p></div></li>
+<li><strong>Calcule la priorité</strong> — impact (1 élevé à 3 faible) + urgence (1 à 3) : 2 → P1, 3 → P2, 4 → P3, 5–6 → P4 (convention du cours PR26). <div class="fx-branch"><p class="fx-si"><b>SI</b> un contournement existe (autre poste, autre imprimante) → l'impact baisse, propose-le tout de suite.</p><p class="fx-sinon"><b>SINON</b> → annonce le délai de prise en charge.</p></div></li>
+<li><strong>Passe les 5 contrôles d'arrêt, dans cet ordre</strong> — sécurité, autorisation, données, compétence, budget. <div class="fx-branch"><p class="fx-si"><b>SI</b> un contrôle échoue → applique son action (isoler, escalader, sauvegarder d'abord, demander un nouvel accord) et écris-le.</p><p class="fx-sinon"><b>SINON</b> → intervention selon un plan d'action accepté.</p></div></li>
+<li><strong>Rédige la procédure de diagnostic</strong> — pour chaque hypothèse : test discriminant, résultat attendu si l'hypothèse est vraie, interprétation, suite. Les gestes techniques : <a class="fx-ref" href="/ampcr-pratique/fiches/1">→ Fiche 1 · Matériel</a>, <a class="fx-ref" href="/ampcr-pratique/fiches/2">→ Fiche 2 · Systèmes</a>, <a class="fx-ref" href="/ampcr-pratique/fiches/3">→ Fiche 3 · Câblage</a>, <a class="fx-ref" href="/ampcr-pratique/fiches/4">→ Fiche 4 · Réseaux</a>.</li>
+<li><strong>Corrige, contrôle, fais valider, documente</strong> — mêmes tests qu'avant l'intervention (avant/après), absence de régression, PV signé, rapport, ticket clôturé. <div class="fx-branch"><p class="fx-si"><b>SI</b> la panne est intermittente → clôture conditionnelle après une période d'observation (ex. 5 jours ouvrables sans incident).</p><p class="fx-sinon"><b>SINON</b> → clôture après validation de l'utilisateur.</p></div></li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Moment</th><th>Ce que tu écris toujours (même en 2 lignes)</th></tr></thead>
+<tbody>
+<tr><td>Avant d'agir</td><td>Sauvegarde vérifiée ou absence de risque pour les données ; accord du client (écrit si effacement, ouverture, coût) ; mesures de sécurité (consignation, ESD).</td></tr>
+<tr><td>Pendant</td><td>Hypothèse → test → résultat → conclusion ; journal des opérations horodaté ; aucun changement non noté.</td></tr>
+<tr><td>Après</td><td>Tests de validation chiffrés, comparaison avec l'état initial, validation par l'utilisateur, recommandation, risque résiduel.</td></tr>
+</tbody></table></div>
+<p class="fx-lose"><b>Perd des points :</b> commencer par « je remplace… » ou « je réinstalle… » ; conclure sans test ; oublier la sauvegarde, l'accord ou la validation ; écrire « PC HS » ou « réseau en panne » comme symptôme.</p>
+</section>

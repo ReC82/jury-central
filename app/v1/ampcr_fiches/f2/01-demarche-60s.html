@@ -1,0 +1,60 @@
+<section class="fx-sec" id="f2-demarche">
+<h2>1. Face à un problème logiciel : la démarche en 60 secondes</h2>
+
+<h3>Les six questions à se poser avant toute commande</h3>
+<ol class="fx-steps">
+<li><strong>À quel stade cela casse-t-il ?</strong> — firmware (avant le logo Windows / le menu GRUB), chargeur (Windows Boot Manager, GRUB), noyau (logo, écran bleu, <code>(initramfs)</code>, kernel panic), système (mode d'urgence, services en échec), ouverture de session (profil, mot de passe), application. Le stade désigne la famille d'outils.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> rien ne s'affiche, bips, pas de POST → <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-post">→ Fiche 1 · POST</a></p><p class="fx-sinon"><b>SINON</b> (message texte du firmware, du chargeur ou du système) → cette fiche, matrice section 2.</p></div></li>
+<li><strong>Quel est le message EXACT ?</strong> — recopier code (<code>0xc000000f</code>, <code>INACCESSIBLE_BOOT_DEVICE</code>, Code 43, <code>grub rescue&gt;</code>), fichier cité (<code>xxx.sys</code>), heure. Photo de l'écran si possible. Un code se recopie, il ne se résume pas.</li>
+<li><strong>Qu'est-ce qui a changé ?</strong> — mise à jour Windows/noyau, nouveau pilote, logiciel installé, matériel ajouté, réglage firmware (reset CMOS, mise à jour BIOS), coupure de courant, installation d'un 2<sup>e</sup> système. 80 % des pannes logicielles suivent un changement : le retour arrière de CE changement est le premier test.</li>
+<li><strong>Quel périmètre ?</strong> — un utilisateur ou tous ? un programme ou tous ? une seule machine ou plusieurs ? reproductible ou intermittent ? Un seul compte touché → profil/droits ; tous les comptes → système ; plusieurs PC → réseau/serveur/mise à jour commune.</li>
+<li><strong>Les données sont-elles à l'abri ?</strong> — sauvegarde récente et vérifiée ? BitLocker actif (clé de récupération disponible) ? Accord du client pour toute action qui modifie le disque. <a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ Fiche 5 · Sécurité des données</a></li>
+<li><strong>Quel est le geste le moins invasif qui teste mon hypothèse ?</strong> — lire un journal avant de modifier, annuler le dernier changement avant de réparer, réparer avant de restaurer, restaurer avant de réinitialiser.</li>
+</ol>
+
+<h3>L'échelle des interventions (on ne monte d'une marche que si la précédente a échoué)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Marche</th><th>Windows</th><th>Linux</th><th>Risque pour les données</th></tr></thead>
+<tbody>
+<tr><td>0. Observer, lire</td><td>Message, <code>eventvwr.msc</code>, Moniteur de fiabilité (<code>perfmon /rel</code>), <code>devmgmt.msc</code>, <code>msinfo32</code></td><td><code>journalctl -b -p err</code>, <code>systemctl --failed</code>, <code>dmesg</code>, <code>df -h</code>, <code>lsblk -f</code></td><td>Aucun</td></tr>
+<tr><td>1. Réglage réversible</td><td>Ordre/mode de démarrage, réactiver un périphérique, redémarrer un service</td><td>Choisir l'ancien noyau dans GRUB, <code>systemctl restart</code></td><td>Aucun</td></tr>
+<tr><td>2. Annuler le dernier changement</td><td>Restaurer le pilote, désinstaller la mise à jour, désinstaller le logiciel (mode sans échec si besoin)</td><td>Revenir à la config <code>.bak</code>, rétrograder le paquet</td><td>Aucun</td></tr>
+<tr><td>3. Réparer</td><td>Réparation du démarrage, <code>DISM</code> puis <code>sfc /scannow</code>, <code>chkdsk /f</code>, <code>bcdboot</code></td><td><code>dpkg --configure -a</code>, <code>apt --fix-broken install</code>, <code>fsck</code> démonté, <code>grub-install</code> + <code>update-grub</code></td><td>Faible (sauvegarde conseillée ; <code>chkdsk /r</code> sur disque faible : sauvegarde obligatoire)</td></tr>
+<tr><td>4. Restaurer</td><td>Point de restauration (<code>rstrui</code>), restauration d'image</td><td>Restaurer une sauvegarde / un instantané (Timeshift)</td><td>Programmes/pilotes postérieurs retirés ; documents conservés</td></tr>
+<tr><td>5. Réinitialiser / réinstaller</td><td>Réinitialiser ce PC (« Conserver mes fichiers » puis « Supprimer tout »), réinstallation propre</td><td>Réinstaller en conservant <code>/home</code> séparé</td><td>Élevé : sauvegarde vérifiée + accord écrit OBLIGATOIRES</td></tr>
+</tbody></table></div>
+
+<h3>Organigramme réflexe</h3>
+<pre class="fx-diagram">
+Allumage
+  |
+  +-- Rien / bips / pas d'image ---------------&gt; Fiche 1 (matériel)
+  |
+  +-- Message du FIRMWARE ("No bootable device")
+  |     disque vu dans le setup ? non -&gt; Fiche 1 (stockage)
+  |     oui -&gt; mode UEFI/hérité ? ordre ? ESP ? -&gt; P1.1
+  |
+  +-- Message du CHARGEUR
+  |     Windows Boot Manager 0xc0000... -&gt; P1.2 (BCD)
+  |     "Réparation automatique" en boucle -&gt; P1.3
+  |     grub rescue&gt; / PC qui saute GRUB -&gt; P1.5
+  |     Écran BitLocker -&gt; P1.7
+  |
+  +-- Plantage du NOYAU
+  |     Écran bleu (code d'arrêt) -&gt; P3.3 / P1.4
+  |     (initramfs) / kernel panic -&gt; P1.6 / P3.4
+  |
+  +-- SYSTÈME démarré mais anormal
+        emergency mode -&gt; P1.6 ; service failed -&gt; P4.3/P4.4
+        lent -&gt; P4.1 ; appli -&gt; P4.2 ; pilote -&gt; P3.1/P3.2
+        session/profil/droits -&gt; P5.x ; disque plein -&gt; P5.5/P5.6
+</pre>
+
+<h3>Ce que l'examinateur attend dans CHAQUE réponse écrite</h3>
+<ul>
+<li><b>Observation</b> (ce que je vois/lis, cité exactement) → <b>hypothèses classées</b> (la plus probable et la plus simple d'abord) → <b>test discriminant</b> (commande ou geste, résultat attendu, résultat anormal) → <b>conclusion</b> limitée à ce que le test prouve → <b>correction</b> (la moins invasive) → <b>validation</b> (re-test du scénario, journaux propres, utilisateur) → <b>trace</b> (rapport).</li>
+<li>Précaution <b>avant</b> chaque geste qui modifie le disque ou le démarrage : sauvegarde, accord, identification du bon volume.</li>
+<li>Jamais « formater », « réinstaller » ou « le disque est HS » comme premier geste ni sur un symptôme non spécifique.</li>
+</ul>
+<p class="fx-lose"><b>Perd des points :</b> une liste de commandes sans dire ce qu'on attend de chacune ; « je lance sfc » sans dire pourquoi ni comment lire le résultat ; une conclusion sans test ; oublier la validation ; une commande destructive sans avertissement.</p>
+</section>

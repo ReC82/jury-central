@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Fiche {{ fiche.number }} — {{ fiche.title }} — AMPCR Pratique{% endblock %}
+
+{% block content %}
+{# Ticket #302 : fiche de dépannage, contenu versionné dans app/v1/ampcr_fiches/f<N>/. #}
+<style>{{ fiche_css | safe }}</style>
+<nav aria-label="breadcrumb" class="fx-noprint">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ plan.PRACTICAL_PATH_URL }}">AMPCR — Pratique écrite</a></li>
+        <li class="breadcrumb-item"><a href="{{ fiches.FICHES_URL }}">Fiches de dépannage</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Fiche {{ fiche.number }}</li>
+    </ol>
+</nav>
+<div class="fx-doc">
+    <div class="fx-toolbar">
+        <a class="fx-primary" href="{{ fiche.download_url }}" download="{{ fiche.filename }}">
+            <i class="bi bi-download" aria-hidden="true"></i> Télécharger HTML</a>
+        <button type="button" onclick="window.print()">
+            <i class="bi bi-printer" aria-hidden="true"></i> Imprimer / PDF</button>
+        {% for other in fiches.available_fiches() if other.number != fiche.number %}
+        <a href="{{ other.url }}">Fiche {{ other.number }}</a>
+        {% endfor %}
+    </div>
+    {{ fiche_html | safe }}
+    <p class="fx-noprint mt-4"><a href="{{ plan.PRACTICAL_PATH_URL }}#mod-{{ fiche.module_key }}">← Retour au module</a></p>
+</div>
+{% endblock %}

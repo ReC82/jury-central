@@ -1,0 +1,198 @@
+<section class="fx-sec" id="f4-sec-routage-dns">
+<h2>3 B. Procédures : passerelle, DNS, Internet, pare-feu, lenteurs</h2>
+
+<article class="fx-proc" id="f4-passerelle">
+<h3>P3.6 — Réseau local OK, Internet KO même par adresse IP (un seul poste)</h3>
+<p class="fx-sev">Fréquence : fréquent (configuration manuelle, Linux installé à la main) · Gravité : bloquante pour l'accès Internet</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Le poste ouvre le NAS / le partage local, pinge la box ou un voisin, mais <code>ping 8.8.8.8</code> échoue ; les autres postes ont Internet.</li><li>Windows : « Passerelle par défaut » vide ou fausse ; ping 8.8.8.8 → « PING : échec de la transmission. Défaillance générale. » (pas de route) ou « Délai d'attente » (passerelle fausse mais existante).</li><li>Linux :<pre class="fx-out">$ ip route
+192.168.50.0/24 dev enp3s0 proto kernel scope link src 192.168.50.40 metric 100
+$ ping -c 2 8.8.8.8
+ping: connect: Network is unreachable</pre></li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Passerelle non saisie (configuration statique incomplète).</li><li>Passerelle erronée : adresse d'un autre appareil (NAS, imprimante), ancienne box, faute de frappe.</li><li>Passerelle hors du réseau du poste (masque faux → P3.5).</li><li>Deux cartes actives avec deux passerelles (Wi-Fi + Ethernet sur des réseaux différents, VPN) : métrique qui envoie le trafic au mauvais endroit.</li><li>Filtrage sur la box (contrôle parental, blocage par MAC de ce poste).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Poste en adresse fixe ? Installé récemment ? Un VPN ? » Relever la configuration avant modification.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>ipconfig</code> / <code>ip route</code></strong> — attendu : passerelle = IP LAN du routeur (plan), ligne <code>default via 192.168.50.1 dev enp3s0</code>.<div class="fx-branch"><p class="fx-si"><b>SI</b> vide / pas de <code>default via</code> → cause confirmée : passerelle manquante.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong><code>ping</code> de la passerelle configurée</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> pas de réponse, ou elle répond mais <code>arp -a</code> montre une MAC qui n'est pas celle de la box → passerelle erronée (autre appareil).</p><p class="fx-sinon"><b>SINON</b> (la vraie box répond) → étape 3.</p></div></li>
+<li><strong><code>tracert -d 8.8.8.8</code></strong> — attendu : saut 1 = box, puis routeurs du FAI.<div class="fx-branch"><p class="fx-si"><b>SI</b> saut 1 = autre adresse (VPN 10.8.0.1, Wi-Fi d'un autre réseau) → table de routage / métriques : <code>route print</code>.</p><p class="fx-sinon"><b>SINON</b> (s'arrête après la box alors que les voisins passent) → filtrage spécifique au poste sur la box.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Ajout temporaire de la route par défaut : Windows <code>route add 0.0.0.0 mask 0.0.0.0 192.168.50.1</code> ; Linux <code>sudo ip route add default via 192.168.50.1</code> → ping 8.8.8.8 répond. Limite : ces ajouts ne survivent pas au redémarrage (ou à la reconnexion), ce n'est pas la correction.</p>
+<h4>6. Correction</h4>
+<ul><li>Windows : propriétés IPv4 → Passerelle par défaut 192.168.50.1 (ou repasser en DHCP) ; <code>netsh interface ipv4 set address name="Ethernet" static 192.168.50.40 255.255.255.0 192.168.50.1</code>.</li><li>Linux : Paramètres → Réseau → IPv4 manuel → Passerelle, ou <code>nmcli con mod "Connexion filaire 1" ipv4.gateway 192.168.50.1 ipv4.dns 192.168.50.10</code> puis <code>nmcli con up "Connexion filaire 1"</code> (Debian sans NetworkManager : ligne <code>gateway 192.168.50.1</code> dans <code>/etc/network/interfaces</code>, puis <code>sudo systemctl restart networking</code>).</li><li>Deux cartes : désactiver celle qui ne sert pas, ou ajuster la métrique.</li></ul>
+<h4>7. Validation</h4>
+<p><code>ip route</code> : <code>default via 192.168.50.1 dev enp3s0 proto static metric 100</code> ; ping 8.8.8.8, ping d'un nom ; redémarrer le poste et revérifier (persistance).</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« ip addr montre 192.168.50.40/24 et le lien UP : l'adressage local est correct, et le NAS (192.168.50.20) répond. ip route ne contient que la route du réseau local, sans ligne “default via” : le poste ne sait pas où envoyer les paquets destinés à l'extérieur, d'où le message “Network is unreachable” (rien n'est émis ; ce n'est pas un délai dépassé). Cause : passerelle non configurée lors de l'installation. Correction durable : dans la connexion NetworkManager, passerelle 192.168.50.1 et DNS 192.168.50.10, puis réactivation de la connexion. Vérification : ip route affiche “default via 192.168.50.1 dev enp3s0”, ping 8.8.8.8 puis ping d'un nom réussissent, et la configuration reste après redémarrage. »</p><p class="fx-lose"><b>Perd des points :</b> accuser le DNS alors que même l'IP 8.8.8.8 échoue ; proposer uniquement <code>ip route add</code> (non persistant) ; redémarrer la box alors que les autres postes ont Internet.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> En réseau ISOLÉ (deux PC en direct, mini-réseau sans Internet), une passerelle vide est NORMALE. La passerelle doit être dans le réseau du poste : 192.168.50.1 pour un poste en 192.168.50.0/24 ; écrire 192.168.1.1 « par habitude » est l'erreur classique d'examen.</div>
+</article>
+
+<article class="fx-proc" id="f4-dns">
+<h3>P3.7 — Ping par adresse OK, noms introuvables (DNS)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante pour l'utilisateur (« Internet ne marche pas ») mais réseau sain</p>
+<h4>1. Symptômes observables</h4>
+<ul><li><code>ping 8.8.8.8</code> répond ; <code>ping www.google.be</code> → « La requête Ping n'a pas pu trouver l'hôte www.google.be. Vérifiez le nom et essayez à nouveau. »</li><li>Navigateur : « Ce site est inaccessible – DNS_PROBE_FINISHED_NXDOMAIN » ou « …_BAD_CONFIG » ; Linux : « Temporary failure in name resolution ».</li><li>Variante interne : Internet OK mais <code>\\srv01</code> ou intranet.entreprise.local introuvables.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Serveur DNS saisi à la main faux ou disparu (ancien serveur, ancienne box).</li><li>Poste réglé sur un DNS public (8.8.8.8) dans un réseau à domaine : les noms internes ne sont pas connus des DNS publics.</li><li>Serveur DNS interne / box : service arrêté, redirecteurs cassés.</li><li>Cache DNS du poste avec une entrée erronée ou négative ; fichier <code>hosts</code> modifié (malware, ancien test).</li><li>Nom mal orthographié, enregistrement absent (nom interne jamais créé).</li><li>Port 53 bloqué par un pare-feu.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Tous les sites ou un seul ? Les noms internes aussi ? Tous les postes ? » Un seul site KO = souvent le site lui-même.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Confirmer que la connectivité IP est bonne</strong> : <code>ping 8.8.8.8</code> OK (sinon → P3.6 / P3.8).</li>
+<li><strong><code>ipconfig /all</code> → « Serveurs DNS »</strong> ; comparer avec le plan / un poste qui fonctionne.</li>
+<li><strong><code>nslookup www.google.be</code></strong> (utilise le DNS configuré).<pre class="fx-out">DNS request timed out.
+    timeout was 2 seconds.
+Serveur :   UnKnown
+Address:  192.168.50.5
+
+DNS request timed out.
+    timeout was 2 seconds.
+*** Le délai de la requête vers UnKnown a expiré</pre><div class="fx-branch"><p class="fx-si"><b>SI</b> délai expiré → le serveur DNS configuré ne répond pas (n'existe plus, éteint) : étape 4.</p><p class="fx-sinon"><b>SINON SI</b> « *** srv01 ne parvient pas à trouver www.exemple.be : Non-existent domain » → le serveur répond mais ne connaît pas le nom : nom erroné ou enregistrement manquant (ou serveur DNS public interrogé pour un nom interne).</p></div></li>
+<li><strong><code>nslookup www.google.be 1.1.1.1</code></strong> (force un autre serveur).<pre class="fx-out">Serveur :   one.one.one.one
+Address:  1.1.1.1
+
+Réponse ne faisant pas autorité :
+Nom :    www.google.be
+Addresses:  2a00:1450:400e:80d::2003
+          142.250.179.195</pre><div class="fx-branch"><p class="fx-si"><b>SI</b> réponse → la résolution fonctionne ailleurs : le serveur DNS configuré est en cause.</p><p class="fx-sinon"><b>SINON</b> → port 53 filtré (pare-feu, réseau d'entreprise qui impose son DNS).</p></div></li>
+<li><strong>Si nslookup répond mais le ping de nom échoue</strong> → cache local ou fichier hosts : <code>ipconfig /displaydns</code>, <code>type C:\Windows\System32\drivers\etc\hosts</code> (Linux <code>/etc/hosts</code>, <code>resolvectl status</code>).</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p><code>nslookup nom serveur_dns_correct</code> donne l'adresse alors que le serveur configuré échoue ; après correction, le ping par nom résout la bonne adresse. Limite : « Réponse ne faisant pas autorité » est NORMAL (le serveur relaie la réponse, il n'est pas propriétaire du domaine) — ce n'est pas une erreur.</p>
+<h4>6. Correction</h4>
+<ul><li>DNS = celui du plan : en réseau d'entreprise, le serveur DNS interne / contrôleur de domaine (qui relaie Internet) ; en petit réseau, la box (ou DHCP). Repasser en « Obtenir l'adresse des serveurs DNS automatiquement » si le DHCP distribue le bon.</li><li>Commande (admin) : <code>netsh interface ipv4 set dnsservers name="Ethernet" static 192.168.50.10 primary</code>.</li><li>Corriger l'option DNS dans le serveur DHCP si TOUS les postes ont la mauvaise valeur, puis <code>ipconfig /renew</code>.</li><li><code>ipconfig /flushdns</code> (vide le cache) ; restaurer le fichier hosts ; créer l'enregistrement manquant sur le serveur DNS interne.</li><li>Linux : <code>nmcli con mod … ipv4.dns 192.168.50.10 ipv4.ignore-auto-dns yes</code> ; <code>resolvectl flush-caches</code>.</li></ul>
+<h4>7. Validation</h4>
+<p><code>nslookup</code> sans serveur forcé répond ; <code>ping www.google.be</code> affiche « Envoi d'une requête 'ping' sur www.google.be [142.250.179.195] » ; nom interne résolu ; navigateur OK ; test sur un second poste si correction faite au DHCP.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le ping de la box (192.168.50.1) et de 8.8.8.8 répond : câble, adressage, passerelle et accès Internet fonctionnent. Le ping de www.exemple.be échoue avant tout envoi (“n'a pas pu trouver l'hôte”) : le nom n'est pas traduit en adresse. ipconfig /all montre le DNS 192.168.50.5, ancien serveur retiré ; nslookup vers ce serveur expire, alors que nslookup vers le serveur du réseau 192.168.50.10 renvoie l'adresse. Cause : DNS saisi manuellement et obsolète. Correction : DNS automatique (le DHCP distribue 192.168.50.10), ipconfig /renew et /flushdns. Vérification : nslookup et ping par nom réussissent, le site s'ouvre ; la mention “réponse ne faisant pas autorité” est normale. »</p><p class="fx-lose"><b>Perd des points :</b> conclure « pas d'Internet » ; mettre 8.8.8.8 comme DNS sur un poste de domaine (les noms internes cassent, jonction et GPO échouent) ; interpréter « Réponse ne faisant pas autorité » comme une panne.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Un seul site KO avec nslookup OK et ping IP OK → le site, le proxy ou un filtrage, pas le DNS. Un nom interne court (srv01) peut échouer alors que le FQDN (srv01.entreprise.local) répond → suffixe DNS manquant (option DHCP « nom de domaine » ou suffixe de la connexion). Après changement de l'IP d'un serveur, les postes gardent l'ancienne adresse en cache : <code>ipconfig /flushdns</code>.</div>
+</article>
+
+<article class="fx-proc" id="f4-internet">
+<h3>P3.8 — Plus aucun poste n'accède à Internet (panne générale)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : forte (toute l'activité) — priorité haute</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Tous les postes, filaires et Wi-Fi : « Pas d'accès Internet » ; le partage local et l'imprimante fonctionnent encore.</li><li>Box : voyant « Internet » / « DSL » / « Fibre » éteint, rouge ou clignotant ; voyant « LOS » rouge sur l'ONT fibre.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Panne ou maintenance du FAI, coupure de ligne (travaux).</li><li>Box plantée (ne route plus) ou désynchronisée ; câble WAN / jarretière fibre / câble téléphonique débranché.</li><li>Box remplacée/réinitialisée : identifiants de connexion non saisis.</li><li>Abonnement suspendu (facture impayée) → page du FAI.</li><li>Si la box ne répond même pas au ping : switch central sans courant, box éteinte.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Depuis quand ? Orage, travaux, coupure de courant ? Quelqu'un a-t-il touché à la box ? » Relever les voyants AVANT tout redémarrage (preuve pour le FAI). Prévenir les utilisateurs de la coupure pendant le redémarrage. Ne jamais faire un reset usine (perte de configuration : redirections, Wi-Fi, DHCP) sans sauvegarde et accord.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Sur un poste : <code>ping 192.168.1.1</code></strong> (box).<div class="fx-branch"><p class="fx-si"><b>SI</b> pas de réponse sur tous les postes → box éteinte/plantée ou switch central : vérifier alimentation et voyants du switch, puis de la box.</p><p class="fx-sinon"><b>SINON</b> (box OK) → étape 2.</p></div></li>
+<li><strong><code>ping 8.8.8.8</code> + <code>tracert -d 8.8.8.8</code></strong>.<pre class="fx-out">Détermination de l'itinéraire vers 8.8.8.8 avec un maximum de 30 sauts.
+
+  1    &lt;1 ms    &lt;1 ms    &lt;1 ms  192.168.1.1
+  2     *        *        *     Délai d'attente de la demande dépassé.
+  3     *        *        *     Délai d'attente de la demande dépassé.
+  4     *        *        *     Délai d'attente de la demande dépassé.</pre><div class="fx-branch"><p class="fx-si"><b>SI</b> seul le saut 1 (box) répond → panne côté WAN/FAI : étape 3.</p><p class="fx-sinon"><b>SINON</b> (s'arrête plus loin, ou 8.8.8.8 répond) → Internet par IP fonctionne : vérifier le DNS de la box (P3.7).</p></div></li>
+<li><strong>Interface de la box</strong> (http://192.168.1.1) : état de la synchronisation / connexion, adresse IP WAN, journal.<div class="fx-branch"><p class="fx-si"><b>SI</b> « non synchronisé » / pas d'IP WAN → vérifier câble WAN/fibre, page d'incidents du FAI (depuis un smartphone en 4G), redémarrer la box (après relevé).</p><p class="fx-sinon"><b>SINON</b> (connectée mais pas de trafic) → redémarrage, puis escalade FAI.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Le premier saut répond, les suivants non, sur PLUSIEURS postes ; l'état WAN de la box est déconnecté ; le portail d'incidents du FAI signale la panne. Limite : certains routeurs du FAI ne répondent jamais au tracert (des « * » isolés au milieu d'une route qui aboutit ne sont pas une panne).</p>
+<h4>6. Correction</h4>
+<ul><li>Rebrancher/réparer le câble WAN ; redémarrer la box (débrancher 30 s) ; ressaisir les identifiants de connexion fournis par le FAI.</li><li>Panne FAI : ouvrir un ticket (référence client, voyants relevés, heure de début), solution de secours (partage 4G) si l'activité l'exige ; informer les utilisateurs (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-escalade">→ Fiche 5 · Escalade</a>).</li></ul>
+<h4>7. Validation</h4>
+<p>Voyant Internet vert ; depuis deux postes (filaire et Wi-Fi) : ping 8.8.8.8, ping nom, navigation ; services dépendants (messagerie, VPN, imprimante cloud).</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Tous les postes sont touchés : je cherche une cause commune. Depuis le poste de l'accueil, la box 192.168.1.1 répond (le réseau local est sain), mais 8.8.8.8 ne répond pas ; tracert 8.8.8.8 s'arrête après le premier saut (la box). La panne est donc entre la box et Internet. Le voyant “Internet” de la box est rouge et l'interface indique “non synchronisé”. Je relève les voyants, je vérifie le câble de la ligne, puis je redémarre la box en prévenant les utilisateurs. Sans retour de la synchronisation, j'ouvre un ticket chez le FAI avec ces relevés. Validation : voyant vert, ping 8.8.8.8 et navigation depuis deux postes. »</p><p class="fx-lose"><b>Perd des points :</b> diagnostiquer chaque poste un par un ; reset usine de la box ; conclure sur un seul poste.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Box fonctionnelle mais son serveur DNS en panne : 8.8.8.8 répond, les noms non, sur tous les postes → c'est P3.7 pour tous (corriger temporairement le DNS distribué). Panne « Internet » uniquement en Wi-Fi → P3.25. Box neuve : son réseau LAN par défaut (ex. 192.168.0.0/24) diffère de l'ancien (192.168.1.0/24) → les adresses fixes (imprimante, NAS) ne sont plus dans le bon réseau (voir Dossier 4).</div>
+</article>
+
+<article class="fx-proc" id="f4-p-parefeu">
+<h3>P3.9 — Ping ou service bloqué par le pare-feu / profil réseau « Public »</h3>
+<p class="fx-sev">Fréquence : très fréquent (deux PC en direct, partage) · Gravité : faible, mais induit en erreur</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Ping d'un PC Windows allumé et bien adressé → « Délai d'attente de la demande dépassé ».</li><li>Partage / imprimante partagée inaccessible depuis un poste, réseau classé « Réseau public » (Paramètres → Réseau et Internet → Ethernet ou Wi-Fi → Type de profil réseau).</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Profil réseau Public : règles « Partage de fichiers et d'imprimantes » et écho ICMP désactivées.</li><li>Pare-feu tiers (antivirus) plus strict.</li><li>Règle d'entreprise (stratégie de groupe).</li><li>Hôte réellement absent (à distinguer !).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Ne jamais DÉSACTIVER le pare-feu comme correction : seulement comme test bref, sur réseau de confiance, puis le réactiver.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>ping</code> de la cible puis <code>arp -a</code></strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> l'IP de la cible apparaît avec sa MAC → elle est présente sur le segment et a répondu à l'ARP : c'est l'ICMP qui est filtré.</p><p class="fx-sinon"><b>SINON</b> → cible absente / autre réseau : revoir adressage, câble.</p></div></li>
+<li><strong>Sur la cible : type de profil réseau</strong> (PowerShell : <code>Get-NetConnectionProfile</code>).<div class="fx-branch"><p class="fx-si"><b>SI</b> NetworkCategory : Public → étape 3.</p><p class="fx-sinon"><b>SINON</b> → règles de pare-feu (wf.msc) ou pare-feu tiers.</p></div></li>
+<li><strong>Tester le service lui-même</strong> : <code>Test-NetConnection 192.168.10.1 -Port 445</code> → <code>TcpTestSucceeded : False/True</code>.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Activer la règle (ou le profil Privé) → le ping répond immédiatement ; le désactiver → délai dépassé. Limite : un ping qui répond ne prouve pas que le port 445 (partage) est ouvert, et inversement.</p>
+<h4>6. Correction</h4>
+<ul><li>Réseau de confiance : Type de profil réseau → <b>Privé</b> ; Paramètres réseau avancés → Paramètres de partage avancés → Activer la découverte du réseau et le partage de fichiers et d'imprimantes (profil Privé).</li><li>Ou règle ciblée : <code>netsh advfirewall firewall set rule group="Partage de fichiers et d'imprimantes" new enable=yes</code> (nom du groupe en français sur Windows FR) ; PowerShell : <code>Set-NetConnectionProfile -InterfaceAlias "Ethernet" -NetworkCategory Private</code>.</li></ul>
+<h4>7. Validation</h4>
+<p>Ping OK, port 445 True, accès au partage ; le pare-feu reste ACTIF (vérifier « Pare-feu Windows Defender : activé »).</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le ping de PC-ACCUEIL (192.168.10.1) répond “Délai d'attente de la demande dépassé” : la demande part (même réseau 192.168.10.0/24), mais aucune réponse ne revient. arp -a montre la MAC de PC-ACCUEIL : la machine est présente et a répondu à l'ARP, c'est donc son pare-feu qui bloque l'écho ICMP, la connexion étant classée “réseau public”. Je passe le profil en Privé (réseau de confiance) — sans désactiver le pare-feu — et le ping répond. »</p><p class="fx-lose"><b>Perd des points :</b> « je désactive le pare-feu » comme solution définitive ; conclure « PC éteint » ou « câble HS » sur un délai dépassé sans autre test.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Une imprimante ou une box peut aussi ignorer le ping tout en imprimant. Inversement, un serveur qui répond au ping peut avoir le partage bloqué (port 445) → message « chemin réseau introuvable » et non « accès refusé » (P3.17).</div>
+</article>
+
+<article class="fx-proc" id="f4-p-lent">
+<h3>P3.10 — Réseau lent, pertes de paquets, coupures intermittentes (filaire)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : variable ; difficile car intermittent</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Copies de fichiers lentes, visioconférence qui saccade, déconnexions de quelques secondes ; <code>ping -t</code> avec des « Délai d'attente » épisodiques ou des temps qui montent (1 ms → 300 ms).</li><li>État de la carte : vitesse 100 Mbit/s au lieu de 1 Gbit/s ; compteur d'erreurs.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Saturation : sauvegarde, mises à jour, téléchargement massif, Wi-Fi + filaire sur une liaison Internet faible.</li><li>Câble/connecteur abîmé ou mal serti (paire défectueuse → repli à 100 Mbit/s, erreurs CRC).</li><li>Négociation de vitesse/duplex incorrecte (duplex forcé d'un côté seulement).</li><li>Boucle sur le réseau (tempête de diffusion) → P3.14.</li><li>Conflit IP intermittent → P3.4 ; pilote/gestion d'énergie de la carte.</li><li>Hub ancien (domaine de collision partagé) encore en place.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« À quels moments ? Tous les postes ou un seul ? Une activité particulière (sauvegarde à 12 h) ? » Noter les horaires pour corréler.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>ping -t 192.168.1.1</code> pendant quelques minutes</strong> (Ctrl+C → statistiques).<pre class="fx-out">Statistiques Ping pour 192.168.1.1:
+    Paquets : envoyés = 300, reçus = 271, perdus = 29 (perte 9%),
+Durée approximative des boucles en millisecondes :
+    Minimum = 0ms, Maximum = 412ms, Moyenne = 23ms</pre><div class="fx-branch"><p class="fx-si"><b>SI</b> pertes vers la passerelle sur le LAN filaire → problème local (câble, port, carte, boucle, conflit) : étape 2.</p><p class="fx-sinon"><b>SINON</b> (LAN propre, seul Internet lent) → saturation de la liaison Internet : mesurer le débit, identifier le gros consommateur.</p></div></li>
+<li><strong>État de la connexion (ncpa.cpl → double-clic) : vitesse</strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> 100 Mbit/s avec matériel Gigabit → câble/prise à tester (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-testeur">→ Fiche 3 · Testeur</a>), changer le cordon, vérifier que le duplex est en « Négociation automatique » (Gestionnaire de périphériques → carte → Avancé → Speed &amp; Duplex).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Comparer avec un autre poste sur le même switch et sur un autre switch</strong> ; observer les voyants du switch (clignotement frénétique et simultané de tous les ports = boucle/tempête).</li>
+<li><strong>Gestion de l'alimentation de la carte</strong> (Gestionnaire de périphériques → Propriétés → Gestion de l'alimentation : décocher « Autoriser l'ordinateur à éteindre ce périphérique ») si coupures après inactivité.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Le défaut disparaît en changeant UN élément (cordon, port, duplex) et réapparaît en le remettant ; les pertes coïncident avec l'horaire d'une activité. Limite : intermittent = observer assez longtemps (au moins la durée habituelle entre deux coupures).</p>
+<h4>6. Correction</h4>
+<ul><li>Remplacer le cordon, réparer la prise ; remettre la négociation automatique des deux côtés ; supprimer la boucle ; remplacer le hub par un switch ; planifier sauvegardes/mises à jour hors heures ; mettre à jour le pilote.</li></ul>
+<h4>7. Validation</h4>
+<p>100 pings consécutifs sans perte, temps &lt; 1–2 ms sur le LAN ; vitesse de liaison 1 Gbit/s ; copie d'un gros fichier au débit attendu ; suivi sur la période où le défaut apparaissait.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Un ping continu vers la passerelle montre 9 % de pertes et des pics à 412 ms, uniquement sur ce poste filaire : le problème est local. La liaison est négociée à 100 Mbit/s alors que la carte et le switch sont Gigabit, signe d'une paire défectueuse. Je remplace le cordon de brassage : la liaison passe à 1 Gbit/s et 300 pings passent sans perte. Si le défaut persistait, je testerais la prise et le câble capillaire au testeur. »</p><p class="fx-lose"><b>Perd des points :</b> conclure sur un seul ping de 4 paquets ; changer la configuration IP pour une lenteur.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> « Lent » en Wi-Fi = autre procédure (P3.26). Lenteur à l'ouverture de session sur domaine = souvent DNS mal configuré (le poste cherche le DC via un DNS public), pas un débit. Lent vers un seul serveur = le serveur (disque, CPU), pas le réseau.</div>
+</article>
+
+<article class="fx-proc" id="f4-p-pile">
+<h3>P3.11 — Configuration correcte mais rien ne fonctionne : pile TCP/IP, Winsock, proxy, VPN</h3>
+<p class="fx-sev">Fréquence : rare à occasionnel · Gravité : bloquante pour le poste</p>
+<h4>1. Symptômes observables</h4>
+<ul><li><code>ping 127.0.0.1</code> échoue, ou ipconfig correct + ping IP OK mais navigateurs/applis réseau KO.</li><li>Après désinstallation d'un antivirus/VPN, infection, ou « optimiseur » réseau.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Proxy configuré (Paramètres → Réseau et Internet → Proxy) — applis web KO, ping OK.</li><li>Heure/date du PC fausse → erreurs de certificat HTTPS (« Votre horloge est en avance/retard »).</li><li>VPN resté connecté / carte virtuelle prioritaire.</li><li>Catalogue Winsock ou pile TCP/IP corrompu (127.0.0.1 KO).</li><li>Malware (fichier hosts, proxy imposé).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Qu'a-t-on installé/désinstallé récemment ? » Les réinitialisations effacent les réglages IP manuels : <b>relever la configuration (ipconfig /all) AVANT</b>.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>ping 127.0.0.1</code></strong>.<div class="fx-branch"><p class="fx-si"><b>SI</b> échec → pile TCP/IP : étape 5 (correction).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Proxy</strong> : « Utiliser un serveur proxy » activé sans raison ? (<code>netsh winhttp show proxy</code> pour le proxy système).</li>
+<li><strong>Date/heure</strong> et synchronisation (<code>w32tm /query /status</code>).</li>
+<li><strong>Cartes virtuelles</strong> (ncpa.cpl) : VPN, TAP, Hyper-V ; <code>route print</code> : route par défaut via le VPN ?</li>
+<li><strong>Analyse anti-malware</strong> et contrôle du fichier hosts.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Le symptôme disparaît après désactivation du proxy / correction de l'heure / déconnexion du VPN, ou après la réinitialisation de la pile. Limite : la réinitialisation corrige aussi d'autres choses — noter ce qui a été fait.</p>
+<h4>6. Correction</h4>
+<p class="fx-warn"><b>Attention</b> <code>netsh int ip reset</code> et <code>netsh winsock reset</code> effacent les adresses IP fixes, DNS et certains réglages réseau ; logiciels VPN/pare-feu tiers éventuellement à réinstaller. Prérequis : ipconfig /all sauvegardé, droits admin, redémarrage possible. Alternative prudente d'abord : désactiver/réactiver la carte, retirer le proxy, mettre à jour le pilote. Windows 10/11 propose aussi Paramètres → Réseau et Internet → Paramètres réseau avancés → Réinitialisation du réseau (réinstalle les cartes, même effet + redémarrage).</p>
+<pre class="fx-cmd">C:\&gt; netsh winsock reset
+C:\&gt; netsh int ip reset
+C:\&gt; ipconfig /flushdns
+C:\&gt; shutdown /r /t 0</pre>
+<h4>7. Validation</h4>
+<p>Ressaisir la configuration fixe éventuelle ; ping 127.0.0.1, passerelle, 8.8.8.8, nom ; navigation HTTPS sans alerte ; VPN qui se connecte/déconnecte correctement.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le ping de 127.0.0.1 échoue : la pile TCP/IP du poste elle-même est défaillante, indépendamment du câble et du réseau. Après avoir relevé la configuration (ipconfig /all), j'exécute en administrateur netsh winsock reset et netsh int ip reset, puis je redémarre. Je ressaisis la configuration fixe relevée, puis je refais la chaîne de tests : 127.0.0.1, propre IP, passerelle, 8.8.8.8 et un nom. »</p><p class="fx-lose"><b>Perd des points :</b> dire que ping 127.0.0.1 OK prouve que « la carte et le câble fonctionnent » (il ne teste ni l'un ni l'autre).</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Linux : <code>ping 127.0.0.1</code> KO = interface <code>lo</code> DOWN (<code>sudo ip link set lo up</code>). Un ping vers sa PROPRE IP qui répond ne teste pas non plus le câble (la réponse ne sort pas du poste).</div>
+</article>
+</section>

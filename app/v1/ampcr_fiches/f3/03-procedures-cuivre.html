@@ -1,0 +1,180 @@
+<section class="fx-sec" id="f3-proc-cuivre">
+<h2>3. Procédures cuivre : choisir, fabriquer, tester</h2>
+
+<article class="fx-proc" id="f3-choix">
+<h3>P3.1 — Choisir le câble d'une liaison (sujet « choisis et justifie le support »)</h3>
+<p class="fx-sev">Fréquence : très fréquent à l'examen · Gravité : un mauvais choix coûte un recâblage complet</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Énoncé avec débit, longueur, environnement (bureaux, atelier, variateurs, néons, ascenseur, local technique), contrainte entre bâtiments, budget.</li><li>Variante panne : installation existante qui ne tient pas le débit (10 Gb/s instable), erreurs en atelier.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Catégorie insuffisante pour le débit (Cat5e pour 10 Gb/s).</li><li>Longueur au-delà de 100 m de canal (90 m permanent + 10 m de cordons).</li><li>U/UTP dans un environnement à fortes perturbations.</li><li>Cuivre entre deux bâtiments (différence de potentiel de terre, foudre).</li><li>Blindé posé sans système blindé complet ni terre (pire que l'UTP).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Quel débit maintenant et dans 10 ans ? Quelle longueur réelle (trajet, pas à vol d'oiseau) ?</li><li>Quelles sources de perturbations et à quelle distance ? La baie est-elle reliée à la terre ?</li><li>Intérieur/extérieur, même bâtiment ou non ? Gaine LSZH exigée (lieux publics) ?</li></ul>
+<h4>4. Diagnostic pas à pas (règle de décision)</h4>
+<ol class="fx-steps">
+<li><strong>Longueur</strong> — attendu : canal ≤ 100 m. <div class="fx-branch"><p class="fx-si"><b>SI</b> &gt; 100 m ou deux bâtiments → fibre (passer à <a href="#f3-fibre-bilan">P6.2</a> pour le type et le module).</p><p class="fx-sinon"><b>SINON</b> → paire torsadée, étape suivante.</p></div></li>
+<li><strong>Débit → catégorie</strong> — 1 Gb/s : Cat5e minimum (Cat6 conseillé) ; 10 Gb/s : Cat6A sur 100 m. <div class="fx-branch"><p class="fx-si"><b>SI</b> 10 Gb/s sur Cat6 existant → possible seulement ≤ 55 m (37 m si beaucoup de câbles voisins) et après certification.</p><p class="fx-sinon"><b>SINON</b> → Cat6A pour toute installation neuve à 10 Gb/s.</p></div></li>
+<li><strong>Perturbations → blindage</strong> — faibles : U/UTP ; moyennes : F/UTP ; fortes : S/FTP ; Cat6A dense : U/FTP fréquent. <div class="fx-branch"><p class="fx-si"><b>SI</b> blindé → exiger prises, keystones, panneau et cordons blindés + terre de la baie.</p><p class="fx-sinon"><b>SINON</b> → U/UTP, séparation stricte des câbles d'énergie.</p></div></li>
+<li><strong>Conducteur</strong> — monobrin (« /1 » sur la gaine) pour le câble permanent poinçonné ; multibrin pour les cordons sertis.</li>
+<li><strong>Coaxial</strong> — seulement pour la vidéo/TV (75 Ω) ou la maintenance d'un ancien 10BASE2 (50 Ω), jamais pour un réseau neuf.</li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Catégorie</th><th>Bande</th><th>Débit sur canal 100 m</th><th>Décision</th></tr></thead>
+<tbody>
+<tr><td>Cat5</td><td>100 MHz</td><td>100 Mb/s (100BASE-TX)</td><td>À remplacer ; pas de garantie 1 Gb/s</td></tr>
+<tr><td>Cat5e</td><td>100 MHz</td><td>1 Gb/s (1000BASE-T)</td><td>Minimum pour 1 Gb/s</td></tr>
+<tr><td>Cat6</td><td>250 MHz</td><td>1 Gb/s ; 10 Gb/s ≤ 37–55 m</td><td>10 Gb/s seulement court et certifié</td></tr>
+<tr><td>Cat6A</td><td>500 MHz</td><td>10 Gb/s (10GBASE-T)</td><td>Choix d'une installation neuve 10 Gb/s</td></tr>
+</tbody></table></div>
+<h4>5. Test de confirmation</h4>
+<p>Le choix se prouve par la <b>certification</b> du lien posé dans la classe visée (Cat6A → classe EA). Limite : un testeur de continuité ne prouve ni catégorie ni débit.</p>
+<h4>6. Correction</h4>
+<p>Installation existante non conforme : raccourcir/reloger si longueur ; remplacer par Cat6A ou fibre si catégorie ; passer en blindé complet relié à la terre, ou éloigner (séparation : classe a 300 mm, b 100 mm, c 50 mm, d 10 mm ; classe inconnue = 300 mm), ou fibre si perturbations.</p>
+<h4>7. Validation</h4>
+<p>Rapport de certification PASS par lien, vitesse négociée attendue sur les équipements, absence d'erreurs pendant le fonctionnement des machines perturbatrices.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Serveur à 10 Gb/s, 38 m, au-dessus de rotatives à variateurs »</p>
+<p>Longueur 38 m ≤ 100 m : la paire torsadée convient. Débit 10 Gb/s : Cat6A (10 Gb/s garantis sur 100 m) ; le Cat6 serait possible sur 38 m mais non garanti dans un environnement chargé, je ne le retiens pas. Perturbations fortes (variateurs) : S/FTP, écran global et écran par paire, dans un système blindé complet (keystones, panneau, cordons blindés) relié à la terre de la baie. Pose à distance des câbles d'énergie, croisement à angle droit. Validation : certification Cat6A PASS du lien.</p>
+<p class="fx-lose"><b>Perd des points :</b> « Cat6 car 10 Gb/s » sans nuance de longueur ; « STP » sans désignation X/YTP ; blindé sans parler de continuité et de terre ; oublier la justification par chaque contrainte.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> « FTP » et « STP » sont ambigus selon les fabricants : écris la désignation normalisée (F/UTP, U/FTP, S/FTP) et lis la fiche technique. Le marquage de gaine fait foi (ex. <code>CAT.6A U/FTP 4x2xAWG23/1 500 MHz LSZH</code> : Cat6A, écran par paire, monobrin).</div>
+<div class="fx-trap"><b>Piège</b> Entre deux bâtiments, même à 60 m : fibre, pas cuivre (isolation électrique). La longueur seule ne suffit pas à décider.</div>
+</article>
+
+<article class="fx-proc" id="f3-rj45">
+<h3>P3.2 — Fabriquer et contrôler un cordon RJ45 (T568A / T568B)</h3>
+<p class="fx-sev">Fréquence : très fréquent (question quasi certaine) · Gravité : lien absent ou dégradé</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Sujet « décris la réalisation d'un câble RJ45 avec le code des couleurs ».</li><li>Cordon fait maison : pas de lien, 100 Mb/s, wiremap en défaut, fiche qui se décroche, gaine qui sort de la fiche.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Ordre des couleurs faux (inversion de deux fils, paires rangées côte à côte).</li><li>Fils pas en butée au fond de la fiche → circuit ouvert.</li><li>Gaine non pincée par la patte → fils qui travaillent, panne intermittente.</li><li>Fil entaillé au dénudage.</li><li>Fiche inadaptée (monobrin/multibrin, catégorie, blindée ou non, diamètre).</li><li>Normes différentes aux deux bouts (croisé involontaire).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Quelle norme utilise le site (T568A ou T568B) ? Droit ou croisé ? Quelle catégorie et quel blindage ?</li><li>Manchons enfilés <b>avant</b> de sertir. Lunettes au recoupage des fils.</li></ul>
+<p>Lecture de la fiche : contacts dorés vers toi, languette dessous, câble vers le bas → broche 1 à gauche, broche 8 à droite.</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Broche</th><th>T568A</th><th>T568B</th><th>Paire (position)</th><th>Usage 10/100 Mb/s (carte)</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>blanc-vert</td><td>blanc-orange</td><td>1-2</td><td>TX+</td></tr>
+<tr><td>2</td><td>vert</td><td>orange</td><td>1-2</td><td>TX−</td></tr>
+<tr><td>3</td><td>blanc-orange</td><td>blanc-vert</td><td>3-6</td><td>RX+</td></tr>
+<tr><td>4</td><td>bleu</td><td>bleu</td><td>4-5</td><td>inutilisée (1 Gb/s : utilisée)</td></tr>
+<tr><td>5</td><td>blanc-bleu</td><td>blanc-bleu</td><td>4-5</td><td>inutilisée (1 Gb/s : utilisée)</td></tr>
+<tr><td>6</td><td>orange</td><td>vert</td><td>3-6</td><td>RX−</td></tr>
+<tr><td>7</td><td>blanc-marron</td><td>blanc-marron</td><td>7-8</td><td>inutilisée (1 Gb/s : utilisée)</td></tr>
+<tr><td>8</td><td>marron</td><td>marron</td><td>7-8</td><td>inutilisée (1 Gb/s : utilisée)</td></tr>
+</tbody></table></div>
+<p>Moyen mnémotechnique de contrôle : A et B ne diffèrent que par l'échange des paires <b>verte et orange</b> ; bleu sur 4-5 et marron sur 7-8 ne bougent jamais ; la paire 3-6 « enjambe » la paire bleue.</p>
+<pre class="fx-diagram">
+ T568B, vue contacts, languette dessous
+  1    2    3    4    5    6    7    8
+ b-or  or  b-ve  bl  b-bl  ve  b-ma  ma
+  └─1-2┘    │    └─4-5┘    │    └─7-8┘
+            └──── 3-6 ─────┘
+</pre>
+<h4>4. Diagnostic pas à pas (fabrication contrôlée)</h4>
+<ol class="fx-steps">
+<li><strong>Enfiler le manchon, couper franc, dénuder 25 à 30 mm</strong> en un seul tour de dénudeur — attendu : aucun conducteur entaillé. <div class="fx-branch"><p class="fx-si"><b>SI</b> un isolant est entaillé → recouper et recommencer (panne intermittente future).</p><p class="fx-sinon"><b>SINON</b> → retirer fil de déchirement et croisillon (Cat6) au ras de la gaine.</p></div></li>
+<li><strong>Détorsader le minimum, ranger dans l'ordre de la norme, aplatir</strong> — détorsadage ≤ 13 mm.</li>
+<li><strong>Recouper droit à 12–13 mm</strong> — attendu : 8 fils de même longueur, gaine qui entrera sous la patte.</li>
+<li><strong>Insérer jusqu'en butée</strong> — attendu : 8 cuivres visibles au bout de la fiche, ordre lisible à travers le corps. <div class="fx-branch"><p class="fx-si"><b>SI</b> un fil est en retrait ou l'ordre est faux → ressortir et corriger avant de sertir.</p><p class="fx-sinon"><b>SINON</b> → sertir à fond avec la pince adaptée.</p></div></li>
+<li><strong>Autre bout</strong> — même norme (droit) ou l'autre (croisé).</li>
+<li><strong>Contrôle mécanique puis testeur</strong> — légère traction sur la gaine ; wiremap 1→1…8→8.</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Wiremap conforme sur les 8 fils. Limite : un testeur à LED ne voit pas les paires séparées ; pour un cordon de production, qualification ou certification.</p>
+<h4>6. Correction</h4>
+<p>On ne « répare » pas une fiche sertie : on coupe derrière la fiche, on refait. On ne dénude jamais les fils un par un (les contacts percent l'isolant).</p>
+<h4>7. Validation</h4>
+<p>Wiremap conforme, traction OK, lien à la vitesse attendue sur l'équipement, étiquette si cordon de brassage repéré.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Décris la réalisation d'un cordon droit T568B »</p>
+<p>Matériel : câble multibrin de la catégorie voulue, 2 fiches RJ45 (8P8C) de même catégorie pour multibrin, 2 manchons, coupe-câble, dénudeur, pince à sertir, testeur. 1) Enfiler les manchons. 2) Couper franc, dénuder 25 à 30 mm sans entailler. 3) Détorsader le minimum et ranger, broche 1 à 8 : blanc-orange, orange, blanc-vert, bleu, blanc-bleu, vert, blanc-marron, marron. 4) Recouper droit à 12–13 mm. 5) Insérer jusqu'en butée, contacts vers soi, gaine sous la patte. 6) Contrôler l'ordre et la butée, sertir. 7) Même norme T568B à l'autre bout. 8) Traction légère, test au testeur : 1→1 à 8→8 sur les 8 fils. 9) Étiqueter.</p>
+<p class="fx-lose"><b>Perd des points :</b> une seule couleur fausse ; oublier les manchons ; oublier le test final ; écrire « blanc/vert » à la broche 1 en B.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Ranger les paires côte à côte (b-or, or, b-ve, ve, b-bl, bl, b-ma, ma) donne un wiremap parfait si les deux bouts sont identiques, mais les broches 3-6 et 4-5 ne sont plus sur une même paire torsadée : paires séparées, erreurs à 100 Mb/s, 1 Gb/s instable.</div>
+<div class="fx-trap"><b>Piège</b> Câble permanent monobrin : on ne sertit pas de fiche, on <b>poinçonne</b> keystone et panneau selon le repère A ou B imprimé, même norme aux deux bouts.</div>
+</article>
+
+<article class="fx-proc" id="f3-droit-croise">
+<h3>P3.3 — Droit, croisé ou Auto MDI-X : quel cordon pour quelle liaison</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : pas de lien entre deux équipements de même type sans MDI-X</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Liaison PC ↔ PC, switch ↔ switch, ou vieux hub sans lien avec un cordon droit.</li><li>Wiremap 1→3, 2→6, 3→1, 6→2.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Cordon droit entre deux équipements MDI (deux cartes) sans Auto MDI-X.</li><li>Cordon croisé involontaire (A d'un côté, B de l'autre) là où un droit était voulu — sans effet si MDI-X, mais non conforme.</li><li>Auto MDI-X désactivé sur un port forcé (vitesse/duplex forcés sur certains équipements).</li></ol>
+<h4>3. Questions initiales</h4>
+<ul><li>Quels équipements aux deux bouts ? Leur âge, leur vitesse ? Un port est-il configuré en vitesse fixe ?</li></ul>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Liaison</th><th>Sans Auto MDI-X</th><th>Avec Auto MDI-X (quasi tous les équipements 1 Gb/s)</th></tr></thead>
+<tbody>
+<tr><td>PC ↔ switch, PC ↔ box, routeur ↔ switch</td><td>Droit</td><td>Droit (conseillé) ou croisé</td></tr>
+<tr><td>PC ↔ PC, switch ↔ switch, routeur ↔ PC</td><td>Croisé</td><td>Droit ou croisé</td></tr>
+</tbody></table></div>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Croisé A/B : broche bout A</th><th>Couleur</th><th>Arrive broche bout B</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>blanc-vert</td><td>3</td></tr>
+<tr><td>2</td><td>vert</td><td>6</td></tr>
+<tr><td>3</td><td>blanc-orange</td><td>1</td></tr>
+<tr><td>6</td><td>orange</td><td>2</td></tr>
+<tr><td>4, 5, 7, 8</td><td>bleu, blanc-bleu, blanc-marron, marron</td><td>4, 5, 7, 8 (inchangées)</td></tr>
+</tbody></table></div>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Testeur sur le cordon</strong> — attendu : droit 1→1…8→8. <div class="fx-branch"><p class="fx-si"><b>SI</b> défaut (ouvert, court-circuit) → <a href="#f3-testeur">P3.4</a>.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Essayer un cordon croisé testé</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> le lien monte → au moins un équipement sans Auto MDI-X : conserver le croisé, l'étiqueter « croisé ».</p><p class="fx-sinon"><b>SINON</b> → ports/cartes : <a href="#f3-pas-de-lien">P4.1</a>.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Le lien monte avec le croisé et pas avec le droit testé bon → absence d'Auto MDI-X confirmée. Limite : un croisé A/B ne croise que 2 paires ; en 1 Gb/s on s'appuie sur l'Auto MDI-X (un croisé « gigabit » croise aussi 4-5 ↔ 7-8).</p>
+<h4>6. Correction</h4><p>Croisé ou switch intermédiaire ; réactiver l'auto-négociation (qui conditionne souvent l'Auto MDI-X).</p>
+<h4>7. Validation</h4><p>Voyants des deux côtés, vitesse attendue, puis tests IP (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-deux-pc">→ Fiche 4 · Connexion directe de deux PC</a>).</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Deux PC reliés en direct, pas de lien »</p><p>Observation : voyants éteints. Hypothèses : cordon défectueux ; cordon droit entre deux cartes sans Auto MDI-X ; carte désactivée. Test 1 : le cordon au testeur, wiremap 1→1 à 8→8, il est bon. Test 2 : cordon croisé (T568A d'un côté, T568B de l'autre) : le lien monte. Conclusion : au moins une carte sans Auto MDI-X, un droit relie émission sur émission. Correction : cordon croisé étiqueté. Validation : voyants, puis ping entre les deux adresses fixes du même réseau.</p>
+<p class="fx-lose"><b>Perd des points :</b> affirmer qu'un croisé est toujours obligatoire entre deux PC (faux avec Auto MDI-X) ; ne pas tester le cordon avant de conclure.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Un wiremap « croisé » sur un cordon de brassage n'est pas une panne si les équipements ont l'Auto MDI-X, mais c'est une non-conformité à corriger (documentation et prochains dépannages faussés).</div>
+</article>
+
+<article class="fx-proc" id="f3-testeur">
+<h3>P3.4 — Lire un testeur de câble et localiser le défaut</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : selon le défaut, lien absent, lent ou instable</p>
+<h4>1. Symptômes observables</h4>
+<p>Affichage wiremap du boîtier principal et du bouchon distant : LED 1 à 8, ou écran avec liens broche à broche, mention OPEN, SHORT, REVERSED, CROSSED, SPLIT, distance au défaut.</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Affichage</th><th>Défaut</th><th>Effet</th><th>Cause typique</th><th>Correction</th></tr></thead>
+<tbody>
+<tr><td>1→1 … 8→8</td><td>Conforme (droit)</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>Une broche sans arrivée (ex. 7 —)</td><td>Ouvert (open)</td><td>Sur 1,2,3,6 : pas de lien ; sur 4,5,7,8 : 100 Mb/s max ou pas de 1 Gb/s</td><td>Fil pas en butée, coupé, poinçon raté</td><td>Refaire la terminaison ; câble coupé → remplacer</td></tr>
+<tr><td>Deux broches allumées ensemble</td><td>Court-circuit (short)</td><td>Pas de lien sur la paire</td><td>Contacts écrasés, isolant percé</td><td>Nouvelle fiche ; tronçon écrasé</td></tr>
+<tr><td>1→2, 2→1</td><td>Paire inversée (reversed)</td><td>Polarité inversée ; lien souvent absent ou erreurs</td><td>Deux fils d'une paire permutés</td><td>Refaire la fiche fautive</td></tr>
+<tr><td>1→3, 2→6, 3→1, 6→2</td><td>Paires croisées (crossed)</td><td>Croisé au lieu d'un droit</td><td>A d'un côté, B de l'autre</td><td>Aligner la norme</td></tr>
+<tr><td>4→6, 6→4 (ex.)</td><td>Fils de paires différentes permutés</td><td>Paires 3-6 et 4-5 séparées : erreurs</td><td>Bleu et vert échangés à un bout</td><td>Refaire la fiche</td></tr>
+<tr><td>1→1 … 8→8 mais SPLIT (testeur qualif.)</td><td>Paire séparée</td><td>Diaphonie, erreurs, 1 Gb/s instable</td><td>Paires rangées côte à côte aux deux bouts</td><td>Refaire les deux fiches selon la norme</td></tr>
+<tr><td>Résultat qui change en bougeant</td><td>Intermittent</td><td>Coupures aléatoires</td><td>Fil entaillé, gaine non pincée</td><td>Nouvelle fiche ou câble</td></tr>
+</tbody></table></div>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Terminaison (fiche, keystone, panneau) : de loin la plus fréquente.</li><li>Cordon abîmé (patte cassée, écrasé par une chaise).</li><li>Câble permanent endommagé à la pose (agrafe, traction, rayon).</li><li>Testeur ou bouchon mal branché, pile faible.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Débrancher les deux bouts des équipements actifs (un testeur sur un port PoE ou actif peut fausser le résultat ou s'abîmer).</li><li>Tester d'abord le testeur avec un cordon de référence.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Auto-test avec cordon de référence</strong> — attendu : 1→1…8→8. <div class="fx-branch"><p class="fx-si"><b>SI</b> défaut → pile, bouchon, cordon de référence : régler avant tout.</p><p class="fx-sinon"><b>SINON</b> → tester l'élément suspect.</p></div></li>
+<li><strong>Cordon seul</strong>, puis <strong>lien permanent seul</strong> (panneau → prise, avec deux cordons de référence courts). <div class="fx-branch"><p class="fx-si"><b>SI</b> le défaut suit le cordon → cordon fautif.</p><p class="fx-sinon"><b>SINON</b> → défaut dans le lien permanent : étape 3.</p></div></li>
+<li><strong>Distance au défaut</strong> (testeur à réflectométrie) — attendu : localisation. <div class="fx-branch"><p class="fx-si"><b>SI</b> défaut à ~0 m ou à la longueur totale → terminaison de ce côté.</p><p class="fx-sinon"><b>SINON</b> → défaut dans le câble : inspecter le cheminement à cette distance.</p></div></li>
+<li><strong>Inspecter la terminaison désignée</strong> — comparer couleur par couleur à la norme (fiche transparente, repères A/B du keystone).</li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>Après réfection de la seule terminaison suspectée, le wiremap devient conforme : la cause est prouvée. Limite : un wiremap ne dit pas quelle extrémité est fausse sans lecture des fiches ou distance au défaut ; il ne prouve ni catégorie ni débit.</p>
+<h4>6. Correction</h4>
+<p>Couper et resertir (cordon) ; dépoinçonner/repoinçonner (keystone/panneau), torsades gardées jusqu'aux fentes ; câble endommagé dans le mur → remplacer le câble entier (pas de raboutage d'un lien permanent).</p>
+<h4>7. Validation</h4>
+<p>Wiremap conforme, longueur, puis certification si installation professionnelle ; rapport enregistré avec le repère du lien.</p>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue — « Le testeur affiche 1→1, 2→2, 3→3, 4→4, 5→5, 6→6, 7 —, 8→8 »</p>
+<p>Observation : circuit ouvert sur la broche 7 (blanc-marron), les autres conformes. Effet : la paire 7-8 est incomplète ; un lien à 100 Mb/s peut monter (paires 1-2 et 3-6) mais pas à 1 Gb/s, qui exige les 4 paires. Hypothèses : fil blanc-marron pas en butée ou contact non enfoncé à une fiche ; fil coupé. Test : inspection des deux fiches par transparence ; distance au défaut. Correction : recouper et resertir la fiche fautive. Validation : wiremap 8/8, lien négocié à 1 Gb/s.</p>
+<p class="fx-lose"><b>Perd des points :</b> « le câble est HS » ; oublier l'effet sur la vitesse ; ne pas dire quelle couleur est sur la broche 7.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Testeur de continuité (LED) ≠ testeur de qualification ≠ certificateur. Seul le certificateur délivre une preuve de catégorie à remettre au client.</div>
+<div class="fx-trap"><b>Piège</b> Deux défauts concomitants (une paire inversée à un bout + un ouvert à l'autre) : corrige un défaut, reteste, puis l'autre ; ne conclus pas sur le premier affichage.</div>
+</article>
+</section>

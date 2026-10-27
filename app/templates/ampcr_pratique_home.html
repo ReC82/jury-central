@@ -47,6 +47,15 @@ publié tant qu'une UAA de même code n'existe pas en base (voir app.v1.ampcr_pr
     </p>
 </div>
 
+<section aria-labelledby="fiches-title" class="mb-4" id="fiches">
+    <h2 id="fiches-title" class="h4 mb-2"><i class="bi bi-tools" aria-hidden="true"></i> Fiches de dépannage — révision</h2>
+    <p class="small text-muted mb-2">Un manuel de diagnostic et d'intervention par module (téléchargeable en HTML, imprimable en A4).
+        Chaque fiche est aussi proposée à la fin de son module.</p>
+    <div class="card jc-practical-card"><div class="card-body py-2">
+        {% include "_ampcr_fiches_list.html" %}
+    </div></div>
+</section>
+
 <section aria-labelledby="day-title" class="mb-4" id="consignes">
     <h2 id="day-title" class="h4 mb-2"><i class="bi bi-clipboard-check" aria-hidden="true"></i> Consignes du jour de l'examen</h2>
     <p class="small text-muted mb-3">
@@ -115,6 +124,12 @@ publié tant qu'une UAA de même code n'existe pas en base (voir app.v1.ampcr_pr
                 </li>
                 {% endfor %}
             </ol>
+            {% if item.fiches %}
+            <div class="jc-practical-fiche border rounded p-2 mb-3" id="fiche-{{ module.key }}">
+                <p class="small fw-bold mb-1"><i class="bi bi-wrench-adjustable" aria-hidden="true"></i> Fin de module — fiche de dépannage</p>
+                {% with only=item.fiches %}{% include "_ampcr_fiches_list.html" %}{% endwith %}
+            </div>
+            {% endif %}
             {% set theory_links = item.theory_codes | select('in', theory) | list %}
             {% if theory_links %}
             <p class="small mb-0"><span class="text-muted">Théorie déjà publiée&nbsp;:</span>

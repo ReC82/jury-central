@@ -1,0 +1,233 @@
+<section class="fx-sec" id="f1-proc-intervention">
+<h2>6. Procédures : périphériques, compatibilité, montage, remplacement, reconditionnement</h2>
+
+<article class="fx-proc" id="f1-usb">
+<h3>P1.20 — Périphérique (USB, écran, imprimante locale) qui ne fonctionne pas : panne, connexion ou logiciel ?</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : faible à moyenne</p>
+<h4>1. Symptômes observables</h4><ul><li>Aucun son de connexion, rien dans le Gestionnaire de périphériques ; ou périphérique vu avec triangle jaune / « Périphérique inconnu » ; ou fonctionne sur certains ports seulement ; déconnexions aléatoires.</li><li>Message « Périphérique USB non reconnu », « Surtension sur le port USB ».</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Câble ou port (poussière, connecteur abîmé, port de façade non raccordé : P1.21).</li><li>Alimentation insuffisante : disque 2,5 pouces externe sur hub non alimenté, câble trop long.</li><li>Périphérique défectueux.</li><li>Pilote absent ou incorrect (logiciel : Fiche 2).</li><li>Port désactivé dans l'UEFI, contrôleur USB, gestion d'énergie (Fiche 2).</li><li>Attente d'un débit : USB-C n'est qu'une forme ; le débit dépend de la norme (USB 2.0 480 Mbit/s, 5/10/20 Gbit/s, Thunderbolt/USB4 40 Gbit/s).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Depuis quand ? Sur quels ports ? Le périphérique marche-t-il ailleurs ? Données sur un support externe : ne pas débrancher pendant une écriture.</li></ul>
+<h4>4. Diagnostic pas à pas (la grille des quatre constats)</h4>
+<ol class="fx-steps"><li><strong>Le périphérique sur un autre PC.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> il ne marche nulle part (avec un autre câble aussi) → périphérique défectueux.</p><p class="fx-sinon"><b>SINON</b> (il marche ailleurs) → étape 2.</p></div></li>
+<li><strong>Un autre périphérique connu bon sur le même port.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'autre périphérique ne marche pas non plus → port/connexion : port arrière directement sur la carte mère, sans hub ni rallonge.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Gestionnaire de périphériques (<code>devmgmt.msc</code>) ou <code>lsusb</code> sous Linux.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> vu mais « inconnu » ou triangle jaune → pilote : <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-pilote">→ Fiche 2 · Pilotes</a>.</p><p class="fx-sinon"><b>SINON</b> (pas vu du tout, alors qu'il marche ailleurs) → alimentation (hub alimenté, câble en Y), réglage UEFI des ports USB, contrôleur.</p></div></li></ol>
+<h4>5. Test de confirmation</h4><p>La fonction réelle marche dans la configuration corrigée (impression d'une page, copie d'un fichier, saisie) et l'échec revient dans l'ancienne (même port, même câble).</p>
+<h4>6. Correction</h4><ul><li>Câble, port, hub alimenté, remplacement du périphérique ; pilote du fabricant (Fiche 2). Port arrière physiquement abîmé : ne plus l'utiliser, carte d'extension USB si besoin, escalade carte mère.</li></ul>
+<h4>7. Validation</h4><p>Fonction réelle testée, reconnexion après redémarrage, autres ports toujours fonctionnels.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le disque externe n'est pas reconnu sur le PC de l'accueil. Test 1 : sur mon portable, il fonctionne → le disque et son câble sont bons. Test 2 : une clé USB connue bonne sur le même port de façade ne fonctionne pas, mais fonctionne à l'arrière → le problème est la connexion de façade. Correction : brancher le disque à l'arrière (direct sur la carte mère) et, PC débranché, contrôler le câble USB de façade (P1.21). Validation : copie d'un fichier de 1 Go et relecture.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> réinstaller le pilote d'un périphérique qui ne marche nulle part ; conclure sur un seul essai.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Écran qui « ne marche pas » sur une prise USB-C : le port doit gérer la vidéo (DisplayPort Alt Mode/Thunderbolt) ; forme ≠ fonction.</div>
+<ul><li>Clavier qui fonctionne sous Windows mais pas dans l'UEFI : clavier sans mode compatible ou port USB 3 non initialisé tôt ; essayer un port USB 2.0.</li></ul>
+</article>
+
+<article class="fx-proc" id="f1-facade">
+<h3>P1.21 — Façade : bouton Power/Reset, LED, USB et audio de façade</h3>
+<p class="fx-sev">Fréquence : fréquent après montage · Gravité : faible</p>
+<h4>1. Symptômes observables</h4><ul><li>Bouton Power sans effet (LED veille allumée) ; LED d'activité éteinte ; ports USB ou prise casque de façade muets ; arrière fonctionnel.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Fils du connecteur de façade (F_PANEL) mal placés : POWER SW, RESET SW, POWER LED +/−, HDD LED +/−.</li><li>Câble USB 2.0 interne (9 broches), USB 3.x (19 broches) ou USB-C interne (Key-A) non branché.</li><li>HD Audio non branché (ou AC'97 sur ancien boîtier).</li><li>Bouton ou port de façade abîmé.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Montage récent ? PC débranché pour toute vérification des connecteurs.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Comparer le branchement au schéma F_PANEL du manuel.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> erreur → replacer ; LED : respecter +/− (une LED inversée reste éteinte, sans danger).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Démarrer en pontant les broches PWR_SW</strong> (geste d'atelier, tournevis isolé, rien d'autre touché).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> démarre → bouton ou fil de façade.</p><p class="fx-sinon"><b>SINON</b> → <a href="#f1-inerte">P1.1</a>.</p></div></li></ol>
+<h4>5. Test de confirmation</h4><p>Chaque fonction marche après rebranchement ; un port précis reste mort → port de façade abîmé.</p>
+<h4>6. Correction</h4><p>Rebranchement selon le manuel ; remplacement du module de façade ; câble interne neuf. Ne jamais forcer un connecteur USB 3.x 19 broches (broches fragiles, détrompeur).</p>
+<h4>7. Validation</h4><p>Power, Reset, LED, chaque port USB (clé), prise casque et micro testés.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Après le montage, les ports USB de façade ne fonctionnent pas alors que ceux de l'arrière fonctionnent : les ports et le système sont bons, la liaison de façade est en cause. PC débranché, bracelet, je constate que le câble USB 3.0 19 broches de la façade n'est pas branché sur la carte ; je le branche dans le bon sens (détrompeur). Validation : clé USB testée sur chaque port de façade.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> réinstaller les pilotes USB alors que l'arrière fonctionne.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Câble USB 2.0 de façade branché sur un connecteur COM ou TPM de même taille : détrompeur différent, lire la sérigraphie ; risque de dégâts.</div>
+</article>
+
+<article class="fx-proc" id="f1-compat">
+<h3>P1.22 — Vérifier la compatibilité avant un achat ou une évolution</h3>
+<p class="fx-sev">Fréquence : très fréquent (question d'examen type « devis ») · Gravité : coût d'une erreur de commande, PC qui ne démarre pas</p>
+<h4>1. Symptômes observables</h4><ul><li>Demande du client (« plus de mémoire », « nouvelle carte graphique », « SSD ») ; ou pièce reçue qui ne s'insère pas / n'est pas reconnue.</li></ul>
+<h4>2. Causes possibles (classées) d'incompatibilité</h4><ol><li>Mémoire : génération DDR3/DDR4/DDR5 (encoches différentes), DIMM vs SO-DIMM, capacité max par slot et totale, ECC/registered.</li><li>Processeur : socket ET liste des processeurs pris en charge (version du firmware).</li><li>Stockage : M.2 SATA vs NVMe par emplacement, longueur (2280), ports partagés.</li><li>Carte graphique : longueur et épaisseur dans le boîtier, puissance et connecteurs du bloc.</li><li>Format : carte mère (ATX, micro-ATX, Mini-ITX) vs boîtier ; hauteur du ventirad ; format du bloc.</li><li>Firmware/OS : mode UEFI, TPM 2.0 et processeur pris en charge pour Windows 11 (Fiche 2).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Fiches techniques exactes (modèle de carte mère, révision) ; besoin réel ; budget ; accord sur devis.</li></ul>
+<h4>4. Diagnostic pas à pas (grille à rédiger)</h4>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Point</th><th>Où lire</th><th>Critère de décision</th></tr></thead><tbody>
+<tr><td>Socket</td><td>Fiche CPU / manuel carte</td><td>Identique ET CPU dans la liste avec version de firmware</td></tr>
+<tr><td>Mémoire</td><td>Manuel carte (slots, max), étiquette barrette</td><td>Même génération, bon format, total ≤ max, idéalement kit identique de la QVL</td></tr>
+<tr><td>Bloc</td><td>Étiquette, fiche carte graphique</td><td>Somme des puissances + 30 % ≤ puissance ; connecteurs PCIe/EPS présents</td></tr>
+<tr><td>Carte graphique</td><td>Fiche (longueur, emplacements), boîtier</td><td>Longueur ≤ max du boîtier, emplacement x16 libre</td></tr>
+<tr><td>Stockage</td><td>Manuel carte (M.2, ports partagés)</td><td>Interface acceptée, port non désactivé</td></tr>
+<tr><td>Format</td><td>Fiches carte, boîtier, ventirad</td><td>Carte ≤ format boîtier, hauteur ventirad ≤ max</td></tr>
+</tbody></table></div>
+<h4>5. Test de confirmation</h4><p>Chaque critère est coché avec la valeur lue ; après montage, la pièce est reconnue dans l'UEFI et testée.</p>
+<h4>6. Correction</h4><p>Choisir l'option conforme ; refuser l'option non conforme en expliquant pourquoi ; mise à jour du firmware si requise (précautions P1.3).</p>
+<h4>7. Validation</h4><p>UEFI (capacité, fréquence, pièce détectée), tests de charge, températures.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Kit 1 (2 × 16 Go DDR5-5600, même référence que les barrettes installées) : compatible — DDR5 comme la carte, 4 slots dont 2 libres, total 64 Go ≤ maximum de 128 Go, kit identique (même fréquence). Kit 2 (2 × 32 Go DDR4-3200) : incompatible — la carte n'accepte que la DDR5, l'encoche des DDR4 est placée différemment et la barrette ne peut pas s'insérer ; ne jamais forcer. Je retiens le kit 1, à installer selon le manuel, puis contrôle dans l'UEFI (64 Go) et test mémoire.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> « compatible » sans citer le critère et la valeur ; oublier la version du firmware pour un processeur ; ignorer la longueur d'une carte graphique.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Même socket ≠ compatible : un processeur plus récent peut exiger une mise à jour du firmware.</div></article>
+
+<article class="fx-proc" id="f1-budget">
+<h3>P1.23 — Dimensionner un bloc d'alimentation (calcul à poser)</h3>
+<p class="fx-sev">Fréquence : très fréquent à l'examen · Gravité : arrêts sous charge si erreur</p>
+<h4>1. Symptômes observables</h4><ul><li>Évolution d'une configuration (carte graphique) ; arrêts sous charge (P1.10).</li></ul>
+<h4>2. Éléments du calcul</h4><ol><li>Puissance maximale de chaque composant (fiches) : CPU, carte graphique, carte mère, mémoire, disques, ventilateurs, USB.</li><li>Marge de 30 % (convention du cours : pics, vieillissement, rendement optimal vers 50 à 60 % de charge).</li><li>Puissance recommandée par le fabricant de la carte graphique (souvent plus élevée : elle prend une configuration typique).</li><li>Connecteurs : EPS, PCIe (6 broches 75 W, 8 broches 150 W, emplacement x16 75 W), 12V-2x6 (jusqu'à 600 W), SATA.</li></ol>
+<h4>3. Questions initiales</h4><ul><li>Bloc actuel : puissance, certification, modularité, nombre de câbles PCIe ; format du boîtier.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Somme</strong> des puissances maximales.</li><li><strong>× 1,3</strong> → puissance minimale ; arrondir à la gamme supérieure (550, 650, 750, 850 W…).</li><li><strong>Comparer</strong> au bloc existant et à la recommandation du fabricant de la carte ; retenir la plus élevée.</li><li><strong>Compter les connecteurs</strong> requis.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> puissance ou connecteurs insuffisants → nouveau bloc.</p><p class="fx-sinon"><b>SINON</b> → bloc conservé (vérifier son âge et son état).</p></div></li></ol>
+<h4>5. Test de confirmation</h4><p>Après installation : charge combinée CPU + GPU 30 min sans arrêt.</p>
+<h4>6. Correction</h4><p>Remplacement selon P1.10, câbles du nouveau bloc uniquement.</p>
+<h4>7. Validation</h4><p>Charge combinée, tensions dans la tolérance.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Puissances maximales : CPU 180 W + carte graphique 285 W + carte mère 50 W + mémoire 20 W + SSD 10 W + disque dur 10 W + ventilateurs 15 W = 570 W. Avec 30 % de marge : 570 × 1,3 = 741 W. Le fabricant de la carte conseille 750 W. Le bloc actuel (550 W, un seul câble PCIe 6+2) est insuffisant en puissance et en connecteurs (la carte en demande deux). Je propose un bloc ATX 750 W 80 PLUS Gold avec au moins deux câbles PCIe 6+2 séparés, compatible avec le boîtier (bloc en bas, ATX).</p></div>
+<p class="fx-lose"><b>Perd des points :</b> oublier la marge ou les connecteurs ; additionner les puissances « typiques » au lieu des maximales.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Puissance du bloc = puissance qu'il <em>fournit</em> ; la puissance prise au secteur est plus élevée (rendement). Ne pas confondre avec la certification 80 PLUS.</div></article>
+
+<article class="fx-proc" id="f1-montage">
+<h3>P1.24 — Monter un PC et réussir le premier démarrage (corriger un montage)</h3>
+<p class="fx-sev">Fréquence : très fréquent (procédure à rédiger) · Gravité : composants abîmés si erreur de geste</p>
+<h4>1. Symptômes observables (premier démarrage incomplet)</h4><ul><li>Rien ; démarrage 1 s puis arrêt ; ventilateurs sans image ; mémoire incomplète ; disque absent ; « CPU Fan Error » ; surchauffe immédiate.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Symptôme</th><th>Erreur de montage la plus probable</th><th>Vérification (PC débranché)</th></tr></thead><tbody>
+<tr><td>Rien</td><td>Interrupteur du bloc, ATX 24, POWER SW</td><td>I, clip ATX 24, F_PANEL selon manuel</td></tr>
+<tr><td>1 s puis arrêt</td><td>EPS absent, entretoise/vis en court-circuit</td><td>EPS 4+4, entretoises = trous</td></tr>
+<tr><td>Pas d'image</td><td>Barrette pas au clic, écran sur carte mère, PCIe non branché</td><td>LED, clips, sortie</td></tr>
+<tr><td>Écran noir long</td><td>Entraînement mémoire (normal)</td><td>Attendre plusieurs minutes</td></tr>
+<tr><td>Mémoire incomplète</td><td>Barrette mal enfoncée, mauvais slots</td><td>Clips, slots du manuel</td></tr>
+<tr><td>Disque absent</td><td>Câble SATA, M.2 non vissé, port partagé</td><td>Câbles, vis, manuel</td></tr>
+<tr><td>Surchauffe immédiate</td><td>Film du ventirad, pâte, serrage, CPU_FAN</td><td>Démonter, nettoyer, pâte neuve</td></tr>
+<tr><td>CPU Fan Error</td><td>Ventilateur sur SYS_FAN</td><td>CPU_FAN</td></tr>
+</tbody></table></div>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Poste de travail dégagé, tapis et bracelet ESD, tournevis cruciformes PH1/PH2 (pas de visseuse), bac à vis, lampe ; inventaire et compatibilité vérifiés (P1.22) ; manuels ouverts.</li></ul>
+<h4>4. Procédure de montage (ordre et raison)</h4>
+<ol class="fx-steps">
+<li><strong>Carte mère sur son carton antistatique : processeur</strong> (triangle doré sur le repère, pose verticale sans pression, levier fermé ; capot LGA conservé). — Raison : accès facile, carte qui ne fléchit pas.</li>
+<li><strong>Mémoire</strong> dans les slots du manuel (souvent A2/B2), jusqu'au clic. — Raison : avant le ventirad qui peut masquer les slots.</li>
+<li><strong>SSD M.2</strong> : entretoise à la bonne longueur, insertion à 30°, vis.</li>
+<li><strong>Pâte et ventirad</strong> : noisette au centre (sauf pâte pré-appliquée), film retiré, serrage en croix, câble sur CPU_FAN. (Plaque arrière ou AIO : suivre la notice, ordre adapté.)</li>
+<li><strong>Boîtier</strong> : entretoises comparées aux trous de la carte, plaque d'E/S clipsée.</li>
+<li><strong>Carte mère</strong> posée en biais puis à plat, vissée sans forcer.</li>
+<li><strong>Bloc</strong> (ventilateur vers le filtre), <strong>disques</strong> (données SATA + alimentation SATA).</li>
+<li><strong>Carte graphique</strong> dans le premier x16, clip, équerre vissée, tous les connecteurs d'alimentation. — Raison : en dernier car elle masque les connecteurs.</li>
+<li><strong>Câblage</strong> : ATX 24, EPS, façade (F_PANEL, USB, audio), ventilateurs ; rangement.</li>
+<li><strong>Contrôle visuel</strong> point par point, puis <strong>premier démarrage boîtier ouvert</strong> ; attendre l'entraînement mémoire.</li>
+<li><strong>UEFI comparé au bon de montage</strong> : CPU, mémoire totale, disques, température CPU au repos, vitesse CPU_FAN, date/heure ; XMP/EXPO activé seulement après validation de la stabilité.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Chaque écart UEFI ↔ bon de montage a une cause de montage identifiée et corrigée (un seul changement à la fois, PC débranché).</p>
+<h4>6. Correction</h4><p>Toute correction PC débranché, bracelet ; on soupçonne le montage avant les pièces neuves ; si tout est conforme → démarche P1.1 à P1.5.</p>
+<h4>7. Validation</h4><p>Tests avant remise : mémoire (plusieurs passes), SMART, températures repos/charge, ports et façade, stabilité 30 min ; compte rendu chiffré.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Premier démarrage : l'UEFI affiche 16 Go au lieu de 32 Go, aucun SSD M.2 et une température de 88 °C au repos. Trois écarts, trois causes de montage probables : barrette en B2 pas enfoncée jusqu'au clic ; SSD M.2 non vissé (ressorti de son connecteur) ; film plastique laissé sous le ventirad ou pâte absente. PC débranché, bracelet : je réenfonce la barrette, je réinsère et visse le M.2, je démonte le ventirad, retire le film, nettoie et pose une pâte neuve, serrage en croix. Contrôle : 32 Go, SSD détecté, 35 °C au repos ; puis tests de remise.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> installer le processeur sur une carte déjà dans le boîtier sans raison ; « ça marche » à la première image sans comparer l'UEFI ; oublier le film du ventirad, les entretoises, CPU_FAN.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Démontage : l'ordre est inverse, mais on photographie chaque câble avant de le débrancher et la pâte est renouvelée à chaque démontage du ventirad.</div></article>
+
+<article class="fx-proc" id="f1-remplacement">
+<h3>P1.25 — Remplacer un composant (procédure générique et cas fréquents)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : selon la pièce</p>
+<h4>1. Situation</h4><ul><li>Panne prouvée (test croisé, mesure) ou évolution acceptée par le client.</li></ul>
+<h4>2. Préalables (classés)</h4><ol><li>Panne confirmée, pas seulement soupçonnée.</li><li>Compatibilité vérifiée (P1.22).</li><li>Accord du client (pièce, prix, sort de la pièce retirée).</li><li>Sauvegarde si stockage/firmware concerné.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Garantie (ne pas ouvrir un matériel sous garantie sans accord : escalade fabricant) ; données ; état initial noté et photographié.</li></ul>
+<h4>4. Procédure</h4>
+<ol class="fx-steps"><li><strong>Préparer</strong> : sauvegarde, état initial, hors tension, ESD, photos.</li><li><strong>Démonter le nécessaire</strong> seulement.</li><li><strong>Remplacer</strong> avec les gestes adaptés (tableau).</li><li><strong>Remonter</strong> à l'identique (photos), pâte neuve si ventirad retiré.</li><li><strong>Contrôler</strong> ce qui a été touché ET ce qui marchait avant.</li><li><strong>Tracer</strong> : références et numéros de série des pièces posée et retirée, tests, résultat.</li></ol>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Pièce</th><th>Points d'attention</th><th>Contrôle après</th></tr></thead><tbody>
+<tr><td>Barrette</td><td>Génération, format, capacité, fréquence ; slots du manuel</td><td>Total UEFI, test mémoire</td></tr>
+<tr><td>SSD système</td><td>Clonage ou réinstallation (accord), entretoise, vis, ordre de démarrage</td><td>Démarrage, SMART, données</td></tr>
+<tr><td>Disque de données</td><td>Copie vérifiée avant, ancien disque effacé/détruit selon accord</td><td>Lettre, données relues</td></tr>
+<tr><td>Carte graphique</td><td>Longueur, alimentation, connecteurs ; ancien pilote</td><td>Image, pilote, charge 3D, température</td></tr>
+<tr><td>Ventirad / ventilateur</td><td>Fixation pour le socket, hauteur, pâte neuve, CPU_FAN</td><td>Températures repos/charge</td></tr>
+<tr><td>Bloc</td><td>Format, puissance, connecteurs, câbles du nouveau bloc</td><td>Tensions, charge 30 min</td></tr>
+<tr><td>Pile CMOS</td><td>Même référence (souvent CR2032), réglages notés</td><td>Date après débranchement</td></tr>
+<tr><td>Batterie de portable</td><td>Référence exacte du fabricant</td><td>Rapport de batterie</td></tr>
+</tbody></table></div>
+<h4>5. Test de confirmation</h4><p>Le symptôme d'origine a disparu dans les conditions où il apparaissait.</p>
+<h4>6. Correction / précautions</h4><p>Pièce retirée rendue au client ou recyclée (DEEE) ; disque retiré effacé ou détruit d'abord.</p>
+<h4>7. Validation</h4><p>Tests ciblés + non-régression (ports, réseau, son, autres disques).</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>1) Panne confirmée : le test mémoire montre des erreurs qui suivent la barrette n° 2. 2) Compatibilité : remplaçante DDR4-3200 DIMM 8 Go, même référence. 3) Accord du client sur le prix. 4) PC arrêté, interrupteur 0, débranché, bouton appuyé, bracelet relié. 5) Clips ouverts, barrette retirée par les bords, nouvelle barrette alignée sur le détrompeur, enfoncée jusqu'au clic. 6) Contrôle : 16 Go dans l'UEFI, test mémoire 4 passes sans erreur, démarrage du système, ports testés. 7) Rapport : références et numéros de série, barrette défectueuse rendue au client.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> remplacer sans preuve de panne ; ne tester que la pièce changée.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Remplacer « préventivement » plusieurs pièces à la fois : on ne sait plus laquelle était en cause et le coût explose.</div></article>
+
+<article class="fx-proc" id="f1-reconditionnement">
+<h3>P1.26 — Reconditionner un PC (et effacer les données de façon sûre)</h3>
+<p class="fx-sev">Fréquence : fréquent en atelier · Gravité : critique pour la vie privée (données du précédent utilisateur)</p>
+<h4>1. Situation</h4><ul><li>PC qui change de main (revente, don, réaffectation) : réception, diagnostic, données, nettoyage, pièces, mises à jour, tests, remise.</li></ul>
+<h4>2. Choisir la bonne opération</h4>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Demande</th><th>Opération</th><th>Données</th></tr></thead><tbody>
+<tr><td>Une panne à corriger, même client</td><td>Réparation</td><td>Conservées</td></tr>
+<tr><td>Système propre, même client</td><td>Remise à zéro / réinstallation</td><td>Sauvegardées puis restaurées ; pas d'effacement sûr nécessaire</td></tr>
+<tr><td>Nouvel utilisateur</td><td>Reconditionnement</td><td>Effacement sécurisé obligatoire</td></tr>
+<tr><td>Support qui part (recyclage, fin de location)</td><td>Effacement sécurisé ou destruction</td><td>Certificat</td></tr>
+</tbody></table></div>
+<h4>3. Questions initiales et sécurité</h4><ul><li><strong>Accord écrit du propriétaire</strong> (pas d'un proche ou d'un collègue) sur l'effacement ; sauvegarde vérifiée ou refus signé ; confidentialité (ne pas ouvrir les fichiers).</li></ul>
+<h4>4. Procédure</h4>
+<ol class="fx-steps"><li><strong>Réception</strong> : fiche (état extérieur, accessoires, numéros de série, demande).</li>
+<li><strong>Diagnostic initial avant toute action</strong> : POST, UEFI (CPU, mémoire, disques, températures), SMART, test mémoire si plantages, batterie, ports, poussière.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> pièce défectueuse coûteuse (carte mère) → chiffrer, rentabilité, accord.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Effacement adapté au support</strong> :
+<div class="fx-branch"><p class="fx-si"><b>SI</b> HDD → écrasement complet (une passe suffit sur un disque récent) ou commande d'effacement sécurisé du disque.</p><p class="fx-sinon"><b>SINON</b> si SSD → commande intégrée (Secure Erase, Sanitize, NVMe Format) via l'outil du fabricant ou le firmware, ou effacement cryptographique si chiffré ; support illisible → destruction par filière agréée.</p></div></li>
+<li><strong>Nettoyage</strong> (P1.27), <strong>pièces usées</strong> (P1.25), <strong>mises à jour</strong> firmware (si utile), système propre et pilotes (Fiche 2).</li>
+<li><strong>Tests de remise</strong> : mémoire, SMART, températures, ports, 30 min de stabilité, batterie.</li>
+<li><strong>Certificat d'effacement</strong> (support, numéro de série, technique, vérification, date, technicien, signature) et rapport de reconditionnement.</li></ol>
+<p class="fx-warn"><b>Attention</b> Formatage rapide, suppression de partitions ou « Réinitialiser ce PC » ne suffisent pas pour un support qui change de main (données souvent récupérables) ; et un écrasement multi-passes depuis Windows n'atteint pas les cellules de réserve d'un SSD. L'effacement est irréversible : jamais sans accord écrit du propriétaire.</p>
+<h4>5. Test de confirmation</h4><p>Vérification de l'effacement (outil de contrôle : aucune donnée lisible) consignée dans le certificat.</p>
+<h4>6. Correction</h4><p>Selon diagnostic : pièces, nettoyage, pâte, batterie ; système propre.</p>
+<h4>7. Validation</h4><p>Check-list de remise comparée à la fiche de réception ; valeurs notées (« RAM 4 passes 0 erreur », « SMART : pending 0 », « CPU 78 °C après 30 min, limite 100 °C »).</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le portable part chez un nouvel employé : c'est un reconditionnement, l'effacement sécurisé est obligatoire. Accord écrit du responsable propriétaire obtenu, données déjà archivées sur le serveur (vérifié). Diagnostic : SMART du SSD NVMe sain (usure 12 %), batterie à 71 % de sa capacité d'origine → à remplacer (seuil du cours 80 %). Effacement : commande Sanitize du SSD via l'outil du fabricant (un écrasement logiciel n'atteindrait pas toutes les cellules), vérification, certificat. Puis nettoyage, batterie neuve de référence exacte, système propre, tests de remise et rapport.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> « je formate » comme effacement ; sept passes d'écrasement sur un SSD ; effacer sur demande téléphonique d'un tiers ; pas de certificat.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Réinstaller avant d'avoir lu le SMART : si le disque meurt pendant l'opération, les données sont perdues et le travail est à refaire.</div></article>
+
+<article class="fx-proc" id="f1-entretien">
+<h3>P1.27 — Entretien préventif et nettoyage avec mesures avant/après</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : faible si bien fait, casse si mal fait</p>
+<h4>1. Symptômes observables</h4><ul><li>PC/portable bruyant et chaud, poussière visible, ralentissements en charge, PC jamais nettoyé depuis des années.</li></ul>
+<h4>2. Causes possibles</h4><ol><li>Poussière (filtres, radiateurs), pâte sèche, ventilateur usé, flux d'air, environnement (sol, animaux, tabac).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Relever températures repos/charge AVANT ; garantie (portable : ouverture autorisée ?) ; PC débranché, batterie de portable déconnectée si la notice le prévoit, bracelet ESD.</li></ul>
+<h4>4. Procédure</h4>
+<ol class="fx-steps"><li><strong>Mesure avant</strong> : repos et charge (durée fixe, ex. 15 min), fréquence, ventilateurs.</li>
+<li><strong>Nettoyage</strong> : air sec par courtes impulsions, bombe droite, pales bloquées ; souffler vers l'extérieur ; pinceau antistatique ; filtres lavés à part et secs ; alcool isopropylique et chiffon non pelucheux pour contacts et pâte. Interdits : aspirateur ménager, eau, produits ménagers, visseuse.</li>
+<li><strong>Pâte neuve</strong> si le ventirad/radiateur est démonté ; ventilateur bruyant remplacé.</li>
+<li><strong>Flux d'air</strong> : entrée avant/bas, sortie arrière/haut ; câbles rangés.</li>
+<li><strong>Mesure après</strong> : mêmes conditions.</li></ol>
+<h4>5. Test de confirmation</h4><p>Écart mesuré avant/après dans les mêmes conditions.</p>
+<h4>6. Correction</h4><p>Gestes ci-dessus ; conseils : emplacement aéré, portable sur surface dure, nettoyage périodique.</p>
+<h4>7. Validation</h4><p>Tableau avant/après avec la limite de la fiche ; 30 min de charge sans arrêt.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Avant : 96 °C après 15 min de charge (limite 100 °C, donc « à surveiller » selon la marge de 10 °C), fréquence en baisse. Nettoyage PC débranché, batterie déconnectée, bracelet : grilles et radiateur à l'air sec par impulsions, ventilateur bloqué, ancienne pâte retirée à l'alcool isopropylique, pâte neuve. Après : 81 °C dans les mêmes conditions, fréquence stable. Conseil : utiliser le portable sur une surface dure, nettoyage annuel.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> pas de valeurs ; mesure après dans d'autres conditions ; aspirateur ; bombe inclinée (gaz liquide très froid).</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Ventilateur entraîné par l'air comprimé = il tourne trop vite et peut renvoyer du courant dans la carte / abîmer ses paliers : le bloquer.</div></article>
+
+<article class="fx-proc" id="f1-intermittent">
+<h3>P1.28 — Panne intermittente ou pannes concomitantes : isoler méthodiquement</h3>
+<p class="fx-sev">Fréquence : moyen · Gravité : élevée (longue à diagnostiquer, perte de confiance)</p>
+<h4>1. Symptômes observables</h4><ul><li>Panne non reproductible devant le technicien ; plusieurs symptômes à la fois (écran noir ET disque absent) ; panne qui « change » après une première correction.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Contact (barrette, câble SATA, connecteur d'alimentation, carte graphique).</li><li>Thermique (apparaît après X minutes).</li><li>Alimentation (pics de charge, secteur).</li><li>Deux pannes indépendantes (après orage, chute, montage bâclé).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Quand (heure, durée d'utilisation, charge, à froid), fréquence, ce qui précède ; journal de l'utilisateur ; photos/vidéo de l'écran d'erreur.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Reproduire</strong> : mêmes conditions (charge, durée, température), durée d'observation supérieure à l'intervalle habituel de la panne.</li>
+<li><strong>Corréler</strong> : températures, tensions, journal (heures), SMART.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> corrélation avec la chaleur → P1.8 ; avec la charge GPU → P1.10/P1.11 ; avec les mouvements/vibrations → connecteurs.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Isoler</strong> : configuration minimale, puis réintroduction ; pièce connue bonne une à une ; tests longs (mémoire plusieurs passes, charge 1 h).</li>
+<li><strong>Pannes multiples</strong> : traiter de la plus basse étape de la chaîne vers la plus haute (alimentation → POST → affichage → stockage) ; noter chaque panne séparément avec sa preuve.</li></ol>
+<h4>5. Test de confirmation</h4><p>Absence de panne pendant une durée nettement supérieure à l'intervalle observé, avec les mêmes conditions.</p>
+<h4>6. Correction</h4><p>Une correction par cause prouvée, tracée.</p>
+<h4>7. Validation</h4><p>Test long, suivi avec l'utilisateur (rappel après quelques jours).</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>La panne n'apparaît qu'après environ 40 min de jeu ; elle ne s'est pas produite pendant un test de 10 min. Je reproduis 1 h de charge en relevant les températures CPU/GPU et les tensions : à 47 min, la carte graphique atteint 93 °C et l'écran devient noir, CPU et tensions normaux. La panne est liée à la chaleur de la carte graphique : radiateur encrassé. Après nettoyage, 1 h 30 de charge sans incident, GPU à 76 °C.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> conclure « pas de panne constatée » après un test trop court ; corriger plusieurs choses à la fois.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Après une première correction, un nouveau symptôme peut révéler une seconde panne masquée par la première : remonter la chaîne de démarrage, ne pas annuler la première correction.</div></article>
+
+<article class="fx-proc" id="f1-batterie">
+<h3>P1.29 — Portable : batterie usée ou gonflée</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : faible (usure) à danger (gonflement : risque d'incendie)</p>
+<h4>1. Symptômes observables</h4><ul><li>Autonomie très réduite, extinction à 20 à 30 % affichés ; pavé tactile soulevé, coque déformée, clavier bombé (gonflement).</li></ul>
+<h4>2. Causes possibles</h4><ol><li>Usure (cycles, chaleur).</li><li>Gonflement (vieillissement, chaleur, choc).</li><li>Chargeur inadapté, connecteur de charge (rare).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Gonflement : ne plus charger, ne pas percer, plier ni comprimer, déconnecter si possible sans contrainte, stocker dans un contenant ininflammable, filière spécialisée.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps"><li><strong>Inspection visuelle</strong> (gonflement prioritaire sur tout le reste).</li>
+<li><strong>Rapport de batterie</strong> : <code>powercfg /batteryreport</code> (Windows, invite de commandes) → fichier battery-report.html : capacité d'origine (DESIGN CAPACITY), capacité à pleine charge (FULL CHARGE CAPACITY), nombre de cycles.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> capacité restante = pleine charge ÷ origine × 100 &lt; 80 % (convention du cours) → à remplacer.</p><p class="fx-sinon"><b>SINON</b> → chercher la consommation (luminosité, logiciels : Fiche 2).</p></div></li></ol>
+<pre class="fx-cmd">C:\&gt; powercfg /batteryreport /output C:\temp\batterie.html</pre>
+<pre class="fx-out">DESIGN CAPACITY          56 000 mWh
+FULL CHARGE CAPACITY     38 080 mWh
+CYCLE COUNT              612</pre>
+<p>Lecture : 38 080 ÷ 56 000 × 100 = 68 % → sous 80 % : batterie à remplacer.</p>
+<h4>5. Test de confirmation</h4><p>Deux rapports cohérents ; autonomie mesurée.</p>
+<h4>6. Correction</h4><p>Batterie de référence exacte du fabricant, pose hors tension ; ancienne batterie en filière (jamais à la poubelle).</p>
+<h4>7. Validation</h4><p>Nouveau rapport (capacité proche de l'origine), charge complète, autonomie.</p>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le rapport indique 38 080 mWh pour 56 000 mWh d'origine, soit 68 % : sous le seuil de 80 %, la batterie est à remplacer. Aucun gonflement constaté. Je commande la référence exacte du fabricant pour ce modèle, je la pose chargeur débranché, et je vérifie un nouveau rapport et l'autonomie.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> continuer à charger une batterie gonflée ; batterie « compatible qui ressemble ».</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Une batterie gonflée est remplacée quelle que soit sa capacité restante.</div></article>
+</section>

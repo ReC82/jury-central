@@ -1,0 +1,72 @@
+<section class="fx-sec" id="f4-demarche">
+<h2>1. Face à un problème réseau : la démarche en 60 secondes</h2>
+<ol class="fx-steps">
+<li><strong>Délimiter le périmètre (10 s)</strong> — UN poste ou TOUS les postes ? Filaire, Wi-Fi ou les deux ? Tout Internet, un seul site, un nom interne, un partage, une imprimante ? Depuis quand, après quel changement (nouvelle box, déménagement de bureau, mise à jour, nouveau mot de passe Wi-Fi, poste neuf) ?
+<div class="fx-branch"><p class="fx-si"><b>SI</b> tous les postes sont touchés → la cause est COMMUNE : box/FAI, switch, serveur DHCP/DNS, contrôleur de domaine, serveur de fichiers. Commence par l'équipement partagé.</p><p class="fx-sinon"><b>SINON</b> (un seul poste) → la cause est LOCALE : câble/prise/port, carte, configuration IP, pare-feu, profil réseau, compte, profil Wi-Fi. Compare avec un poste qui fonctionne.</p></div></li>
+<li><strong>Regarder avant de taper (10 s)</strong> — icône réseau (globe barré, croix rouge, triangle « Pas d'accès Internet »), voyants de la carte et du port de switch, état du Wi-Fi (SSID connecté, barres de signal).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> pas de voyant de lien / « Câble réseau non connecté » → couche physique : <a href="#f4-p-lien">P3.1</a> puis <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-testeur">→ Fiche 3 · Testeur</a>.</p><p class="fx-sinon"><b>SINON</b> lien présent → passe à la configuration IP.</p></div></li>
+<li><strong>Lire la configuration IP (15 s)</strong> — <code>ipconfig /all</code> (Windows) ou <code>ip addr</code> + <code>ip route</code> + <code>resolvectl status</code> (Linux). Lire dans l'ordre : adresse, masque, passerelle, DNS, DHCP activé, bail, adresse physique.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> 169.254.x.x → <a href="#f4-dhcp">P3.2 DHCP</a> ; adresse « (Doublon) » → <a href="#f4-conflit">P3.4</a> ; masque différent des autres postes → <a href="#f4-masque">P3.5</a> ; passerelle vide ou hors réseau → <a href="#f4-passerelle">P3.6</a> ; DNS inconnu → <a href="#f4-dns">P3.7</a>.</p><p class="fx-sinon"><b>SINON</b> configuration cohérente → tests en couches.</p></div></li>
+<li><strong>Tester en couches, du plus proche au plus loin (20 s)</strong> — 127.0.0.1 → propre IP → passerelle → IP publique (8.8.8.8 ou 1.1.1.1) → nom DNS. Le PREMIER test qui échoue localise la panne (détail en <a href="#f4-ordre-tests">1 bis</a>).</li>
+<li><strong>Confirmer, corriger, revalider (5 s de réflexion)</strong> — une hypothèse n'est retenue qu'après un test discriminant ; après correction, refaire TOUTE la chaîne de tests + le test métier de l'utilisateur (ouvrir le site, le partage, imprimer une page) et consigner avant/après.</li>
+</ol>
+<pre class="fx-diagram">
+ Plainte réseau
+   |
+   +-- Tous les postes ? --oui--> box / switch / DHCP / DNS / FAI
+   |        non
+   v
+ Voyant de lien / icône ? --non--> câble, prise, port (F3), carte
+   |        oui
+   v
+ ipconfig /all : 169.254 ? --oui--> DHCP (P3.2)
+   |        non
+   v
+ ping passerelle ? --non--> masque, conflit, VLAN, pare-feu box
+   |        oui
+   v
+ ping 8.8.8.8 ? --non--> passerelle/route, box, FAI (P3.6, P3.8)
+   |        oui
+   v
+ ping nom / nslookup ? --non--> DNS (P3.7)
+   |        oui
+   v
+ Réseau OK : problème applicatif, proxy, partage, droits, imprimante
+</pre>
+<div class="fx-trap"><b>Piège</b> Un ping qui échoue n'est PAS une preuve de panne : beaucoup d'hôtes (PC Windows en profil Public, serveurs, certains routeurs) bloquent l'écho ICMP. Confirme toujours par un second test (arp -a après le ping, Test-NetConnection sur le port du service, accès réel).</div>
+</section>
+<section class="fx-sec" id="f4-ordre-tests">
+<h2>1 bis. L'ordre des tests et l'interprétation de chaque résultat</h2>
+<p>Pose toujours les tests dans cet ordre. Exemple de réseau : poste 192.168.1.25/24, passerelle (box) 192.168.1.1, DNS 192.168.1.1.</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>#</th><th>Test (Windows / Linux)</th><th>Si ÇA RÉPOND, je conclus</th><th>Si ÇA ÉCHOUE, je conclus et je fais</th></tr></thead>
+<tbody>
+<tr><td>0</td><td><code>ipconfig /all</code> / <code>ip addr</code>, <code>ip route</code></td><td>Adresse cohérente avec le plan (même réseau que la passerelle, bon masque, DNS renseigné).</td><td>169.254.x.x → pas de bail DHCP ; « Média déconnecté » → physique ; adresse d'un autre réseau → DHCP parasite ou config statique erronée.</td></tr>
+<tr><td>1</td><td><code>ping 127.0.0.1</code></td><td>La pile TCP/IP du système fonctionne (ne teste NI la carte NI le câble).</td><td>Très rare : pile TCP/IP corrompue → <code>netsh int ip reset</code> + <code>netsh winsock reset</code>, redémarrage (voir <a href="#f4-p-pile">P3.11</a>).</td></tr>
+<tr><td>2</td><td><code>ping 192.168.1.25</code> (sa propre IP)</td><td>L'adresse est bien attribuée à une interface active.</td><td>Interface désactivée, adresse non appliquée, carte/pilote en défaut → Gestionnaire de périphériques (renvoi <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-pilote">→ Fiche 2 · Pilote</a>).</td></tr>
+<tr><td>3</td><td><code>ping 192.168.1.1</code> (passerelle)</td><td>Câble, port, carte, adresse et masque fonctionnent jusqu'au routeur : le LAN est bon.</td><td>« Délai d'attente » : la demande part, pas de réponse → vérifier <code>arp -a</code> (MAC de la passerelle présente ? alors elle filtre l'ICMP), VLAN, conflit, câble. « Impossible de joindre l'hôte de destination » venant de SA PROPRE IP : pas de réponse ARP → hôte éteint, mauvais réseau/VLAN, câble.</td></tr>
+<tr><td>4</td><td><code>ping 8.8.8.8</code> ou <code>ping 1.1.1.1</code></td><td>Routage, box et accès FAI fonctionnent : Internet est joignable PAR ADRESSE.</td><td>Passerelle OK mais Internet KO → passerelle absente/erronée sur le poste (si les autres postes vont sur Internet), sinon box non synchronisée / FAI : <code>tracert 8.8.8.8</code> pour voir où ça s'arrête.</td></tr>
+<tr><td>5</td><td><code>ping www.google.be</code> puis <code>nslookup www.google.be</code></td><td>La résolution DNS fonctionne : si l'appli échoue encore → proxy, navigateur, pare-feu applicatif, site lui-même.</td><td>« La requête Ping n'a pas pu trouver l'hôte » alors que 8.8.8.8 répond → DNS : serveur DNS faux ou injoignable → <a href="#f4-dns">P3.7</a>.</td></tr>
+<tr><td>6</td><td>Test du service : <code>Test-NetConnection srv01 -Port 445</code>, ouvrir <code>\\srv01\Compta</code>, page de test imprimante</td><td>Le service répond : reste les droits / identifiants.</td><td>Port fermé alors que le ping passe → pare-feu, service arrêté, profil réseau Public.</td></tr>
+</tbody></table></div>
+<h3>Lire précisément la réponse d'un ping (Windows en français)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Message affiché</th><th>Ce qui s'est passé</th><th>Conclusion pratique</th></tr></thead>
+<tbody>
+<tr><td>« Réponse de 192.168.1.1 : octets=32 temps&lt;1ms TTL=64 »</td><td>Aller-retour réussi.</td><td>Couche 3 OK jusqu'à la cible. TTL 128 ≈ Windows, 64 ≈ Linux/box, 255 ≈ équipement réseau (indice, pas preuve).</td></tr>
+<tr><td>« Délai d'attente de la demande dépassé. »</td><td>La demande est partie (le poste savait où l'envoyer), aucune réponse dans le délai (4 s par défaut).</td><td>Cible éteinte, pare-feu qui bloque l'ICMP, réponse perdue (route retour), câble coupé plus loin. Faire <code>arp -a</code> : si la MAC de la cible est apprise, la cible est présente et filtre le ping.</td></tr>
+<tr><td>« Réponse de 192.168.1.25 : Impossible de joindre l'hôte de destination. » (ancien libellé : « Hôte de destination inaccessible »)</td><td>La réponse vient de TA PROPRE adresse : ton poste a tenté une requête ARP pour la cible (même réseau) et personne n'a répondu.</td><td>Cible absente du segment : éteinte, débranchée, adresse changée (imprimante passée en DHCP), autre VLAN, ou adresse mal tapée.</td></tr>
+<tr><td>« Réponse de 192.168.1.1 : Impossible de joindre l'hôte de destination. »</td><td>La réponse vient de la PASSERELLE : elle a reçu ton paquet mais ne sait pas joindre la cible (ARP sans réponse de son côté, pas de route).</td><td>Ton poste et ta passerelle fonctionnent ; le problème est derrière la passerelle (autre sous-réseau, hôte distant éteint, route manquante sur le routeur).</td></tr>
+<tr><td>« PING : échec de la transmission. Défaillance générale. »</td><td>Le paquet n'a même pas pu partir.</td><td>Pas de route (passerelle absente pour une cible distante), interface désactivée, pare-feu/antivirus local qui bloque, VPN cassé.</td></tr>
+<tr><td>« La requête Ping n'a pas pu trouver l'hôte www.x.be. Vérifiez le nom et essayez à nouveau. »</td><td>Résolution de nom impossible : aucun paquet ICMP envoyé.</td><td>Problème DNS (ou nom mal orthographié) : ce n'est PAS une preuve de coupure Internet.</td></tr>
+<tr><td>« Le délai de vie (TTL) a expiré lors du transit. »</td><td>Le paquet a tourné jusqu'à TTL 0.</td><td>Boucle de routage (deux routeurs qui se renvoient le paquet) : cas rare, à escalader.</td></tr>
+<tr><td>Linux : « ping: connect: Network is unreachable »</td><td>Le noyau n'a aucune route pour la cible : rien n'est émis.</td><td>Route par défaut manquante (<code>ip route</code> sans ligne <code>default via</code>) ou interface DOWN.</td></tr>
+<tr><td>Linux : « From 192.168.1.25 icmp_seq=1 Destination Host Unreachable »</td><td>Équivalent Linux de « Impossible de joindre l'hôte » (ARP sans réponse).</td><td>Cible absente du segment local.</td></tr>
+<tr><td>Linux : « ping: www.x.be: Temporary failure in name resolution » / « Name or service not known »</td><td>DNS injoignable / nom inexistant.</td><td>Problème de résolution DNS.</td></tr>
+<tr><td>Réponses alternées avec délais / « perdus = 2 (50 % de perte) »</td><td>Liaison instable.</td><td>Câble/connecteur abîmé, Wi-Fi faible ou brouillé, port en duplex incorrect, saturation : <code>ping -t</code> prolongé + comparaison filaire/Wi-Fi.</td></tr>
+</tbody></table></div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue (formulation type d'un test)</p>
+<p>« J'exécute <code>ping 192.168.1.1</code> pour vérifier la liaison avec la passerelle. Résultat : 4 réponses, 0 % de perte. Interprétation : le câble, la carte réseau, l'adressage et le réseau local fonctionnent jusqu'à la box. La panne se situe donc au-delà : j'exécute ensuite <code>ping 8.8.8.8</code> pour tester l'accès Internet par adresse. »</p>
+<p class="fx-lose"><b>Perd des points :</b> enchaîner les commandes sans écrire ce que chaque résultat prouve ; conclure « Internet est coupé » sur un ping de nom qui échoue ; confondre « Délai d'attente » et « Impossible de joindre l'hôte » ; ne pas préciser QUI répond (ta propre IP ou la passerelle).</p>
+</div>
+</section>

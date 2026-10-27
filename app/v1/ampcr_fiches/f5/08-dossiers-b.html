@@ -1,0 +1,44 @@
+<section class="fx-sec" id="f5-dossiers-b">
+<h2>5 (suite). Dossiers d'examen résolus</h2>
+
+<article class="fx-case" id="f5-dossier-4">
+<h3>Dossier 4 — Ajout de mémoire : compatibilité, devis, sécurité, validation</h3>
+<div class="fx-case-statement">
+<p><b>Contexte :</b> la graphiste demande « plus de RAM, mon PC rame avec les gros fichiers ». Document fourni : PC de bureau hors garantie, 8 Go installés (1 barrette), 4 emplacements, carte mère acceptant 64 Go de DDR4. Le service achats doit valider toute dépense supérieure à 50 €.</p>
+<p><b>Questions :</b> 1) Comment vérifies-tu que la RAM est bien la cause de la lenteur ? 2) Rédige le devis et indique qui valide. 3) Rédige le protocole de montage. 4) Quels tests de validation, avant/après ?</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée</p>
+<p><b>1)</b> Observation à mesurer : ouverture d'un fichier de référence de 2 Go (temps chronométré) avec le Gestionnaire des tâches ouvert. Hypothèse « RAM insuffisante » : attendu si vraie → mémoire utilisée proche de 100 % et activité disque forte (fichier d'échange) pendant l'ouverture. Résultat : mémoire 97 %, disque 100 %, ouverture en 2 min 40. Hypothèse confirmée. Hypothèses écartées : processeur (35 %), disque défaillant (SMART sans alerte : <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-ram">→ Fiche 1 · RAM</a> pour la vérification des barrettes).</p>
+<p><b>2)</b> Devis : une barrette DDR4 de 16 Go, même fréquence que l'existante (référence relevée sur l'étiquette de la barrette en place), 45 € ; ou 2 × 16 Go en remplacement (bi-canal), 90 € ; main-d'œuvre 30 min. Recommandation : 2 × 16 Go (32 Go, bi-canal, adaptée aux gros fichiers). Au-delà de 50 € → validation par le service achats avant commande ; l'utilisatrice est informée du délai.</p>
+<p><b>3)</b> Sauvegarde : aucune donnée touchée par l'intervention (aucune écriture sur le disque), fichiers ouverts enregistrés. Arrêt, interrupteur du bloc sur 0, cordon débranché, étiquette ; appui 10 s sur le bouton ; tapis et bracelet ESD reliés au châssis ; barrettes tenues par les bords ; emplacements recommandés par le manuel de la carte mère pour le bi-canal ; clips fermés, barrette enfoncée jusqu'au déclic ; ancienne barrette en sachet antistatique, remise au client ; capot fermé, déconsignation (<a href="#f5-modele-esd">M6</a>).</p>
+<p><b>4)</b> UEFI : 32 Go détectés ; Windows (Paramètres → Système → Informations système) : 32 Go ; test mémoire sans erreur ; même mesure qu'avant : ouverture du fichier de 2 Go en 25 s, mémoire 55 %, disque 8 %. Non-régression : démarrage, réseau, logiciels. Validation par l'utilisatrice avec ses propres fichiers ; PV ; rapport avec mesures avant/après.</p></div>
+<p class="fx-lose"><b>Perd des points :</b> commander sans mesure préalable ; ignorer le seuil de validation des achats ; oublier la compatibilité (type, fréquence) ; pas de mesure après.</p>
+</article>
+
+<article class="fx-case" id="f5-dossier-5">
+<h3>Dossier 5 — Demande de contournement après un clic sur un lien douteux</h3>
+<div class="fx-case-statement">
+<p><b>Contexte :</b> 16 h 05, appel de Mme Noël : « J'ai cliqué sur un lien "mise à jour de votre boîte mail", j'ai mis mon mot de passe, et maintenant l'antivirus bloque un fichier "facture.exe". Désactivez-le, j'en ai besoin pour la comptabilité. » Le poste est sur le réseau de l'entreprise.</p>
+<p><b>Questions :</b> 1) Qualifie la situation et sa priorité. 2) Que réponds-tu à la demande de désactivation ? 3) Liste tes actions dans l'ordre, justifiées. 4) Rédige l'entrée du ticket.</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée</p>
+<p><b>1)</b> Suspicion d'incident de sécurité : hameçonnage (identifiants saisis sur un faux site) et fichier exécutable déguisé en facture, bloqué par l'antivirus. Impact potentiellement élevé (messagerie compromise, propagation au réseau) ; urgence élevée (compromission en cours) → <b>P1</b>. Contrôle n° 1 (sécurité) en échec : escalade obligatoire.</p>
+<p><b>2)</b> Refus motivé : « L'antivirus a bloqué ce fichier parce qu'il est probablement dangereux. Le désactiver pourrait infecter votre poste et le réseau. Une vraie facture n'est pas un programme .exe. Nous allons vérifier avec l'expéditeur par un autre moyen. »</p>
+<p><b>3)</b> a) Demander à Mme Noël de ne plus rien ouvrir et de ne pas éteindre. b) Isoler le poste : câble réseau débranché, Wi-Fi coupé (empêche la propagation, garde les traces). c) Faire changer le mot de passe de messagerie depuis un <i>autre</i> poste sain, et tout autre compte utilisant le même mot de passe. d) Alerter le responsable informatique / sécurité avec l'heure, le lien, le nom du fichier. e) Ne pas supprimer le courriel ni le fichier (preuves) sauf consigne. f) Vérifier avec le responsable : règles de transfert ajoutées dans la messagerie, envois suspects. g) Analyse complète du poste selon ses consignes avant remise en réseau. h) Contacter l'expéditeur réel de la « facture » par téléphone. i) Sensibiliser l'utilisatrice.</p>
+<p><b>4)</b> « 27/10 16 h 05 — INC P1 sécurité — Mme Noël (compta) a saisi son mot de passe sur un lien de faux "service de messagerie" à environ 15 h 50 ; fichier facture.exe bloqué par l'antivirus. Demande de désactivation de l'antivirus refusée (motif : risque d'infection). 16 h 08 poste isolé du réseau ; 16 h 12 mot de passe changé depuis le poste de l'accueil ; 16 h 15 responsable sécurité prévenu (M. Roy), courriel et fichier conservés. Statut : escaladé, en attente d'analyse. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> désactiver l'antivirus ; laisser le poste sur le réseau ; changer le mot de passe depuis le poste suspect ; supprimer les preuves ; ne pas escalader.</p>
+</article>
+
+<article class="fx-case" id="f5-dossier-6">
+<h3>Dossier 6 — Ordonner une procédure et corriger un rapport mal rédigé</h3>
+<div class="fx-case-statement">
+<p><b>Contexte :</b> un stagiaire est intervenu sur le PC de M. Gilles (« pas d'Internet »). Voici ses étapes, dans le désordre : A) réinstaller le pilote de la carte réseau ; B) vérifier le voyant de lien du port ; C) demander si d'autres collègues sont touchés ; D) exécuter ipconfig /all ; E) faire valider par M. Gilles ; F) ping de la passerelle ; G) rédiger le rapport. Son rapport : « PC réparé, c'était le driver. Réinstallé. OK. »</p>
+<p><b>Questions :</b> 1) Remets les étapes dans l'ordre et justifie. 2) Relève les défauts du rapport. 3) Réécris le rapport (le voyant était éteint ; un autre câble l'a allumé ; ipconfig donne ensuite 192.168.10.45 ; ping passerelle OK ; navigation OK).</p>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée</p>
+<p><b>1)</b> C → B → D → F → (A seulement si les tests désignent le pilote) → E → G. Justification : C détermine le périmètre (un poste ou plusieurs) avant tout geste ; B est le test le plus simple et physique (couche la plus basse) ; D puis F vérifient la configuration IP et le réseau local dans l'ordre des couches (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">→ Fiche 4 · Ordre des tests</a>) ; A est une action corrective, pas un test, et n'est justifiée que si la carte n'est pas reconnue ou si le pilote est en erreur ; E puis G clôturent. Ici, le voyant éteint désignait le câble : A était inutile.</p>
+<p><b>2)</b> Défauts : pas d'identification (date, ticket, équipement, demandeur) ; aucun symptôme précis ; aucun test ni résultat ; cause affirmée sans preuve (« driver ») et contredite par les faits ; action non justifiée ; « OK » sans critère ni validation de l'utilisateur ; pas de recommandation ; jargon (« driver »).</p>
+<p><b>3)</b> « Ticket INC-2026-1027-030, 27/10/2026, 10 h 20–10 h 45, poste PC-LOG-03 (logistique), demandeur M. Gilles. Demande : "pas d'Internet" depuis ce matin. Constat : aucun site accessible ; collègues non touchés (problème local au poste). Tests : voyant de lien éteint sur la carte et sur le port mural ; câble de brassage remplacé par un câble testé → voyant allumé ; ipconfig /all : 192.168.10.45/24, passerelle 192.168.10.1 (bail DHCP obtenu) ; ping de la passerelle : 4/4 réponses ; navigation sur deux sites : OK. Cause : câble de brassage défectueux (preuve : lien rétabli par la seule substitution du câble). Action : câble remplacé, ancien câble retiré et étiqueté "défectueux" (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-testeur">→ Fiche 3 · Testeur</a> pour son contrôle). Aucune modification logicielle. Validation : M. Gilles a ouvert sa messagerie et le site du fournisseur ; PV signé. Recommandation : faire passer le câble hors de la zone de passage du fauteuil. Statut : clôturé. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> garder A avant les tests ; rapport sans valeurs mesurées ; cause sans preuve.</p>
+</article>
+</section>

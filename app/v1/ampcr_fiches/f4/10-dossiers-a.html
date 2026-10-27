@@ -1,0 +1,131 @@
+<section class="fx-sec" id="f4-dossiers">
+<h2>5. Dossiers d'examen résolus</h2>
+<p>Format de l'épreuve : contexte, documents (sorties de commandes, plans, journaux), questions numérotées. Réponse attendue : pour chaque question, observation → interprétation → conclusion → action → vérification, en phrases complètes. Méthode de rédaction générale : <a class="fx-ref" href="/ampcr-pratique/fiches/6#f6-methode-examen">→ Fiche 6 · Méthode d'examen</a>.</p>
+
+<article class="fx-case" id="f4-dossier-1">
+<h3>Dossier 1 — Fiches de configuration : calculs IPv4, MAC, protocoles et topologie</h3>
+<div class="fx-case-statement">
+<p><b>Contexte.</b> Tu prépares des fiches de configuration pour plusieurs clients. Calculatrice non programmable autorisée.</p>
+<p><b>Document 1 — postes à configurer.</b></p>
+<pre class="fx-out">a) 192.168.40.77 /26
+b) 172.16.45.200 /20
+c) 192.168.40.130  masque 255.255.255.192
+d) 10.10.10.100  masque 255.255.252.0</pre>
+<p><b>Document 2 — valeurs relevées sans légende.</b></p>
+<pre class="fx-out">(1) 3C-52-82-1A-2B-01      (2) DA-A1-19-5C-7E-02
+(3) 172.32.0.5             (4) 169.254.83.17
+(5) 192.168.1.255 (réseau en /24)   (6) 01-00-5E-00-00-FB</pre>
+<p><b>Document 3.</b> Un ancien PC de l'atelier n'utilise que NetBEUI pour partager un dossier ; le gérant voudrait y accéder depuis l'agence de Namur, reliée par un routeur. Le réseau de l'atelier est en étoile autour d'un switch unique.</p>
+<ol><li>Pour a à d : préfixe et masque, adresse réseau, diffusion, plage d'hôtes, nombre d'hôtes ; détaille la méthode pour au moins une ligne.</li><li>Les postes a et c peuvent-ils communiquer sans routeur ? Justifie.</li><li>Quel est le plus petit bloc pour un service de 50 postes ?</li><li>Identifie chaque valeur du document 2.</li><li>Document 3 : l'accès depuis Namur est-il possible ? Quelle conséquence aurait la panne du switch ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Méthode (ligne a) : /26 → masque 255.255.255.192 ; taille de bloc 256 − 192 = 64 ; les réseaux commencent à 0, 64, 128, 192 ; 77 est entre 64 et 127 → réseau 192.168.40.64, diffusion 192.168.40.127, hôtes 192.168.40.65 à 192.168.40.126, soit 2<sup>6</sup> − 2 = 62 hôtes. (Contrôle binaire : 77 = 01001101 ET 11000000 = 01000000 = 64.)</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th></th><th>Préfixe / masque</th><th>Réseau</th><th>Diffusion</th><th>Plage d'hôtes</th><th>Hôtes</th></tr></thead>
+<tbody>
+<tr><td>a</td><td>/26 – 255.255.255.192</td><td>192.168.40.64</td><td>192.168.40.127</td><td>.65 à .126</td><td>62</td></tr>
+<tr><td>b</td><td>/20 – 255.255.240.0 (bloc 16 dans le 3e octet ; 45 entre 32 et 47)</td><td>172.16.32.0</td><td>172.16.47.255</td><td>172.16.32.1 à 172.16.47.254</td><td>4 094</td></tr>
+<tr><td>c</td><td>/26 – 255.255.255.192 (26 bits à 1 ; 130 entre 128 et 191)</td><td>192.168.40.128</td><td>192.168.40.191</td><td>.129 à .190</td><td>62</td></tr>
+<tr><td>d</td><td>/22 – 255.255.252.0 (bloc 4 dans le 3e octet ; 10 entre 8 et 11)</td><td>10.10.8.0</td><td>10.10.11.255</td><td>10.10.8.1 à 10.10.11.254</td><td>1 022</td></tr>
+</tbody></table></div>
+<p><b>2.</b> Non : avec le même masque /26, a appartient au réseau 192.168.40.64/26 (.64 à .127) et c au réseau 192.168.40.128/26 (.128 à .191). Ce sont deux réseaux différents : chacun enverra le trafic destiné à l'autre vers sa passerelle ; il faut un routeur entre eux (ou un plan d'adressage commun, par exemple un /24).</p>
+<p><b>3.</b> Un /27 n'offre que 2<sup>5</sup> − 2 = 30 hôtes, insuffisant ; le plus petit bloc qui convient est un /26, masque 255.255.255.192, 62 hôtes (marge de 12 pour la passerelle, une imprimante et la croissance).</p>
+<p><b>4.</b> (1) MAC (6 octets hexadécimaux) ; 1er octet 3C = 0011 1100 : bit I/G = 0 → unicast, bit U/L = 0 → adresse universelle attribuée par le fabricant (OUI 3C-52-82). (2) MAC ; DA = 1101 1010 : unicast, U/L = 1 → administrée localement, typique d'une MAC aléatoire de Wi-Fi. (3) IPv4 publique : 172.32 est hors de la plage privée 172.16.0.0/12 qui s'arrête à 172.31.255.255. (4) IPv4 de lien local APIPA : le poste n'a pas obtenu de bail DHCP. (5) IPv4 de diffusion du réseau 192.168.1.0/24 : non attribuable à un hôte. (6) MAC de groupe (01 = 0000 0001, bit I/G = 1) : multicast.</p>
+<p><b>5.</b> Non : NetBEUI n'est pas routable ; il ne fonctionne qu'à l'intérieur du réseau local. Il faut partager le dossier via TCP/IP (SMB), idéalement en migrant les données sur un poste ou NAS récent, puis y accéder par VPN depuis Namur. En topologie étoile, la panne du switch central coupe tous les postes de l'atelier entre eux et d'Internet (point unique de défaillance), alors que la panne d'un câble n'isole qu'un poste : en cas de panne générale, je vérifie d'abord l'alimentation et les voyants du switch.</p>
+<p class="fx-lose"><b>Perd des points :</b> nombre d'hôtes sans le −2 ; c considéré comme /24 ; « 172.32 est privée » ; NetBEUI présenté comme routable.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f4-dossier-2">
+<h3>Dossier 2 — Cabinet de kinésithérapie : deux PC en direct, puis contrôle du plan du mini-réseau</h3>
+<div class="fx-case-statement">
+<p><b>Contexte.</b> Le kiné veut d'abord copier le dossier Agenda de PC-ACCUEIL vers son nouveau portable avec un câble RJ45 direct. Le mois suivant, il installe une box, un switch 8 ports, deux PC, un NAS et une imprimante.</p>
+<p><b>Document A1 — relevés lors de la connexion directe.</b></p>
+<pre class="fx-out">PC-ACCUEIL : 192.168.10.1  255.255.255.0  passerelle : (vide)
+PORTABLE   : Adresse d'autoconfiguration IPv4 169.254.12.40  255.255.0.0
+Voyants des deux cartes : allumés (liaison 1 Gbit/s)
+PORTABLE&gt; ping 192.168.10.1
+PING : échec de la transmission. Défaillance générale.</pre>
+<p><b>Document A2 — plan du mini-réseau saisi par une stagiaire.</b></p>
+<pre class="fx-out">Box        192.168.10.1/24   DHCP : 192.168.10.100 à 192.168.10.150
+PC-ACCUEIL fixe 192.168.10.120/24  passerelle 192.168.10.1  DNS 192.168.10.1
+PC-KINE    fixe 192.168.10.21/24   passerelle 192.168.1.1   DNS 192.168.10.1
+NAS        fixe 192.168.11.20/24   passerelle 192.168.11.1
+Imprimante fixe 192.168.10.255/24
+Portable   DHCP</pre>
+<ol><li>Interprète A1 et indique ce que tu fais pour réaliser la copie, étape par étape, jusqu'à la vérification.</li><li>Quel câble utilises-tu ? Justifie.</li><li>Contrôle le plan A2 ligne par ligne : erreurs, conséquences, corrections.</li><li>Rédige la recette (tests de validation) du mini-réseau.</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Les voyants sont allumés à 1 Gbit/s : la liaison physique est bonne. Le portable a une adresse APIPA 169.254.12.40/16 : il est en DHCP et aucun serveur DHCP n'existe sur un lien direct. Son réseau (169.254.0.0/16) est différent de celui de PC-ACCUEIL (192.168.10.0/24) et il n'a pas de passerelle : il ne sait pas où envoyer le paquet, d'où « échec de la transmission ». Je configure le portable en adresse fixe 192.168.10.2, masque 255.255.255.0, sans passerelle ni DNS (réseau isolé). Je refais le ping : s'il répond « Délai d'attente dépassé », je vérifie arp -a (MAC de PC-ACCUEIL présente) et je passe le profil réseau de PC-ACCUEIL en Privé, sans désactiver le pare-feu. Ping OK, je partage le dossier Agenda en Lecture pour un compte local de PC-ACCUEIL protégé par mot de passe, j'ouvre \\192.168.10.1\Agenda depuis le portable avec ce compte, je copie, j'ouvre quelques fichiers copiés et je compare le nombre de fichiers et la taille. Enfin j'arrête le partage et je remets le portable en DHCP.</p>
+<p><b>2.</b> Un câble droit (T568B aux deux bouts) suffit : les cartes Gigabit gèrent l'Auto MDI-X, qui inverse automatiquement émission et réception. Un câble croisé n'est nécessaire qu'avec d'anciennes cartes 10/100 sans Auto MDI-X ; il fonctionne aussi ici.</p>
+<p><b>3.</b> Box : correcte (192.168.10.1, étendue .100–.150). PC-ACCUEIL : son adresse fixe .120 est DANS l'étendue DHCP → risque de conflit d'adresse quand la box la distribuera ; correction : 192.168.10.10 (hors étendue) ou DHCP avec réservation. PC-KINE : passerelle 192.168.1.1 hors de son réseau (192.168.10.0/24) → réseau local OK mais pas d'Internet ; correction : passerelle 192.168.10.1. NAS : 192.168.11.20/24 est dans le réseau 192.168.11.0/24, différent ; sans routeur, aucun poste ne l'atteint ; correction : 192.168.10.20/24, passerelle 192.168.10.1. Imprimante : 192.168.10.255 est l'adresse de diffusion du /24, interdite pour un hôte ; correction : 192.168.10.30. Portable en DHCP : correct. Je mets à jour le plan (plages : .1 box, .10–.29 fixes, .30–.39 imprimantes, .100–.150 DHCP).</p>
+<p><b>4.</b> Pour chaque poste : ipconfig conforme au plan ; ping de la box, du NAS (192.168.10.20) et de 8.8.8.8 ; ping d'un nom ; accès au partage du NAS avec le compte prévu (et refus pour un compte non autorisé) ; page de test de l'imprimante depuis chaque poste ; redémarrage d'un poste et vérification que tout revient. Je consigne les résultats et fais valider par le kiné.</p>
+<p class="fx-lose"><b>Perd des points :</b> « câble croisé obligatoire » ; laisser .120 dans l'étendue ; passer à côté de l'adresse de diffusion de l'imprimante ; désactiver le pare-feu.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f4-dossier-3">
+<h3>Dossier 3 — Agence immobilière : « Internet ne marche pas » et « aucun réseau »</h3>
+<div class="fx-case-statement">
+<p><b>Contexte.</b> Réseau 10.0.20.0/24, box 10.0.20.1, serveur SRV-01 10.0.20.10 (DNS et DHCP). Deux appels le même matin.</p>
+<p><b>Document B1 — poste ACCUEIL (« Internet ne marche pas »).</b></p>
+<pre class="fx-out">Adresse IPv4 . . . : 10.0.20.31   Masque : 255.255.255.0
+Passerelle . . . . : 10.0.20.1    DHCP activé : Non
+Serveurs DNS . . . : 10.0.20.5
+&gt; ping 10.0.20.1        Réponse de 10.0.20.1 : octets=32 temps&lt;1ms TTL=64 (x4)
+&gt; ping 8.8.8.8          Réponse de 8.8.8.8 : octets=32 temps=9 ms TTL=117 (x4)
+&gt; ping www.immo-meuse.be
+La requête Ping n'a pas pu trouver l'hôte www.immo-meuse.be. Vérifiez le nom et essayez à nouveau.
+&gt; nslookup www.immo-meuse.be
+DNS request timed out.
+*** Le délai de la requête vers UnKnown a expiré
+&gt; nslookup www.immo-meuse.be 10.0.20.10
+Serveur :   srv-01.immo.local
+Address:  10.0.20.10
+Réponse ne faisant pas autorité :
+Nom :    www.immo-meuse.be
+Address:  93.184.215.14</pre>
+<p><b>Document B2 — portable PORT-07 (arrivée ce matin) et journal DHCP de SRV-01.</b></p>
+<pre class="fx-out">Adresse d'autoconfiguration IPv4 : 169.254.201.7   Masque : 255.255.0.0
+Passerelle : (vide)   Adresse physique : 8C-16-45-AB-12-77
+--- journal SRV-01 ---
+08:41:12 DHCPDISCOVER from 8c:16:45:ab:12:77 via eth0: network 10.0.20.0/24: no free leases
+08:41:16 DHCPDISCOVER from 8c:16:45:ab:12:77 via eth0: network 10.0.20.0/24: no free leases
+Étendue : 10.0.20.50 à 10.0.20.99 — baux actifs : 50 — durée des baux : 8 jours</pre>
+<ol><li>Interprète B1 test par test ; donne la cause et la correction ; justifie que « Réponse ne faisant pas autorité » n'est pas un problème.</li><li>Interprète B2 ; calcule la taille de l'étendue ; donne la cause.</li><li>Propose deux solutions durables pour PORT-07 avec valeurs, la vérification et ce qu'il ne faut pas faire.</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Le ping de la box répond : câble, carte, adresse et masque fonctionnent jusqu'à la passerelle. Le ping de 8.8.8.8 répond : la passerelle, la box et l'accès Internet fonctionnent par adresse. Le ping de www.immo-meuse.be échoue avant tout envoi : le nom n'est pas traduit en adresse. nslookup vers le DNS configuré (10.0.20.5) expire : ce serveur ne répond pas (ancien serveur retiré). nslookup vers SRV-01 (10.0.20.10) renvoie 93.184.215.14 : le DNS du réseau fonctionne. Cause : DNS saisi à la main et obsolète sur ce poste (DHCP désactivé). Correction : repasser le poste en DHCP (il recevra DNS 10.0.20.10) ou saisir 10.0.20.10 comme DNS ; ipconfig /flushdns ; vérifier par nslookup sans serveur forcé, ping par nom et ouverture du site. « Réponse ne faisant pas autorité » signifie que SRV-01 n'est pas le serveur propriétaire du domaine immo-meuse.be : il relaie la réponse obtenue d'un autre serveur, c'est le fonctionnement normal.</p>
+<p><b>2.</b> PORT-07 a 169.254.201.7/16 sans passerelle : adresse APIPA, aucun bail DHCP obtenu. Le journal montre ses DHCPDISCOVER (même MAC 8c:16:45:ab:12:77) : la demande arrive au serveur, donc câble, port et réseau fonctionnent. Le serveur répond « no free leases ». L'étendue va de .50 à .99 : 99 − 50 + 1 = 50 adresses, et 50 baux sont actifs : l'étendue est épuisée, aggravée par des baux de 8 jours qui gardent les adresses des visiteurs.</p>
+<p><b>3.</b> Solution 1 : agrandir l'étendue à 10.0.20.50 – 10.0.20.199 (150 adresses), après avoir vérifié qu'aucune adresse fixe n'est dans .100–.199. Solution 2 : raccourcir la durée des baux à 1 jour (ou 8 h) pour libérer les adresses des appareils de passage, et/ou créer un réseau invités séparé pour les visiteurs. Vérification : ipconfig /release puis /renew sur PORT-07 → adresse 10.0.20.1xx avec passerelle 10.0.20.1 et DNS 10.0.20.10 ; DHCPACK pour sa MAC dans le journal ; ping de la box, de 8.8.8.8 et d'un nom. À ne pas faire : donner à PORT-07 une adresse fixe prise dans l'étendue (conflit lors d'une prochaine attribution) ou supprimer des baux actifs au hasard.</p>
+<p class="fx-lose"><b>Perd des points :</b> « Internet est coupé » pour B1 ; « 49 adresses » ; « problème de câble » pour B2 alors que le journal prouve que la demande arrive.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f4-dossier-4">
+<h3>Dossier 4 — Après le remplacement de la box : imprimante et NAS injoignables</h3>
+<div class="fx-case-statement">
+<p><b>Contexte.</b> Bureau de 8 postes. Jeudi, le FAI a remplacé la box. Depuis, les postes ont Internet, mais l'imprimante et le NAS sont « hors connexion » et le lecteur P: (\\192.168.1.10\Docs) est inaccessible.</p>
+<p><b>Document C1 — ancien plan.</b></p>
+<pre class="fx-out">Box (ancienne) 192.168.1.1/24  DHCP 192.168.1.100 à .199
+NAS        fixe 192.168.1.10/24  passerelle 192.168.1.1
+Imprimante fixe 192.168.1.20/24  passerelle 192.168.1.1</pre>
+<p><b>Document C2 — relevés sur PC-03.</b></p>
+<pre class="fx-out">Adresse IPv4 . . . : 192.168.0.34   Masque : 255.255.255.0
+Passerelle . . . . : 192.168.0.1    Serveur DHCP : 192.168.0.1
+&gt; ping 192.168.0.1    Réponse de 192.168.0.1 : octets=32 temps&lt;1ms TTL=64
+&gt; ping 192.168.1.20
+Délai d'attente de la demande dépassé. (x4)
+&gt; tracert -d 192.168.1.20
+  1   &lt;1 ms  &lt;1 ms  &lt;1 ms  192.168.0.1
+  2    *      *      *     Délai d'attente de la demande dépassé.</pre>
+<ol><li>Explique pourquoi les postes ont Internet mais plus l'imprimante ni le NAS.</li><li>Propose deux corrections possibles, compare-les et choisis.</li><li>Rédige la vérification et la mise à jour de la documentation.</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> La nouvelle box utilise le réseau 192.168.0.0/24 (passerelle 192.168.0.1) et distribue ces adresses par DHCP : les postes, en DHCP, ont basculé dans ce nouveau réseau et sortent sur Internet par la box. L'imprimante (192.168.1.20) et le NAS (192.168.1.10) ont des adresses FIXES dans l'ancien réseau 192.168.1.0/24. Pour PC-03 (192.168.0.34/24), 192.168.1.20 est dans un autre réseau : il envoie le paquet à sa passerelle (tracert : saut 1 = 192.168.0.1), et la box, qui ne connaît pas le réseau 192.168.1.0/24, ne le délivre pas (délai dépassé au-delà). Le câblage n'est pas en cause : les équipements sont alimentés et reliés au même switch, seule l'adresse IP est dans le mauvais réseau.</p>
+<p><b>2.</b> Correction A : reconfigurer le LAN de la nouvelle box en 192.168.1.1/24 avec l'étendue DHCP 192.168.1.100–.199, comme l'ancienne ; puis renouveler les baux des postes (ipconfig /release puis /renew ou redémarrage). Une seule modification, l'imprimante, le NAS, le lecteur P: et les ports d'impression redeviennent valides. Correction B : renuméroter l'imprimante et le NAS dans 192.168.0.0/24 hors de l'étendue de la box (vérifier celle-ci), par exemple 192.168.0.20 et 192.168.0.10, puis mettre à jour le port TCP/IP de l'imprimante sur les 8 postes et le lecteur P: (\\192.168.0.10\Docs) partout. Je choisis A : moins de manipulations, moins de risques d'oubli, documentation inchangée — en vérifiant que la nouvelle box autorise ce changement et en sauvegardant sa configuration.</p>
+<p><b>3.</b> Sur deux postes au moins : ipconfig → 192.168.1.1xx, passerelle 192.168.1.1 ; ping 192.168.1.10 et 192.168.1.20 ; ouverture de P: et d'un fichier ; page de test de l'imprimante ; ping 8.8.8.8 et d'un nom. Je note dans le plan d'adressage la configuration de la nouvelle box (réseau, étendue, identifiants d'administration en lieu sûr) et je signale au client de demander à l'avenir que le réseau LAN soit conservé lors d'un remplacement.</p>
+<p class="fx-lose"><b>Perd des points :</b> accuser le câble ou l'imprimante ; passer l'imprimante en DHCP sans réservation (son adresse changera encore) ; oublier les ports d'impression et le lecteur P: dans la correction B.</p>
+</div>
+</article>
+</section>

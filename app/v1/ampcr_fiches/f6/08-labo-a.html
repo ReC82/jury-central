@@ -1,0 +1,140 @@
+<section class="fx-sec" id="f6-labo">
+<h2>5. Grand laboratoire PR30 — installer et dépanner le réseau d'une PME, de bout en bout</h2>
+<p>Ce laboratoire reprend en un seul dossier tout ce qu'une épreuve peut demander : inventaire et choix, câblage, adressage, services, comptes et droits, installation des systèmes, Wi-Fi, sécurité, pannes de mise en service, recette, rapport. Lis l'énoncé complet, essaie les questions, puis compare avec la copie modèle. Plusieurs solutions sont acceptables si elles sont justifiées : les variantes valables sont signalées.</p>
+
+<div class="fx-case-statement" id="f6-labo-enonce">
+<p><strong>Contexte.</strong> Le bureau d'études Archimède (6 personnes) emménage dans de nouveaux locaux d'un seul niveau : <strong>salle A</strong> (administration) et <strong>salle B</strong> (conception), séparées par un <strong>local technique</strong>. Tu es chargé de l'installation complète. Aucun équipement réseau n'est encore en place, sauf l'arrivée fibre de l'opérateur dans le local technique, avec sa box (routeur, DHCP, Wi-Fi).</p>
+<p><strong>Postes et besoins.</strong></p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Salle</th><th>Poste / équipement</th><th>Système / rôle</th><th>Utilisateur</th></tr></thead>
+<tbody>
+<tr><td>A</td><td>DIRECTION</td><td>Windows 11 Pro</td><td>Mme Collin, directrice</td></tr>
+<tr><td>A</td><td>SECRETARIAT</td><td>Windows 11 Pro</td><td>M. Haddad</td></tr>
+<tr><td>A</td><td>COMPTA</td><td>Windows 11 Pro</td><td>Mme Peeters</td></tr>
+<tr><td>A</td><td>Multifonction réseau</td><td>Impression/numérisation pour tous</td><td>—</td></tr>
+<tr><td>B</td><td>CAO1, CAO2</td><td>Windows 11 Pro (stations de conception, carte graphique ajoutée)</td><td>M. Dumont, Mme Lambert</td></tr>
+<tr><td>B</td><td>LINUX1</td><td>Ubuntu 24.04 LTS (développement)</td><td>M. Nowak</td></tr>
+<tr><td>Local technique</td><td>NAS 2 disques</td><td>Partages de fichiers, comptes</td><td>—</td></tr>
+</tbody></table></div>
+<p><strong>Exigences du client.</strong> Internet pour tous ; Wi-Fi pour les portables du personnel dans les deux salles ; Wi-Fi séparé pour les visiteurs, sans accès aux fichiers ; dossiers : « Commun » (tous, lecture/écriture), « Administration » (direction, secrétariat, comptabilité), « Projets » (équipe de conception + directrice), « Compta » (comptable en écriture, directrice en lecture) ; l'impression ne doit pas dépendre d'un poste allumé ; possibilité d'ajouter 4 postes plus tard ; continuité en cas de micro-coupure de courant.</p>
+<p><strong>Distances de câble estimées depuis le local technique</strong> (passage en faux plafond, descente en goulotte) : A01 DIRECTION 18 m · A02 SECRETARIAT 14 m · A03 COMPTA 22 m · A04 multifonction 12 m · A05 réserve 20 m · B01 CAO1 38 m · B02 CAO2 42 m · B03 LINUX1 46 m · B04 point d'accès au plafond 35 m · B05 réserve 44 m.</p>
+<p><strong>Documents de mise en service</strong> (utilisés à la question 10).</p>
+<pre class="fx-out">D1 CAO2 : après pose de la carte graphique, ventilateurs qui tournent
+   1 seconde puis plus rien ; aucune image ; manuel de la carte :
+   « connecteur d'alimentation PCIe 8 broches obligatoire ».
+D2 LINUX1 :
+   $ ip -br link
+   lo       UNKNOWN  00:00:00:00:00:00
+   enp3s0   DOWN     d4:5d:64:a1:0b:7c &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt;
+   Testeur entre la prise B03 et le port 15 du panneau :
+   1-1 2-2 3-3 4-4 5-5 6-ouvert 7-7 8-8
+D3 SECRETARIAT : \\192.168.20.5\Administration -&gt; « Accès refusé ».
+   M. Haddad a été renommé sur le NAS de « secretariat » en
+   « mhaddad » hier ; le poste avait enregistré les anciens
+   identifiants.
+D4 Portable de M. Dumont : Internet OK, mais \\192.168.20.5 introuvable.
+   ipconfig : 192.168.30.57 / 255.255.255.0, passerelle 192.168.30.1.</pre>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Inventorie le matériel à prévoir et justifie chaque choix (sans prix). (8 pts)</li>
+<li>Dessine le schéma physique de l'installation (texte). (5 pts)</li>
+<li>Décris le câblage : catégorie, norme, longueur totale de câble, baie, repérage, contrôles. (8 pts)</li>
+<li>Établis le plan d'adressage IPv4 (calculs montrés) ; discute une variante en deux sous-réseaux. (10 pts)</li>
+<li>Configure DHCP et DNS. (5 pts)</li>
+<li>Choisis groupe de travail ou domaine ; crée comptes, groupes, partages et la matrice des droits. (12 pts)</li>
+<li>Décris l'installation des systèmes (Windows 11 et Ubuntu) et la connexion aux ressources. (10 pts)</li>
+<li>Configure le Wi-Fi (personnel + visiteurs). (8 pts)</li>
+<li>Liste les mesures de sécurité. (6 pts)</li>
+<li>Diagnostique et corrige les incidents D1 à D4. (14 pts)</li>
+<li>Rédige la procédure de recette. (8 pts)</li>
+<li>Rédige le rapport d'intervention (résumé). (6 pts)</li>
+</ol>
+<p>Total : 100 points (repère d'entraînement).</p>
+</div>
+
+<div class="fx-answer" id="f6-labo-q1">
+<p class="fx-answer-title">Réponse rédigée attendue — questions 1 à 5</p>
+<p><strong>1. Inventaire et justification (8 pts).</strong></p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Matériel</th><th>Quantité</th><th>Justification</th></tr></thead>
+<tbody>
+<tr><td>Baie 19" murale (par ex. 12 U) ventilée, avec étagère</td><td>1</td><td>Regroupe panneau, switch, box, NAS ; protège et ferme à clé</td></tr>
+<tr><td>Panneau de brassage 24 ports cat. 6 RJ45</td><td>1</td><td>10 liaisons aujourd'hui + 4 postes futurs + marge ; on ne branche jamais un câble fixe directement au switch</td></tr>
+<tr><td>Switch gigabit 16 ports, avec ports PoE (802.3af/at) ou injecteur PoE séparé</td><td>1</td><td>Ports actifs : 8 prises utilisées + NAS + box = 10 ; 6 libres pour l'extension ; PoE pour alimenter le point d'accès par le câble réseau</td></tr>
+<tr><td>Point d'accès Wi-Fi bi-bande (2,4 + 5 GHz), WPA3/WPA2, plafonnier PoE</td><td>1</td><td>Couverture du personnel dans la salle B et la salle A (à vérifier par mesure) ; la box n'est pas dans les salles</td></tr>
+<tr><td>Câble cat. 6 U/UTP, gaine LSZH (sans halogène)</td><td>2 tourets de 305 m</td><td>Voir calcul question 3 (320 m nécessaires)</td></tr>
+<tr><td>Prises murales RJ45 cat. 6 (simples ou doubles)</td><td>10</td><td>Une par emplacement, A01 à A05, B01 à B05</td></tr>
+<tr><td>Cordons de brassage cat. 6 droits : courts (0,5 m) en baie, 2 à 3 m côté postes</td><td>12 + 10</td><td>Raccordements panneau → switch et prise → poste, + réserve</td></tr>
+<tr><td>Onduleur (UPS) en baie</td><td>1</td><td>Box, switch, NAS : continuité lors des micro-coupures, arrêt propre du NAS</td></tr>
+<tr><td>NAS 2 disques en miroir (RAID 1)</td><td>1 (fourni)</td><td>Le miroir protège contre la panne d'un disque, <strong>pas</strong> contre l'effacement : prévoir une sauvegarde externe</td></tr>
+<tr><td>Disque de sauvegarde externe (rotation) ou sauvegarde distante</td><td>2</td><td>Sauvegarde du NAS hors site</td></tr>
+<tr><td>Outillage : outil à poinçonner (LSA/110), pince à sertir, testeur de câble, étiqueteuse, bracelet ESD</td><td>—</td><td>Pose, contrôle, repérage</td></tr>
+<tr><td>Goulottes, chemins de câbles, colliers velcro</td><td>selon métré</td><td>Séparation des courants forts et faibles, pas de colliers serrants</td></tr>
+</tbody></table></div>
+<p>Budget indicatif : poste « actif » (switch PoE, point d'accès, onduleur), poste « passif » (baie, panneau, câble, prises, cordons, goulottes), poste « main d'œuvre » (pose, tests, configuration, formation) et poste « sauvegarde » (disques externes). Les prix sont à demander à au moins deux fournisseurs ; je ne les invente pas.</p>
+
+<p><strong>2. Schéma physique (5 pts).</strong></p>
+<pre class="fx-diagram">
+ Fibre opérateur
+      |
+ +----+---------- LOCAL TECHNIQUE (baie 19") ----------+
+ | [Box 192.168.20.1]  Wi-Fi invités 192.168.30.0/24   |
+ |      | cordon                                       |
+ | [Switch 16p gigabit PoE]---[NAS .5]   [Onduleur]    |
+ |      | cordons 0,5 m                                |
+ | [Panneau de brassage 24 ports cat. 6]               |
+ +-----+-------------------------------------+---------+
+       | câbles fixes (faux plafond)         |
+  SALLE A                               SALLE B
+  A01 DIRECTION                         B01 CAO1
+  A02 SECRETARIAT                       B02 CAO2
+  A03 COMPTA                            B03 LINUX1
+  A04 Multifonction .10                 B04 Point d'accès .2
+  A05 réserve                           B05 réserve
+ Topologie : étoile (chaque prise -&gt; panneau -&gt; switch)
+</pre>
+
+<p><strong>3. Câblage (8 pts).</strong></p>
+<ul>
+<li>Catégorie 6 U/UTP : 1 Gb/s sur 100 m de canal (90 m de câble fixe + cordons) ; la plus longue liaison (B03, 46 m) est largement dans la limite. U/UTP suffit dans des bureaux ; un câble blindé (F/UTP) serait choisi près de sources de parasites, avec mise à la masse.</li>
+<li>Norme de raccordement : <strong>T568B</strong> partout (prises et panneau) : blanc-orange, orange, blanc-vert, bleu, blanc-bleu, vert, blanc-brun, brun. T568A est acceptable s'il est utilisé de façon <strong>identique</strong> aux deux extrémités de chaque liaison ; on ne mélange pas dans une installation. Détails : <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-rj45">→ Fiche 3 · RJ45</a>.</li>
+<li>Métré : 18 + 14 + 22 + 12 + 20 = 86 m (salle A) ; 38 + 42 + 46 + 35 + 44 = 205 m (salle B) ; total 291 m ; + 10 % de marge (chutes, lovage en baie) = 320 m → un touret de 305 m ne suffit pas : <strong>2 tourets</strong>.</li>
+<li>Pose : chemins de câbles en faux plafond séparés des câbles électriques (croisements à 90°), rayon de courbure respecté, détorsadage minimal (≈ 13 mm max) au poinçonnage, pas de câble écrasé ni tendu, colliers velcro.</li>
+<li>Repérage : même étiquette aux deux bouts (prise « B03 » = port 15 du panneau « B03 ») ; tableau de brassage : port de panneau ↔ port de switch ↔ appareil.</li>
+<li>Contrôles : chaque liaison permanente testée au testeur (8 conducteurs dans l'ordre, ni ouverture, ni court-circuit, ni inversion, ni paire divisée si le testeur le détecte) ; procès-verbal des tests ; puis lien négocié à 1 Gbit/s sur chaque poste (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-installation">→ Fiche 3 · Installation physique</a>).</li>
+</ul>
+
+<p><strong>4. Plan d'adressage IPv4 (10 pts).</strong> Réseau du LAN : <strong>192.168.20.0/24</strong> (réseau privé).</p>
+<pre class="fx-diagram">
+/24 -&gt; masque 255.255.255.0, 8 bits hôte
+Adresse réseau : 192.168.20.0
+Diffusion      : 192.168.20.255
+Plage d'hôtes  : 192.168.20.1 à 192.168.20.254
+Nombre d'hôtes : 2^8 - 2 = 254
+Besoins : 9 équipements + portables/smartphones du
+personnel (~12) + 4 postes futurs -&gt; &lt; 40 : suffisant
+</pre>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Adresse(s)</th><th>Équipement</th><th>Mode</th></tr></thead>
+<tbody>
+<tr><td>192.168.20.1</td><td>Box (passerelle, DHCP, relais DNS)</td><td>Fixe</td></tr>
+<tr><td>192.168.20.2</td><td>Point d'accès Wi-Fi (administration)</td><td>Fixe</td></tr>
+<tr><td>192.168.20.5</td><td>NAS</td><td>Fixe</td></tr>
+<tr><td>192.168.20.10</td><td>Multifonction</td><td>Fixe</td></tr>
+<tr><td>192.168.20.3 – .4, .6 – .9, .11 – .99</td><td>Réserve pour équipements fixes futurs</td><td>—</td></tr>
+<tr><td>192.168.20.100 – .199</td><td>Étendue DHCP : 6 postes, portables du personnel, 4 postes futurs</td><td>DHCP</td></tr>
+<tr><td>192.168.20.200 – .254</td><td>Réserve</td><td>—</td></tr>
+</tbody></table></div>
+<p>Tous : masque 255.255.255.0, passerelle 192.168.20.1, DNS 192.168.20.1. Le switch non administrable n'a pas d'adresse. Le Wi-Fi visiteurs est sur un réseau séparé géré par la box : 192.168.30.0/24 (hôtes .1 à .254, diffusion .255).</p>
+<p><strong>Variante en deux sous-réseaux</strong> (si le client voulait séparer administration et conception) : découper 192.168.20.0/24 en deux /25.</p>
+<pre class="fx-diagram">
+/25 -&gt; masque 255.255.255.128, bloc 256 - 128 = 128
+Admin  : 192.168.20.0/25   hôtes .1 à .126,   diffusion .127
+Études : 192.168.20.128/25 hôtes .129 à .254, diffusion .255
+Chaque sous-réseau : 2^7 - 2 = 126 hôtes
+</pre>
+<p>Conséquence : il faut un routeur (ou un switch de niveau 3 avec VLAN) qui ait une interface dans chaque sous-réseau, une passerelle propre à chacun (par ex. .1 et .129), un DHCP par sous-réseau, et des règles pour que les deux accèdent au NAS. Pour 6 postes qui partagent les mêmes ressources, la séparation par <strong>droits sur les partages</strong> suffit : je retiens un seul /24 et je justifie ce choix (simplicité, coût, maintenance).</p>
+
+<p><strong>5. DHCP et DNS (5 pts).</strong> Dans la box : serveur DHCP actif, étendue 192.168.20.100 à .199, masque 255.255.255.0, passerelle 192.168.20.1, DNS 192.168.20.1 (la box relaie vers les DNS de l'opérateur), bail de 24 h. Réservations facultatives pour les postes (pratique pour le support à distance) mais <strong>jamais d'IP fixe dans l'étendue</strong>. Le NAS, le point d'accès et la multifonction reçoivent leur IP fixe dans leur propre interface, hors étendue. Un seul serveur DHCP sur le LAN : désactiver le DHCP du point d'accès (mode « point d'accès / pont », pas « routeur »), sinon deux serveurs distribueraient des adresses concurrentes. Contrôle : un poste reçoit .1xx/24, passerelle .1, DNS .1 ; <code>nslookup</code> d'un nom public répond (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-dhcp">→ Fiche 4 · DHCP</a> · <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-dns">→ Fiche 4 · DNS</a>).</p>
+</div>
+</section>

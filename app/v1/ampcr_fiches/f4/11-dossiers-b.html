@@ -1,0 +1,104 @@
+<section class="fx-sec" id="f4-dossiers-suite">
+<h2>5 (suite). Dossiers d'examen résolus</h2>
+
+<article class="fx-case" id="f4-dossier-5">
+<h3>Dossier 5 — Bureau d'architectes : droits sur le partage « Projets »</h3>
+<div class="fx-case-statement">
+<p><b>Contexte.</b> Domaine ARCHI. Le dossier D:\Projets de SRV01 est partagé sous le nom Projets.</p>
+<p><b>Document D1 — permissions.</b></p>
+<pre class="fx-out">PARTAGE \\SRV01\Projets         NTFS D:\Projets
+Tout le monde : Lecture         Architectes : Modification
+Architectes   : Modifier        Utilisateurs du domaine : Lecture et exécution
+                                Stagiaires : REFUSER Modification
+                                Administrateurs, Système : Contrôle total</pre>
+<p><b>Document D2 — utilisateurs.</b></p>
+<pre class="fx-out">Anne  : Architectes, Utilisateurs du domaine
+Bruno : Comptables, Utilisateurs du domaine (+ Architectes ajouté ce matin à 10 h)
+Chloé : Architectes, Stagiaires, Utilisateurs du domaine
+Anne travaille aussi parfois en session ouverte directement sur SRV01.</pre>
+<p><b>Document D3.</b> À 10 h 15, Bruno, connecté depuis 8 h, ne peut toujours pas enregistrer dans Projets.</p>
+<ol><li>Calcule le droit effectif d'Anne, de Chloé et de Bruno (avant et après sa nouvelle session) à travers le réseau. Détaille.</li><li>Quel est le droit d'Anne en session locale sur SRV01 ?</li><li>Explique D3 et la solution.</li><li>Le gérant veut que Chloé puisse modifier les plans du projet « Mons » uniquement. Propose une solution respectant le moindre privilège.</li><li>Critique la permission de partage « Tout le monde : Lecture ».</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Règle : dans chaque couche, les autorisations de l'utilisateur et de ses groupes se cumulent (la plus large l'emporte) sauf un refus explicite, qui l'emporte ; entre la couche partage et la couche NTFS, c'est la plus restrictive qui s'applique pour un accès réseau.</p>
+<p><b>1.</b> Anne : partage = Lecture (Tout le monde) + Modifier (Architectes) → Modifier ; NTFS = Modification + Lecture et exécution → Modification ; effectif = le plus restrictif de Modifier et Modification = <b>Modification</b>. Chloé : partage → Modifier ; NTFS : Modification (Architectes) et Lecture et exécution, mais Stagiaires = Refuser Modification : le refus l'emporte → Lecture et exécution ; effectif = <b>Lecture</b>. Bruno avant : partage → Lecture (Tout le monde seulement) ; NTFS → Lecture et exécution ; effectif = <b>Lecture</b>. Bruno après une nouvelle ouverture de session : il est aussi Architecte → partage Modifier, NTFS Modification → <b>Modification</b>.</p>
+<p><b>2.</b> En session locale, seules les permissions NTFS s'appliquent : Anne a Modification.</p>
+<p><b>3.</b> L'appartenance aux groupes est lue à l'ouverture de session (jeton d'accès). Bruno, connecté depuis 8 h, utilise encore un jeton sans le groupe Architectes : son droit reste Lecture. Solution : il ferme sa session et la rouvre (ou se déconnecte du partage et redémarre) ; je vérifie avec whoami /groups qu'Architectes apparaît, puis qu'il crée et modifie un fichier test.</p>
+<p><b>4.</b> Ne pas retirer Chloé du groupe Stagiaires ni supprimer le refus (il protège tous les projets). Le refus explicite l'emportant sur une autorisation, je crée un groupe « Projet-Mons-Modif » contenant Chloé, et sur le sous-dossier D:\Projets\Mons je désactive l'héritage (en convertissant les autorisations héritées), je supprime l'entrée de refus des Stagiaires sur ce seul sous-dossier et j'accorde Modification au groupe Projet-Mons-Modif. Je contrôle ensuite (onglet Accès effectif) qu'aucun autre stagiaire n'obtient Modification sur Mons par un autre groupe (par exemple Architectes) ; si c'est le cas, je remplace sur ce sous-dossier l'entrée Architectes par un groupe ne contenant que les architectes titulaires. Alternative plus simple si Chloé est seule stagiaire concernée : la retirer de Stagiaires et vérifier qu'elle n'obtient Modification que via Architectes — à valider par le gérant, car elle aurait alors accès à tous les projets. Test : Chloé modifie un plan de Mons, et ne peut pas modifier un autre projet ; un autre stagiaire reste en lecture sur Mons.</p>
+<p><b>5.</b> « Tout le monde : Lecture » donne une lecture à tout compte authentifié, y compris un compte invité éventuel ou un compte d'un autre service, ce qui est limité ensuite par la NTFS (Utilisateurs du domaine : Lecture) ; c'est acceptable si tout le personnel doit consulter les plans, sinon remplacer par « Utilisateurs authentifiés » ou par les groupes concernés, et laisser la NTFS gérer le détail.</p>
+<p class="fx-lose"><b>Perd des points :</b> additionner les couches ; « Chloé a Modification car elle est Architecte » ; ignorer la reconnexion de Bruno ; donner Contrôle total pour régler le problème.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f4-dossier-6">
+<h3>Dossier 6 — Atelier de graphisme : Wi-Fi lent, répéteur inefficace, sécurité obsolète</h3>
+<div class="fx-case-statement">
+<p><b>Contexte.</b> Point d'accès dans le bureau d'accueil ; salle de dessin à 20 m, deux murs porteurs ; répéteur installé au fond de la salle de dessin.</p>
+<p><b>Document E1 — portable dans la salle de dessin.</b></p>
+<pre class="fx-out">SSID : Linea   Bande : 2,4 GHz   Canal : 3   Type de radio : 802.11n
+Authentification : WPA - Personnel   Chiffrement : TKIP
+Réception (Mbits/s) : 54   Signal : 31%</pre>
+<p><b>Document E2 — réseaux voisins (netsh wlan show networks mode=bssid).</b></p>
+<pre class="fx-out">Canal 1 : 3 réseaux    Canal 6 : 4 réseaux    Canal 11 : 1 réseau
+Canal 3 : Linea (notre AP)    5 GHz : aucun réseau voisin visible</pre>
+<p><b>Document E3 — configuration de l'AP.</b></p>
+<pre class="fx-out">Mot de passe admin : admin   WPS : activé   Largeur 2,4 GHz : 40 MHz
+Bande 5 GHz : désactivée   Firmware : 2019   Signal reçu par le répéteur : 22%</pre>
+<ol><li>Interprète E1 et E2 : causes de la lenteur.</li><li>Choisis et justifie la configuration radio.</li><li>Liste les corrections de sécurité.</li><li>Que fais-tu du répéteur ?</li><li>Comment prouves-tu l'amélioration ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Le signal n'est que de 31 % et le débit de liaison de 54 Mbit/s : couverture insuffisante dans la salle de dessin (distance, deux murs porteurs). De plus, le canal 3 chevauche les canaux 1 et 6, occupés par 7 réseaux voisins, avec une largeur de 40 MHz qui élargit encore le chevauchement : interférences. Enfin le chiffrement TKIP (WPA) limite le débit en 802.11n et est obsolète. Le répéteur, placé au fond de la salle, ne reçoit que 22 % : il répète un signal déjà mauvais.</p>
+<p><b>2.</b> 2,4 GHz : canal 11 (le seul des trois canaux non chevauchants 1/6/11 peu occupé, 1 réseau), largeur 20 MHz. Activer le 5 GHz (aucun voisin, débit bien supérieur, canal 36–48) pour les portables récents, avec le même SSID ou un SSID « Linea-5G ».</p>
+<p><b>3.</b> Changer le mot de passe administrateur ; mettre à jour le firmware ; passer en WPA2/WPA3-Personnel (AES-CCMP / SAE) avec une clé longue aléatoire ; désactiver WPS ; créer un SSID invités isolé si des clients se connectent. Prévenir que tous les appareils devront ressaisir la clé (imprimantes Wi-Fi comprises).</p>
+<p><b>4.</b> Le déplacer à mi-chemin (couloir entre l'accueil et la salle), là où il reçoit au moins 60–70 % du signal de l'AP, avec le même SSID et la même sécurité. Solution durable recommandée : un second point d'accès relié par câble au switch dans la salle de dessin (pas de division du débit), sur un canal différent (ex. 1 en 2,4 GHz, autre canal 5 GHz).</p>
+<p><b>5.</b> Mesures avant/après au même endroit, avec le même portable : signal (netsh wlan show interfaces), débit de liaison, test de débit, ping -t vers la passerelle pendant 5 minutes sans pertes ; retour des utilisateurs le lendemain aux heures chargées ; rapport avec les valeurs.</p>
+<p class="fx-lose"><b>Perd des points :</b> canal 3 ou 4 « parce qu'il est libre » (il chevauche) ; garder WPA-TKIP ou WPS ; répéteur laissé dans la zone faible ; aucune mesure chiffrée.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f4-dossier-7">
+<h3>Dossier 7 — Internet qui coupe pour tout le monde, par intermittence</h3>
+<div class="fx-case-statement">
+<p><b>Contexte.</b> PME, réseau 192.168.1.0/24, box 192.168.1.1. Depuis lundi, Internet coupe plusieurs fois par heure pour TOUS les postes, quelques minutes à chaque fois. Un stagiaire a installé un PC de test lundi.</p>
+<p><b>Document F1 — sur PC-02, à 10 h 02 puis 10 h 05.</b></p>
+<pre class="fx-out">10:02 &gt; arp -a
+  192.168.1.1     f4-ca-e5-11-22-33   dynamique
+10:05 &gt; ping 8.8.8.8          Délai d'attente de la demande dépassé. (x4)
+10:05 &gt; arp -a
+  192.168.1.1     3c-52-82-1a-2b-99   dynamique</pre>
+<p><b>Document F2.</b> Les voyants de la box sont tous verts pendant les coupures. Le PC de test affiche « Windows a détecté un conflit d'adresses IP ».</p>
+<ol><li>Analyse F1 et F2 ; formule l'hypothèse et le test qui la confirme.</li><li>Corrige et préviens la récidive.</li><li>Pourquoi ne faut-il pas redémarrer la box ou appeler le FAI ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> À 10 h 02, l'adresse de la passerelle 192.168.1.1 est associée à la MAC f4-ca-e5-11-22-33 (la box) ; à 10 h 05, pendant la coupure, elle est associée à 3c-52-82-1a-2b-99, une autre machine. Deux appareils répondent donc à l'adresse 192.168.1.1 : conflit d'adresse IP avec la passerelle. Quand les postes apprennent la mauvaise MAC, ils envoient leur trafic Internet à cette machine, qui ne route pas : coupure ; quand ils réapprennent la MAC de la box, Internet revient. Les voyants verts de la box confirment qu'elle et la ligne fonctionnent. Hypothèse : le PC de test du stagiaire, qui signale un conflit, a été configuré en 192.168.1.1. Test : ipconfig /all sur ce PC → adresse 192.168.1.1, adresse physique 3C-52-82-1A-2B-99 ; en le débranchant, puis arp -d * sur PC-02, la MAC de la box revient et les coupures cessent.</p>
+<p><b>2.</b> Je passe le PC de test en DHCP (ou en adresse fixe hors étendue s'il en a besoin, selon le plan d'adressage), je le rebranche, et je vérifie qu'il n'y a plus de conflit. Sur les postes, les tables ARP se corrigent d'elles-mêmes (ou arp -d * / redémarrage). Prévention : documenter le plan d'adressage et le communiquer ; interdire les adresses fixes non prévues ; sur un switch administrable, protections (DHCP snooping / inspection ARP) si disponibles.</p>
+<p><b>3.</b> Les tests montrent que la box fonctionne (voyants verts, sa MAC répond à 10 h 02) et que le symptôme vient d'une seconde machine sur le LAN : un redémarrage de la box effacerait temporairement les tables ARP et masquerait la cause, puis le problème reviendrait. Le FAI n'est pas concerné, la panne est interne.</p>
+<p class="fx-lose"><b>Perd des points :</b> « panne du FAI » sur un symptôme général sans tests ; ne pas lire le changement de MAC ; corriger en changeant l'adresse de la box.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f4-dossier-8">
+<h3>Dossier 8 — Nouveau poste de domaine : jonction impossible, puis session lente et heure fausse</h3>
+<div class="fx-case-statement">
+<p><b>Contexte.</b> Domaine compta.local, contrôleur de domaine DC01 192.168.5.10 (DNS), box 192.168.5.1. Un intérimaire a préparé PC-12 (Windows 11 Professionnel).</p>
+<p><b>Document G1 — PC-12.</b></p>
+<pre class="fx-out">Adresse IPv4 : 192.168.5.62   Masque : 255.255.255.0   Passerelle : 192.168.5.1
+Serveurs DNS : 8.8.8.8          DHCP activé : Non
+Date/heure : 27/10/2026 10:41 (DC01 : 27/10/2026 10:12)
+Jonction : « Un contrôleur de domaine Active Directory (AD DC) pour le domaine
+« compta.local » n'a pas pu être contacté. »
+&gt; ping 192.168.5.10     Réponse de 192.168.5.10 : octets=32 temps&lt;1ms TTL=128
+&gt; nslookup compta.local
+Serveur :   dns.google
+Address:  8.8.8.8
+*** dns.google ne parvient pas à trouver compta.local : Non-existent domain</pre>
+<ol><li>Interprète G1 et donne les causes (il y en a deux).</li><li>Donne l'ordre des corrections et la procédure de jonction.</li><li>Rédige les vérifications finales.</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Le ping du contrôleur de domaine répond : réseau, adresse et masque sont corrects (même réseau 192.168.5.0/24). Mais le DNS du poste est 8.8.8.8 : nslookup montre que Google ne connaît pas le domaine interne compta.local (Non-existent domain) ; Windows ne peut donc pas localiser le contrôleur de domaine, d'où le message de jonction. Cause 1 : DNS public au lieu du DNS du domaine (DC01). Cause 2 : l'heure du poste a 29 minutes d'avance sur DC01 ; l'authentification Kerberos du domaine tolère par défaut 5 minutes d'écart : même avec un DNS correct, la jonction ou l'ouverture de session échouerait.</p>
+<p><b>2.</b> D'abord le DNS : DNS préféré 192.168.5.10 (ou repasser le poste en DHCP si le DHCP distribue DC01 comme DNS) ; ipconfig /flushdns ; nslookup compta.local doit renvoyer 192.168.5.10. Ensuite l'heure : régler fuseau et heure, puis la jonction synchronisera le poste sur le domaine (contrôle après : w32tm /query /source → DC01). Jonction : Paramètres → Système → Informations système → Domaine ou groupe de travail → Modifier → Domaine : compta.local → compte autorisé à joindre des postes → redémarrage. L'adresse fixe 192.168.5.62 est à vérifier contre le plan (hors étendue DHCP) ou à remplacer par le DHCP.</p>
+<p><b>3.</b> Message « Bienvenue dans le domaine compta.local », redémarrage, ouverture de session avec un compte du domaine ; whoami → compta\utilisateur ; gpupdate /force sans erreur ; lecteurs réseau et imprimantes déployés ; ping d'un nom interne et d'un site Internet (le DC relaie les noms Internet) ; heure identique à DC01. Rapport : causes, corrections, état final.</p>
+<p class="fx-lose"><b>Perd des points :</b> mettre DC01 en DNS secondaire et laisser 8.8.8.8 en premier (résolution aléatoire des noms internes) ; ignorer l'écart d'heure ; conclure « DC injoignable » alors qu'il répond au ping.</p>
+</div>
+</article>
+</section>

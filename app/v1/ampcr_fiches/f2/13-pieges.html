@@ -1,0 +1,50 @@
+<section class="fx-sec" id="f2-pieges">
+<h2>6. Pièges d'examen et confusions fréquentes</h2>
+
+<h3>6.1 Distinguer deux causes qui se ressemblent</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>On confond…</th><th>…avec</th><th>Ce qui les distingue (test)</th></tr></thead>
+<tbody>
+<tr><td>« No bootable device » (firmware)</td><td>« Votre PC doit être réparé 0xc000000f » (Windows Boot Manager)</td><td>Le premier vient avant tout chargeur : détection/ordre/mode ; le second prouve que le chargeur est lu : BCD</td></tr>
+<tr><td>Disque non détecté (matériel)</td><td>Disque détecté mais pas en tête / mauvais mode (configuration)</td><td>Le disque apparaît-il dans le setup firmware avec sa taille ?</td></tr>
+<tr><td>Installateur sans disque par manque de pilote RST/VMD</td><td>Disque absent du firmware</td><td>Setup firmware ; « Charger un pilote »</td></tr>
+<tr><td>Code 28 (pilote absent)</td><td>Code 22 (désactivé) / Code 43 (défaillance signalée)</td><td>Lire le code dans Propriétés → Général ; 43 → test croisé autre PC</td></tr>
+<tr><td>Écran bleu « pilote » (même code, même .sys)</td><td>Instabilité matérielle (codes variés)</td><td>Mode sans échec / restauration du pilote vs test mémoire, XMP</td></tr>
+<tr><td>Kernel-Power 41 « cause »</td><td>Conséquence d'un plantage ou d'une coupure</td><td>Chercher l'événement juste avant (1001 ?) ; contexte de coupure</td></tr>
+<tr><td>Point de restauration</td><td>Sauvegarde</td><td>Le point ne contient pas les documents ; la sauvegarde si</td></tr>
+<tr><td><code>sfc</code> (fichiers système)</td><td><code>chkdsk</code> (système de fichiers) / <code>DISM</code> (magasin de composants)</td><td>Niveaux différents : DISM → SFC ; chkdsk à part</td></tr>
+<tr><td><code>bootrec</code> (hérité/MBR)</td><td><code>bcdboot</code> (UEFI et hérité, recrée les fichiers de démarrage)</td><td><code>msinfo32</code>/chemin <code>\EFI\…</code> : UEFI → bcdboot</td></tr>
+<tr><td>Linux <code>inactive (dead)</code> + <code>disabled</code></td><td><code>failed</code></td><td>Le premier = non activé (config), le second = erreur (journal)</td></tr>
+<tr><td><code>systemctl enable</code></td><td><code>systemctl start</code></td><td>enable = au prochain démarrage ; start = maintenant ; <code>enable --now</code> = les deux</td></tr>
+<tr><td>Partition pleine (<code>df -h</code>)</td><td>Inodes épuisés (<code>df -i</code>) / fichier supprimé ouvert (<code>lsof +L1</code>)</td><td>Les trois commandes</td></tr>
+<tr><td>« Permission denied » (droits)</td><td>« Read-only file system » (montage en lecture seule après erreur)</td><td><code>ls -l</code>/<code>id</code> vs <code>findmnt</code> (<code>ro</code>) + <code>dmesg</code></td></tr>
+<tr><td>Compte standard « bloqué » (UAC)</td><td>Problème de droits NTFS</td><td>Un admin a-t-il aussi « Accès refusé » ? onglet Sécurité</td></tr>
+<tr><td>Profil temporaire (un compte)</td><td>Disque/système (tous les comptes)</td><td>Tester un autre compte ; espace et chkdsk</td></tr>
+<tr><td>NTFS en lecture seule sous Linux (double démarrage)</td><td>Disque abîmé</td><td>Message « unclean file system … Windows cache » → démarrage rapide</td></tr>
+<tr><td>PC qui saute GRUB</td><td>GRUB cassé</td><td>F12 → « ubuntu » démarre-t-il GRUB ?</td></tr>
+<tr><td>Lenteur « virus »</td><td>Lenteur disque plein/HDD/démarrage chargé</td><td>Gestionnaire des tâches : qui consomme quoi</td></tr>
+<tr><td>Écran BitLocker « disque crypté par un virus »</td><td>Protection normale après changement firmware</td><td>ID de clé + adresse Microsoft affichés</td></tr>
+</tbody></table></div>
+
+<h3>6.2 Erreurs de méthode qui coûtent des points</h3>
+<div class="fx-trap"><b>Piège</b> Proposer « réinstaller », « formater », « Réinitialiser ce PC » comme premier geste : c'est la marche 5, après sauvegarde vérifiée et accord écrit.</div>
+<div class="fx-trap"><b>Piège</b> Écrire une commande sans dire pourquoi, ni ce qu'on attend, ni comment lire le résultat. Une commande seule ne vaut presque rien.</div>
+<div class="fx-trap"><b>Piège</b> Dans WinRE, cibler <code>C:</code> sans vérifier : Windows est souvent en <code>D:</code>, <code>X:</code> est WinRE.</div>
+<div class="fx-trap"><b>Piège</b> <code>diskpart clean</code>, <code>format</code>, <code>mkfs</code>, <code>dd</code>, « Initialiser le disque » sur un disque qui contient des données : effacement. Toujours : avertissement + sauvegarde + identification du disque + alternative.</div>
+<div class="fx-trap"><b>Piège</b> <code>chmod 777</code>, ajout au groupe Administrateurs/<code>sudo</code>, désactivation de l'UAC, de l'antivirus ou de Windows Update « pour que ça marche » : faute de sécurité.</div>
+<div class="fx-trap"><b>Piège</b> Changer plusieurs choses à la fois : si la panne disparaît, on ne sait pas pourquoi ; si elle s'aggrave, on ne sait pas quoi annuler.</div>
+<div class="fx-trap"><b>Piège</b> Valider une panne intermittente en quelques minutes ; valider sans reproduire le scénario d'origine ; oublier de remettre <code>msconfig</code> en démarrage normal ou de retirer <code>safeboot</code>.</div>
+<div class="fx-trap"><b>Piège</b> Modifier <code>/etc/fstab</code>, une configuration de service ou le registre sans copie ; redémarrer sans tester (<code>findmnt --verify</code>, <code>mount -a</code>, <code>nginx -t</code>).</div>
+<div class="fx-trap"><b>Piège</b> Changer Secure Boot, le mode UEFI/CSM, le TPM ou mettre à jour le BIOS sans penser à BitLocker.</div>
+<div class="fx-trap"><b>Piège</b> Supprimer depuis Windows une partition « sans lettre » (ESP, récupération, Linux).</div>
+<div class="fx-trap"><b>Piège</b> Télécharger un pilote ou une DLL sur un site tiers ; installer un « optimiseur » ou « nettoyeur de registre ».</div>
+
+<h3>6.3 Variantes à connaître (même symptôme, cause différente)</h3>
+<ul>
+<li>« Le PC redémarre tout seul » : écran bleu avec redémarrage automatique (BugCheck 1001), surchauffe (Fiche 1), alimentation (Kernel-Power 41 sans 1001), mise à jour programmée (journal WindowsUpdateClient/heures d'activité).</li>
+<li>« Écran noir » : pas de signal (Fiche 1) ; écran noir avec curseur après connexion (Explorer/pilote graphique → mode sans échec) ; Linux : pilote graphique / boucle de connexion (P1.8).</li>
+<li>« Le logiciel ne marche plus » : dépendance, droits, profil, MAJ, antivirus, serveur/réseau inaccessible (Fiche 4).</li>
+<li>« Plus de son » : périphérique de sortie par défaut (icône son → choisir la sortie), son coupé, pilote (P3.1), service Audio Windows arrêté (P4.3), casque branché/Bluetooth.</li>
+<li>« Plus de réseau » sur un seul PC après MAJ : pilote réseau (P3.2) — sinon configuration IP (Fiche 4).</li>
+</ul>
+</section>

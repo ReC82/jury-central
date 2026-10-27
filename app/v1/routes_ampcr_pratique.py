@@ -2,11 +2,12 @@
 couverture officielle et format d'exercice. Lecture seule, publiques comme le reste des
 cours ; la progression n'apparaît qu'une fois connecté. Voir `app.v1.ampcr_pratique_plan`."""
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from app.database import get_db
 from app.templating import templates
+from app.v1 import ampcr_fiches
 from app.v1 import ampcr_pratique_plan as plan
 from app.v1.ampcr_pratique_format import EXAMPLE_EXERCISE, EXAMPLE_FIGURES, build_rubric
 from app.v1.ampcr_pratique_visuals import DIAGNOSTIC_METHOD_FIGURE, render_figure
@@ -51,12 +52,14 @@ async def practical_home(request: Request, db=Depends(get_db)):  # noqa: B008
                 "requirement_ids": requirement_ids,
                 "theory_codes": theory_codes,
                 "published_count": sum(1 for c in courses if c.code in published),
+                "fiches": ampcr_fiches.fiches_for_module(module.key),
             }
         )
     context.update(
         {
             "modules": modules,
             "states": states,
+            "fiches": ampcr_fiches,
             "published_course_count": sum(1 for c in plan.COURSE_SLOTS if c.code in published),
             "published_exercise_count": sum(1 for e in plan.EXERCISE_SLOTS if e.code in published),
         }
@@ -85,3 +88,43 @@ async def practical_exercise_format(request: Request):
             "render_figure": render_figure,
         },
     )
+
+
+# --- Fiches de dépannage (ticket #302) ---------------------------------------------------------
+
+
+@router.get(ampcr_fiches.FICHES_URL, response_class=HTMLResponse)
+async def practical_fiches_index(request: Request):
+    return templates.TemplateResponse(
+        request=request, name="ampcr_fiches_index.html", context={"plan": plan, "fiches": ampcr_fiches}
+    )
+
+
+def _fiche_or_404(number: int) -> ampcr_fiches.Fiche:
+    if not ampcr_fiches.is_available(number):
+        raise HTTPException(status_code=404, detail="Fiche pas encore publiée.")
+    return ampcr_fiches.FICHES_BY_NUMBER[number]
+
+
+@router.get(f"{ampcr_fiches.FICHES_URL}/{{number}}", response_class=HTMLResponse)
+async def practical_fiche(request: Request, number: int):
+    fiche = _fiche_or_404(number)
+    return templates.TemplateResponse(
+        request=request,
+        name="ampcr_fiche.html",
+        context={"plan": plan, "fiches": ampcr_fiches, "fiche": fiche,
+                 "fiche_html": ampcr_fiches.content(number), "fiche_css": ampcr_fiches.css()},
+    )
+
+
+@router.get(f"{ampcr_fiches.FICHES_URL}/{{number}}/telecharger", response_class=HTMLResponse)
+async def practical_fiche_download(request: Request, number: int):
+    fiche = _fiche_or_404(number)
+    response = templates.TemplateResponse(
+        request=request,
+        name="ampcr_fiche_standalone.html",
+        context={"plan": plan, "fiches": ampcr_fiches, "fiche": fiche,
+                 "fiche_html": ampcr_fiches.standalone_content(number), "fiche_css": ampcr_fiches.css()},
+    )
+    response.headers["Content-Disposition"] = f'attachment; filename="{fiche.filename}"'
+    return response

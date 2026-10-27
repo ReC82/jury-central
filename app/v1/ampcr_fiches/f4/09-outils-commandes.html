@@ -1,0 +1,239 @@
+<section class="fx-sec" id="f4-outils">
+<h2>4 B. Commandes et sorties commentées</h2>
+
+<h3>ipconfig (Windows) — lire une configuration saine</h3>
+<pre class="fx-cmd">C:\&gt; ipconfig /all</pre>
+<pre class="fx-out">Configuration IP de Windows
+
+   Nom de l'hôte . . . . . . . . . . : PC-ACCUEIL
+   Suffixe DNS principal . . . . . . :
+   Type de noeud. . . . . . . . . .  : Hybride
+   Routage IP activé . . . . . . . . : Non
+   Proxy WINS activé . . . . . . . . : Non
+
+Carte Ethernet Ethernet :
+
+   Suffixe DNS propre à la connexion. . . : home
+   Description. . . . . . . . . . . . . . : Realtek PCIe GbE Family Controller
+   Adresse physique . . . . . . . . . . . : 3C-52-82-1A-2B-01
+   DHCP activé. . . . . . . . . . . . . . : Oui
+   Configuration automatique activée. . . : Oui
+   Adresse IPv6 de liaison locale. . . . .: fe80::4d2c:91a0:3b7e:5f12%12(préféré)
+   Adresse IPv4. . . . . . . . . . . . . .: 192.168.1.37(préféré)
+   Masque de sous-réseau. . . . . . . . . : 255.255.255.0
+   Bail obtenu. . . . . . . . . . . . . . : lundi 27 octobre 2026 08:12:45
+   Bail expirant. . . . . . . . . . . . . : mardi 28 octobre 2026 08:12:45
+   Passerelle par défaut. . . . . . . . . : 192.168.1.1
+   Serveur DHCP . . . . . . . . . . . . . : 192.168.1.1
+   Serveurs DNS. . .  . . . . . . . . . . : 192.168.1.1
+   NetBIOS sur Tcpip. . . . . . . . . . . : Activé
+
+Carte réseau sans fil Wi-Fi :
+
+   Statut du média. . . . . . . . . . . . : Média déconnecté</pre>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Ligne</th><th>Ce que je vérifie</th><th>Anomalie → procédure</th></tr></thead>
+<tbody>
+<tr><td>Statut du média</td><td>Absente = lien OK</td><td>« Média déconnecté » → P3.1</td></tr>
+<tr><td>Adresse physique</td><td>MAC à comparer avec arp -a, baux DHCP, filtrage</td><td>Doublon IP → P3.4</td></tr>
+<tr><td>DHCP activé</td><td>Oui = automatique ; Non = fixe (à vérifier contre le plan)</td><td>Fixe dans l'étendue → P3.4</td></tr>
+<tr><td>Adresse IPv4</td><td>Dans le bon réseau ; « (préféré) »</td><td>« Adresse d'autoconfiguration » 169.254 → P3.2 ; « (Doublon) » → P3.4 ; autre réseau → P3.3</td></tr>
+<tr><td>Masque</td><td>Identique aux autres postes</td><td>Différent → P3.5</td></tr>
+<tr><td>Passerelle</td><td>Présente, dans le réseau du poste</td><td>Vide/fausse → P3.6</td></tr>
+<tr><td>Serveur DHCP</td><td>Serveur officiel</td><td>Inconnu → P3.3</td></tr>
+<tr><td>Serveurs DNS</td><td>DNS du plan (DC en domaine)</td><td>Faux → P3.7</td></tr>
+<tr><td>Bail obtenu/expirant</td><td>Dates cohérentes</td><td>Bail très ancien → renouvellement qui échoue</td></tr>
+</tbody></table></div>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Commande</th><th>Effet</th><th>Quand</th></tr></thead>
+<tbody>
+<tr><td><code>ipconfig</code></td><td>Résumé (IP, masque, passerelle)</td><td>Premier coup d'œil</td></tr>
+<tr><td><code>ipconfig /all</code></td><td>Tout : MAC, DHCP, bail, DNS</td><td>Diagnostic réel</td></tr>
+<tr><td><code>ipconfig /release</code></td><td>Rend le bail DHCP (le poste perd son adresse ; coupe les connexions)</td><td>Avant /renew, après correction DHCP/VLAN. Jamais à distance (tu perds la main)</td></tr>
+<tr><td><code>ipconfig /renew</code></td><td>Demande un nouveau bail</td><td>Après correction ; teste si le DHCP répond</td></tr>
+<tr><td><code>ipconfig /flushdns</code></td><td>Vide le cache DNS du poste</td><td>Après changement d'IP d'un serveur/site, correction DNS</td></tr>
+<tr><td><code>ipconfig /displaydns</code></td><td>Affiche le cache</td><td>Soupçon d'entrée erronée</td></tr>
+<tr><td><code>ipconfig /registerdns</code></td><td>Réenregistre le poste dans le DNS (domaine)</td><td>Poste introuvable par son nom</td></tr>
+</tbody></table></div>
+
+<h3>ip / nmcli / resolvectl (Linux Debian/Ubuntu)</h3>
+<pre class="fx-cmd">$ ip addr</pre>
+<pre class="fx-out">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+2: enp3s0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 3c:52:82:1a:2b:07 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.40/24 brd 192.168.1.255 scope global dynamic noprefixroute enp3s0
+       valid_lft 85912sec preferred_lft 85912sec
+3: wlp2s0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether da:a1:19:5c:7e:02 brd ff:ff:ff:ff:ff:ff</pre>
+<p>Lecture : <code>state UP</code> + <code>LOWER_UP</code> = lien ; <code>NO-CARRIER</code> = pas de lien ; <code>inet 192.168.1.40/24</code> = IP + préfixe ; <code>dynamic</code> = DHCP (absent = fixe) ; <code>link/ether</code> = MAC.</p>
+<pre class="fx-cmd">$ ip route</pre>
+<pre class="fx-out">default via 192.168.1.1 dev enp3s0 proto dhcp src 192.168.1.40 metric 100
+192.168.1.0/24 dev enp3s0 proto kernel scope link src 192.168.1.40 metric 100</pre>
+<p>Lecture : <code>default via</code> = passerelle (absente → « Network is unreachable » vers Internet, P3.6) ; 2e ligne = réseau local directement joignable.</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Commande</th><th>Usage</th></tr></thead>
+<tbody>
+<tr><td><code>ip link</code> / <code>sudo ip link set enp3s0 up</code></td><td>État du lien / activer l'interface</td></tr>
+<tr><td><code>resolvectl status</code> (ou <code>cat /etc/resolv.conf</code>)</td><td>Serveurs DNS utilisés</td></tr>
+<tr><td><code>nmcli dev status</code> ; <code>nmcli con show</code></td><td>Interfaces et connexions NetworkManager</td></tr>
+<tr><td><code>sudo nmcli con mod "Connexion filaire 1" ipv4.method manual ipv4.addresses 192.168.1.40/24 ipv4.gateway 192.168.1.1 ipv4.dns 192.168.1.1</code> puis <code>sudo nmcli con up "Connexion filaire 1"</code></td><td>Configuration fixe persistante</td></tr>
+<tr><td><code>sudo nmcli con mod "Connexion filaire 1" ipv4.method auto</code></td><td>Retour en DHCP</td></tr>
+<tr><td><code>sudo dhclient -r enp3s0 ; sudo dhclient -v enp3s0</code></td><td>Équivalent /release /renew (systèmes avec dhclient)</td></tr>
+<tr><td><code>ip neigh</code></td><td>Équivalent arp -a</td></tr>
+<tr><td><code>traceroute 8.8.8.8</code> / <code>tracepath</code></td><td>Équivalent tracert</td></tr>
+<tr><td><code>ss -tulpn</code></td><td>Ports en écoute (équivalent netstat)</td></tr>
+<tr><td><code>nmcli dev wifi list</code> ; <code>iw dev wlp2s0 link</code></td><td>Réseaux Wi-Fi, canal, signal</td></tr>
+<tr><td><code>smbclient -L //srv01 -U julie</code></td><td>Lister les partages SMB d'un serveur</td></tr>
+</tbody></table></div>
+
+<h3>ping — sorties de référence</h3>
+<pre class="fx-cmd">C:\&gt; ping 192.168.1.1</pre>
+<pre class="fx-out">Envoi d'une requête 'Ping'  192.168.1.1 avec 32 octets de données :
+Réponse de 192.168.1.1 : octets=32 temps&lt;1ms TTL=64
+Réponse de 192.168.1.1 : octets=32 temps&lt;1ms TTL=64
+Réponse de 192.168.1.1 : octets=32 temps=1 ms TTL=64
+Réponse de 192.168.1.1 : octets=32 temps&lt;1ms TTL=64
+
+Statistiques Ping pour 192.168.1.1:
+    Paquets : envoyés = 4, reçus = 4, perdus = 0 (perte 0%),
+Durée approximative des boucles en millisecondes :
+    Minimum = 0ms, Maximum = 1ms, Moyenne = 0ms</pre>
+<pre class="fx-cmd">C:\&gt; ping 192.168.1.50</pre>
+<pre class="fx-out">Envoi d'une requête 'Ping'  192.168.1.50 avec 32 octets de données :
+Réponse de 192.168.1.37 : Impossible de joindre l'hôte de destination.
+Réponse de 192.168.1.37 : Impossible de joindre l'hôte de destination.
+Réponse de 192.168.1.37 : Impossible de joindre l'hôte de destination.
+Réponse de 192.168.1.37 : Impossible de joindre l'hôte de destination.
+
+Statistiques Ping pour 192.168.1.50:
+    Paquets : envoyés = 4, reçus = 4, perdus = 0 (perte 0%),</pre>
+<div class="fx-trap"><b>Piège</b> Ci-dessus, « reçus = 4, perdus = 0 » alors que la cible n'a JAMAIS répondu : les « réponses » viennent de 192.168.1.37 (le poste lui-même). Lire QUI répond, pas les statistiques.</div>
+<pre class="fx-cmd">C:\&gt; ping 192.168.1.20</pre>
+<pre class="fx-out">Envoi d'une requête 'Ping'  192.168.1.20 avec 32 octets de données :
+Délai d'attente de la demande dépassé.
+Délai d'attente de la demande dépassé.
+Délai d'attente de la demande dépassé.
+Délai d'attente de la demande dépassé.
+
+Statistiques Ping pour 192.168.1.20:
+    Paquets : envoyés = 4, reçus = 0, perdus = 4 (perte 100%),</pre>
+<pre class="fx-cmd">C:\&gt; ping 192.168.2.10</pre>
+<pre class="fx-out">Envoi d'une requête 'Ping'  192.168.2.10 avec 32 octets de données :
+Réponse de 192.168.1.1 : Impossible de joindre l'hôte de destination.</pre>
+<p>Ici la passerelle 192.168.1.1 répond : ton poste et ton LAN fonctionnent ; c'est derrière le routeur que la cible est introuvable.</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Option</th><th>Usage</th></tr></thead>
+<tbody>
+<tr><td><code>ping -t cible</code> (Ctrl+C pour arrêter et voir les stats)</td><td>Ping continu : intermittences, suivi pendant une manipulation (câble qu'on bouge)</td></tr>
+<tr><td><code>ping -n 100 cible</code></td><td>Nombre de paquets (mesure de perte)</td></tr>
+<tr><td><code>ping -4 nom</code></td><td>Force IPv4 (si le nom résout d'abord en IPv6)</td></tr>
+<tr><td><code>ping -a 192.168.1.10</code></td><td>Résolution inverse : nom de l'hôte</td></tr>
+<tr><td><code>ping -l 1472 -f 8.8.8.8</code></td><td>Taille max sans fragmentation (problème de MTU, rare : VPN, PPPoE)</td></tr>
+<tr><td>Linux <code>ping -c 4 cible</code></td><td>Linux pingue à l'infini sans <code>-c</code></td></tr>
+</tbody></table></div>
+
+<h3>tracert / traceroute</h3>
+<pre class="fx-cmd">C:\&gt; tracert 8.8.8.8</pre>
+<pre class="fx-out">Détermination de l'itinéraire vers dns.google [8.8.8.8]
+avec un maximum de 30 sauts :
+
+  1    &lt;1 ms    &lt;1 ms    &lt;1 ms  192.168.1.1
+  2     8 ms     7 ms     8 ms  10.24.0.1
+  3     *        *        *     Délai d'attente de la demande dépassé.
+  4    10 ms     9 ms    10 ms  72.14.198.130
+  5    11 ms    10 ms    11 ms  dns.google [8.8.8.8]
+
+Itinéraire déterminé.</pre>
+<p>Lecture : saut 1 = ta passerelle (si ce n'est pas elle → mauvaise passerelle/VPN) ; une ligne « * » isolée au milieu d'une route qui aboutit = routeur qui ne répond pas au tracert, PAS une panne ; tous les sauts « * » après le saut N = coupure après N. <code>tracert -d</code> évite la résolution des noms (plus rapide).</p>
+
+<h3>nslookup</h3>
+<pre class="fx-cmd">C:\&gt; nslookup srv01.entreprise.local</pre>
+<pre class="fx-out">Serveur :   dc01.entreprise.local
+Address:  192.168.1.10
+
+Nom :    srv01.entreprise.local
+Address:  192.168.1.12</pre>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Sortie</th><th>Interprétation</th></tr></thead>
+<tbody>
+<tr><td>« Serveur : … Address : … »</td><td>QUEL serveur DNS a été interrogé : à comparer au plan</td></tr>
+<tr><td>« Réponse ne faisant pas autorité : »</td><td>NORMAL : le serveur relaie la réponse d'un autre</td></tr>
+<tr><td>« *** dc01 ne parvient pas à trouver srv02 : Non-existent domain »</td><td>Le serveur répond mais le nom n'existe pas (faute, enregistrement manquant, mauvais serveur pour un nom interne)</td></tr>
+<tr><td>« DNS request timed out » / « Le délai de la requête vers … a expiré »</td><td>Le serveur DNS ne répond pas (éteint, inexistant, filtré)</td></tr>
+<tr><td>« Serveur : UnKnown »</td><td>Pas de résolution inverse du serveur DNS : sans gravité si la réponse arrive</td></tr>
+<tr><td><code>nslookup nom 1.1.1.1</code></td><td>Interroge un serveur précis : test discriminant</td></tr>
+</tbody></table></div>
+
+<h3>arp -a (table IP ↔ MAC du segment local)</h3>
+<pre class="fx-cmd">C:\&gt; arp -a</pre>
+<pre class="fx-out">Interface : 192.168.1.37 --- 0xc
+  Adresse Internet      Adresse physique      Type
+  192.168.1.1           f4-ca-e5-11-22-33     dynamique
+  192.168.1.10          00-15-5d-01-0a-0b     dynamique
+  192.168.1.255         ff-ff-ff-ff-ff-ff     statique
+  224.0.0.22            01-00-5e-00-00-16     statique
+  239.255.255.250       01-00-5e-7f-ff-fa     statique</pre>
+<p>Usages : confirmer qu'un hôte qui ne répond pas au ping est présent (MAC apprise → pare-feu) ; trouver qui utilise une IP (conflit, DHCP parasite) ; seulement pour le réseau LOCAL (une machine distante n'apparaît jamais, on voit la MAC de la passerelle). <code>arp -d *</code> (admin) vide la table.</p>
+
+<h3>netstat / ss (connexions et ports)</h3>
+<pre class="fx-cmd">C:\&gt; netstat -ano | findstr :445</pre>
+<pre class="fx-out">  TCP    0.0.0.0:445            0.0.0.0:0              LISTENING       4
+  TCP    192.168.1.37:52114     192.168.1.10:445       ESTABLISHED     4</pre>
+<p>LISTENING = service en écoute sur ce poste (ici le partage SMB) ; ESTABLISHED = connexion ouverte vers le serveur. Linux : <code>ss -tulpn</code> → <code>LISTEN 0 50 0.0.0.0:445 … users:(("smbd",pid=812,fd=31))</code>.</p>
+
+<h3>PowerShell et outils complémentaires</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Commande</th><th>Résultat utile</th></tr></thead>
+<tbody>
+<tr><td><code>Test-NetConnection srv01 -Port 445</code></td><td>TcpTestSucceeded True/False : le SERVICE est-il joignable (445 SMB, 9100 impression RAW, 631 IPP, 3389 bureau à distance, 80/443 web, 53 DNS)</td></tr>
+<tr><td><code>Get-NetIPConfiguration</code></td><td>Résumé IP / passerelle / DNS par carte</td></tr>
+<tr><td><code>Get-NetConnectionProfile</code> / <code>Set-NetConnectionProfile -InterfaceAlias "Ethernet" -NetworkCategory Private</code></td><td>Profil Public/Privé/Domaine</td></tr>
+<tr><td><code>Resolve-DnsName nom -Server 192.168.1.10</code></td><td>Équivalent nslookup</td></tr>
+<tr><td><code>route print</code></td><td>Table de routage (route 0.0.0.0 = passerelle, métriques)</td></tr>
+<tr><td><code>getmac /v</code> ; <code>hostname</code></td><td>MAC des cartes ; nom du poste</td></tr>
+<tr><td><code>net view \\srv01</code> ; <code>net use</code> ; <code>net share</code></td><td>Partages d'un serveur ; connexions ; partages locaux</td></tr>
+<tr><td><code>whoami /groups</code> ; <code>net user jdupont /domain</code> ; <code>gpupdate /force</code></td><td>Groupes effectifs ; compte du domaine ; stratégies</td></tr>
+</tbody></table></div>
+
+<h3>netsh (Windows, invite administrateur)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Commande</th><th>Effet</th></tr></thead>
+<tbody>
+<tr><td><code>netsh interface ipv4 show config</code></td><td>Configuration IP de chaque interface</td></tr>
+<tr><td><code>netsh interface ipv4 set address name="Ethernet" static 192.168.1.37 255.255.255.0 192.168.1.1</code></td><td>Adresse fixe + masque + passerelle</td></tr>
+<tr><td><code>netsh interface ipv4 set address name="Ethernet" source=dhcp</code></td><td>Retour en DHCP</td></tr>
+<tr><td><code>netsh interface ipv4 set dnsservers name="Ethernet" static 192.168.1.10 primary</code> / <code>… source=dhcp</code></td><td>DNS fixe / automatique</td></tr>
+<tr><td><code>netsh interface set interface name="Ethernet" admin=disabled</code> puis <code>enabled</code></td><td>Désactiver/réactiver la carte</td></tr>
+<tr><td><code>netsh wlan show interfaces</code> ; <code>show networks mode=bssid</code> ; <code>show profiles</code> ; <code>show drivers</code></td><td>État Wi-Fi, signal, canal ; réseaux voisins ; profils ; normes et sécurité prises en charge</td></tr>
+<tr><td><code>netsh wlan delete profile name="Linea-Pro"</code></td><td>Oublier un réseau Wi-Fi</td></tr>
+<tr><td><code>netsh advfirewall show allprofiles state</code></td><td>Pare-feu actif par profil</td></tr>
+<tr><td><code>netsh winsock reset</code> ; <code>netsh int ip reset</code></td><td>Réinitialisation de la pile (efface la config fixe : voir P3.11)</td></tr>
+<tr><td><code>netsh winhttp show proxy</code></td><td>Proxy système</td></tr>
+</tbody></table></div>
+
+<h3 id="f4-equipements">Choisir l'équipement en situation</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Besoin exprimé</th><th>Équipement</th><th>Justification à écrire</th><th>Erreur à éviter</th></tr></thead>
+<tbody>
+<tr><td>Plus de prises pour relier des PC du même réseau</td><td>Switch (couche 2)</td><td>Commute par adresse MAC : trafic envoyé au seul port destinataire, full duplex, pas de collisions</td><td>Hub (couche 1) : répète tout partout, collisions, obsolète</td></tr>
+<tr><td>Relier deux réseaux IP différents / LAN et Internet</td><td>Routeur (couche 3) ; box = routeur + modem + switch + AP + DHCP + DNS relais</td><td>Achemine selon l'adresse IP, sépare les domaines de diffusion ; c'est la « passerelle » des postes</td><td>Croire qu'un switch relie deux réseaux IP</td></tr>
+<tr><td>Convertir le signal de la ligne (DSL, câble, fibre ONT)</td><td>Modem / ONT</td><td>Adapte le signal du support opérateur</td><td>Confondre modem et routeur</td></tr>
+<tr><td>Ajouter le Wi-Fi à un réseau filaire existant</td><td>Point d'accès (relié en câble), en mode AP/pont</td><td>Pont Wi-Fi ↔ Ethernet dans le même réseau, pas de second DHCP</td><td>Routeur Wi-Fi en mode routeur (double NAT, P3.3)</td></tr>
+<tr><td>Étendre une couverture Wi-Fi sans câble</td><td>Répéteur (ou mesh)</td><td>Réémet le signal ; à placer à mi-distance ; débit réduit</td><td>Placer dans la zone sans signal</td></tr>
+<tr><td>Séparer invités / bureau sur le même matériel</td><td>Switch administrable (VLAN) + routeur ; SSID invités isolé</td><td>Domaines de diffusion séparés</td><td>Simple switch non administrable</td></tr>
+<tr><td>Liaison &gt; 100 m ou entre bâtiments / perturbations fortes</td><td>Fibre optique + convertisseurs/modules (F3)</td><td>Le cuivre est limité à 100 m par segment</td><td>Rallonger un câble UTP au-delà de 100 m</td></tr>
+</tbody></table></div>
+
+<h3>Diagnostic par couche : symptôme → outil</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Couche (OSI)</th><th>Ce qui peut casser</th><th>Indice</th><th>Outil / test</th></tr></thead>
+<tbody>
+<tr><td>1 Physique</td><td>Câble, prise, port, carte, signal Wi-Fi</td><td>Pas de voyant, Média déconnecté, signal faible</td><td>Voyants, cordon/port de remplacement, testeur (F3), netsh wlan</td></tr>
+<tr><td>2 Liaison</td><td>Switch, VLAN, MAC, boucle, association Wi-Fi</td><td>Lien OK mais pas de DHCP, arp vide, tempête</td><td>arp -a, table MAC du switch, config du port</td></tr>
+<tr><td>3 Réseau</td><td>IP, masque, passerelle, routage, DHCP (qui fournit IP/masque/passerelle/DNS)</td><td>169.254, mauvais réseau, « Network is unreachable »</td><td>ipconfig, ip route, ping, tracert</td></tr>
+<tr><td>4 Transport</td><td>Port bloqué, pare-feu</td><td>Ping OK, service KO</td><td>Test-NetConnection -Port, netstat/ss</td></tr>
+<tr><td>7 Application</td><td>DNS, SMB, impression, proxy, authentification, droits</td><td>Nom introuvable, erreur 5/53, accès refusé</td><td>nslookup, net use, whoami /groups, Accès effectif</td></tr>
+</tbody></table></div>
+</section>

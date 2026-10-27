@@ -1,0 +1,98 @@
+<section class="fx-sec" id="f6-methode-detail">
+<h2>2. Méthode d'examen détaillée</h2>
+
+<h3 id="f6-m-avant">2.1 Avant de commencer (ce que disent les consignes officielles)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Règle officielle (p. 3-4)</th><th>Conséquence pratique pour ta copie</th></tr></thead>
+<tbody>
+<tr><td>Examen uniquement écrit, Laboratoire + T.P. et méthodes ensemble</td><td>Une question « laboratoire » (geste) se répond par une procédure écrite ordonnée ; une question « méthodes » par une démarche justifiée. Les deux comptent dans la même moyenne : ne sacrifie aucun domaine.</td></tr>
+<tr><td>Feuilles de brouillon refusées</td><td>Tes calculs (IPv4, débits, temps) se font <strong>sur la copie</strong>, dans un cadre « calcul » à côté de la réponse. C'est un avantage : un calcul montré rapporte des points même si le résultat final est faux.</td></tr>
+<tr><td>Tipp-Ex et correcteurs refusés</td><td>Une erreur se barre d'un seul trait propre, on réécrit à côté. Pas de gribouillage : le correcteur doit lire ce qui compte.</td></tr>
+<tr><td>Calculatrice non programmable seulement si on l'annonce en début d'épreuve</td><td>Prépare-toi à calculer à la main : tailles de bloc (256 − octet du masque), puissances de 2, conversions binaires. Emporte quand même une calculatrice non programmable.</td></tr>
+<tr><td>Crayons de couleur, latte, crayon gris autorisés</td><td>Schémas de câblage, plans réseau et code couleur T568A/B dessinables proprement ; colorier les paires dans l'ordre est un plus visible.</td></tr>
+<tr><td>Trousse transparente, GSM et montres connectées éteints au sac, aucun prêt de matériel</td><td>Prépare ce soir : 2 stylos bleus, 1 rouge ou vert, crayon, gomme, latte, crayons de couleur (orange, vert, bleu, brun au minimum), calculatrice non programmable, montre <strong>non connectée</strong> pour gérer le temps.</td></tr>
+</tbody></table></div>
+
+<h3 id="f6-m-lecture">2.2 Lire le sujet et repérer les documents (5 minutes bien investies)</h3>
+<ol class="fx-steps">
+<li><strong>Survole tout le sujet</strong> — compte les dossiers, les questions, les points de chacune. <div class="fx-branch"><p class="fx-si"><b>SI</b> une question vaut beaucoup plus que les autres → elle exige une procédure complète (diagnostic + correction + validation), pas une phrase.</p><p class="fx-sinon"><b>SINON</b> (questions courtes à 2-3 points) → réponse directe, justifiée en une ligne, sans roman.</p></div></li>
+<li><strong>Souligne le contexte</strong> : qui (utilisateur, PME, école), quel matériel (Windows 10/11, Ubuntu, box, switch, imprimante), <em>depuis quand</em> (« depuis l'ajout de RAM », « depuis le changement de box ») et ce qui a changé. — attendu : repérer le <em>dernier changement</em>, c'est très souvent la piste n° 1.</li>
+<li><strong>Inventorie les documents</strong> : sorties de commandes (ipconfig, ping, nslookup, ip addr), plan, schéma, photos décrites, relevés de testeur, journaux, factures/inventaire. Note dans la marge de chaque document ce qu'il prouve. <div class="fx-branch"><p class="fx-si"><b>SI</b> un document contredit l'énoncé (l'utilisateur dit « pas de réseau » mais ipconfig montre une IP correcte et le ping passerelle répond) → c'est voulu : la panne est plus haut (DNS, droits, application).</p><p class="fx-sinon"><b>SINON</b> → les documents confirment le symptôme : cherche le premier test qui échoue.</p></div></li>
+<li><strong>Repère les faux indices</strong> : un câble « croisé » sur un switch Auto MDI-X, une mise à jour Windows qui coïncide, un utilisateur qui accuse l'antivirus. Un indice n'est une cause qu'après un test qui le confirme.</li>
+<li><strong>Lis le verbe de chaque question</strong> : « identifie » (une cause + preuve), « justifie » (pourquoi, avec le document), « décris la procédure » (étapes numérotées), « propose » (solution + alternative), « calcule » (calcul montré), « rédige » (rapport/ticket complet).</li>
+</ol>
+
+<h3 id="f6-m-temps">2.3 Gérer le temps</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Moment</th><th>Action</th><th>Repère (exemple pour 3 h et /100)</th></tr></thead>
+<tbody>
+<tr><td>Début</td><td>Survol, budget par dossier, heure de fin notée en marge</td><td>5 min ; 1 point ≈ 1,6 min</td></tr>
+<tr><td>Premier passage</td><td>Questions « sûres » d'abord (calcul IP, RJ45, lecture de sortie, choix de câble)</td><td>Ne reste jamais plus de 1,5 × le budget sur une question</td></tr>
+<tr><td>Blocage</td><td>Écris la démarche et les tests que tu ferais, laisse 5 lignes, passe à la suite</td><td>Reviens en fin d'épreuve</td></tr>
+<tr><td>Fin − 15 min</td><td>Relecture : chaque question a une conclusion, une correction, une validation ? Calculs recopiés juste ? Unités (Mb/s, m, Ω, dB) ?</td><td>10 % du temps</td></tr>
+</tbody></table></div>
+<p>Formule de budget : <strong>minutes pour une question = durée totale en minutes × points de la question / total des points</strong>, après avoir retiré 5 min de lecture et 10 % de relecture. Exemple : épreuve de 180 min, /100 : (180 − 5 − 18) = 157 min utiles → 1,57 min par point → question à 12 points ≈ 19 min.</p>
+
+<h3 id="f6-m-structure">2.4 Structure type d'une réponse de diagnostic (7 temps)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Temps</th><th>Ce que tu écris</th><th>Exemple (poste sans Internet)</th></tr></thead>
+<tbody>
+<tr><td>1 Observation</td><td>Faits du document, cités exactement, sans interprétation</td><td>« ipconfig : adresse 169.254.88.14, masque 255.255.0.0, passerelle vide. »</td></tr>
+<tr><td>2 Hypothèses classées</td><td>2 à 4 causes, de la plus probable/simple à la plus rare, par domaine</td><td>« 1) aucune réponse DHCP (serveur/box, étendue pleine) ; 2) port/câble sans lien utile ; 3) carte réseau/pilote. »</td></tr>
+<tr><td>3 Test discriminant</td><td>Un test qui sépare les hypothèses, non destructif d'abord</td><td>« Voyant de lien + ipconfig /renew + comparaison avec un poste voisin sur le même switch. »</td></tr>
+<tr><td>4 Résultat attendu / obtenu</td><td>Ce qu'on aurait si c'était OK, ce qu'on a</td><td>« Attendu : IP 192.168.1.x. Obtenu : 169.254.x.x encore, voisin OK. »</td></tr>
+<tr><td>5 Conclusion</td><td>Cause racine, avec la preuve, et ce qui est exclu</td><td>« Le lien physique est bon (voyant, voisin OK) ; le poste ne reçoit pas de bail : l'étendue est pleine (liste des baux : 20/20). »</td></tr>
+<tr><td>6 Correction</td><td>Geste précis, au bon endroit, réversible si possible, précautions</td><td>« Agrandir l'étendue DHCP de la box (.100 à .199), puis ipconfig /release et /renew. »</td></tr>
+<tr><td>7 Validation + trace</td><td>Test qui prouve la réparation, absence de régression, rapport</td><td>« IP 192.168.1.1xx/24, ping passerelle, ping IP Internet, nslookup, navigation ; autres postes OK ; rapport. »</td></tr>
+</tbody></table></div>
+<p>Pour une question de <strong>procédure</strong> (installer, câbler, configurer), la structure devient : <strong>prérequis et sécurité → matériel/outils → étapes numérotées avec valeurs exactes → contrôles intermédiaires → recette finale → documentation</strong>. Le modèle complet de rapport est dans <a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-rapport">→ Fiche 5 · Rapport d'intervention</a> ; la prise de demande dans <a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-demande">→ Fiche 5 · Prise de demande</a>.</p>
+
+<h3 id="f6-m-bareme">2.5 Le barème implicite : où sont les points</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Critère que le correcteur cherche</th><th>Comment le rendre visible</th></tr></thead>
+<tbody>
+<tr><td>Lecture correcte des documents</td><td>Cite la ligne exacte (« Réponse de 192.168.1.1 : octets=32 temps&lt;1ms »), interprète-la</td></tr>
+<tr><td>Ordre logique, du simple au complexe</td><td>Étapes numérotées ; le non destructif et le gratuit avant le démontage et l'achat</td></tr>
+<tr><td>Test discriminant justifié</td><td>« Ce test sépare A et B parce que… »</td></tr>
+<tr><td>Cause racine (pas le symptôme)</td><td>« La cause est l'étendue pleine », pas « le PC n'a pas d'IP »</td></tr>
+<tr><td>Correction exacte et complète</td><td>Valeurs complètes (IP, masque, passerelle, DNS), chemin de menu, commande exacte</td></tr>
+<tr><td>Sécurité (personnes, matériel, données)</td><td>Coupure secteur, ESD, sauvegarde avant intervention, accord de l'utilisateur</td></tr>
+<tr><td>Validation</td><td>Test fonctionnel + comparaison avant/après + autre poste non impacté</td></tr>
+<tr><td>Vocabulaire technique exact</td><td>« passerelle par défaut », « étendue DHCP », « permission NTFS Modification », « barrette DDR4 » — pas « le truc du réseau »</td></tr>
+<tr><td>Communication / trace</td><td>Rapport, information de l'utilisateur, mise à jour du plan d'adressage</td></tr>
+</tbody></table></div>
+
+<h3 id="f6-m-formulations">2.6 Formulations qui rapportent / qui font perdre des points</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Rapporte</th><th>Fait perdre</th></tr></thead>
+<tbody>
+<tr><td>« La sortie montre… donc… »</td><td>« Il y a un problème de réseau. »</td></tr>
+<tr><td>« Hypothèse à confirmer par… »</td><td>« Le disque est HS. » (sans test SMART ni test sur un autre PC)</td></tr>
+<tr><td>« Je teste d'abord X, non destructif, parce que… »</td><td>« Je réinstalle Windows. » en premier geste</td></tr>
+<tr><td>« Cause exclue : le ping 192.168.1.1 répond, donc lien, IP et passerelle sont bons. »</td><td>« Je change le câble » alors que les documents prouvent que le lien fonctionne</td></tr>
+<tr><td>« Je sauvegarde les données de l'utilisateur après accord, puis… »</td><td>Formater, réinitialiser, supprimer une partition sans sauvegarde ni avertissement</td></tr>
+<tr><td>« Résultat attendu : … ; si ce n'est pas le cas, je passe à … »</td><td>Une liste de tests sans dire ce qu'on en déduit</td></tr>
+<tr><td>« 192.168.50.0/26 : bloc 64, réseau .0, broadcast .63, hôtes .1 à .62, soit 2⁶ − 2 = 62. »</td><td>Un résultat sans calcul, ou un calcul sans conclusion</td></tr>
+<tr><td>« Je valide : …, et je consigne dans le rapport. »</td><td>S'arrêter à la correction</td></tr>
+<tr><td>« Plusieurs pannes coexistent : A (preuve) et B (preuve), je les traite dans cet ordre parce que… »</td><td>Forcer une cause unique quand les documents en montrent deux</td></tr>
+<tr><td>Vocabulaire précis, phrases courtes, listes numérotées</td><td>Paragraphe compact illisible, abréviations SMS, « etc. » pour cacher ce qu'on ne sait pas</td></tr>
+</tbody></table></div>
+
+<h3 id="f6-m-sans-test">2.7 Ce qu'on écrit quand on ne peut pas tester physiquement</h3>
+<p>À l'écrit, tu n'obtiens jamais le résultat d'un test que tu inventes. Donc :</p>
+<ol class="fx-steps">
+<li><strong>Utilise d'abord les résultats fournis</strong> — attendu : chaque document est un test déjà fait ; exploite-le à fond avant d'en proposer d'autres.</li>
+<li><strong>Pour chaque test proposé, écris les deux issues</strong> — « Si le ping vers 192.168.1.1 répond → la couche locale est bonne, je teste une IP Internet ; s'il échoue → je vérifie le câble/port puis la configuration IP. » <div class="fx-branch"><p class="fx-si"><b>SI</b> le sujet impose une conclusion sans donner le résultat → choisis la cause la plus probable au vu des indices et dis-le : « Au vu de X et Y, la cause la plus probable est Z ; elle serait confirmée par le test T. »</p><p class="fx-sinon"><b>SINON</b> → ne conclus pas ; propose l'arbre de décision complet.</p></div></li>
+<li><strong>N'invente pas de résultat</strong> — « je ferais un ping et il répondrait » n'est pas une preuve ; « je ferais un ping : réponse attendue “Réponse de… temps&lt;1ms” » l'est.</li>
+<li><strong>Précise les limites du test</strong> — « un testeur de continuité ne détecte pas une paire divisée (split pair) » ; « un ping peut échouer à cause du pare-feu même si le lien est bon » ; « un MemTest de 1 passe ne prouve pas l'absence de défaut intermittent ».</li>
+<li><strong>Décris les gestes au conditionnel de procédure</strong> (« je coupe… je débranche… je vérifie… ») avec la précaution de sécurité au bon moment (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ Fiche 5 · Sécurité, ESD, consignation</a>).</li>
+</ol>
+
+<h3 id="f6-m-multi">2.8 Dossier multi-pannes : comment séparer les causes</h3>
+<ul>
+<li><strong>Liste les symptômes séparément</strong> puis demande-toi pour chacun : <em>peut-il expliquer les autres ?</em> Une absence de boot peut expliquer « pas de réseau » ; une IP 169.254 ne peut pas expliquer une barrette non détectée.</li>
+<li><strong>Traite dans l'ordre des couches et de la dépendance</strong> : électricité/sécurité → matériel (POST) → démarrage du système → pilote → lien physique → IP → DNS → service/droits → application.</li>
+<li><strong>Intermittent</strong> : demande quand, combien de fois, ce qui change à ce moment (chaleur, mouvement, heure, autre appareil allumé) ; cherche un journal (Observateur d'événements, journalctl, compteurs d'erreurs du switch) ; teste par substitution et <strong>sur la durée</strong>.</li>
+<li><strong>Fausse piste</strong> : un indice qui coïncide (mise à jour, câble « bizarre ») doit être testé puis explicitement écarté : « Le câble est croisé, mais le voyant de lien est allumé à 1 Gb/s (Auto MDI-X) : il n'explique pas la panne. » Écarter une fausse piste avec une preuve rapporte des points.</li>
+</ul>
+</section>

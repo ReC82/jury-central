@@ -1,0 +1,183 @@
+<section class="fx-sec" id="f2-boot">
+<h2>3.A Procédures — Le PC ne démarre pas le système</h2>
+<p>Prérequis commun : le POST passe (logo du fabricant, accès au setup firmware). Sinon <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-post">→ Fiche 1 · POST</a>. Disque absent du setup firmware : <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-stockage">→ Fiche 1 · Stockage non détecté</a>.</p>
+
+<article class="fx-proc" id="f2-p11">
+<h3>P1.1 — « Reboot and Select proper Boot device », « No bootable device », « Operating system not found »</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante, données en général intactes</p>
+<h4>1. Symptômes observables</h4>
+<ul>
+<li>Texte blanc sur fond noir, juste après le logo, émis par le <b>firmware</b> (aucun logo Windows, aucun menu GRUB).</li>
+<li>Variantes : « Reboot and Select proper Boot device or Insert Boot Media in selected Boot device and press a key », « No bootable device -- insert boot disk and press any key », « Boot Device Not Found », « No boot device available », PXE qui tente le réseau (« PXE-E61 », « Checking media presence… »).</li>
+<li>Contexte typique : après un reset CMOS / pile changée, une mise à jour du BIOS, un ajout de disque, une clé USB oubliée, un clonage, une installation de Linux, une suppression de partition « inutile ».</li>
+</ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol>
+<li>Support non démarrable placé en tête : clé USB, disque de données, carte réseau (PXE) — <i>configuration</i>.</li>
+<li>Mode de démarrage modifié : système installé en UEFI (disque GPT + ESP) mais firmware passé en CSM/Legacy, ou l'inverse — <i>configuration firmware</i> (souvent après reset CMOS ou MAJ BIOS).</li>
+<li>Entrée NVRAM « Windows Boot Manager » / « ubuntu » perdue (reset, MAJ BIOS) alors que l'ESP est intacte — <i>configuration</i>.</li>
+<li>ESP supprimée/formatée, ou chargeur absent (<code>\EFI\Microsoft\Boot\bootmgfw.efi</code>, <code>\EFI\BOOT\BOOTX64.EFI</code>) — <i>OS/partitions</i>.</li>
+<li>Disque non détecté, câble, M.2 mal inséré, disque défaillant — <i>matériel</i> → Fiche 1.</li>
+</ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul>
+<li>Qu'a-t-on fait juste avant ? (pile, BIOS, disque ajouté, autre système installé, « nettoyage » de partitions)</li>
+<li>Y a-t-il une clé USB, un DVD, un disque externe branché ?</li>
+<li>BitLocker/chiffrement de l'appareil actif ? (un changement de mode ou de Secure Boot déclenchera la demande de clé : la récupérer AVANT, <a href="#f2-bitlocker">P1.7</a>).</li>
+<li>Aucun geste sur le disque à ce stade : on ne touche qu'aux réglages firmware, réversibles. Noter chaque réglage d'origine avant de le changer.</li>
+</ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Débrancher tout support amovible (USB, carte SD, DVD) et redémarrer.</strong> — attendu : le système démarre.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le système démarre → cause = support amovible en tête ; corriger l'ordre (étape 3).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Entrer dans le setup firmware</strong> (Suppr/F2 selon le fabricant ; ou, si Windows démarrait encore, Paramètres → Système → Récupération → Démarrage avancé → Dépannage → Options avancées → Paramètres du microprogramme UEFI). Onglet stockage/informations : <b>le disque système est-il listé avec sa bonne taille ?</b>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> non listé → panne de détection, pas de l'OS : <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-stockage">→ Fiche 1 · Stockage non détecté</a>.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Onglet Boot : lire l'ordre et le mode.</strong> — attendu en UEFI : « Windows Boot Manager (nom du disque) » ou « ubuntu » en premier ; CSM désactivé (ou « UEFI only »).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'entrée existe mais n'est pas en tête → la remonter, F10 (enregistrer), redémarrer.</p><p class="fx-sinon"><b>SINON SI</b> seule une entrée brute du disque apparaît (« SATA : Samsung SSD… ») et le CSM/Legacy est activé → le firmware a probablement été remis en mode hérité : repasser en UEFI (Boot Mode = UEFI, CSM = Disabled), redémarrer. <b>SINON</b> (aucune entrée Windows en UEFI) → étape 4.</p></div></li>
+<li><strong>Utiliser le menu de démarrage ponctuel</strong> (F12, F11, F8, Échap ou F9 selon le fabricant) et choisir l'entrée du disque. — permet de tester sans modifier l'ordre.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le système démarre ainsi → l'ESP est saine, seule l'entrée NVRAM/ordre manque : la recréer (<a href="#f2-p12">P1.2</a>, <code>bcdboot</code> la réinscrit) ou la placer en tête.</p><p class="fx-sinon"><b>SINON</b> → démarrer sur une clé d'installation Windows (ou live Linux) pour inspecter les partitions en lecture (étape 5).</p></div></li>
+<li><strong>Depuis WinRE (clé Windows → Réparer l'ordinateur → Dépannage → Invite de commandes) :</strong> <code>diskpart</code> puis <code>list disk</code>, <code>list vol</code> (lecture seule). Dans <code>list disk</code>, une <code>*</code> dans la colonne GPT = disque GPT.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> disque GPT avec un volume FAT32 de 100–300 Mo (ESP) et le volume NTFS Windows → chargeur/BCD à recréer : <a href="#f2-p12">P1.2</a>.</p><p class="fx-sinon"><b>SINON SI</b> disque MBR → le système est en mode hérité : remettre CSM/Legacy dans le firmware (ou convertir plus tard, <a href="#f2-p22">P2.2</a>). <b>SINON</b> (aucune ESP sur GPT) → ESP supprimée : la recréer exige de modifier les partitions → <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-partition">Fiche 1 · Partitionnement</a> + <code>bcdboot</code>, sauvegarde préalable.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>La cause est confirmée quand <b>le seul réglage modifié</b> (ordre, mode, entrée recréée) rend le démarrage possible et que le remettre dans l'état fautif reproduit le message. Limite : un démarrage réussi ne prouve pas que le disque est sain (lire SMART si le contexte est suspect, Fiche 1).</p>
+<h4>6. Correction</h4>
+<ol>
+<li>Retirer le support amovible ; ordre : entrée du système en premier ; enregistrer (F10).</li>
+<li>Remettre le mode d'origine (UEFI pour un disque GPT, hérité pour un disque MBR). Ne pas « essayer » de convertir un disque pour s'adapter au firmware.</li>
+<li>Si l'entrée NVRAM manque mais l'ESP est intacte : <code>bcdboot C:\Windows</code> (depuis Windows) ou depuis WinRE avec les lettres vérifiées (<a href="#f2-p12">P1.2</a>).</li>
+<li>Après MAJ du BIOS : revérifier Secure Boot, TPM, mode SATA (AHCI/RST), tous remis aux valeurs par défaut.</li>
+</ol>
+<h4>7. Validation</h4>
+<ul><li>Deux démarrages à froid (arrêt complet) sans menu ponctuel ; entrée correcte en tête ; date/heure firmware correctes (pile) ; Windows : <code>msinfo32</code> → « Mode BIOS : UEFI » cohérent avec le disque GPT.</li><li>Noter dans le rapport le réglage d'origine et le réglage final.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>Observation</b> : message « Reboot and Select proper Boot device » affiché par le firmware après le changement de la pile ; aucun logo Windows. <b>Hypothèses</b> (de la plus probable à la moins probable) : 1) remise à zéro des réglages firmware → mode CSM/Legacy réactivé alors que Windows est installé en UEFI sur disque GPT ; 2) ordre de démarrage modifié ; 3) disque non détecté. <b>Tests</b> : j'entre dans le setup, je vérifie que le SSD est détecté avec sa capacité (sinon piste matérielle) ; je lis le mode de démarrage et l'ordre. Je constate CSM activé et aucune entrée « Windows Boot Manager ». <b>Correction</b> : je repasse en UEFI (CSM désactivé), je place « Windows Boot Manager » en premier, j'enregistre, je règle la date et l'heure. <b>Validation</b> : deux démarrages à froid réussis, <code>msinfo32</code> indique « Mode BIOS : UEFI ». Aucune action sur le disque n'a été nécessaire ; je note les réglages dans le rapport.</p>
+<p class="fx-lose"><b>Perd des points :</b> proposer « réinstaller Windows » ou « bootrec /fixmbr » d'emblée ; conclure « disque HS » sans avoir regardé s'il est détecté ; oublier BitLocker avant de changer le mode/Secure Boot.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Le message est identique pour un disque mort et pour un mauvais ordre : seule la <b>détection dans le setup</b> sépare matériel et configuration.</div>
+<div class="fx-trap"><b>Piège</b> Après une MAJ Windows dans un double démarrage, « Windows Boot Manager » repasse en tête : ce n'est pas une panne de GRUB (<a href="#f2-grub">P1.5</a>).</div>
+<ul><li>Variante intermittente : démarre parfois → disque qui met du temps à répondre, câble, alimentation (Fiche 1) ou pile faible (heure fausse à chaque démarrage).</li><li>Variante PXE : « PXE-E61: Media test failure, check cable » = le firmware essaie le réseau faute de disque démarrable ; ce n'est pas un problème réseau.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p12">
+<h3>P1.2 — Windows Boot Manager : « Votre PC/appareil doit être réparé » (0xc000000f, 0xc0000034, 0xc000000e) — reconstruire le démarrage</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : bloquante, données intactes si l'on reste prudent</p>
+<h4>1. Symptômes observables</h4>
+<ul>
+<li>Écran de récupération : « Votre PC/appareil doit être réparé. Le fichier de données de configuration de démarrage ne contient pas d'informations valides pour un système d'exploitation. Fichier : <code>\EFI\Microsoft\Boot\BCD</code> Code d'erreur : <code>0xc000000f</code> » (ou <code>\Boot\BCD</code> en mode hérité).</li>
+<li><code>0xc0000034</code> : BCD sans entrée valide ; <code>0xc000000e</code> / <code>0xc0000225</code> : « Un périphérique requis n'est pas connecté ou n'est pas accessible » avec <code>\Windows\system32\winload.efi</code> → la partition Windows désignée par le BCD est introuvable.</li>
+<li>Mode hérité : « BOOTMGR is missing — Press Ctrl+Alt+Del to restart ».</li>
+</ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Arrêt brutal pendant une MAJ, BCD abîmé — OS.</li><li>Manipulation de partitions (outil tiers, installation Linux, clonage vers un nouveau disque) — partitions/OS.</li><li>Disque système déplacé, autre disque en tête, mode SATA changé — configuration.</li><li>Secteurs défectueux sur l'ESP ou le disque — matériel (Fiche 1).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Clé d'installation Windows de la <b>même architecture</b> (x64) disponible ? (sinon F11/« Options de démarrage avancées » si l'écran le propose).</li><li>BitLocker : dans WinRE, le volume chiffré est verrouillé ; il faut la clé de récupération pour <code>manage-bde -unlock</code> avant toute commande.</li><li>Sauvegarde : si les données sont précieuses et sans copie, les copier d'abord (WinRE → <code>notepad</code> → Fichier → Ouvrir sert d'explorateur, ou clé live Linux).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Démarrer sur WinRE</strong> : clé d'installation → langue → Suivant → <b>Réparer l'ordinateur</b> → Dépannage → Options avancées → <b>Outil de redémarrage système</b> (Réparation du démarrage). — attendu : « La réparation du démarrage » corrige le BCD.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> Windows démarre ensuite → valider (section 7).</p><p class="fx-sinon"><b>SINON</b> (« La réparation du démarrage n'a pas pu réparer votre PC ») → noter le chemin du journal <code>SrtTrail.txt</code>, étape 2.</p></div></li>
+<li><strong>Invite de commandes : lire le BCD</strong> <code>bcdedit /enum all</code>. — attendu : une entrée « Gestionnaire de démarrage Windows » et une entrée « Chargeur de démarrage Windows » avec <code>device partition=C:</code>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> « Le magasin de données de configuration de démarrage n'a pas pu être ouvert » → BCD absent/illisible : étape 3.</p><p class="fx-sinon"><b>SINON SI</b> <code>device</code>/<code>osdevice</code> = <code>unknown</code> → la partition cible a changé : étape 3. <b>SINON</b> BCD cohérent → chercher ailleurs (fichiers système, <a href="#f2-p13">P1.3</a>).</p></div></li>
+<li><strong>Identifier les volumes</strong> : <code>diskpart</code> → <code>list vol</code> → <code>exit</code>. Repérer : volume NTFS avec Windows (souvent <b>D:</b> ou <b>C:</b> dans WinRE, vérifier avec <code>dir D:\Windows</code>) ; volume FAT32 de ~100–300 Mo, étiquette « Système » ou info « Caché » = ESP (sans lettre).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'ESP existe → étape 4.</p><p class="fx-sinon"><b>SINON</b> (disque GPT sans FAT32) → l'ESP a été supprimée : la recréer touche aux partitions, sauvegarde obligatoire, <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-partition">→ Fiche 1 · Partitionnement</a>, puis étape 4.</p></div></li>
+<li><strong>Recréer les fichiers de démarrage UEFI avec bcdboot</strong> (voir commandes ci-dessous). — attendu : message de succès de bcdboot.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> « Échec lors de la tentative de copie des fichiers de démarrage » → mauvaise lettre de l'ESP ou ESP pleine/abîmée : revérifier <code>list vol</code>, <code>chkdsk S:</code>.</p><p class="fx-sinon"><b>SINON</b> redémarrer sans la clé.</p></div></li>
+</ol>
+<pre class="fx-cmd">X:\Sources&gt; diskpart
+DISKPART&gt; list vol
+DISKPART&gt; select vol 3          (le volume FAT32 de 100 Mo, vérifié)
+DISKPART&gt; assign letter=S
+DISKPART&gt; exit
+X:\Sources&gt; dir D:\Windows      (confirme que D: est bien Windows)
+X:\Sources&gt; bcdboot D:\Windows /s S: /f UEFI</pre>
+<pre class="fx-out">  N° volume   Ltr  Nom          Fs     Type        Taille   Statut     Info
+  ----------  ---  -----------  -----  ----------  -------  ---------  --------
+  Volume 0     E   CCCOMA_X64F  UDF    DVD-ROM     5 Go     Sain
+  Volume 1     D                NTFS   Partition   475 G    Sain
+  Volume 2                      NTFS   Partition   750 M    Sain       Masqué
+  Volume 3                      FAT32  Partition   100 M    Sain       Masqué
+
+Boot files successfully created.   (libellé selon la langue de WinRE)</pre>
+<p class="fx-warn"><b>Attention</b> Dans <code>diskpart</code>, seules <code>list</code>, <code>select</code>, <code>detail</code> et <code>assign</code> sont utiles ici. <code>clean</code>, <code>delete partition</code>, <code>format</code>, <code>convert</code> <b>effacent</b> : interdits pour réparer un démarrage. Prérequis avant <code>bcdboot</code> : volume Windows identifié par <code>dir</code>, données sauvegardées si possible, réparation automatique déjà tentée. Alternative prudente : Réparation du démarrage (automatique) ou restauration du système.</p>
+<p><b>Mode hérité (disque MBR uniquement)</b> : <code>bootrec /fixmbr</code> (réécrit le code d'amorçage du MBR sans toucher aux partitions), <code>bootrec /fixboot</code> (secteur de démarrage de la partition système), <code>bootrec /scanos</code> (liste les Windows trouvés), <code>bootrec /rebuildbcd</code> (propose d'ajouter les Windows trouvés au BCD). Si <code>/rebuildbcd</code> annonce « Nombre total d'installations Windows identifiées : 0 » alors que Windows est présent : <code>bcdedit /export C:\bcdbackup</code>, <code>attrib C:\boot\bcd -h -r -s</code>, <code>ren C:\boot\bcd bcd.old</code>, puis <code>bootrec /rebuildbcd</code>.</p>
+<div class="fx-trap"><b>Piège</b> <code>bootrec</code> est un outil du <b>démarrage hérité</b>. Sur un PC UEFI/GPT : <code>/fixmbr</code> est sans effet utile (le MBR protecteur ne sert pas au démarrage), <code>/fixboot</code> renvoie souvent « Accès refusé » sur Windows 10/11 récents. L'outil adapté en UEFI est <code>bcdboot</code>.</div>
+<h4>5. Test de confirmation</h4>
+<p><code>bcdedit /enum</code> depuis Windows redémarré montre <code>device partition=C:</code> et <code>path \Windows\system32\winload.efi</code>. Limite : si le BCD était abîmé par des secteurs défectueux, la panne reviendra → lire SMART et le journal Système (disk 7).</p>
+<h4>6. Correction</h4>
+<ol><li>Réparation automatique (WinRE) ;</li><li>sinon <code>bcdboot</code> en UEFI / <code>bootrec</code> en hérité, avec lettres vérifiées ;</li><li>si un 2<sup>e</sup> disque/clone est en cause : retirer l'ancien disque ou remettre le bon en tête ;</li><li>retirer la lettre S: n'est pas nécessaire (elle disparaît au redémarrage).</li></ol>
+<h4>7. Validation</h4>
+<ul><li>Démarrage sans clé, 2 fois ; <code>bcdedit /enum</code> cohérent ; <code>msinfo32</code> Mode BIOS UEFI ; dans un double démarrage, vérifier que GRUB est toujours proposé (bcdboot peut remettre Windows en tête : <a href="#f2-grub">P1.5</a>).</li><li>Si BitLocker : <code>manage-bde -status</code> → Protection activée.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Le code <code>0xc000000f</code> sur <code>\EFI\Microsoft\Boot\BCD</code> indique que <b>Windows Boot Manager</b> démarre mais que son magasin de configuration (BCD) est absent ou invalide : le firmware et le disque fonctionnent (le chargeur est lu). 1) Je démarre sur une clé d'installation Windows, « Réparer l'ordinateur », et je lance la <b>réparation du démarrage</b>. 2) En cas d'échec, dans l'invite de commandes, je lis <code>bcdedit /enum all</code>, puis j'identifie les volumes avec <code>diskpart</code> / <code>list vol</code> (lecture seule) : Windows en D: (vérifié par <code>dir D:\Windows</code>), ESP FAT32 de 100 Mo sans lettre. 3) Je lui attribue la lettre S: et je recrée les fichiers de démarrage : <code>bcdboot D:\Windows /s S: /f UEFI</code>. Je n'utilise ni <code>clean</code> ni <code>format</code>, et je n'utilise pas <code>bootrec /fixmbr</code>, inadapté en UEFI. 4) Validation : deux démarrages normaux, <code>bcdedit</code> cohérent, données présentes ; rapport.</p>
+<p class="fx-lose"><b>Perd des points :</b> confondre ce message (chargeur Windows) avec « No bootable device » (firmware) ; lancer <code>bcdboot C:\Windows</code> dans WinRE sans vérifier la lettre ; recommander une réinstallation.</p></div>
+<h4>9. Pièges et variantes</h4>
+<ul><li>Après clonage HDD → SSD : 0xc000000e car le BCD pointe vers l'ancien disque ; débrancher l'ancien ou <code>bcdboot</code> depuis le nouveau.</li><li>Deux ESP (deux disques) : le firmware démarre l'ESP de l'ancien disque → ordre de démarrage.</li><li>« BOOTMGR is missing » avec une clé USB de données en tête → retirer la clé avant tout.</li><li>Panne concomitante : BCD abîmé + disque qui faiblit (disk 7/153 dans les journaux) → sauvegarde d'abord, remplacement (Fiche 1), puis réparation.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p13">
+<h3>P1.3 — « Préparation de la réparation automatique » en boucle / « Votre PC n'a pas démarré correctement »</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : bloquante, souvent réversible</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Logo puis « Préparation de la réparation automatique », « Diagnostic de votre PC », puis « La réparation automatique n'a pas pu réparer votre PC » / « Votre PC n'a pas démarré correctement » avec boutons <b>Redémarrer</b> et <b>Options avancées</b>.</li><li>Boucle : redémarre, échoue, recommence. Journal de la réparation : <code>C:\Windows\System32\Logfiles\Srt\SrtTrail.txt</code>.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Mise à jour Windows ou pilote récent qui empêche le démarrage — OS/pilote.</li><li>Logiciel installé au démarrage (antivirus tiers, utilitaire disque) — application.</li><li>Fichiers système abîmés (coupure de courant) — OS.</li><li>Système de fichiers abîmé — stockage logique.</li><li>Disque qui faiblit, RAM instable — matériel (Fiche 1).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Quand ? après MAJ, coupure, installation ? un seul PC ou plusieurs (MAJ commune) ?</li><li>Ne pas cliquer sur « Réinitialiser ce PC » (dans Dépannage) : c'est la marche 5.</li><li>BitLocker : la clé sera demandée pour certaines options (invite de commandes, restauration).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Options avancées → Invite de commandes → <code>type C:\Windows\System32\Logfiles\Srt\SrtTrail.txt</code></strong> (lettre à vérifier par <code>dir</code>). — attendu : une ligne « Cause première trouvée » (ex. « Un pilote incorrect a été trouvé », « Les fichiers système sont corrompus », « Disque de démarrage introuvable »).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> un fichier <code>.sys</code> est cité → pilote : étape 2.</p><p class="fx-sinon"><b>SINON</b> → étape 2 quand même (test discriminant).</p></div></li>
+<li><strong>Options avancées → Paramètres → Redémarrer → touche 4 (mode sans échec) ou 5 (avec réseau).</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le mode sans échec démarre → cause = pilote/service/logiciel tiers : désinstaller le dernier pilote/logiciel/MAJ depuis ce mode (<a href="#f2-p61">P6.1</a>).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Options avancées → Désinstaller des mises à jour</strong> → « Désinstaller la dernière mise à jour qualité » (puis, si la panne suit une mise à jour majeure, « … de fonctionnalité »).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> démarre → cause = MAJ ; suspendre les MAJ le temps du correctif.</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Options avancées → Restauration du système</strong> → point antérieur à la panne (<a href="#f2-p62">P6.2</a>).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> aucun point / échec → étape 5.</p><p class="fx-sinon"><b>SINON</b> valider.</p></div></li>
+<li><strong>Invite de commandes : vérifications du stockage puis fichiers système hors ligne</strong> : <code>chkdsk D:</code> (lecture), si erreurs <code>chkdsk D: /f</code> ; puis <code>sfc /scannow /offbootdir=D:\ /offwindir=D:\Windows</code>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> chkdsk signale des secteurs défectueux / le disque est lent ou bruyant → sauvegarde des données d'abord, SMART (Fiche 1).</p><p class="fx-sinon"><b>SINON</b> → si toujours en boucle : sauvegarde depuis WinRE/live, puis <a href="#f2-p64">P6.4</a> avec accord.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>La marche qui fait disparaître la boucle désigne la cause (pilote retiré, MAJ désinstallée, point restauré). Limite : la restauration du système retire plusieurs changements à la fois ; elle ne dit pas lequel était fautif.</p>
+<h4>6. Correction</h4>
+<p>Celle de la marche qui a réussi ; puis bloquer temporairement la réapparition (suspendre les MAJ 1 semaine, pilote du fabricant en version stable).</p>
+<h4>7. Validation</h4>
+<ul><li>Trois démarrages normaux, Moniteur de fiabilité (<code>perfmon /rel</code>) sans nouvel événement critique, programmes métier testés.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>La boucle de réparation automatique indique que Windows échoue après le chargeur (le BCD et le disque sont lus). Je procède du moins au plus invasif : 1) lecture de <code>SrtTrail.txt</code> pour la cause annoncée ; 2) démarrage en <b>mode sans échec</b> (Options avancées → Paramètres → 4) : s'il réussit, la cause est un élément tiers chargé au démarrage normal (pilote, service, logiciel), que je désinstalle ou restaure ; 3) sinon, désinstallation de la dernière mise à jour qualité ; 4) restauration du système au dernier point avant la panne ; 5) <code>chkdsk</code> puis SFC hors ligne avec la lettre vérifiée. La réinitialisation ne viendrait qu'après sauvegarde vérifiée et accord écrit. Validation : trois démarrages normaux et journaux propres.</p>
+<p class="fx-lose"><b>Perd des points :</b> « Réinitialiser ce PC » en premier ; SFC « en ligne » (<code>sfc /scannow</code> simple) dans WinRE, qui vérifie WinRE et non le Windows du disque.</p></div>
+<h4>9. Pièges et variantes</h4>
+<ul><li>Boucle juste après coupure + disque HDD ancien : penser disque avant fichiers système.</li><li>Le mode sans échec ne démarre pas non plus → pas un pilote tiers : MAJ, fichiers système, disque.</li><li>« Votre PC a rencontré un problème » (écran bleu) en boucle avant la réparation → lire le code d'arrêt (<a href="#f2-bsod">P3.3</a>), désactiver le redémarrage automatique (Paramètres de démarrage → 9).</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p14">
+<h3>P1.4 — Écran bleu INACCESSIBLE_BOOT_DEVICE (0x7B) au démarrage</h3>
+<p class="fx-sev">Fréquence : assez fréquent · Gravité : bloquante</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>Écran d'arrêt dès le logo, code <code>INACCESSIBLE_BOOT_DEVICE</code> ; souvent suivi de la réparation automatique.</li><li>Contexte : réglage SATA changé (AHCI ↔ RAID/Intel RST), VMD activé, MAJ du BIOS, clonage vers un NVMe, MAJ Windows, disque déplacé dans un autre PC.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Mode du contrôleur de stockage modifié (le pilote chargé au démarrage ne correspond plus) — configuration firmware.</li><li>Mise à jour / pilote de stockage — OS.</li><li>Système de fichiers abîmé — stockage logique.</li><li>Disque défaillant, câble — matériel.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Quelqu'un a-t-il réinitialisé le BIOS / changé le mode SATA ? Le disque vient-il d'un autre PC ?</li><li>Noter le mode actuel avant de le changer.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Setup firmware → configuration du stockage (SATA Mode / Storage Configuration / VMD)</strong>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le mode a changé (ex. RAID/RST alors que Windows a été installé en AHCI) → remettre l'ancien mode, redémarrer.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>WinRE → Désinstaller des mises à jour</strong> (dernière qualité), puis <strong>Restauration du système</strong>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> démarre → MAJ/pilote.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Invite WinRE : <code>chkdsk D:</code></strong> (lettre vérifiée) puis <code>/f</code> si erreurs ; SMART (Fiche 1).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> erreurs physiques → sauvegarde et remplacement (Fiche 1).</p><p class="fx-sinon"><b>SINON</b> → réparation/réinstallation avec accord (P6.4).</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Remettre le mode d'origine fait démarrer ; le remettre fautif reproduit l'écran. Limite : ne pas multiplier les allers-retours sur un disque en RAID réel (risque pour la grappe).</p>
+<h4>6. Correction</h4>
+<p>Remettre le mode d'origine. Si l'on <b>doit</b> passer en AHCI (ex. installation d'un SSD) : depuis Windows, <code>bcdedit /set {current} safeboot minimal</code> → redémarrer dans le setup → passer en AHCI → Windows démarre en mode sans échec et charge le pilote AHCI → <code>bcdedit /deletevalue {current} safeboot</code> → redémarrer normalement.</p>
+<p class="fx-warn"><b>Attention</b> Ne jamais changer le mode d'un contrôleur qui porte une grappe RAID avec données : la grappe peut devenir illisible. Prérequis : sauvegarde. Alternative prudente : laisser le mode d'origine.</p>
+<h4>7. Validation</h4><ul><li>Démarrage normal ×2 ; Gestionnaire de périphériques → Contrôleurs de stockage sans triangle ; plus d'événement BugCheck 1001.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le code INACCESSIBLE_BOOT_DEVICE signifie que le noyau a démarré mais ne parvient plus à accéder au volume système. Le changement récent (réinitialisation du BIOS) fait suspecter le mode du contrôleur SATA passé de AHCI à RAID. Test : je lis ce réglage dans le setup ; il est sur RAID ; je le remets sur AHCI : Windows démarre. Conclusion : cause confirmée par l'inversion du seul réglage modifié. Validation : deux démarrages, aucun BugCheck dans le journal Système. Si le réglage était correct, je testerais ensuite la désinstallation de la dernière mise à jour, puis l'état du disque.</p><p class="fx-lose"><b>Perd des points :</b> « disque HS » sans test ; réinstallation directe.</p></div>
+<h4>9. Pièges et variantes</h4>
+<ul><li>Même code après clonage sur NVMe derrière Intel VMD : pilote RST absent → soit désactiver VMD (si aucun RAID), soit installer le pilote avant clonage.</li><li>Même code sur un PC virtuel déplacé : type de contrôleur virtuel changé (SATA ↔ SCSI/NVMe).</li></ul>
+</article>
+</section>

@@ -1,0 +1,93 @@
+<section class="fx-sec" id="f5-modeles">
+<h2>4. Modèles prêts à recopier — A. Prise en charge</h2>
+<p>Ces modèles suivent un <strong>fil rouge</strong> : ticket INC-2026-1027-014, PC d'accueil qui s'éteint de façon aléatoire. Les personnes, numéros et valeurs sont fictifs. Les rubriques, l'ordre et le niveau de détail sont ceux attendus à l'écrit. Les conventions de priorité, délais et marge sont celles du cours PR26 : <strong>la procédure de l'entreprise fait foi</strong> si le sujet en donne une.</p>
+
+<article class="fx-proc" id="f5-modele-questionnaire">
+<h3>M1 — Questionnaire de prise de demande (à dérouler dans l'ordre)</h3>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Bloc</th><th>Question à poser</th><th>Pourquoi (ce que la réponse décide)</th></tr></thead><tbody>
+<tr><td rowspan="3">Identification</td><td>Votre nom, service, numéro où vous rappeler ?</td><td>Rappel, confirmation, validation finale</td></tr>
+<tr><td>Le numéro sur l'étiquette de l'appareil (inventaire) ? Où se trouve-t-il ?</td><td>Intervenir sur le bon appareil ; garantie ; historique</td></tr>
+<tr><td>Êtes-vous l'utilisateur de l'appareil ?</td><td>Demandeur ≠ utilisateur : contacter l'utilisateur pour les faits</td></tr>
+<tr><td rowspan="3">Symptôme</td><td>Que voyez-vous exactement ? Lisez-moi le message mot pour mot.</td><td>Fait observable, recherche ciblée du message</td></tr>
+<tr><td>Que faisiez-vous juste avant ?</td><td>Condition déclenchante</td></tr>
+<tr><td>Voyants, bruits, odeur ?</td><td>Orientation matérielle ; danger → mise hors tension</td></tr>
+<tr><td rowspan="3">Discrimination</td><td>Depuis quand (date, heure) ?</td><td>Corrélation avec un changement ; urgence</td></tr>
+<tr><td>Qu'est-ce qui a changé (mise à jour, installation, déplacement, nettoyage, nouveau matériel, mot de passe) ?</td><td>Hypothèse n° 1 la plus fréquente</td></tr>
+<tr><td>À chaque fois ou de temps en temps ?</td><td>Reproductible → test direct ; intermittente → journal</td></tr>
+<tr><td rowspan="2">Périmètre</td><td>Vos collègues ont-ils le même problème ? Sur un autre poste, ça marche ?</td><td>Un poste → le poste ; plusieurs → l'élément commun</td></tr>
+<tr><td>Avez-vous déjà essayé quelque chose ?</td><td>Évite de refaire ; repère une manipulation aggravante</td></tr>
+<tr><td rowspan="3">Impact / urgence</td><td>Qu'est-ce qui est bloqué ? Combien de personnes ?</td><td>Impact</td></tr>
+<tr><td>Y a-t-il une échéance (heure, date) ?</td><td>Urgence</td></tr>
+<tr><td>Pouvez-vous travailler autrement en attendant ?</td><td>Contournement, abaisse l'impact</td></tr>
+<tr><td rowspan="2">Données / accord</td><td>Avez-vous des fichiers importants non sauvegardés ? Où sont vos données ?</td><td>Sauvegarde avant toute action à risque</td></tr>
+<tr><td>Êtes-vous disponible pour l'intervention et la validation ? Qui peut autoriser une dépense ?</td><td>Rendez-vous, consentement, budget</td></tr>
+<tr><td>Clôture de l'appel</td><td>« Si je résume… C'est bien ça ? » + délai annoncé + n° de ticket</td><td>Reformulation validée ; engagement de délai</td></tr>
+</tbody></table></div>
+<div class="fx-trap"><b>Piège</b> Ne pas enchaîner des questions fermées dès le début (« c'est le câble ? ») : on oriente la réponse. Ouvertes d'abord, fermées ensuite.</div>
+</article>
+
+<article class="fx-proc" id="f5-modele-priorite">
+<h3>M2 — Grille de priorisation impact × urgence</h3>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Cote</th><th>Impact (étendue)</th><th>Urgence (délai avant dommage)</th></tr></thead><tbody>
+<tr><td>1 — élevé(e)</td><td>Toute l'entreprise, un service entier, un serveur partagé ou des clients externes</td><td>Activité arrêtée maintenant, ou échéance dans l'heure</td></tr>
+<tr><td>2 — moyen(ne)</td><td>Plusieurs personnes, ou un poste indispensable (accueil, caisse, comptabilité)</td><td>Travail ralenti ou dégradé, échéance dans la journée</td></tr>
+<tr><td>3 — faible</td><td>Une seule personne, avec contournement possible</td><td>Simple gêne, peut attendre un rendez-vous</td></tr>
+</tbody></table></div>
+<pre class="fx-diagram">
+                 URGENCE
+              1 élevée  2 moyenne  3 faible
+ IMPACT 1      P1        P2         P3
+        2      P2        P3         P4
+        3      P3        P4         P4
+
+ Règle : somme impact + urgence
+   2 -> P1 critique : prise en charge 30 min max
+   3 -> P2 haute    : dans les 2 heures
+   4 -> P3 normale  : dans la journée ouvrable
+ 5-6 -> P4 basse    : planifiée, 5 jours ouvrables max
+</pre>
+<ul><li>Écris toujours la justification : « Impact 2 : service compta (5 personnes) ; urgence 1 : paie à envoyer à 11 h ; somme 3 → P2, prise en charge avant 2 h. »</li><li>Contournement trouvé → recalcul (impact baisse) et mise à jour du ticket.</li></ul>
+</article>
+
+<article class="fx-proc" id="f5-modele-ticket">
+<h3>M3 — Fiche / ticket d'incident remplie (fil rouge)</h3>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Rubrique</th><th>Contenu</th></tr></thead><tbody>
+<tr><td>N° de la demande</td><td>INC-2026-1027-014</td></tr>
+<tr><td>Date et heure de la demande</td><td>27/10/2026, 08 h 42 (appel téléphonique)</td></tr>
+<tr><td>Demandeur, service, contact</td><td>Mme Sarah Lemaire, accueil, poste 201</td></tr>
+<tr><td>N° d'inventaire et modèle</td><td>UC-ACC-07, PC de bureau (tour), n° de série relevé sur l'étiquette, hors garantie depuis 03/2025</td></tr>
+<tr><td>Emplacement</td><td>Rez-de-chaussée, comptoir d'accueil, sous le bureau, contre le radiateur</td></tr>
+<tr><td>Contexte matériel, logiciel, réseau</td><td>Windows 11 Professionnel ; logiciel de prise de rendez-vous ; câble réseau ; imprimante de badges USB</td></tr>
+<tr><td>Symptômes observés (mots exacts)</td><td>« Le PC s'éteint d'un coup, écran noir, sans message, puis redémarre quand j'appuie sur le bouton. » Aucun message à l'écran. Ventilateur « plus bruyant qu'avant » selon l'utilisatrice.</td></tr>
+<tr><td>Date d'apparition et fréquence</td><td>Depuis environ 2 semaines ; 3 à 4 fois par jour, plutôt l'après-midi. <strong>Intermittente</strong>.</td></tr>
+<tr><td>Changements récents</td><td>Chauffage remis en route il y a 2 semaines ; aucune installation de logiciel déclarée.</td></tr>
+<tr><td>Utilisateurs touchés</td><td>Une seule utilisatrice ; aucun autre poste concerné.</td></tr>
+<tr><td>Hypothèses (non vérifiées)</td><td>Utilisatrice : « un virus ». Technicien, classées : H1 surchauffe (poussière, radiateur, ventilateur) ; H2 alimentation en limite ; H3 mise à jour / pilote ; H4 logiciel malveillant.</td></tr>
+<tr><td>Impact</td><td>2 — poste indispensable (accueil des visiteurs) ; contournement partiel : portable de l'accueil secondaire, sans imprimante de badges.</td></tr>
+<tr><td>Urgence</td><td>2 — travail dégradé, pas d'échéance dans l'heure.</td></tr>
+<tr><td>Priorité</td><td>2 + 2 = 4 → <strong>P3</strong>, prise en charge dans la journée ouvrable.</td></tr>
+<tr><td>Données et sauvegarde</td><td>Documents sur le partage réseau (sauvegardé chaque nuit) ; bureau local : 3 fichiers à copier avant intervention.</td></tr>
+<tr><td>Confidentialité, risques, autorisation</td><td>Données de visiteurs (confidentielles) : aucune copie hors partage. Risque : ouverture du boîtier (hors garantie, autorisée). Accord de Mme Lemaire et du responsable logistique pour intervention de 13 h à 14 h 30.</td></tr>
+<tr><td>Critères de réussite</td><td>Aucune extinction pendant un test de charge de 30 min ; température processeur en charge &lt; 85 °C ; aucune extinction en 5 jours ouvrables d'utilisation normale.</td></tr>
+<tr><td>Plan d'action et estimation</td><td>1) Observer, relever les températures, journaux (20 min) ; 2) test de charge (30 min) ; 3) selon résultat : nettoyage / pâte thermique / déplacement (30 min) ; 4) validation (30 min). Total 110 min × 1,25 = 137,5 → <strong>2 h 30</strong> annoncées (arrondi au quart d'heure supérieur). Pas de pièce prévue.</td></tr>
+<tr><td>Escalade</td><td>Non : intervention dans mon rôle, données sauvegardées, outillage disponible. Escalade si l'alimentation est en cause (pièce à commander, devis).</td></tr>
+<tr><td>Statut</td><td>Ouvert → en cours (13 h) → résolu en observation (14 h 25) → clôturé le 03/11/2026 après 5 jours sans incident.</td></tr>
+</tbody></table></div>
+</article>
+
+<article class="fx-proc" id="f5-modele-consentement">
+<h3>M4 — Checklist sauvegarde et consentement (à faire signer avant une action à risque)</h3>
+<ul class="fx-check">
+<li>Inventaire des données fait avec l'utilisateur (dossiers, logiciels métier, messagerie, favoris, licences) — liste jointe.</li>
+<li>État du disque vérifié avant copie (pas de bruit anormal, SMART sans alerte) ; sinon procédure de récupération.</li>
+<li>Sauvegarde sur un support <strong>distinct</strong> du disque concerné (disque externe, NAS, partage) — support chiffré si données confidentielles.</li>
+<li>Sauvegarde vérifiée : nombre de fichiers et taille identiques, 3 fichiers témoins ouverts par l'utilisateur.</li>
+<li>Disque chiffré : clé de récupération BitLocker disponible et notée hors du PC (ou confirmée chez l'administrateur).</li>
+<li>Action prévue expliquée en mots simples, avec ce qui sera effacé ou modifié.</li>
+<li>Risques annoncés (perte de programmes, de réglages ; risque résiduel sur les données non listées).</li>
+<li>Durée et coût annoncés ; poste de prêt proposé si nécessaire.</li>
+<li>Conservation de la sauvegarde : durée convenue (ex. 30 jours), puis effacement sécurisé si support du technicien.</li>
+</ul>
+<div class="fx-answer"><p class="fx-answer-title">Formule d'accord (exemple rempli)</p><p>« Je soussignée Sarah Lemaire, utilisatrice du poste UC-ACC-07, autorise l'ouverture du boîtier et le nettoyage interne, le 27/10/2026 entre 13 h et 14 h 30. Il m'a été expliqué que mes trois fichiers du bureau ont été copiés et vérifiés sur le partage \\SRV-FICHIERS\Accueil, qu'aucune donnée ne sera effacée et que l'intervention est sans coût de pièce. Toute dépense ou action supplémentaire fera l'objet d'un nouvel accord. Date, signature de l'utilisatrice ; visa du responsable logistique. »</p></div>
+</article>
+</section>

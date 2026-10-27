@@ -1,0 +1,105 @@
+<section class="fx-sec" id="f5-modeles-b">
+<h2>4 (suite). Modèles prêts à recopier — B. Intervention, rapport, validation</h2>
+
+<article class="fx-proc" id="f5-modele-procedure">
+<h3>M5 — Procédure de diagnostic justifiée, rédigée (fil rouge INC-2026-1027-014)</h3>
+<div class="fx-answer"><p class="fx-answer-title">Rédaction attendue</p>
+<p><b>Observations :</b> extinctions brutales sans message, 3 à 4 fois par jour, plutôt l'après-midi, depuis la remise en route du chauffage ; ventilateur plus bruyant ; PC posé contre un radiateur ; redémarrage possible aussitôt.</p>
+<p><b>Hypothèses classées :</b> H1 surchauffe (poussière, ventilateur, chaleur ambiante) — compatible avec l'après-midi, le bruit, le radiateur ; H2 alimentation en limite ; H3 pilote / mise à jour (aucune déclarée, peu compatible avec une extinction sans écran bleu) ; H4 logiciel malveillant (hypothèse de l'utilisatrice, peu compatible : un arrêt brutal sans message est typiquement matériel).</p></div>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>N°</th><th>Action / outil</th><th>Attendu si l'hypothèse est vraie</th><th>Résultat obtenu</th><th>Interprétation et suite</th></tr></thead><tbody>
+<tr><td>0</td><td>Copie des 3 fichiers du bureau sur le partage ; vérification</td><td>Fichiers ouverts depuis le partage</td><td>OK</td><td>Données protégées, intervention possible</td></tr>
+<tr><td>1</td><td>Observateur d'événements, journal Système : événements « Kernel-Power 41 » aux heures signalées (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-commandes">→ Fiche 2</a>)</td><td>H1/H2 : arrêts inattendus sans écran bleu ni erreur de pilote préalable</td><td>4 événements Kernel-Power 41 en 2 jours, aucun BSOD, aucune erreur de pilote</td><td>Arrêt brutal confirmé ; H3 affaiblie ; H1 ou H2</td></tr>
+<tr><td>2</td><td>Lecture des températures au repos (utilitaire de surveillance / UEFI)</td><td>H1 : température de repos élevée</td><td>Processeur 62 °C au repos</td><td>Élevé pour un poste bureautique au repos : H1 renforcée, pas prouvée</td></tr>
+<tr><td>3</td><td>Test de charge processeur 30 min avec relevé de température</td><td>H1 : montée continue puis extinction à haute température ; H2 : extinction sans température excessive</td><td>98 °C à 11 min, extinction à 12 min</td><td>H1 confirmée par test discriminant (extinction à température critique) ; H2 non exclue mais non nécessaire</td></tr>
+<tr><td>4</td><td>Consignation + ESD, ouverture, inspection (<a href="#f5-modele-esd">M6</a>)</td><td>H1 : dissipateur encrassé, ventilateur lent</td><td>Ailettes du dissipateur bouchées par la poussière ; pâte thermique sèche</td><td>Cause racine physique identifiée</td></tr>
+<tr><td>5</td><td>Correction : nettoyage à l'air sec, pâte thermique remplacée, PC éloigné du radiateur (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-surchauffe">→ Fiche 1</a>)</td><td>—</td><td>Fait</td><td>Une seule cause traitée (avec déplacement, deux actions sur la même cause : notées)</td></tr>
+<tr><td>6</td><td>Même test de charge 30 min</td><td>Si cause corrigée : stabilité, température &lt; 85 °C</td><td>72 °C max, aucune extinction ; repos 38 °C</td><td>Correction validée techniquement ; observation 5 jours (panne intermittente)</td></tr>
+</tbody></table></div>
+<p><b>Conclusion :</b> la cause est une surchauffe du processeur due à l'encrassement du dissipateur, à une pâte thermique sèche et à la proximité du radiateur. Elle est prouvée par l'extinction à 98 °C sous charge (test 3), puis par la stabilité à 72 °C après correction (test 6). L'hypothèse « virus » est écartée : un arrêt brutal sans message, reproduit par une simple charge du processeur et supprimé par le nettoyage, ne s'explique pas par un logiciel.</p>
+</article>
+
+<article class="fx-proc" id="f5-modele-esd">
+<h3>M6 — Protocole ESD et consignation électrique (à recopier tel quel)</h3>
+<ol class="fx-steps">
+<li><strong>Préparer</strong> — zone dégagée, sèche, éclairée ; pas de boisson ; tapis antistatique ; bracelet ESD et cordon (résistance 1 MΩ) ; sachets antistatiques ; bac à vis ; tournevis adaptés (PH1/PH2) ; lampe ; appareil photo pour les branchements.</li>
+<li><strong>Arrêter</strong> — arrêt logiciel ; données enregistrées.</li>
+<li><strong>Consigner</strong> — interrupteur du bloc d'alimentation sur 0 ; cordon secteur débranché et gardé sous contrôle ; périphériques débranchés ; étiquette « Intervention en cours — ne pas brancher » ; portable : chargeur débranché, batterie retirée ou déconnectée.</li>
+<li><strong>Vérifier l'absence d'énergie</strong> — appui 5 à 10 s sur le bouton de démarrage ; LED de veille éteinte ; aucune réaction.</li>
+<li><strong>Se relier</strong> — bracelet sur peau nue, pince sur métal nu du châssis ou borne du tapis ; sans bracelet : toucher le châssis avant chaque geste.</li>
+<li><strong>Manipuler</strong> — par les bords ; jamais les contacts dorés ni les puces ; composant retiré directement en sachet antistatique ; pas de pose sur la moquette ou sur le dessus d'un sachet.</li>
+<li><strong>Interdits</strong> — ouvrir le bloc d'alimentation ou un écran ; bracelet sur un appareil sous tension secteur ; aimant ou aspirateur ménager à l'intérieur ; forcer un connecteur.</li>
+<li><strong>Remonter</strong> — selon les photos ; connecteurs enfichés à fond ; aucune vis libre ; câbles éloignés des ventilateurs ; capot fermé.</li>
+<li><strong>Déconsigner</strong> — retirer l'étiquette, rebrancher le cordon, interrupteur sur I, démarrage contrôlé ; tests de validation.</li>
+</ol>
+</article>
+
+<article class="fx-proc" id="f5-outillage">
+<h3>M7 — Choisir l'outillage selon l'intervention</h3>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Intervention</th><th>Outils</th><th>Précaution clé</th></tr></thead><tbody>
+<tr><td>Ouverture d'UC, RAM, disque, carte</td><td>Tournevis PH1/PH2, bracelet + tapis ESD, sachets antistatiques, bac à vis, lampe</td><td>Consignation, ESD, photo avant démontage</td></tr>
+<tr><td>Portable</td><td>Tournevis de précision, spatules plastiques (pas de métal pour l'ouverture), ESD</td><td>Batterie déconnectée d'abord ; nappes fragiles</td></tr>
+<tr><td>Nettoyage, refroidissement</td><td>Air sec, pinceau antistatique, chiffon non pelucheux, alcool isopropylique, pâte thermique</td><td>Bloquer les pales du ventilateur ; pas d'aspirateur ménager</td></tr>
+<tr><td>Contrôle d'alimentation</td><td>Testeur d'alimentation ATX ; multimètre sur les tensions basses seulement</td><td>Bloc jamais ouvert ; mesures par personne formée</td></tr>
+<tr><td>Câble RJ45</td><td>Dénudeur, sertisseuse 8P8C, connecteurs, testeur de câblage (wiremap) — <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-rj45">→ Fiche 3</a></td><td>Ordre des couleurs, même norme aux deux bouts</td></tr>
+<tr><td>Prise murale / panneau de brassage</td><td>Outil à insérer (punch-down), testeur — <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-installation">→ Fiche 3</a></td><td>Repérage des prises et des ports</td></tr>
+<tr><td>Coaxial BNC</td><td>Dénudeur coaxial, sertisseuse BNC, terminaison 50 Ω — <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-coax">→ Fiche 3</a></td><td>Pas de contact âme / tresse</td></tr>
+<tr><td>Fibre optique</td><td>Kit de nettoyage, capuchons, appareil de mesure — <a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-fibre">→ Fiche 3</a></td><td>Ne jamais regarder dans une fibre ou un connecteur actif</td></tr>
+<tr><td>Logiciel / données</td><td>Clé de démarrage (installation, environnement de récupération, Linux live), disque externe chiffré, outil de surveillance des températures et de SMART</td><td>Sauvegarde vérifiée avant toute écriture</td></tr>
+</tbody></table></div>
+</article>
+
+<article class="fx-proc" id="f5-journal">
+<h3>M8 — Journal des opérations (tenu pendant l'intervention)</h3>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Heure</th><th>Opération</th><th>Résultat / valeur</th><th>Réversible ? comment</th></tr></thead><tbody>
+<tr><td>13 h 00</td><td>Copie des 3 fichiers du bureau vers \\SRV-FICHIERS\Accueil, vérification</td><td>3/3 ouverts par l'utilisatrice</td><td>—</td></tr>
+<tr><td>13 h 05</td><td>Lecture du journal Système</td><td>4 × Kernel-Power 41, aucun BSOD</td><td>Lecture seule</td></tr>
+<tr><td>13 h 12</td><td>Températures au repos</td><td>62 °C</td><td>Lecture seule</td></tr>
+<tr><td>13 h 15</td><td>Test de charge</td><td>98 °C, extinction à 12 min</td><td>Oui (arrêt du test)</td></tr>
+<tr><td>13 h 30</td><td>Consignation, ESD, ouverture</td><td>Dissipateur bouché, pâte sèche</td><td>—</td></tr>
+<tr><td>13 h 35</td><td>Nettoyage, pâte thermique remplacée</td><td>Fait</td><td>Non (amélioration matérielle)</td></tr>
+<tr><td>13 h 50</td><td>PC déplacé à 50 cm du radiateur</td><td>Fait</td><td>Oui</td></tr>
+<tr><td>13 h 55</td><td>Remontage, déconsignation, test de charge 30 min</td><td>72 °C max, stable</td><td>—</td></tr>
+<tr><td>14 h 25</td><td>Tests fonctionnels avec l'utilisatrice, PV</td><td>Tous OK</td><td>—</td></tr>
+</tbody></table></div>
+</article>
+
+<article class="fx-proc" id="f5-rapport">
+<h3>M9 — Rapport d'intervention complet (rempli)</h3>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Rubrique</th><th>Contenu</th></tr></thead><tbody>
+<tr><td>Référence</td><td>Rapport d'intervention — ticket INC-2026-1027-014 — 27/10/2026, 13 h 00–14 h 25 — technicien : J. Martin</td></tr>
+<tr><td>Équipement (identité non sensible)</td><td>UC-ACC-07, PC de bureau, Windows 11 Pro, accueil rez-de-chaussée ; hors garantie</td></tr>
+<tr><td>Demande</td><td>Mme Lemaire (accueil), 27/10 08 h 42 : « Le PC s'éteint d'un coup, écran noir, sans message. » Priorité P3 (impact 2, urgence 2).</td></tr>
+<tr><td>Symptômes constatés</td><td>Extinctions brutales intermittentes (3–4/jour, après-midi), sans message ; ventilateur bruyant ; PC contre un radiateur.</td></tr>
+<tr><td>Mesures de sécurité et données</td><td>3 fichiers locaux copiés et vérifiés ; accord écrit (utilisatrice + responsable) ; consignation électrique et protection ESD appliquées.</td></tr>
+<tr><td>Hypothèses</td><td>H1 surchauffe ; H2 alimentation ; H3 pilote / mise à jour ; H4 logiciel malveillant (hypothèse de l'utilisatrice).</td></tr>
+<tr><td>Relevés et tests</td><td>Journal Système : 4 × Kernel-Power 41, aucun BSOD. Repos : 62 °C. Charge : 98 °C, extinction à 12 min.</td></tr>
+<tr><td>Diagnostic (cause confirmée)</td><td>Surchauffe du processeur : dissipateur encrassé, pâte thermique sèche, chaleur du radiateur. Preuve : extinction reproduite sous charge à 98 °C ; disparition après correction.</td></tr>
+<tr><td>Actions réalisées</td><td>Nettoyage à l'air sec du dissipateur et des ventilateurs ; remplacement de la pâte thermique ; PC déplacé à 50 cm du radiateur, aérations dégagées.</td></tr>
+<tr><td>Pièces et consommables</td><td>Pâte thermique (1 dose). Aucune pièce remplacée.</td></tr>
+<tr><td>Validation technique (avant → après)</td><td>Repos 62 → 38 °C ; charge 98 °C + extinction → 72 °C stable 30 min ; démarrage, réseau, imprimante de badges, logiciel de rendez-vous : OK (pas de régression).</td></tr>
+<tr><td>Validation utilisateur</td><td>Tests réalisés avec Mme Lemaire, PV signé à 14 h 25 (voir M10).</td></tr>
+<tr><td>Risques résiduels / limites</td><td>Panne intermittente : validation définitive après 5 jours ouvrables sans incident. H2 (alimentation) non testée séparément : à réexaminer si une extinction survient malgré une température normale.</td></tr>
+<tr><td>Recommandations</td><td>Nettoyage préventif annuel ; ne plus placer d'UC contre une source de chaleur ; garder les documents sur le partage réseau (sauvegarde nocturne).</td></tr>
+<tr><td>Durée et coût</td><td>1 h 25 (estimation annoncée : 2 h 30) ; consommable : pâte thermique.</td></tr>
+<tr><td>Statut</td><td>Résolu — en observation jusqu'au 03/11/2026 ; clôture si aucun incident.</td></tr>
+<tr><td>Signatures</td><td>Technicien · Utilisatrice · (Responsable si dépense)</td></tr>
+</tbody></table></div>
+<div class="fx-answer"><p class="fx-answer-title">Message de clôture non technique pour l'utilisatrice</p><p>« Bonjour Madame Lemaire, votre ordinateur s'éteignait parce qu'il chauffait trop : il était encrassé de poussière et placé contre le radiateur. Nous l'avons nettoyé et déplacé ; il reste maintenant à une température normale, même quand on le sollicite fortement. Vos fichiers n'ont pas été touchés. Si une extinction se reproduit d'ici le 3 novembre, notez l'heure et appelez le poste 214 en citant le ticket INC-2026-1027-014. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> rapport sans tests avant/après chiffrés ; « réparé » sans preuve ; pas de recommandation ni de risque résiduel ; mot de passe ou donnée personnelle sensible dans le rapport ; jargon dans le message au client.</p>
+</article>
+
+<article class="fx-proc" id="f5-modele-pv">
+<h3>M10 — Procès-verbal de validation utilisateur (rempli)</h3>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Critère de réussite (fixé à l'ouverture)</th><th>Test réalisé devant l'utilisatrice</th><th>Résultat</th></tr></thead><tbody>
+<tr><td>Pas d'extinction en charge 30 min</td><td>Test de charge 13 h 55–14 h 25</td><td>OK — 72 °C max</td></tr>
+<tr><td>Température en charge &lt; 85 °C</td><td>Relevé pendant le test</td><td>OK</td></tr>
+<tr><td>Logiciel de rendez-vous fonctionnel</td><td>Création et suppression d'un rendez-vous de test</td><td>OK</td></tr>
+<tr><td>Imprimante de badges</td><td>Impression d'un badge test</td><td>OK</td></tr>
+<tr><td>Accès réseau et fichiers</td><td>Ouverture des 3 fichiers sur le partage</td><td>OK</td></tr>
+<tr><td>Aucune extinction en 5 jours ouvrables</td><td>Observation jusqu'au 03/11/2026</td><td>En cours</td></tr>
+</tbody></table></div>
+<p>Réserves de l'utilisatrice : aucune. Remarque : validation définitive à l'issue de l'observation.</p>
+<p>Je confirme que les tests ci-dessus ont été réalisés en ma présence et que le résultat correspond à ma demande. Fait le 27/10/2026 à 14 h 25. Utilisatrice : S. Lemaire (signature). Technicien : J. Martin (signature).</p>
+<div class="fx-trap"><b>Piège</b> Un PV avec réserves n'est pas un échec : il est honnête. Ce qui coûte des points, c'est un PV absent ou signé avant les tests.</div>
+</article>
+</section>
