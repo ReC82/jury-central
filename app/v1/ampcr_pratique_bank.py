@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28 ; #228 : PR29 ; #229 : PR30) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28 ; #228 : PR29 ; #229 : PR30) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule) et examen blanc global EX05 (#201 : deux variantes de données, une variante entière par session, `select_exam_variant`).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -30,6 +30,8 @@ from app.v1.ampcr_pratique_ex01_bank import ALL_ITEMS as EX01_ITEMS
 from app.v1.ampcr_pratique_ex02_bank import ALL_ITEMS as EX02_ITEMS
 from app.v1.ampcr_pratique_ex03_bank import ALL_ITEMS as EX03_ITEMS
 from app.v1.ampcr_pratique_ex04_bank import ALL_ITEMS as EX04_ITEMS
+from app.v1.ampcr_pratique_ex05_bank import ALL_ITEMS as EX05_ITEMS
+from app.v1.ampcr_pratique_ex05_bank import VARIANT_KEYS as EX05_VARIANT_KEYS
 from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
@@ -64,9 +66,11 @@ from app.v1.ampcr_pratique_pr28_bank import ALL_ITEMS as PR28_ITEMS
 from app.v1.ampcr_pratique_pr29_bank import ALL_ITEMS as PR29_ITEMS
 from app.v1.ampcr_pratique_pr30_bank import ALL_ITEMS as PR30_ITEMS
 from app.v1.models import (
+    ContentStatus,
     GenerationSource,
     Question,
     QuestionVersion,
+    UserQuestionHistory,
     create_question,
     create_source_document,
 )
@@ -83,6 +87,9 @@ class PracticalCourse:
     title: str
     items: tuple[PR06Item, ...]
     context: PedagogicalContext
+    # Ticket #201 : examen blanc à variantes de données — clés des questions de chaque
+    # variante, dans l'ordre des situations ; une session sert une variante entière.
+    variants: tuple[tuple[str, ...], ...] = ()
 
     @property
     def slug(self) -> str:
@@ -774,6 +781,50 @@ _EX04_CONTEXT = PedagogicalContext(
         "adresse fixe placée dans l'étendue DHCP, une correction qui casse autre chose (box "
         "réinitialisée, droits ouverts à tous), un Wi-Fi laissé en WEP ou WPA/TKIP, et la "
         "confusion entre autorisations de partage et NTFS."
+    ),
+)
+
+# Ticket #201 : EX05, examen blanc global standard (tout le parcours PR01 → PR30).
+_EX05_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-ex05",
+    course_title="AMPCR pratique écrite — EX05 Examen blanc global standard : épreuve pratique écrite",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : examen blanc global /100, réponses rédigées de technicien sur le dossier "
+        "fictif d'une entreprise de 6 postes (fiche du client, schéma du réseau, inventaire, "
+        "journal des pannes, relevés SMART, micrologiciel, sha256sum, testeur de câble, segment "
+        "coaxial, table ARP, partages et NTFS, ipconfig, ping, nslookup, journal d'intervention)"
+    ),
+    allowed_notions=[
+        "composants : processeur, mémoire vive (espace de travail, vidée à l'arrêt, fichier d'échange quand elle est saturée), stockage HDD/SSD SATA/NVMe ; barrette du même type (DDR4/DDR5) et format (DIMM/SO-DIMM), emplacement libre, capacité maximale, double canal ; précautions ESD et contrôles après intervention",
+        "SMART : secteurs en attente ou illisibles > 0 → disque à remplacer, réalloués seuls → à surveiller ; sauvegarde des données d'abord, avec accord, sans solliciter le disque ; remplacement et contrôle dans le micrologiciel",
+        "Windows 11 : UEFI sans CSM, démarrage sécurisé, TPM 2.0, contrôleur AHCI (ou pilote RST/VMD) ; support de Microsoft, installation personnalisée, partitions GPT créées par l'installateur (EFI, MSR, C:, récupération) ; activation d'une licence OEM ou numérique sur le même PC et la même édition ; pilotes, mises à jour, restauration, vérifications (msinfo32, tpm.msc)",
+        "Linux (Ubuntu) : vérification sha256sum -c (OK / FAILED), clé d'installation, partitionnement GPT (ESP FAT32 /boot/efi, / ext4, swap, /home), swap = mémoire jusqu'à 8 Go, 4 Go au-delà sans hibernation ; sudo apt update/upgrade, ip addr, ip route, ping, accès SMB",
+        "RJ45 T568B (blanc-orange, orange, blanc-vert, bleu, blanc-bleu, vert, blanc-marron, marron), 4 paires en 1000BASE-T ; testeur : paire inversée, circuit ouvert ; sertissage ; lien permanent 90 m, canal 100 m, Cat5e minimum pour 1 Gb/s",
+        "10BASE2 : RG-58 50 Ω, T sur la carte, terminateurs 50 Ω aux deux extrémités (25 Ω à l'ohmmètre), une seule mise à la terre, 185 m, 0,5 m entre T ; RG-59 75 Ω inadapté ; fabrication d'un câble BNC à sertir et contrôles",
+        "IPv4 : masque, réseau, diffusion, plage et nombre d'hôtes ; erreurs de plan (masque, passerelle hors réseau, doublon, adresse fixe dans l'étendue DHCP) ; adresse MAC (48 bits, carte) et IP (32 bits, logique), table ARP",
+        "partages : droits des groupes cumulés dans chaque couche, accès effectif par le réseau = le plus restrictif du partage et de NTFS ; correction sur le groupe ; lecteur réseau (UNC, net use) ; imprimante réseau par adresse TCP/IP",
+        "dépannage réseau de bas en haut : lien, adresse, passerelle, Internet par adresse IP, puis noms (DNS) ; « Défaillance générale » = aucune route (passerelle absente) ; ping IP OK et nom KO = DNS",
+        "rapport d'intervention : client, date, demande, constats chiffrés, diagnostic, actions, durée, état final, recommandations ; vocabulaire expliqué au client en mots simples",
+    ],
+    competencies=[
+        "Lire un dossier d'entreprise complet (schéma, inventaire, relevés) et diagnostiquer pannes matérielles, logicielles, de câblage et de réseau",
+        "Décrire des installations et interventions complètes (Windows, Linux, câbles RJ45 et BNC, adressage, partages) avec leurs vérifications",
+        "Rédiger un rapport d'intervention professionnel et expliquer les termes techniques au client",
+    ],
+    vocabulary=[
+        "mémoire vive", "fichier d'échange", "SMART", "secteur en attente", "UEFI", "Secure Boot", "TPM",
+        "GPT", "sha256sum", "swap", "T568B", "paire inversée", "terminateur", "RG-58", "masque",
+        "adresse de diffusion", "table ARP", "NTFS", "passerelle", "DNS",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien dans un examen blanc global /100 (10 points "
+        "par question) : accepter toute formulation, toute méthode et tout ordre techniquement "
+        "justes, sans exiger de mot-clé ni de libellé exact ; suivre le barème de la question et "
+        "noter en proportion. Pénaliser une action destructive sans sauvegarde ni accord, une "
+        "intervention sous tension, une sécurité désactivée sans raison, un calcul d'adresse faux, "
+        "la confusion d'une panne de connectivité IP et d'une panne DNS, et la confusion entre "
+        "autorisations de partage et NTFS."
     ),
 )
 
@@ -1897,6 +1948,13 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         items=EX04_ITEMS,
         context=_EX04_CONTEXT,
     ),
+    PracticalCourse(
+        code="EX05",
+        title="Examen blanc global standard — épreuve pratique écrite",
+        items=EX05_ITEMS,
+        context=_EX05_CONTEXT,
+        variants=EX05_VARIANT_KEYS,
+    ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}
 PRACTICAL_COURSES_BY_SLUG: dict[str, PracticalCourse] = {c.slug: c for c in PRACTICAL_COURSES}
@@ -2071,3 +2129,53 @@ def question_usage(question: Question) -> str | None:
             if usage is not None:
                 break
     return usage
+
+
+def has_exam_variants(uaa_code: str | None) -> bool:
+    """Examen blanc à variantes de données (ticket #201 : EX05)."""
+    course = PRACTICAL_COURSES_BY_CODE.get(uaa_code or "")
+    return course is not None and len(course.variants) > 1
+
+
+def _item_key_by_prompt(course: PracticalCourse) -> dict[str, str]:
+    return {item.prompt: item.key for item in course.items}
+
+
+def question_item_key(question: Question, course: PracticalCourse) -> str | None:
+    """Clé de l'exercice d'une question importée, retrouvée par la consigne (version courante,
+    sinon la première version qui correspond)."""
+    by_prompt = _item_key_by_prompt(course)
+    versions = [question.current_version, *sorted(question.versions, key=lambda v: v.version)]
+    for version in versions:
+        key = by_prompt.get(((version.content_json or {}).get("prompt") if version else None) or "")
+        if key:
+            return key
+    return None
+
+
+def select_exam_variant(db: Session, *, user_id: int, uaa_id: int, uaa_code: str) -> tuple[int, list[Question]]:
+    """Ticket #201 : une session d'examen blanc à variantes sert UNE variante entière, dans
+    l'ordre des situations (numéros du sujet). Variante choisie : celle dont le candidat a vu le
+    moins de questions, la première en cas d'égalité (variante 1, puis 2, puis de nouveau la
+    moins faite). Renvoie (numéro de variante, questions) ; liste vide si la banque est absente."""
+    course = PRACTICAL_COURSES_BY_CODE[uaa_code]
+    questions = (
+        db.query(Question).filter_by(uaa_id=uaa_id, status=ContentStatus.ACTIVE).order_by(Question.id).all()
+    )
+    by_key = {}
+    for question in restrict_to_mode(questions, "exam"):
+        key = question_item_key(question, course)
+        if key is not None:
+            by_key.setdefault(key, question)
+    seen = {
+        row[0] for row in db.query(UserQuestionHistory.question_id).filter_by(user_id=user_id).distinct()
+    }
+    candidates = []
+    for number, keys in enumerate(course.variants, start=1):
+        chosen = [by_key[k] for k in keys if k in by_key]
+        if len(chosen) == len(keys):
+            candidates.append((sum(1 for q in chosen if q.id in seen), number, chosen))
+    if not candidates:
+        return 0, []
+    _seen, number, chosen = min(candidates, key=lambda c: (c[0], c[1]))
+    return number, chosen

@@ -39,7 +39,12 @@ from app.v1.ai_bridge import (
 )
 from app.v1.ai_usage import KIND_CORRECTION, KIND_GENERATION, UsageTrackingProvider, record_ai_usage
 from app.v1.ampcr_plan import AMPCR_PLAN_BY_CODE
-from app.v1.ampcr_pratique_bank import get_practical_context, is_practical_code
+from app.v1.ampcr_pratique_bank import (
+    get_practical_context,
+    has_exam_variants,
+    is_practical_code,
+    select_exam_variant,
+)
 from app.v1.assets import asset_display, assets_for_version
 from app.v1.bank import (
     persist_generated_questions,
@@ -100,6 +105,8 @@ GLOBAL_EXAM_QUESTION_COUNT = 20
 # questions »). 50 uniquement pour les parcours qui couvrent tout le programme AMPCR (MC38
 # et examen blanc/entraînement global) — jamais pour un mini-cours isolé.
 SESSION_LENGTH_OPTIONS = (10, 20, 30, 40)
+# Ticket #201 : variante de données servie par une session d'examen blanc EX05.
+EXAM_VARIANT_KEY = "exam_variant"
 GLOBAL_SESSION_LENGTH_OPTIONS = (10, 20, 30, 40, 50)
 # Ticket #86 : au-delà de 20 questions manquantes (sessions de 30/40/50), la génération est
 # découpée en appels de cette taille (le délai d'un appel IA est borné, voir
@@ -588,6 +595,9 @@ def available_session_lengths(
     toujours au moins la plus courte (session éventuellement plus courte, comme avant).
     Ticket #193 : les cours AMPCR pratique sont strictement banque, réserve du `mode`."""
     options = session_length_options(uaa_id=uaa_id, uaa_code=uaa_code)
+    # Ticket #201 : examen blanc à variantes (EX05) — une session = une variante entière.
+    if has_exam_variants(uaa_code):
+        return options[:1]
     can_generate = (
         uaa_code not in (FSE17_CODE, FR20_CODE)
         and not is_practical_code(uaa_code)
@@ -1044,6 +1054,16 @@ def start_session(
     # génération IA (questions vérifiées et barémées uniquement).
     practical = is_practical_code(uaa_code)
     pool_mode = mode.value if practical else None
+    # Ticket #201 : examen blanc à variantes de données (EX05) — une variante entière, dans
+    # l'ordre des situations du sujet, jamais un mélange des deux dossiers.
+    if practical and uaa_id is not None and has_exam_variants(uaa_code):
+        variant, variant_questions = select_exam_variant(db, user_id=user.id, uaa_id=uaa_id, uaa_code=uaa_code)
+        if not variant_questions:
+            raise SessionCreationError("Aucune question disponible pour cet examen blanc.")
+        return _finalize_session(
+            db, user=user, module_id=module_id, mode=mode, difficulty=difficulty, selected=variant_questions,
+            parameters_json={EXAM_VARIANT_KEY: variant}, requested_question_count=question_count,
+        )
     oversample = select_bank_questions(
         db, user_id=user.id, module_id=module_id, uaa_id=uaa_id, limit=question_count * 3,
         only_unseen=True, difficulty=difficulty, target_rating=target_rating, mode=pool_mode,

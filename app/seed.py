@@ -13,6 +13,7 @@ from app.v1.ampcr_pratique_ex01_course import EX01_TITLE, ex01_course_sections
 from app.v1.ampcr_pratique_ex02_course import EX02_TITLE, ex02_course_sections
 from app.v1.ampcr_pratique_ex03_course import EX03_TITLE, ex03_course_sections
 from app.v1.ampcr_pratique_ex04_course import EX04_TITLE, ex04_course_sections
+from app.v1.ampcr_pratique_ex05_course import EX05_TITLE, ex05_course_sections
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_course import PR01_TITLE, pr01_course_sections
 from app.v1.ampcr_pratique_pr02_course import PR02_TITLE, pr02_course_sections
@@ -5054,6 +5055,7 @@ EX01_BLOCKS = _fse_course_blocks(ex01_course_sections())  # ticket #230 (sujet d
 EX02_BLOCKS = _fse_course_blocks(ex02_course_sections())  # ticket #231 (sujet de l'examen blanc)
 EX03_BLOCKS = _fse_course_blocks(ex03_course_sections())  # ticket #232 (sujet de l'examen blanc)
 EX04_BLOCKS = _fse_course_blocks(ex04_course_sections())  # ticket #233 (sujet de l'examen blanc)
+EX05_BLOCKS = _fse_course_blocks(ex05_course_sections())  # ticket #201 (sujet de l'examen blanc global)
 
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
@@ -5908,6 +5910,9 @@ def seed() -> None:
         _seed_uaa(db, practical_module, "PR28", PR28_TITLE, 28, PR28_BLOCKS, created, kept)  # ticket #227
         _seed_uaa(db, practical_module, "PR29", PR29_TITLE, 29, PR29_BLOCKS, created, kept)  # ticket #228
         _seed_uaa(db, practical_module, "PR30", PR30_TITLE, 30, PR30_BLOCKS, created, kept)  # ticket #229
+        # Ticket #201 : EX05 (examen blanc global, tout le parcours) se place après PR30 (même
+        # position, créé après lui) ; réservé aux révisions transversales de fin de parcours.
+        _seed_uaa(db, practical_module, "EX05", EX05_TITLE, 30, EX05_BLOCKS, created, kept)
 
         # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
         # n'était pas résolvable → nouvelle version (idempotent, sessions existantes

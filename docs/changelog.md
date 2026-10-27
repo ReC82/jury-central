@@ -2,6 +2,18 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : examen blanc global EX05 « Examen blanc global standard — épreuve pratique écrite » (ticket #201)
+
+UAA EX05 du module `AMPCR-PRATIQUE` (position 30, après PR30, 9 blocs : présentation et barème,
+dossier et questions des deux variantes, méthode, sources). Dossier d'une entreprise fictive de
+6 postes, 10 situations de 10 points (/100) à réponse libre couvrant matériel, systèmes, câblage
+RJ45/BNC, réseau et rapport ; 2 variantes de données vérifiées par les règles des cours ; 2 schémas
+SVG sans verdict (`app/static/img/ampcr-pratique/ex05-v*-plan-reseau.svg`) ; réserve `exam` seule.
+Moteur : `PracticalCourse.variants`, `select_exam_variant` et `has_exam_variants`
+(`app/v1/ampcr_pratique_bank.py`), branchés dans `start_session` et `available_session_lengths`
+(`app/v1/session_service.py`) ; repère « Variante n » dans `app/v1/prompt_layout.py`
+(`app/v1/ampcr_pratique_ex05_*.py`, `tests/test_ticket201_ampcr_pratique_ex05.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR30 « Grand laboratoire écrit — installation et dépannage d'un réseau complet » (ticket #229)
 
 Cours PR30 du parcours pratique (UAA PR30 du module `AMPCR-PRATIQUE`, position 30, après PR29,
