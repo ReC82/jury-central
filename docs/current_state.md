@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, EX01, EX02 et EX03),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, EX01, EX02, EX03 et EX04),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -482,6 +482,19 @@ chevauchements, canaux 5/6 GHz par largeur, signal estimé (espace libre + obsta
 derrière un répéteur, audit de configuration, contrôle des clés et ordre du diagnostic **calculés
 par code** (`app/v1/ampcr_pratique_pr25_figures.py`) et contrôlés par les tests. 20 exercices,
 mini-examen 10 questions /20 ; aucune image générée.
+
+**Quatrième examen blanc publié (ticket #233) : EX04 « Examen blanc écrit — réseau,
+configuration et dépannage »** (`/uaa/ampcr-pratique-ex04`), juste après PR25 (module 4 = PR18 →
+PR25), même modèle que EX01–EX03 (sujet imprimable sans corrigé, onglets « Sujet » et « Examen
+blanc », 10 questions de 10 points à réponse libre, note /100, corrigé et barème après la remise).
+Partie 1 (plan de réseau : topologie, couches, domaines de collision/diffusion, trames, NetBEUI ;
+calculs IPv4/CIDR et identification MAC/IP), dossier A cabinet (connexion directe et pings, plan
+d'adressage d'un mini-réseau de 5 postes et une imprimante), dossier B agence (panne DNS avec
+connectivité IP intacte, route par défaut manquante et étendue DHCP épuisée, panne Internet au-delà
+de la box et rapport d'intervention), dossier C bureau d'architectes (fiche Wi-Fi, canal et
+répéteur ; accès effectifs partage + NTFS ; imprimante et lecteur réseau après changement de box).
+3 schémas SVG **sans verdict** ; toutes les valeurs **calculées par code** avec les règles des cours
+PR19–PR25 (`app/v1/ampcr_pratique_ex04_*.py`).
 
 ## Administration
 
