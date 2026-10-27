@@ -6,6 +6,7 @@ from app.seed import (
     EX03_BLOCKS,
     EX04_BLOCKS,
     EX05_BLOCKS,
+    EX06_BLOCKS,
     FRANCAIS_C01_BLOCKS,
     FRANCAIS_FR01_BLOCKS,
     FRANCAIS_FR02_BLOCKS,
@@ -347,8 +348,8 @@ def test_seed_is_idempotent(db_session):
     # #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #231 : EX02 ; #216 : PR13 ; #217 : PR14 ;
     # #218 : PR17 ; #232 : EX03 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ;
     # #223 : PR23 ; #224 : PR25 ; #233 : EX04 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28 ;
-    # #228 : PR29 ; #229 : PR30 ; #201 : EX05.
-    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 20 + 17 + 35
+    # #228 : PR29 ; #229 : PR30 ; #201 : EX05 ; #234 : EX06.
+    assert db_session.query(UAA).count() == 5 + len(AMPCR_STUB_MODULE_BLOCKS) + 1 + 20 + 17 + 36
     assert db_session.query(LessonBlock).count() == (
         len(UAA1_BLOCKS) + len(UAA2_BLOCKS) + len(MC01_BLOCKS) + len(MC02_BLOCKS)
         + len(MC03_BLOCKS)
@@ -391,6 +392,7 @@ def test_seed_is_idempotent(db_session):
         + len(PR29_BLOCKS)
         + len(PR30_BLOCKS)
         + len(EX05_BLOCKS)
+        + len(EX06_BLOCKS)
     )
 
 

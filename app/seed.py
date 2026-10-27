@@ -14,6 +14,7 @@ from app.v1.ampcr_pratique_ex02_course import EX02_TITLE, ex02_course_sections
 from app.v1.ampcr_pratique_ex03_course import EX03_TITLE, ex03_course_sections
 from app.v1.ampcr_pratique_ex04_course import EX04_TITLE, ex04_course_sections
 from app.v1.ampcr_pratique_ex05_course import EX05_TITLE, ex05_course_sections
+from app.v1.ampcr_pratique_ex06_course import EX06_TITLE, ex06_course_sections
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_course import PR01_TITLE, pr01_course_sections
 from app.v1.ampcr_pratique_pr02_course import PR02_TITLE, pr02_course_sections
@@ -5056,6 +5057,7 @@ EX02_BLOCKS = _fse_course_blocks(ex02_course_sections())  # ticket #231 (sujet d
 EX03_BLOCKS = _fse_course_blocks(ex03_course_sections())  # ticket #232 (sujet de l'examen blanc)
 EX04_BLOCKS = _fse_course_blocks(ex04_course_sections())  # ticket #233 (sujet de l'examen blanc)
 EX05_BLOCKS = _fse_course_blocks(ex05_course_sections())  # ticket #201 (sujet de l'examen blanc global)
+EX06_BLOCKS = _fse_course_blocks(ex06_course_sections())  # ticket #234 (sujet de l'examen blanc global avancé)
 
 
 def _ensure_subject(db, name: str, created: dict, kept: dict) -> Subject:
@@ -5913,6 +5915,8 @@ def seed() -> None:
         # Ticket #201 : EX05 (examen blanc global, tout le parcours) se place après PR30 (même
         # position, créé après lui) ; réservé aux révisions transversales de fin de parcours.
         _seed_uaa(db, practical_module, "EX05", EX05_TITLE, 30, EX05_BLOCKS, created, kept)
+        # Ticket #234 : EX06 (examen blanc global avancé, dossiers complexes) après EX05.
+        _seed_uaa(db, practical_module, "EX06", EX06_TITLE, 30, EX06_BLOCKS, created, kept)
 
         # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
         # n'était pas résolvable → nouvelle version (idempotent, sessions existantes

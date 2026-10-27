@@ -427,7 +427,7 @@ def test_subject_page_navigation_and_home(client, db_session):
     assert set(ids) >= {f"fig-{f.key}" for f in LAN_FIGURES}
     assert html.count('class="jc-ex-question"') == 20
     home = client.get("/ampcr-pratique").text
-    assert f'href="/uaa/{SLUG}"' in home and re.search(r"\d+ cours publiés sur 30 prévus\s+· 5 examens blancs sur 6", home)
+    assert f'href="/uaa/{SLUG}"' in home and re.search(r"\d+ cours publiés sur 30 prévus\s+· \d examens blancs sur 6", home)  # EX06 (#234) publié ensuite
     for _figure, path in STATIC_FIGURES:
         assert client.get(f"/static/{path}").status_code == 200
 
