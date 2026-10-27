@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR10 « Comptes, pilotes, paramètres et commandes » (ticket #214)
+
+Quinzième cours du parcours pratique et dixième dans l'ordre pédagogique (UAA PR10 du module
+`AMPCR-PRATIQUE`, position 10, après PR09, 19 blocs) : comptes locaux et de domaine, standard et
+administrateur, groupes, UAC et sudo, moindre privilège, permissions Linux (`chmod`, `chown`) ;
+pilotes (sources fiables, compatibilité, codes 28/22/10/43 du Gestionnaire de périphériques, ID du
+matériel VEN/DEV et VID/PID, mise à jour et restauration) ; paramètres, services Windows et
+systemd, démarrage ; fiches des 16 commandes du ticket (`ipconfig`, `ping`, `tracert`, `nslookup`,
+`sfc`, `DISM`, `tasklist`, `net user`, `ip`, `systemctl`, `journalctl`, `lsblk`, `df`, `chmod`,
+`chown`, `apt`/`dnf` : syntaxe, rôle, sortie attendue, droits, risques) ; 4 procédures illustrées,
+10 figures SVG ; 5 cas résolus, 17 exercices, mini-examen 10 questions /20 sans génération IA
+(`app/v1/ampcr_pratique_pr10_*.py`, `tests/test_ticket214_ampcr_pratique_pr10.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR09 « Installation complète de Linux — préparation et dépannage » (ticket #209)
 
 Quatorzième cours du parcours pratique et neuvième dans l'ordre pédagogique (UAA PR09 du module

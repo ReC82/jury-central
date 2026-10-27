@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR11, PR15, PR16, PR20, PR24 et EX01),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR15, PR16, PR20, PR24 et EX01),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -309,6 +309,20 @@ double démarrage, ordre des entrées UEFI et dépannage **définis par code**
 (`app/v1/ampcr_pratique_pr09_figures.py`) et contrôlés par les tests. 17 exercices, mini-examen
 10 questions /20. Sorties de terminal en anglais, installateurs datés (octobre 2026), situations
 fictives ; aucune image générée.
+
+**Quinzième cours publié (ticket #214) : PR10 « Comptes, pilotes, paramètres et commandes »**
+(`/uaa/ampcr-pratique-pr10`), même intégration, dixième cours de l'ordre pédagogique (après
+PR09). 19 blocs (12 chapitres : comptes locaux et de domaine et groupes, UAC, sudo et moindre
+privilège, permissions Linux, pilotes et compatibilité, Gestionnaire de périphériques et
+périphérique inconnu, installation/mise à jour/restauration d'un pilote, paramètres et démarrage,
+services Windows et systemd, commandes réseau, commandes système Windows, commandes Linux, liste
+de contrôle et rapport ; 5 cas résolus, pièges, exercices, mini-examen, mémo, sources).
+4 procédures illustrées et 10 figures SVG (permissions, arbre « un périphérique ne fonctionne
+pas », 4 captures fictives) ; comptes, élévation, permissions, états des périphériques et
+identifiants matériels, actions sur les services et fiches des 16 commandes **définis par code**
+(`app/v1/ampcr_pratique_pr10_figures.py`) et contrôlés par les tests. 17 exercices, mini-examen
+10 questions /20. Windows en français, Linux en anglais, libellés datés (octobre 2026),
+situations fictives ; aucune image générée.
 
 ## Administration
 
