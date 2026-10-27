@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR20, PR24, EX01, EX02 et EX03),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR20, PR24, EX01, EX02 et EX03),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -408,6 +408,18 @@ ohmmètre, fabrication d'un câble BNC, 10BASE5), dossier C brasserie (choix fib
 bilan et photométrie, panne lue au réflectomètre et réparation). 4 schémas SVG **sans verdict**
 dans les questions (fiche, testeur, bus, trace) ; toutes les valeurs **calculées par code** avec
 les règles des cours PR13–PR17 (`app/v1/ampcr_pratique_ex03_*.py`).
+
+**Vingtième cours publié (ticket #219) : PR18 « Installation physique d'un mini-réseau »**
+(`/uaa/ampcr-pratique-pr18`), même intégration, position 18 (après PR17 et EX03, avant PR20).
+18 blocs (11 chapitres : besoin et plan des locaux ; étoile et implantation ; choix du support ;
+longueurs, cheminement, repérage ; sécurité et séparation du courant fort ; baie, panneau de
+brassage, keystones ; PoE ; plan de câblage, nomenclature, devis ; tests et certification ;
+configuration de base et validation ; documentation et réception ; 5 cas résolus ; pièges,
+exercices, mini-examen, mémo, sources). 3 procédures, 8 figures SVG et 5 schémas à compléter
+servis aussi en fichiers statiques ; longueurs, dimensionnement (switch, panneaux, baie, boîtes
+de câble), budget PoE, devis, verdicts de recette et ordre de validation **définis par code**
+(`app/v1/ampcr_pratique_pr18_figures.py`, règles de PR13/PR15 réutilisées) et contrôlés par les
+tests. 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
 
 ## Administration
 
