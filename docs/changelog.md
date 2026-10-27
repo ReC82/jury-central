@@ -2,6 +2,20 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR30 « Grand laboratoire écrit — installation et dépannage d'un réseau complet » (ticket #229)
+
+Cours PR30 du parcours pratique (UAA PR30 du module `AMPCR-PRATIQUE`, position 30, après PR29,
+16 blocs) : dossier intégrateur d'une PME fictive (2 salles, 6 postes Windows/Linux, switch, box,
+point d'accès, imprimante, serveur de fichiers) ; inventaire, contraintes, budget indicatif par
+postes de dépense sans prix ; câblage T568B, baie, repérage, recette des liens ; plan IPv4,
+DHCP, DNS, VLAN invités ; groupe de travail ou domaine selon le scénario, comptes, groupes,
+partages, matrice des droits ; installation Windows 11 Pro et Ubuntu 24.04 LTS ; panne
+matérielle (mémoire) et logicielle (identifiant enregistré) ; Wi-Fi et sécurité ; recette,
+verdict avec réserve, rapport en 14 rubriques ; 8 études de cas graduées et corrigées, reliées
+aux exigences AP-xx ; 4 procédures, 10 figures SVG + 2 schémas à compléter
+(`app/static/img/ampcr-pratique/pr30-*.svg`) ; 23 exercices, mini-examen 10 questions /20 sans
+génération IA (`app/v1/ampcr_pratique_pr30_*.py`, `tests/test_ticket229_ampcr_pratique_pr30.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR29 « Contrôles finaux et rapport professionnel d'intervention » (ticket #228)
 
 Cours PR29 du parcours pratique (UAA PR29 du module `AMPCR-PRATIQUE`, position 29, après PR28,

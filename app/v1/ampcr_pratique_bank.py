@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28 ; #228 : PR29) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28 ; #228 : PR29 ; #229 : PR30) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -62,6 +62,7 @@ from app.v1.ampcr_pratique_pr26_bank import ALL_ITEMS as PR26_ITEMS
 from app.v1.ampcr_pratique_pr27_bank import ALL_ITEMS as PR27_ITEMS
 from app.v1.ampcr_pratique_pr28_bank import ALL_ITEMS as PR28_ITEMS
 from app.v1.ampcr_pratique_pr29_bank import ALL_ITEMS as PR29_ITEMS
+from app.v1.ampcr_pratique_pr30_bank import ALL_ITEMS as PR30_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -1646,6 +1647,54 @@ _PR29_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR30_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr30",
+    course_title="AMPCR pratique écrite — PR30 Grand laboratoire écrit : installation et dépannage d'un réseau complet",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : dossier intégrateur d'une PME fictive — inventaire, budget indicatif sans "
+        "prix, câblage T568B, baie, plan IPv4, DHCP et DNS, comptes et droits, systèmes, pannes "
+        "de mise en service, Wi-Fi, sécurité, recette et rapport ; situations et relevés fictifs"
+    ),
+    allowed_notions=[
+        "dimensionnement (convention du cours) : ports du switch = liens × 1,2 arrondi au-dessus + cordons directs (box, serveur), extension prévue comprise, taille standard 8, 16, 24 ou 48 ; panneaux de 24 ports ; baie = unités occupées + 25 %, taille standard ; câble en boîtes de 305 m, un lien ne se raboute jamais ; longueur d'un lien = parcours + 3 m + 2 m de réserve ; lien permanent ≤ 90 m, canal ≤ 100 m",
+        "budget indicatif : quantités par poste de dépense (matériel actif, câblage et passif, logiciels et licences, main-d'œuvre), prix obtenus par devis, jamais inventés ; licences d'accès client pour un serveur Windows",
+        "câblage : Cat6 U/UTP, T568B (blanc-orange, orange, blanc-vert, bleu, blanc-bleu, vert, blanc-marron, marron) ou T568A, la même norme partout ; même repère aux deux bouts ; chaque lien testé : câblage des 8 fils, longueur, certification ; défaut de câblage → raccordement refait et retesté",
+        "plan IPv4 : réseau privé /24, adresses fixes hors de l'étendue DHCP (box, switch, point d'accès, serveur, imprimante) ou réservations notées, même masque et passerelle partout, DNS = box qui relaie ; une seule source DHCP ; réseau invités sur un VLAN séparé",
+        "groupe de travail ou domaine : repère d'une dizaine de postes, ou gestion centrale nécessaire (rotation des personnes, règles imposées, itinérance) → domaine ; un compte par personne, droits donnés aux groupes ; par le réseau, le plus restrictif du partage et de NTFS s'applique",
+        "systèmes : Windows 11 exige processeur listé, 4 Go, 64 Go, UEFI compatible démarrage sécurisé, TPM 2.0 ; Windows 10 n'est plus pris en charge depuis le 14 octobre 2025 ; PC non compatible → système maintenu (Ubuntu LTS) ou remplacement ; sauvegarde vérifiée avant toute réinstallation ou mise à niveau",
+        "pannes de mise en service : après un ajout de mémoire, revenir à l'état connu puis une barrette à la fois, liste de compatibilité de la carte mère, précautions antistatiques ; « Accès refusé » avec un identifiant enregistré d'un autre compte → supprimer l'identifiant (Gestionnaire d'identification, cmdkey), ne pas élargir les droits",
+        "Wi-Fi : WPA2/WPA3-Personnel (AES), clé longue sans nom devinable, WPS coupé, mot de passe d'administration changé, SSID diffusé, canal 2,4 GHz 1, 6 ou 11 selon les voisins forts, 20 MHz, 5 GHz sans DFS (36-48), réseau invités isolé (VLAN ou fonction invités vérifiée) ; couverture estimée puis mesurée (objectif −67 dBm)",
+        "sécurité : mots de passe par défaut changés, mises à jour, baie à clé, compte par personne, sauvegarde externe avec restauration d'essai (le miroir RAID n'est pas une sauvegarde), onduleur qui arrête le serveur, secrets remis sous pli et jamais écrits dans le rapport",
+        "recette d'un poste dans l'ordre : lien, adresse, passerelle, serveur, Internet, partage ; le premier échec désigne la piste, une correction à la fois puis recette refaite ; verdict (un non atteint = non validé ; un non concluant = réserve) ; rapport en 14 rubriques et PV signé",
+    ],
+    competencies=[
+        "Analyser un dossier de PME, dimensionner l'installation et présenter un budget indicatif sans prix",
+        "Concevoir le câblage, le plan d'adressage, les comptes et les droits, le Wi-Fi et la sécurité",
+        "Diagnostiquer les pannes de mise en service et mener la recette dans l'ordre des contrôles",
+        "Conclure par un verdict, une réserve si nécessaire, un rapport et un message clair au client",
+    ],
+    vocabulary=[
+        "nomenclature", "budget indicatif", "baie", "panneau de brassage", "lien permanent", "T568B",
+        "recette", "étendue DHCP", "réservation", "VLAN", "groupe de travail", "domaine", "NTFS",
+        "droit effectif", "identifiant enregistré", "TPM", "UEFI", "WPA3", "réseau invités",
+        "onduleur", "procès-verbal de recette", "réserve",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : plusieurs solutions sont acceptées si "
+        "elles sont justifiées et cohérentes (autre réseau privé, T568A partout, réservations DHCP, "
+        "NAS, domaine anticipé, fonction invités du point d'accès vérifiée…) ; accepter toute "
+        "formulation et tout ordre justes sans exiger de mot-clé ni la reprise exacte du corrigé ; "
+        "suivre le barème ; valoriser les calculs montrés et le diagnostic qui suit l'ordre des "
+        "contrôles. Ne jamais valider : un prix inventé, un mélange T568A/T568B, une adresse fixe "
+        "dans l'étendue, « Tout le monde : contrôle total », des droits élargis pour masquer un "
+        "refus, Windows 10 conservé sans mises à jour, une réinstallation sans sauvegarde, des "
+        "invités sur le réseau du personnel, un SSID masqué présenté comme une protection, le "
+        "miroir présenté comme une sauvegarde, une signature « sans réserve » malgré un test non "
+        "fait, une clé ou un mot de passe écrit dans le rapport."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1817,6 +1866,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Contrôles finaux et rapport professionnel d'intervention",
         items=PR29_ITEMS,
         context=_PR29_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR30",
+        title="Grand laboratoire écrit — installation et dépannage d'un réseau complet",
+        items=PR30_ITEMS,
+        context=_PR30_CONTEXT,
     ),
     PracticalCourse(
         code="EX01",
