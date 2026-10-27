@@ -62,7 +62,7 @@ class PromptLayout:
 
 
 # Repère de partie en tête du contexte des examens blancs (« Partie 1. », « Dossier B. »).
-_PART_RE = re.compile(r"^(Partie \d+|Dossier [A-Z])\.\s+")
+_PART_RE = re.compile(r"^(Partie \d+|Dossier [A-Z]|Variante \d)\.\s+")  # « Variante n » : EX05 (#201)
 
 # Ce qu'une consigne découpée peut perdre : séparateurs entre ses extraits.
 _SEPARATORS_RE = re.compile(r"^(?:[\s,;:.]|\bet\b)*$")

@@ -79,7 +79,7 @@ annotations-réponses listés dans `omitted` ne sont plus affichés (ils restent
 transmis à la correction). Voir `docs/claude-reports/2026-10-21_ticket-149-supports-visuels.md`.
 
 Consignes structurées des exercices pratiques AMPCR (ticket #299) : en entraînement, examen
-blanc et résultats, la consigne d'un exercice PR01–PR30 / EX01–EX04 s'affiche en blocs
+blanc et résultats, la consigne d'un exercice PR01–PR30 / EX01–EX05 s'affiche en blocs
 « Contexte » (avec repère « Partie n »), « Documents à consulter » (liens vers les documents
 de la page), « Données et règles » (encadré) et « Questions » (liste numérotée, sous-questions)
 via `app/templates/_prompt_layout.html` + `app/v1/prompt_layout.py`. La structure vient des
@@ -136,7 +136,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, PR26, PR27, PR28, PR29, PR30, EX01, EX02, EX03 et EX04),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, PR26, PR27, PR28, PR29, PR30, EX01, EX02, EX03, EX04 et EX05),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -564,6 +564,21 @@ de la box et rapport d'intervention), dossier C bureau d'architectes (fiche Wi-F
 répéteur ; accès effectifs partage + NTFS ; imprimante et lecteur réseau après changement de box).
 3 schémas SVG **sans verdict** ; toutes les valeurs **calculées par code** avec les règles des cours
 PR19–PR25 (`app/v1/ampcr_pratique_ex04_*.py`).
+
+**Examen blanc global publié (ticket #201) : EX05 « Examen blanc global standard — épreuve
+pratique écrite »** (`/uaa/ampcr-pratique-ex05`), après PR30, réservé aux révisions de fin de
+parcours. Dossier professionnel d'une entreprise de 6 postes (fiche du client, schéma du réseau
+avec configurations et MAC, inventaire, journal des pannes) et 10 situations de 10 points (note
+/100, répartition annoncée : matériel 20, systèmes 20, câblage 20, réseau 30, méthode 10) : poste
+lent (mémoire, stockage), disque défaillant (SMART, données d'abord), Windows 11 (micrologiciel,
+installation, activation), Ubuntu (sha256sum, partitions, swap), cordon RJ45 et longueur de canal,
+segment coaxial 10BASE2 et câble BNC, plan d'adressage IPv4 et table ARP, partages + NTFS et
+imprimante, portable sans Internet, rapport d'intervention. **Deux variantes de données**
+(mêmes situations et barème, données et réponses différentes), toutes **calculées par code** avec
+les règles des cours (`app/v1/ampcr_pratique_ex05_*.py`). Moteur : `PracticalCourse.variants` et
+`select_exam_variant` — une session d'examen sert une variante entière dans l'ordre du sujet
+(variante la moins faite, la 1 d'abord ; `parameters_json["exam_variant"]`), longueur fixée à 10.
+Sujet imprimable des deux variantes sans corrigé ; exigences non évaluées listées sur la page.
 
 **Vingt-sixième cours publié (ticket #225) : PR26 « Analyser une demande d'intervention
 technique »** (`/uaa/ampcr-pratique-pr26`), même intégration, position 26 (après EX04). Cours de
