@@ -2,6 +2,20 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR28 « Outillage, sécurité et protection des données » (ticket #227)
+
+Cours PR28 du parcours pratique (UAA PR28 du module `AMPCR-PRATIQUE`, position 28, après PR27,
+15 blocs) : inventaire de l'outillage PC et réseau (usage, précaution, kit par intervention) ;
+ESD selon la procédure, électricité, bloc jamais ouvert, débranchement ; batteries endommagées,
+ventilation, risques mécaniques, laser et éclats de fibre, poste de travail ; données du client
+(intégrité par empreintes SHA-256, confidentialité, chiffrement BitLocker et clé de récupération,
+droits) ; règle 3-2-1 (complément) et prérequis avant effacement ou réinstallation ; filières de
+fin de vie (DEEE, piles et batteries, supports de données) ; fiche sécurité, liste de contrôle,
+gestion d'incident ; 5 interventions résolues ; 5 procédures, 14 figures SVG + 2 schémas à
+compléter (`app/static/img/ampcr-pratique/pr28-*.svg`) ; 22 exercices, mini-examen 10 questions
+/20 sans génération IA (`app/v1/ampcr_pratique_pr28_*.py`,
+`tests/test_ticket227_ampcr_pratique_pr28.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR27 « Construire et justifier une procédure de diagnostic » (ticket #226)
 
 Cours PR27 du parcours pratique (UAA PR27 du module `AMPCR-PRATIQUE`, position 27, après PR26,

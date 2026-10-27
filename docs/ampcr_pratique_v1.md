@@ -67,6 +67,7 @@ le plan est du code (`app/v1/ampcr_pratique_plan.py`), lu en lecture seule.
 | PR25 — Wi-Fi : configuration, couverture, sécurité et diagnostic (#224) | `/uaa/ampcr-pratique-pr25` | 20 exercices (entraînement, dont 3 remises en ordre, 4 classements, 4 schémas à compléter, 7 relevés de commandes et 6 choix de configuration) + 10 questions de mini-examen /20 (examen blanc) |
 | PR26 — Analyser une demande d'intervention technique (#225) | `/uaa/ampcr-pratique-pr26` | 20 exercices (entraînement, dont 1 remise en ordre, 7 qualifications dont 5 classements, 2 schémas à compléter, 5 analyses de tickets et 5 rédactions) + 10 questions de mini-examen /20 (examen blanc) |
 | PR27 — Construire et justifier une procédure de diagnostic (#226) | `/uaa/ampcr-pratique-pr27` | 23 exercices (entraînement, dont 8 procédures à ordonner et justifier, 7 choix et interprétations de tests, 2 schémas à compléter, 2 parcours d'arbre et 4 rédactions) + 10 questions de mini-examen /20 (examen blanc) |
+| PR28 — Outillage, sécurité et protection des données (#227) | `/uaa/ampcr-pratique-pr28` | 22 exercices (entraînement, dont 4 choix d'outil, 3 risques et sécurité, 4 procédures à ordonner, 5 protection des données, 1 fin de vie, 2 schémas à compléter, 1 parcours d'arbre et 2 rédactions ; 5 classements et 4 remises en ordre auto-corrigés) + 10 questions de mini-examen /20 (examen blanc) |
 
 Intégration d'un cours pratique (modèle posé par PR06, à réutiliser par PR11, PR15…) :
 
