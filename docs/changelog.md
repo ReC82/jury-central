@@ -2,6 +2,17 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR14 « Débits, distances, atténuation et impédance » (ticket #217)
+
+Dix-huitième cours du parcours pratique et quatorzième dans l'ordre pédagogique (UAA PR14 du
+module `AMPCR-PRATIQUE`, position 14, après PR13, 16 blocs) : bits, octets, préfixes ; durée d'une
+copie, débit utile et nominal ; Ethernet 10/100/1000/10G (canal 100 m, Cat6 à 10 Gb/s ≤ 55 m),
+10BASE2 185 m, 10BASE5 500 m ; dB ; bruit, NEXT, ACR, blindage ; impédance et réflexions ;
+fibre, pertes, portée selon le module, bilan ; duplex, auto-négociation, collisions ; liaison à
+100 Mb/s au lieu de 1 Gb/s ; 3 procédures, 9 figures SVG ; 5 cas chiffrés, 19 exercices,
+mini-examen 10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr14_*.py`,
+`tests/test_ticket217_ampcr_pratique_pr14.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR13 « Câbles UTP, FTP, STP et coaxial — choix et pose » (ticket #216)
 
 Dix-septième cours du parcours pratique et treizième dans l'ordre pédagogique (UAA PR13 du module
