@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05).
+#205 : PR04 ; #206 : PR05) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session
 from app.ai.schemas import PedagogicalContext
 from app.models import UAA, Module
 from app.v1 import question_types  # noqa: F401 — enregistre les types (#40) au chargement
+from app.v1.ampcr_pratique_ex01_bank import ALL_ITEMS as EX01_ITEMS
 from app.v1.ampcr_pratique_format import ExerciseDocument
 from app.v1.ampcr_pratique_plan import PRACTICAL_MODULE_CODE
 from app.v1.ampcr_pratique_pr01_bank import ALL_ITEMS as PR01_ITEMS
@@ -575,6 +576,50 @@ _PR05_CONTEXT = PedagogicalContext(
     ),
 )
 
+# Ticket #230 : EX01, examen blanc du module 1 (PR01 → PR06) — notions de ces six cours.
+_EX01_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-ex01",
+    course_title="AMPCR pratique écrite — EX01 Examen blanc écrit : maintenance et dépannage matériel",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : examen blanc /100 du module matériel, réponses rédigées de technicien à "
+        "partir de dossiers fictifs (fiches, manuels, relevés, captures, schémas)"
+    ),
+    allowed_notions=[
+        "identification sur plan : socket, VRM, emplacements DIMM, EPS 8 broches, ATX 24 broches, CPU_FAN, PCIe x16, M.2, SATA, chipset, pile CMOS, connecteurs de façade et USB internes ; liaisons processeur ou chipset vérifiées dans le manuel",
+        "sécurité : éteint n'est pas hors tension (+5 VSB), interrupteur sur 0, câble débranché, bouton appuyé ; ESD : bracelet relié au châssis, tapis, sachets, pièces tenues par les bords, ni laine ni bijou ; bloc et batterie jamais ouverts",
+        "outillage : PH1/PH2, bac à vis, étiquettes, lampe, pince, air sec en bombe tenue droite par impulsions, pinceau, alcool isopropylique, pâte thermique ; ni visseuse, ni aspirateur ménager, ni eau, ni lame",
+        "POST : LED de diagnostic CPU, DRAM, VGA, BOOT dont le sens dépend du fabricant (manuel) ; ventilateurs qui tournent ne prouvent pas un démarrage ; premier démarrage après modification de la mémoire long (entraînement) ; barrettes mélangées à la vitesse de la plus lente ; kit identique et liste de compatibilité",
+        "diagnostic : du plus simple au plus invasif, un changement à la fois, configuration minimale, test croisé, test mémoire ; pas de flash du firmware ni de réinstallation à l'aveugle",
+        "compatibilité : socket, génération DDR (encoche DDR4/DDR5), capacité maximale, nombre d'emplacements, longueur et épaisseur de la carte graphique, connecteurs PCIe 8 broches, pas d'adaptateur Molex ou SATA vers PCIe",
+        "bloc : total des fiches + 30 % de marge, palier de 50 W supérieur, jamais sous la recommandation du fabricant de la carte graphique",
+        "montage et démontage : photos et étiquettes, ordre, bloc ventilateur vers le filtre, EPS jamais remplacé par un PCIe, carte graphique dans le premier PCIe x16, clip, équerre, barrettes selon le manuel, contrôle visuel, premier démarrage",
+        "refroidissement : température comparée au maximum de la fiche, « à surveiller » à moins de 10 °C de ce maximum, throttling, arrêt de protection, ventilateur sur CPU_FAN en profil automatique, poussière, pâte thermique ; preuve par un test de charge d'au moins 30 minutes",
+        "stockage : port SATA partagé avec un emplacement M.2 (manuel), disque absent du firmware = cause matérielle, câble de données et alimentation, disque neuf « Non initialisé » → GPT, volume NTFS, lettre ; jamais initialiser un disque qui contient des données",
+        "SMART : secteurs en attente ou illisibles > 0 → remplacer, réalloués seuls → surveiller, CRC → câble ; « PASSED » ne garantit rien ; copie ou image d'abord vers un autre support, vérifiée ; ni chkdsk /r ni défragmentation avant ; sauvegarde 3-2-1 ; confidentialité et accord écrit",
+        "vérification et compte rendu : contrôles prouvés (mémoire reconnue, test, démarrages, applications, températures), demande, constat, cause, actions, vérifications, résultat, recommandations",
+    ],
+    competencies=[
+        "Interpréter les documents d'un dossier d'intervention matériel (fiche, manuel, relevés, captures, schéma)",
+        "Rédiger une procédure de diagnostic, de montage ou de protection des données ordonnée, sûre et justifiée",
+        "Vérifier une compatibilité, calculer un bloc d'alimentation et rédiger un compte rendu professionnel",
+    ],
+    vocabulary=[
+        "POST", "UEFI", "LED de diagnostic", "DDR5", "EPS", "ATX 24 broches", "PCIe x16", "M.2", "SATA",
+        "CPU_FAN", "throttling", "+5 VSB", "ESD", "SMART", "GPT", "NTFS", "pâte thermique",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien dans un examen blanc /100 (10 points par "
+        "question) : accepter toute formulation techniquement juste, sans exiger de mot-clé ; "
+        "suivre le barème de la question et noter en proportion. Pénaliser une manipulation sous "
+        "tension, l'ouverture d'un bloc d'alimentation, un adaptateur Molex ou SATA vers PCIe, "
+        "l'initialisation ou le formatage d'un disque contenant des données, un chkdsk /r ou une "
+        "défragmentation avant copie, et toute conclusion catégorique non justifiée par un test. "
+        "Une valeur calculée fausse (puissance du bloc, mémoire totale) est une erreur même bien "
+        "rédigée ; un arrondi raisonnable est accepté."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -639,6 +684,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         items=PR24_ITEMS,
         context=_PR24_CONTEXT,
     ),
+    PracticalCourse(
+        code="EX01",
+        title="Examen blanc écrit — maintenance et dépannage matériel",
+        items=EX01_ITEMS,
+        context=_EX01_CONTEXT,
+    ),
 )
 PRACTICAL_COURSES_BY_CODE: dict[str, PracticalCourse] = {c.code: c for c in PRACTICAL_COURSES}
 PRACTICAL_COURSES_BY_SLUG: dict[str, PracticalCourse] = {c.slug: c for c in PRACTICAL_COURSES}
@@ -669,7 +720,27 @@ def restrict_to_mode(questions: list[Question], mode_value: str | None) -> list[
     return [q for q in questions if question_usage(q) in (None, mode_value)]
 
 
+def is_practical_exam_code(uaa_code: str | None) -> bool:
+    """Examen blanc EX01-EX06 (ticket #230) : une réserve `exam` seule, pas d'entraînement."""
+    return is_practical_code(uaa_code) and (uaa_code or "").startswith("EX")
+
+
+def is_practical_exam_slug(uaa_slug: str) -> bool:
+    course = PRACTICAL_COURSES_BY_SLUG.get(uaa_slug)
+    return course is not None and is_practical_exam_code(course.code)
+
+
 def _document_layout(document: ExerciseDocument) -> dict | None:
+    if document.image:
+        # Ticket #230 : schéma (fichier SVG statique) affiché dans la question, avec sa
+        # description textuelle complète en dessous (lisible sans voir l'image).
+        return {
+            "kind": "figure",
+            "src": f"/static/{document.image}",
+            "alt": " ".join(document.content_text.splitlines()),
+            "lines": document.content_text.splitlines(),
+            "notice": "Schéma fictif reconstitué pour l'exercice (non officiel).",
+        }
     if document.kind == "console":
         # Ticket #194 : capture de terminal ou extrait de journal, affiché en police à chasse
         # fixe, ligne à ligne (`_document_layouts.html`, mise en page « console »).

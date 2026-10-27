@@ -69,7 +69,23 @@ Intégration d'un cours pratique (modèle posé par PR06, à réutiliser par PR1
    (capture de terminal ou extrait de journal, affiché ligne à ligne en police à chasse fixe,
    mention « extrait fictif » — ticket #194) ou texte. Remise en ordre d'une procédure :
    `question_type="ordering"` + `Ordering(steps, correct)` (jamais affichée dans l'ordre
-   attendu, correction locale).
+   attendu, correction locale). Schéma affiché dans la question (ticket #230) :
+   `ExerciseDocument(kind="schéma", image="img/ampcr-pratique/….svg")` — fichier SVG statique
+   identique au SVG du code (test), mise en page `figure` + description textuelle complète.
+
+### Examens blancs publiés (ticket #230 et suivants)
+
+| Examen | URL | Banque |
+|---|---|---|
+| EX01 — Examen blanc écrit — maintenance et dépannage matériel (#230) | `/uaa/ampcr-pratique-ex01` (sujet), `/uaa/ampcr-pratique-ex01/exam` | 10 questions de 10 points (note /100), réponses libres, partie 1 + 3 dossiers (A, B, C), réserve `exam` seule |
+
+Intégration d'un examen blanc (modèle posé par EX01, à réutiliser par EX02–EX06) : même
+déclaration que pour un cours (`PRACTICAL_COURSES`, code `EXxx`) ; la page de l'UAA devient le
+**sujet** (version candidat sans corrigé, lignes de réponse à l'impression A4) ; pas d'onglet
+« S'entraîner » (`is_practical_exam_code` : `/practice` et `/practice/start` redirigent vers
+`/exam`) ; la page de résultats affiche la note /100 en plus du repère /20 ; corrigé et barème
+visibles seulement après la remise (moteur existant). Seed à la position du dernier cours du
+module (EX01 : position 6, juste après PR06).
 
 ## 3. Statut d'une exigence
 

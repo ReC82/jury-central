@@ -27,6 +27,9 @@ class ExerciseDocument:
     title: str
     kind: str  # "texte" | "tableau" | "schéma" | "console" (terminal, journal — ticket #194)
     content_text: str
+    # Ticket #230 : schéma servi en fichier statique (chemin sous `app/static/`), affiché dans
+    # la question ; `content_text` en reste la description textuelle complète.
+    image: str = ""
 
     def table_rows(self) -> list[list[str]]:
         """Lignes d'un document « tableau » écrit en Markdown (`| a | b |`), séparateur exclu."""
