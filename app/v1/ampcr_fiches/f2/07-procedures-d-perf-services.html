@@ -1,0 +1,155 @@
+<section class="fx-sec" id="f2-perf">
+<h2>3.D Procédures — Lenteurs, logiciels, services, logiciels malveillants</h2>
+
+<article class="fx-proc" id="f2-lenteur">
+<h3>P4.1 — Le PC Windows est lent (démarrage, ouverture des programmes, gel temporaire)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : faible à moyenne (peut révéler un disque qui meurt)</p>
+<h4>1. Symptômes observables</h4><ul><li>Démarrage de plusieurs minutes, curseur « occupé », programmes lents, ventilateur bruyant, gels de quelques secondes, voyant du disque allumé en permanence.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Trop de programmes au démarrage / en arrière-plan — configuration/applications.</li><li>Mises à jour ou indexation en cours (temporaire) — OS.</li><li>Disque presque plein (&lt; 10 % libre) — stockage.</li><li>Disque dur mécanique saturé (100 %) ou qui faiblit (secteurs réalloués) — matériel.</li><li>RAM insuffisante (mémoire &gt; 90 %, fichier d'échange) — matériel/usage.</li><li>Logiciel malveillant, extensions de navigateur — sécurité.</li><li>Surchauffe → baisse de fréquence (throttling) — matériel.</li><li>Mode d'alimentation « Économie » sur portable — configuration.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Depuis quand ? Progressif (accumulation) ou brutal (changement, panne) ? Tous les programmes ou un seul ? Tous les comptes ? Sur secteur ou batterie ?</li><li>Si le disque fait des bruits ou si les journaux signalent disk 7/153 : sauvegarde AVANT toute optimisation.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Gestionnaire des tâches (Ctrl+Maj+Échap) → Processus, trié par Processeur, Mémoire, Disque</strong> ; onglet Performance (type de disque HDD/SSD, « Temps d'activité » du disque, mémoire utilisée/totale). Moniteur de ressources (<code>resmon</code>) pour le détail disque.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> Disque à 100 % durablement sur un HDD → étape 4.</p><p class="fx-sinon"><b>SINON SI</b> Mémoire &gt; 90 % → identifier le processus gourmand ; si l'usage normal dépasse la RAM → ajout de RAM (Fiche 1). <b>SINON SI</b> Processeur élevé par un processus inconnu → <a href="#f2-p46">P4.6</a>.</p></div></li>
+<li><strong>Onglet Démarrage / « Applications de démarrage »</strong> (Windows 11 ; aussi Paramètres → Applications → Démarrage) : colonne « Impact du démarrage ». Désactiver ce qui n'est pas nécessaire (avec l'utilisateur), jamais l'antivirus ni les pilotes audio/touchpad.</li>
+<li><strong>Paramètres → Système → Stockage</strong> : espace libre de C:.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> &lt; 10 % libre → <a href="#f2-p55">P5.5</a>.</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Santé du disque</strong> : journal Système (sources disk, Ntfs, stornvme : ID 7, 51, 153, 129), SMART (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-stockage">→ Fiche 1</a>), <code>chkdsk C:</code> (lecture).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> erreurs → sauvegarde, remplacement par un SSD (Fiche 1).</p><p class="fx-sinon"><b>SINON</b> → étape 5.</p></div></li>
+<li><strong>Températures/fréquence</strong> (Gestionnaire des tâches → Performance → Processeur : « Vitesse » très inférieure à la « Vitesse de base » sous charge) → <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-surchauffe">Fiche 1 · Surchauffe</a> ; mode d'alimentation (Paramètres → Système → Alimentation et batterie → Mode d'alimentation).</li>
+<li><strong>Démarrage minimal pour isoler</strong> : <code>msconfig</code> → Services → « Masquer tous les services Microsoft » → Désactiver tout ; Démarrage → Gestionnaire des tâches → tout désactiver ; redémarrer.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> rapide → un service/programme tiers : réactiver par moitiés jusqu'à trouver le coupable.</p><p class="fx-sinon"><b>SINON</b> → système/matériel : DISM+SFC (P6.3), malveillant (P4.6).</p></div></li>
+</ol>
+<p class="fx-warn"><b>Attention</b> Après un démarrage sélectif <code>msconfig</code>, revenir à « Démarrage normal » à la fin : sinon services d'impression, VPN, antivirus tiers restent désactivés. Ne jamais cocher « Rendre ces paramètres permanents » sans raison.</p>
+<h4>5. Test de confirmation</h4><p>Mesure chiffrée avant/après : temps de démarrage jusqu'au bureau utilisable (chronomètre), « Dernier BIOS » (onglet Démarrage), temps d'ouverture d'un programme métier, % disque au repos. Limite : les jours de MAJ faussent la mesure.</p>
+<h4>6. Correction</h4><p>Désactiver les programmes de démarrage inutiles ; désinstaller les logiciels inutiles (Paramètres → Applications → Applications installées) ; libérer de l'espace ; SSD/RAM si mesures le justifient (Fiche 1) ; nettoyage malveillant. Pas d'« optimiseur » ni de « nettoyeur de registre ». Pas de défragmentation d'un SSD (Windows fait de l'optimisation TRIM automatiquement ; la défragmentation d'un HDD : Fiche 1).</p>
+<h4>7. Validation</h4><ul><li>Mesures après correction comparées aux mesures initiales, notées dans le rapport ; utilisateur confirme ; aucun programme utile désactivé (impression, synchronisation, antivirus testés).</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p><b>Mesure initiale</b> : bureau utilisable après 4 min 10 s ; Gestionnaire des tâches : disque (HDD) à 100 %, mémoire 7,4/8 Go, 19 applications de démarrage dont 6 d'impact élevé ; 8 % d'espace libre. <b>Hypothèses</b> : surcharge au démarrage, disque presque plein, disque mécanique lent ou défaillant. <b>Tests</b> : journal Système sans erreur disk ; SMART correct (le disque n'est pas en panne). <b>Actions</b> (avec accord) : désactivation de 12 programmes de démarrage non nécessaires, désinstallation de 3 logiciels inutilisés, nettoyage des fichiers système (+18 Go). <b>Mesure finale</b> : 1 min 35 s. <b>Recommandation</b> : remplacer le HDD par un SSD (gain attendu majeur), devis fourni. Démarrage normal rétabli dans <code>msconfig</code>.</p><p class="fx-lose"><b>Perd des points :</b> « réinstaller Windows » pour une lenteur ; aucune mesure avant/après ; installer un optimiseur ; défragmenter un SSD.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Lent seulement le matin pendant 15 min : MAJ/indexation/antivirus programmé, pas une panne.</li><li>Lent seulement sur batterie : mode d'alimentation, pas de matériel.</li><li>Lent seulement sur Internet : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">Fiche 4</a> (DNS, Wi-Fi).</li><li>Lenteur + bruit de clic + disk 7 : disque mourant → sauvegarde immédiate, c'est prioritaire sur la lenteur.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p42">
+<h3>P4.2 — Un logiciel ne démarre pas, se ferme ou affiche une erreur</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : variable (logiciel métier = élevée)</p>
+<h4>1. Symptômes observables</h4><ul><li>« L'exécution du code ne peut pas continuer, car VCRUNTIME140.dll (ou MSVCP140.dll) est introuvable » ; « L'application n'a pas réussi à démarrer correctement (0xc000007b) » ; « Cette application ne peut pas s'exécuter sur votre PC » ; fermeture sans message ; « Accès refusé ».</li><li>Journal Application : <b>Application Error, ID 1000</b> (nom de l'application, module en cause, code d'exception) ; <b>.NET Runtime, ID 1026</b> ; Application Hang, ID 1002.</li><li>Linux : <code>command not found</code>, <code>error while loading shared libraries: libxxx.so: cannot open shared object file</code>, <code>Permission denied</code>.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Dépendance absente (redistribuable Visual C++, .NET) — installation.</li><li>MAJ du logiciel/de Windows — changement.</li><li>Droits insuffisants / dossier protégé / profil — compte.</li><li>Fichiers de configuration/cache abîmés dans le profil — profil.</li><li>Antivirus qui bloque (quarantaine) — sécurité.</li><li>Incompatibilité 32/64 bits, ARM, version de Windows — compatibilité.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Message exact ? Depuis quand ? Un utilisateur ou tous ? Un PC ou tous ? Données du logiciel (base, fichiers) sauvegardées avant réparation ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Observateur d'événements → Application → ID 1000/1026 à l'heure de l'échec</strong> : « Nom du module défaillant ».
+<div class="fx-branch"><p class="fx-si"><b>SI</b> module = DLL tierce du logiciel → réparer/réinstaller le logiciel.</p><p class="fx-sinon"><b>SINON SI</b> module = <code>ntdll.dll</code>/<code>KERNELBASE.dll</code> → peu discriminant : étapes suivantes.</p></div></li>
+<li><strong>DLL introuvable (VCRUNTIME140.dll, MSVCP140.dll)</strong> → installer le « Microsoft Visual C++ Redistributable » officiel x64 <b>et</b> x86 (site Microsoft). Jamais une DLL isolée téléchargée sur un site tiers.</li>
+<li><strong>Tester avec un autre compte</strong> (ou nouveau compte local de test).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> fonctionne avec l'autre compte → profil/droits : renommer le dossier de configuration du logiciel dans <code>%APPDATA%</code> (après copie), vérifier les droits sur le dossier de données.</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Exécuter en tant qu'administrateur (test seulement)</strong>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> fonctionne en admin → le logiciel écrit dans un dossier protégé (<code>C:\Program Files</code>) : donner le droit Modifier sur SON dossier de données au groupe Utilisateurs, ou mettre à jour le logiciel. Ne pas rendre l'utilisateur admin.</p><p class="fx-sinon"><b>SINON</b> → étape 5.</p></div></li>
+<li><strong>Sécurité Windows → Protection contre les virus et menaces → Historique de protection</strong> : fichier mis en quarantaine ?
+<div class="fx-branch"><p class="fx-si"><b>SI</b> oui et logiciel légitime vérifié (éditeur, signature) → restaurer, exclusion ciblée, signaler à l'éditeur.</p><p class="fx-sinon"><b>SINON</b> → Paramètres → Applications → Applications installées → … → Modifier/<b>Réparer</b> ; sinon désinstaller/réinstaller (données sauvegardées) ; vieux logiciel : Propriétés → Compatibilité.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le logiciel s'ouvre et l'action métier (ouvrir un dossier client, imprimer une facture) fonctionne, avec le compte de l'utilisateur, sans élévation. Limite : un succès en admin ne confirme pas la correction.</p>
+<h4>6. Correction</h4><p>Dépendance installée ; réparation/réinstallation ; profil de config réinitialisé ; droits ciblés ; désinstallation de la MAJ fautive (P3.5) ou restauration (P6.2).</p>
+<h4>7. Validation</h4><ul><li>Fonction métier testée par l'utilisateur ; journal Application sans nouvel ID 1000 ; autres logiciels toujours fonctionnels.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le logiciel de facturation ne démarre plus depuis la mise à jour d'hier, pour tous les utilisateurs du poste. Le journal Application montre un événement 1000 avec le module <code>MSVCP140.dll</code>. Hypothèse : redistribuable Visual C++ manquant ou abîmé. Je télécharge sur le site de Microsoft le redistribuable Visual C++ x86 et x64, je le répare/installe, puis je relance : le logiciel démarre, une facture test est imprimée. Validation avec l'utilisateur, aucun nouvel événement 1000.</p><p class="fx-lose"><b>Perd des points :</b> copier une DLL d'un site inconnu ; donner les droits administrateur à l'utilisateur ; réinstaller sans sauvegarder la base du logiciel.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Linux <code>command not found</code> : paquet absent, faute de frappe, dossier hors <code>PATH</code> ; Ubuntu propose souvent le paquet (<code>sudo apt install net-tools</code>) — préférer la commande moderne (<code>ip a</code> au lieu de <code>ifconfig</code>).</li><li>Linux <code>Permission denied</code> sur un script : droit d'exécution (<code>chmod u+x script.sh</code>) ou partition montée <code>noexec</code>.</li><li>Logiciel réseau qui « ne démarre pas » car le serveur/partage est inaccessible → <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-partage">Fiche 4 · Partage</a>.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p43">
+<h3>P4.3 — Un service Windows ne démarre pas ou s'arrête (ex. Spouleur d'impression)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne à élevée (impression, sauvegarde, logiciel métier)</p>
+<h4>1. Symptômes observables</h4><ul><li><code>services.msc</code> : statut vide (arrêté) ; à la tentative de démarrage : « Erreur 1053 : le service n'a pas répondu assez vite à la demande de lancement ou de contrôle », « Erreur 1068 : le service ou le groupe de dépendance n'a pas pu démarrer », « Erreur 1069 : le service n'a pas démarré en raison d'un échec d'ouverture de session », « Erreur 5 : Accès refusé ».</li><li>Journal Système, source Service Control Manager : 7000 (n'a pas pu démarrer), 7001 (dépendance), 7009 (délai), 7031/7034 (arrêt inattendu), 7038 (ouverture de session).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Type de démarrage Désactivé/Manuel — configuration.</li><li>Dépendance arrêtée — configuration.</li><li>Mot de passe du compte de service changé/expiré — compte.</li><li>Fichier/pilote corrompu (ex. pilote d'imprimante qui fait planter le spouleur) — logiciel.</li><li>Logiciel malveillant qui désactive (antivirus, Windows Update) — sécurité.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Droits administrateur nécessaires ; noter l'état initial (type, compte) avant de modifier.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Propriétés du service → Général</strong> (type de démarrage, état) → Démarrer, lire le message exact.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> 1068 → onglet <b>Dépendances</b> : démarrer d'abord le service dont il dépend (et comprendre pourquoi il était arrêté).</p><p class="fx-sinon"><b>SINON SI</b> 1069 → onglet <b>Connexion</b> : ressaisir le mot de passe du compte (ou « Compte système local » si c'est la configuration d'origine). <b>SINON</b> 1053 / 7031 → étape 2.</p></div></li>
+<li><strong>Journal Système et Application à l'heure de l'arrêt</strong> : fichier ou module cité.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> spouleur qui s'arrête dès qu'on imprime → pilote d'imprimante abîmé : arrêter le spouleur, vider <code>C:\Windows\System32\spool\PRINTERS</code> (travaux bloqués), supprimer/réinstaller le pilote (Gestion de l'impression <code>printmanagement.msc</code>, éditions Pro).</p><p class="fx-sinon"><b>SINON</b> → réparer/réinstaller le logiciel propriétaire du service ; DISM/SFC pour un service Windows.</p></div></li>
+</ol>
+<pre class="fx-cmd">C:\&gt; sc query spooler
+C:\&gt; sc qc spooler
+C:\&gt; net stop spooler
+C:\&gt; del /q C:\Windows\System32\spool\PRINTERS\*
+C:\&gt; net start spooler</pre>
+<pre class="fx-out">SERVICE_NAME: spooler
+        TYPE               : 110  WIN32_OWN_PROCESS (interactive)
+        STATE              : 1  STOPPED
+        WIN32_EXIT_CODE    : 0  (0x0)
+...
+        START_TYPE         : 2   AUTO_START
+        DEPENDENCIES       : RPCSS
+                           : http</pre>
+<p class="fx-warn"><b>Attention</b> Vider le dossier <code>spool\PRINTERS</code> supprime les travaux d'impression en attente (à prévenir). Ne pas désactiver un service Windows « pour voir » sans noter son état initial.</p>
+<h4>5. Test de confirmation</h4><p>Service « En cours d'exécution » <b>après un redémarrage du PC</b> (preuve que le type de démarrage est bon) et fonction testée (page imprimée). Limite : un service qui démarre puis s'arrête 1 min après (7031) demande d'attendre.</p>
+<h4>6. Correction</h4><p>Type de démarrage correct (Automatique), dépendance réparée, mot de passe de service, pilote fautif retiré. Onglet <b>Récupération</b> : « Redémarrer le service » après 1<sup>re</sup> défaillance (contournement, pas une correction).</p>
+<h4>7. Validation</h4><ul><li><code>sc query</code> → <code>RUNNING</code> après redémarrage ; pas de 7031 dans les 24 h ; utilisateur imprime.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Aucune impression possible ; <code>services.msc</code> montre le Spouleur d'impression arrêté ; le journal Système contient des événements 7031 (arrêt inattendu) à chaque tentative d'impression depuis l'installation de la nouvelle imprimante. Hypothèse : pilote de la nouvelle imprimante qui fait planter le spouleur. Test : j'arrête le spouleur, vide les travaux bloqués, le redémarre ; une impression vers l'ancienne imprimante fonctionne, vers la nouvelle le service s'arrête : cause confirmée. Correction : suppression du pilote, installation de la version du fabricant pour ce modèle et cette version de Windows. Validation : impression réussie, service en cours d'exécution après redémarrage, plus de 7031.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Imprimante réseau « hors ligne » avec spouleur démarré → réseau/adresse de l'imprimante : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-imprimante">Fiche 4 · Imprimante</a>.</li><li>Service Windows Update/antivirus désactivé et impossible à réactiver → suspicion de malveillant (P4.6).</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p44">
+<h3>P4.4 — Linux : un service est en échec (« failed »), le site ou le serveur ne répond plus</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : élevée (service rendu à d'autres)</p>
+<h4>1. Symptômes observables</h4><ul><li>Au démarrage : <code>[FAILED] Failed to start nginx.service - A high performance web server…</code> ; <code>systemctl status</code> : <code>Active: failed (Result: exit-code)</code>.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Erreur de syntaxe après modification de la configuration — configuration.</li><li>Port déjà utilisé par un autre service — conflit.</li><li>Droits sur un fichier (certificat, dossier de journaux) — permissions.</li><li>Disque plein — stockage.</li><li>Dépendance (réseau, montage) — ordre de démarrage.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Qu'est-ce qui a été modifié ? Copie de la config avant toute modification (<code>sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak</code>).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>systemctl --failed</code></strong> puis <strong><code>systemctl status nginx</code></strong> : état, <code>enabled</code>/<code>disabled</code>, dernières lignes.</li>
+<li><strong><code>journalctl -u nginx -b --no-pager | tail -n 30</code></strong> : la ligne qui donne la cause.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> erreur de syntaxe (« unexpected "}" in /etc/nginx/sites-enabled/default:42 ») → corriger, puis <code>sudo nginx -t</code> (« syntax is ok », « test is successful »).</p><p class="fx-sinon"><b>SINON SI</b> « bind() to 0.0.0.0:80 failed (98: Address already in use) » → <code>sudo ss -tulpn | grep ':80'</code> pour trouver l'occupant. <b>SINON SI</b> « Permission denied » → <code>ls -l</code> du fichier cité. <b>SINON SI</b> « No space left on device » → P5.6.</p></div></li>
+<li><strong>Redémarrer et activer</strong> : <code>sudo systemctl restart nginx</code> ; si <code>disabled</code> : <code>sudo systemctl enable --now nginx</code>.</li>
+</ol>
+<pre class="fx-out">● nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/lib/systemd/system/nginx.service; enabled; preset: enabled)
+     Active: failed (Result: exit-code) since Tue 2026-10-27 09:12:04 CET; 3min ago
+    Process: 1123 ExecStartPre=/usr/sbin/nginx -t -q -g daemon on; master_process on; (code=exited, status=1/FAILURE)</pre>
+<h4>5. Test de confirmation</h4><p>Test de configuration OK + <code>active (running)</code> + test fonctionnel (<code>curl -I http://localhost</code> → <code>HTTP/1.1 200 OK</code>). Limite : <code>active</code> ne prouve pas que le service répond au réseau.</p>
+<h4>6. Correction</h4><p>Correction minimale de la cause ; tester la config avant restart (<code>sshd -t</code>, <code>apache2ctl configtest</code>, <code>nginx -t</code>) ; si nécessaire revenir à la <code>.bak</code>.</p>
+<h4>7. Validation</h4><ul><li>Redémarrage du serveur : service <code>enabled</code> et <code>active (running)</code> ; <code>systemctl --failed</code> : 0 ; test depuis un poste client.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p><code>systemctl status nginx</code> indique <code>failed</code> ; le journal du service (<code>journalctl -u nginx -b</code>) signale une erreur de syntaxe ligne 42 de <code>sites-enabled/default</code>, modifiée hier. Je copie le fichier, corrige l'accolade manquante, vérifie avec <code>sudo nginx -t</code> (syntaxe correcte), redémarre le service (<code>sudo systemctl restart nginx</code>). Validation : <code>active (running)</code>, <code>curl -I http://localhost</code> renvoie 200, site affiché depuis un poste client.</p><p class="fx-lose"><b>Perd des points :</b> redémarrer le service en boucle sans lire le journal ; redémarrer le serveur entier sans diagnostic.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li><code>inactive (dead)</code> + <code>disabled</code> = service simplement non activé au démarrage, pas une panne.</li><li><code>enable</code> ne démarre pas le service immédiatement (sauf <code>--now</code>) ; <code>start</code> ne le rend pas permanent.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p45">
+<h3>P4.5 — Linux lent ou qui gèle</h3>
+<p class="fx-sev">Fréquence : moyen · Gravité : moyenne</p>
+<h4>1. Symptômes observables</h4><ul><li>Interface lente, disque qui gratte, programmes tués (<code>Out of memory: Killed process 4321 (firefox)</code> dans <code>dmesg</code>).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Processus gourmand — application.</li><li>RAM saturée → swap — capacité.</li><li>Attente disque (wa élevé), disque plein ou qui faiblit — stockage.</li><li>Surchauffe — matériel.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Depuis quand, quel usage, quel changement ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>top</code></strong> (ou <code>htop</code>) : ligne <code>load average</code> (comparer au nombre de cœurs <code>nproc</code>), <code>%Cpu(s) … wa</code>, tri par %CPU (P) ou %MEM (M).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> un processus à ~100 % CPU → l'identifier (<code>ps -fp PID</code>), le fermer proprement, chercher pourquoi.</p><p class="fx-sinon"><b>SINON SI</b> <code>wa</code> élevé → disque : <code>df -h</code>, <code>sudo dmesg -T | grep -i error</code>, SMART (Fiche 1).</p></div></li>
+<li><strong><code>free -h</code></strong> : « available » faible et swap très utilisé → trop de programmes ou RAM insuffisante.</li>
+<li><strong><code>systemd-analyze blame</code></strong> si c'est le démarrage qui est lent : service le plus long (ex. <code>NetworkManager-wait-online.service</code>).</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Charge et temps de réponse revenus normaux après arrêt du processus/libération ; mesure avant/après (<code>systemd-analyze</code>).</p>
+<h4>6. Correction</h4><p><code>kill PID</code> (SIGTERM) avant <code>kill -9</code> ; désactiver un service inutile au démarrage (<code>sudo systemctl disable nom</code>, après vérification) ; RAM (Fiche 1).</p>
+<h4>7. Validation</h4><ul><li><code>systemd-analyze</code> avant/après ; <code>top</code> au repos ; utilisateur.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p><code>top</code> : load average 7,8 sur 4 cœurs, wa à 2 %, un processus <code>tracker-miner-fs</code> à 95 % CPU (indexation après copie de 40 000 fichiers). <code>free -h</code> : mémoire suffisante. Cause : indexation ponctuelle ; je la laisse terminer ou la mets en pause, et vérifie ensuite la charge normale. Aucune modification lourde n'est justifiée.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>« Mémoire utilisée 90 % » sous Linux : le cache (buff/cache) est libéré à la demande ; regarder « available ».</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p46">
+<h3>P4.6 — Logiciel malveillant suspecté (publicités, navigateur détourné, fichiers chiffrés, antivirus désactivé)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : élevée à critique (rançongiciel, vol d'identifiants)</p>
+<h4>1. Symptômes observables</h4><ul><li>Fenêtres publicitaires, page d'accueil/moteur de recherche changés, extensions inconnues, alertes « Votre PC est infecté, appelez le… » (arnaque au support), fichiers renommés (<code>.locked</code>, extension inconnue) + note de rançon, Sécurité Windows désactivée, processus inconnu gourmand.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Logiciel « gratuit » avec programmes associés / extension de navigateur — adware.</li><li>Fausse alerte web (le PC n'est pas infecté, c'est une page) — arnaque.</li><li>Cheval de Troie, voleur d'identifiants — malveillant.</li><li>Rançongiciel — critique.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li><b>Isoler</b> : débrancher le câble réseau / couper le Wi-Fi (pas d'arrêt brutal si rançongiciel en cours : avis d'escalade).</li><li>Fichiers partagés touchés ? Autres postes ? Mots de passe saisis ? Prévenir le responsable (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-escalade">→ Fiche 5 · Escalade</a>).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Alerte dans le navigateur avec numéro de téléphone ?</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> → fermer le navigateur (Gestionnaire des tâches), ne rien appeler ; vérifier qu'aucun logiciel d'accès à distance n'a été installé.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Fichiers chiffrés + note de rançon ?</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> → isolement, ne rien effacer (preuves), escalade immédiate, restauration depuis sauvegarde hors ligne après nettoyage complet (réinstallation).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Paramètres → Applications → Applications installées, trier par date</strong> ; extensions du navigateur ; Gestionnaire des tâches → Démarrage.</li>
+<li><strong>Sécurité Windows → Protection contre les virus et menaces → Options d'analyse → « Analyse complète », puis « Analyse hors connexion Microsoft Defender »</strong> (redémarre et analyse hors de Windows).</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Détections dans l'historique de protection ; comportement disparu après nettoyage. Limite : une analyse propre n'exclut pas une compromission (voleur d'identifiants déjà passé) → changer les mots de passe.</p>
+<h4>6. Correction</h4><p>Désinstaller les programmes indésirables, supprimer les extensions, réinitialiser le navigateur ; mise en quarantaine/suppression par l'antivirus ; changer les mots de passe <b>depuis un appareil sain</b> ; activer l'authentification à deux facteurs ; si compromission profonde ou rançongiciel : sauvegarde des données (non exécutables), réinstallation propre (P6.4), restauration depuis une sauvegarde antérieure saine.</p>
+<h4>7. Validation</h4><ul><li>Analyse complète propre, protection en temps réel active, MAJ faites, navigateur normal, utilisateur sensibilisé (rapport).</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le poste affiche des publicités et la page d'accueil a changé depuis l'installation d'un convertisseur PDF gratuit. Je déconnecte le poste du réseau, j'identifie dans les applications installées deux logiciels ajoutés à la même date et une extension de navigateur inconnue, je les supprime, je réinitialise les paramètres du navigateur, puis je lance une analyse complète et une analyse hors connexion Microsoft Defender. Validation : analyse propre, page d'accueil normale. Je conseille à l'utilisateur de changer ses mots de passe depuis un autre appareil et je le sensibilise aux téléchargements.</p><p class="fx-lose"><b>Perd des points :</b> rester connecté au réseau ; payer la rançon ; éteindre/réinstaller sans prévenir ni préserver les données ; installer un « antivirus miracle ».</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Lenteur ≠ virus par défaut : mesurer d'abord (P4.1).</li></ul>
+</article>
+</section>

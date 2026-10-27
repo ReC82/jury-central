@@ -1,0 +1,128 @@
+<section class="fx-sec" id="f2-restauration">
+<h2>3.F Procédures — Mode sans échec, réparation, restauration, réinitialisation</h2>
+
+<h3>Accès à WinRE et au mode sans échec : tous les chemins</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Situation</th><th>Chemin exact</th></tr></thead>
+<tbody>
+<tr><td>Windows 11 démarre</td><td>Paramètres → Système → Récupération → Démarrage avancé → <b>Redémarrer maintenant</b></td></tr>
+<tr><td>Windows 10 démarre</td><td>Paramètres → Mise à jour et sécurité → Récupération → Démarrage avancé → <b>Redémarrer maintenant</b></td></tr>
+<tr><td>Écran de connexion / menu Démarrer</td><td>Maintenir <b>Maj</b> en cliquant Alimentation → Redémarrer</td></tr>
+<tr><td>Ligne de commande</td><td><code>shutdown /r /o /t 0</code></td></tr>
+<tr><td>Windows ne démarre pas</td><td>Automatique après deux échecs consécutifs (ou interrompre 2 démarrages au logo) ; ou clé d'installation → Suivant → <b>Réparer l'ordinateur</b></td></tr>
+<tr><td>Puis</td><td>Choisir une option → <b>Dépannage</b> → <b>Options avancées</b> : Outil de redémarrage système · Paramètres (de démarrage) · Désinstaller des mises à jour · Paramètres du microprogramme UEFI · Invite de commandes · Restauration du système · Récupération de l'image système</td></tr>
+<tr><td>Paramètres de démarrage (après Redémarrer)</td><td>1 débogage · 2 journal de démarrage · 3 vidéo basse résolution · <b>4 mode sans échec</b> · <b>5 avec prise en charge réseau</b> · 6 avec invite de commandes · 7 désactiver le contrôle obligatoire des signatures de pilotes · 8 désactiver la protection anti-programme malveillant à lancement anticipé · <b>9 désactiver le redémarrage automatique après échec</b> · F10 environnement de récupération</td></tr>
+<tr><td>Forcer le mode sans échec depuis Windows</td><td><code>msconfig</code> → Démarrer → Démarrage sécurisé (Minimal) — ou <code>bcdedit /set {current} safeboot minimal</code> ; <b>retour</b> : décocher / <code>bcdedit /deletevalue {current} safeboot</code></td></tr>
+</tbody></table></div>
+<div class="fx-trap"><b>Piège</b> Dans WinRE, <code>X:</code> est l'environnement de récupération lui-même ; le Windows du disque est souvent en <code>D:</code>. Toujours <code>dir D:\Windows</code> avant une commande qui cible un volume.</div>
+
+<article class="fx-proc" id="f2-p61">
+<h3>P6.1 — Windows instable ou bloqué après un changement : le mode sans échec comme test discriminant</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : variable</p>
+<h4>1. Symptômes observables</h4><ul><li>Écran noir après connexion, écran bleu au démarrage, gel au bureau, programme au démarrage qui bloque, après installation d'un pilote/logiciel/MAJ.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Pilote tiers (graphique, imprimante, antivirus, VPN) — pilote.</li><li>Logiciel/service lancé au démarrage — application/service.</li><li>MAJ Windows — OS.</li><li>Fichiers système/disque/matériel (si le mode sans échec échoue aussi).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Quel changement, à quelle date ? BitLocker (clé pour WinRE) ? Point de restauration ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Démarrer en mode sans échec (4) ou avec réseau (5).</strong> — attendu : bureau en basse résolution, mention « Mode sans échec » aux coins.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le problème disparaît → cause chargée seulement en démarrage normal (pilote/service/programme tiers) : étape 2.</p><p class="fx-sinon"><b>SINON</b> → cause plus profonde : MAJ (P3.5), restauration (P6.2), fichiers système (P6.3), disque/RAM (Fiche 1).</p></div></li>
+<li><strong>En mode sans échec : annuler le dernier changement</strong> : Gestionnaire de périphériques → Restaurer le pilote ; Paramètres → Applications → désinstaller le logiciel récent ; Windows Update → Historique → Désinstaller des mises à jour.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> démarrage normal OK ensuite → cause confirmée.</p><p class="fx-sinon"><b>SINON</b> → démarrage sélectif <code>msconfig</code> (services non-Microsoft désactivés) puis réactivation par moitiés.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Démarrage normal stable après le retrait d'un seul élément ; sa réinstallation reproduirait la panne (non obligatoire, mais c'est la preuve). Limite : le mode sans échec utilise un pilote graphique de base, il masque aussi les problèmes de pilote graphique (c'est voulu).</p>
+<h4>6. Correction</h4><p>Retrait/remplacement de l'élément fautif ; version stable du fabricant ; retirer le mode sans échec forcé (<code>msconfig</code>/<code>bcdedit /deletevalue</code>).</p>
+<h4>7. Validation</h4><ul><li>3 démarrages normaux ; fonction concernée testée ; Moniteur de fiabilité propre.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Depuis l'installation d'un logiciel de VPN, le PC reste sur un écran noir après la connexion. J'accède à WinRE (deux démarrages interrompus) → Dépannage → Options avancées → Paramètres → Redémarrer → 4. En mode sans échec, le bureau s'affiche : la cause est un élément chargé au démarrage normal. Je désinstalle le VPN installé la veille et redémarre normalement : le bureau s'affiche. Conclusion : le pilote réseau virtuel du VPN bloquait le démarrage. Validation : trois démarrages normaux ; je propose la version du VPN compatible avec cette version de Windows.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Mot de passe demandé en mode sans échec : celui du compte (pas le PIN, Windows Hello inactif) ; compte Microsoft → mot de passe du compte Microsoft.</li><li>Rester bloqué en mode sans échec après <code>msconfig</code> : décocher « Démarrage sécurisé ».</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p62">
+<h3>P6.2 — Restauration du système (point de restauration)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : marche 4 (réversible si lancée depuis Windows)</p>
+<h4>1. Symptômes observables</h4><ul><li>Panne apparue à une date connue sans cause unique isolée ; plusieurs changements depuis (pilotes, logiciels, MAJ).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Changement système (pilote, registre, programme) postérieur à un point existant.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Un point de restauration <b>n'est pas une sauvegarde</b> : il ne contient pas les documents et ne protège pas contre une panne de disque. Il ne supprime pas non plus les documents créés depuis.</li><li>Protection activée ? (elle ne l'est pas toujours par défaut).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>rstrui</code></strong> (ou rechercher « Créer un point de restauration » → Protection du système → <b>Restauration du système…</b>) ; depuis WinRE : Options avancées → Restauration du système.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> aucun point → protection désactivée : passer à P6.3 ; activer la protection après réparation.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Choisir le dernier point ANTÉRIEUR à la panne</strong> (date, description) → <b>Rechercher les programmes concernés</b> : liste de ce qui sera supprimé (programmes/pilotes installés après) et de ce qui pourrait être restauré.</li>
+<li><strong>Terminer</strong> : ne pas éteindre pendant la restauration (secteur branché pour un portable).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> « La restauration du système n'a pas abouti » (ex. 0x80070005, antivirus) → réessayer depuis le mode sans échec ou WinRE.</p><p class="fx-sinon"><b>SINON</b> → valider.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>La panne a disparu ; message « La restauration du système s'est terminée correctement ». Limite : on ne sait pas lequel des changements annulés était fautif (le noter, réinstaller un à un si nécessaire).</p>
+<h4>6. Correction</h4><p>Réinstaller les programmes utiles retirés (liste notée), sauf le suspect. Créer un point manuel avant toute intervention future : Protection du système → <b>Créer</b> (« Avant pilote X, 27/10 »). Activation : sélectionner C: → Configurer → Activer la protection du système, 5–10 % d'espace.</p>
+<h4>7. Validation</h4><ul><li>Panne disparue, programmes métier présents, protection active, point manuel créé.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Points disponibles : 18/10 (MAJ automatique), 22/10 (« Installation pilote imprimante »), 25/10 (MAJ). La panne est apparue le 23/10 après l'installation du pilote. Je choisis le point du 22/10, le dernier <b>avant</b> la panne, et non le plus ancien. « Rechercher les programmes concernés » indique que le pilote d'imprimante et un lecteur PDF installé le 24/10 seront retirés. Je préviens l'utilisateur que ses documents ne sont pas touchés, je restaure, puis je réinstalle le lecteur PDF et la version du pilote d'imprimante compatible. Validation : panne disparue, impression testée.</p><p class="fx-lose"><b>Perd des points :</b> présenter le point de restauration comme une sauvegarde des documents ; choisir le point le plus ancien « par sécurité ».</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Restauration depuis WinRE : non annulable (pas de point créé avant elle), contrairement à celle lancée depuis Windows.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p63">
+<h3>P6.3 — Fichiers système endommagés : DISM puis SFC (en ligne et hors ligne)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : marche 3, sans risque pour les documents</p>
+<h4>1. Symptômes observables</h4><ul><li>Menu Démarrer/Paramètres qui ne s'ouvrent pas, erreurs de DLL système, écrans bleus <code>CRITICAL_PROCESS_DIED</code>, échecs de MAJ 0x80073712, après coupure de courant.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Fichiers système/magasin de composants abîmés — OS.</li><li>Système de fichiers/disque — stockage (vérifier si SFC trouve toujours de nouvelles erreurs).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Invite de commandes <b>en administrateur</b> (clic droit → Exécuter en tant qu'administrateur) ; connexion Internet pour DISM (sinon source locale).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>DISM /Online /Cleanup-Image /ScanHealth</code></strong> (analyse, plusieurs minutes) — <code>/CheckHealth</code> est un contrôle rapide de l'état déjà enregistré.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> « Le magasin de composants peut être réparé. » → étape 2.</p><p class="fx-sinon"><b>SINON</b> (« Aucun endommagement du magasin des composants n'a été détecté. ») → étape 3 directement.</p></div></li>
+<li><strong><code>DISM /Online /Cleanup-Image /RestoreHealth</code></strong> — attendu : « L'opération de restauration s'est terminée correctement. » Si <code>0x800f081f</code> (« Les fichiers sources sont introuvables ») → source locale : ISO de la même version montée en E: : <code>DISM /Online /Cleanup-Image /RestoreHealth /Source:WIM:E:\sources\install.wim:1 /LimitAccess</code> (index de l'édition installée, vérifiable par <code>DISM /Get-WimInfo /WimFile:E:\sources\install.wim</code> ; <code>ESD:</code> si le fichier est <code>install.esd</code>).</li>
+<li><strong><code>sfc /scannow</code></strong> → lire le message final (tableau ci-dessous). Redémarrer et relancer une fois si des réparations ont été faites.</li>
+<li><strong>Windows ne démarre pas</strong> : depuis WinRE, <code>sfc /scannow /offbootdir=D:\ /offwindir=D:\Windows</code> (lettre vérifiée) ; DISM hors ligne : <code>DISM /Image:D:\ /Cleanup-Image /RestoreHealth /Source:WIM:E:\sources\install.wim:1</code>.</li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Message de <code>sfc /scannow</code></th><th>Lecture</th><th>Suite</th></tr></thead><tbody>
+<tr><td>« La protection des ressources Windows n'a trouvé aucune violation d'intégrité. »</td><td>Fichiers système sains</td><td>Chercher ailleurs (pilote, appli, profil, matériel)</td></tr>
+<tr><td>« La protection des ressources Windows a trouvé des fichiers corrompus et les a correctement réparés. »</td><td>Réparé</td><td>Redémarrer, relancer SFC, tester la panne</td></tr>
+<tr><td>« La protection des ressources Windows a trouvé des fichiers corrompus, mais n'a pas pu en réparer certains. »</td><td>Magasin de composants abîmé</td><td>DISM /RestoreHealth puis SFC ; détails dans <code>C:\Windows\Logs\CBS\CBS.log</code></td></tr>
+<tr><td>« La protection des ressources Windows n'a pas pu effectuer l'opération demandée. »</td><td>SFC n'a pas pu tourner</td><td>Mode sans échec ou SFC hors ligne depuis WinRE</td></tr>
+<tr><td>« Vous devez être un administrateur exécutant une session de console… »</td><td>Invite non élevée</td><td>Exécuter en tant qu'administrateur</td></tr>
+</tbody></table></div>
+<h4>5. Test de confirmation</h4><p>Second <code>sfc /scannow</code> : « aucune violation d'intégrité » ; la fonction cassée remarche. Limite : si de nouvelles corruptions apparaissent à chaque passage → disque/RAM (Fiche 1).</p>
+<h4>6. Correction</h4><p>DISM (réparer la référence) <b>puis</b> SFC (réparer les fichiers à partir de la référence). Si échec persistant : réparation sur place (setup.exe de l'ISO de même version, « Conserver les fichiers et applications »), puis P6.4.</p>
+<h4>7. Validation</h4><ul><li>SFC propre, fonction testée, journal sans nouvelles erreurs.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Après une coupure, le menu Démarrer ne s'ouvre plus ; <code>sfc /scannow</code> (invite administrateur) indique « a trouvé des fichiers corrompus, mais n'a pas pu en réparer certains » : la référence de SFC, le magasin de composants, est elle-même abîmée. Je lance <code>DISM /Online /Cleanup-Image /RestoreHealth</code> (« L'opération de restauration s'est terminée correctement »), puis de nouveau <code>sfc /scannow</code> : fichiers réparés. Après redémarrage, un troisième SFC ne trouve aucune violation et le menu Démarrer fonctionne. Comme la panne fait suite à une coupure, je contrôle aussi l'état du disque (journal Système, SMART).</p><p class="fx-lose"><b>Perd des points :</b> inverser la logique (SFC qui échoue → réinstaller) ; lancer SFC sans droits admin ; dire que SFC « répare le disque ».</p></div>
+<h4>9. Pièges et variantes</h4><ul><li><code>chkdsk</code> répare le <b>système de fichiers</b>, SFC les <b>fichiers système de Windows</b>, DISM le <b>magasin de composants</b> : trois niveaux différents.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p64">
+<h3>P6.4 — Réinitialiser ce PC / réinstaller (Windows) — réinstaller en gardant /home (Linux)</h3>
+<p class="fx-sev">Fréquence : moyen · Gravité : marche 5, la plus lourde</p>
+<h4>1. Symptômes observables</h4><ul><li>Toutes les marches précédentes ont échoué ; système compromis (malveillant persistant, rançongiciel) ; coût de réparation supérieur à la remise à neuf (accord du client).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Corruption étendue — OS.</li><li>Compromission — sécurité.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<p class="fx-warn"><b>Attention</b> Réinitialiser/réinstaller supprime les applications (toujours) et, selon l'option, les fichiers personnels. Prérequis OBLIGATOIRES : 1) sauvegarde des données <b>vérifiée</b> (ouverture de fichiers témoins, empreinte si nécessaire), y compris hors des dossiers usuels (messagerie <code>.pst</code>, bases de logiciels, favoris, licences) ; 2) accord écrit du client ; 3) inventaire des logiciels et licences, clé BitLocker, pilotes. Alternative prudente : réparation sur place (ISO même version, « Conserver les fichiers et applications »), qui garde fichiers et programmes.</p>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Choisir l'option la moins destructive qui convient</strong> : Paramètres → Système → Récupération → <b>Réinitialiser ce PC</b> (Windows 10 : Mise à jour et sécurité → Récupération → Réinitialiser ce PC → Commencer) ; depuis WinRE : Dépannage → Réinitialiser ce PC.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> problème logiciel ordinaire → <b>Conserver mes fichiers</b> (applications et paramètres supprimés, fichiers personnels gardés).</p><p class="fx-sinon"><b>SINON</b> (malveillant, PC qui change de propriétaire) → <b>Supprimer tout</b> (option « Nettoyer les données » si le PC est cédé).</p></div></li>
+<li><strong>Source</strong> : <b>Téléchargement dans le cloud</b> (image propre, plusieurs Go, si les fichiers locaux de Windows sont abîmés) ou <b>Réinstallation locale</b> (sans Internet, utilise les fichiers présents).</li>
+<li><strong>Linux</strong> : réinstaller en choisissant le partitionnement manuel : <code>/</code> formatée, <code>/home</code> séparée <b>non formatée</b> (point de montage <code>/home</code>, case « formater » décochée), même nom d'utilisateur ; sans <code>/home</code> séparé → sauvegarde et restauration.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Système propre stable ; la panne d'origine absente.</p>
+<h4>6. Correction</h4><p>Après réinitialisation : pilotes, MAJ, logiciels (liste), restauration des données, comptes, imprimantes, protection (antivirus, point de restauration, sauvegarde automatique). Windows dépose une liste « Applications supprimées » sur le Bureau.</p>
+<h4>7. Validation</h4><ul><li>Données restaurées <b>vérifiées avec le client</b> (fichiers témoins ouverts) ; logiciels métier testés ; Gestionnaire de périphériques propre ; activation ; rapport signé.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>La réparation du démarrage, la désinstallation des mises à jour, la restauration du système (aucun point) et DISM/SFC hors ligne ont échoué. Je propose une réinitialisation au client. Avant : sauvegarde de C:\Users depuis une clé live sur disque externe, vérifiée par ouverture de fichiers témoins ; export des courriels et de la base du logiciel comptable ; liste des logiciels et licences ; accord écrit. Je choisis « Réinitialiser ce PC → Conserver mes fichiers → Téléchargement dans le cloud » (fichiers locaux de Windows abîmés). Après : pilotes, MAJ, logiciels réinstallés, données contrôlées avec le client, rapport.</p><p class="fx-lose"><b>Perd des points :</b> réinitialiser en premier ; « Conserver mes fichiers » présenté comme une sauvegarde (on sauvegarde quand même) ; oublier l'accord et la vérification de la sauvegarde.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>« Conserver mes fichiers » ne conserve pas les données enregistrées dans les dossiers des applications (bases locales, <code>C:\NomLogiciel</code>).</li><li>Réinitialisation qui échoue (« Un problème est survenu lors de la réinitialisation de votre PC ») → réinstallation propre depuis clé (sauvegarde déjà faite).</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p65">
+<h3>P6.5 — Linux cassé après une mise à jour : ancien noyau, mode recovery, retour arrière</h3>
+<p class="fx-sev">Fréquence : moyen · Gravité : moyenne à élevée</p>
+<h4>1. Symptômes observables</h4><ul><li>Après <code>apt upgrade</code> : démarrage bloqué, pilote/graphique cassé, service qui ne démarre plus.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Nouveau noyau — noyau.</li><li>Paquet mis à jour (configuration modifiée) — paquet.</li><li>MAJ interrompue — dpkg (P3.6).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Instantané Timeshift existant ? Sauvegarde de <code>/home</code> ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>less /var/log/apt/history.log</code></strong> (ou <code>zless</code> pour les anciens) : ce qui a été mis à jour, quand.</li>
+<li><strong>GRUB → Advanced options → noyau précédent.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> OK → noyau : garder le précédent, P3.4.</p><p class="fx-sinon"><b>SINON</b> → <b>(recovery mode)</b> : menu avec <code>clean</code>, <code>dpkg</code> (réparer les paquets), <code>fsck</code>, <code>root</code> (shell ; <code>mount -o remount,rw /</code> pour écrire).</p></div></li>
+<li><strong>Paquet fautif identifié</strong> → réinstaller l'ancienne version : <code>apt list -a paquet</code>, <code>sudo apt install paquet=version</code>, puis <code>sudo apt-mark hold paquet</code> le temps du correctif ; ou restauration Timeshift.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Avec l'ancienne version, la panne disparaît ; avec la nouvelle, elle revient.</p>
+<h4>6. Correction</h4><p>Version stable maintenue (hold temporaire, à retirer : <code>sudo apt-mark unhold paquet</code>) ; configuration comparée à la nouvelle (<code>.dpkg-dist</code>/<code>.dpkg-old</code>).</p>
+<h4>7. Validation</h4><ul><li>Démarrage normal, fonction testée, hold noté dans le rapport avec date de revue.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>L'historique apt montre la mise à jour du noyau et du pilote graphique hier. Le démarrage sur le noyau précédent fonctionne : la panne est liée au nouveau noyau. Je laisse le précédent sélectionné, régénère le module du pilote pour le nouveau noyau et, en attendant un correctif, je conserve l'ancien noyau. Je ne supprime pas le noyau qui fonctionne.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li><code>apt autoremove</code> peut supprimer d'anciens noyaux : lire la liste, garder celui en cours (<code>uname -r</code>) et un de secours.</li></ul>
+</article>
+</section>

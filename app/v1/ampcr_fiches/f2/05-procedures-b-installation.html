@@ -1,0 +1,174 @@
+<section class="fx-sec" id="f2-install">
+<h2>3.B Procédures — Installation de Windows et de Linux</h2>
+<p>Avant toute installation (rappel en une ligne, détail en <a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">Fiche 5</a>) : accord écrit, inventaire (modèle, CPU, RAM, disque, licence/édition), sauvegarde vérifiée, pilotes réseau/stockage du fabricant sur clé, clé BitLocker si chiffré. Création/suppression/formatage de partitions : <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-partition">→ Fiche 1 · Partitionnement</a>.</p>
+
+<h3>Ordre de contrôle d'une installation réussie (à recopier en fin de réponse)</h3>
+<pre class="fx-diagram">
+Média officiel + empreinte SHA-256 vérifiée
+ -&gt; firmware : UEFI, Secure Boot, TPM (Win 11), mode SATA noté
+ -&gt; démarrage ponctuel "UEFI: clé USB"
+ -&gt; disque cible identifié (taille, modèle) -- jamais "le premier"
+ -&gt; installation (GPT : ESP + MSR + Windows + récupération ;
+                  Linux : ESP + / [+ /home] [+ swap])
+ -&gt; compte(s), réseau, mises à jour, pilotes fabricant
+ -&gt; Gestionnaire de périphériques sans triangle / lspci -nnk
+ -&gt; activation, protection (antivirus, point de restauration)
+ -&gt; tests : son, réseau, impression, USB, veille ; rapport
+</pre>
+
+<article class="fx-proc" id="f2-p21">
+<h3>P2.1 — La clé USB d'installation n'apparaît pas ou ne démarre pas</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante pour l'intervention, sans risque</p>
+<h4>1. Symptômes observables</h4><ul><li>La clé n'est pas dans le menu de démarrage ponctuel ; ou elle est listée mais le PC démarre l'ancien système ; ou écran noir/curseur.</li><li>Installateur Windows : « Un pilote de média requis pour votre ordinateur est manquant » ; Linux : « Verification failed: (0x1A) Security Violation ».</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>ISO copiée comme un fichier sur la clé (non démarrable) — préparation.</li><li>Fast Boot/« Ultra Fast » du firmware qui n'initialise pas l'USB ; port USB frontal/hub — configuration/matériel.</li><li>Clé formatée pour un mode (MBR/hérité) et firmware en UEFI only, ou inversement — préparation.</li><li>Secure Boot qui refuse un chargeur non signé (vieille ISO Linux, outil tiers) — sécurité.</li><li>Image corrompue (téléchargement interrompu), clé défaillante.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Comment la clé a-t-elle été créée (outil de création de support de Microsoft, Rufus, Ventoy, <code>dd</code>, Disques d'Ubuntu, Etcher) ? Empreinte vérifiée ?</li><li>Créer la clé efface la clé : vérifier qu'elle ne contient rien d'utile.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Brancher la clé sur un port USB arrière (carte mère), menu ponctuel (F12/F11/F8/Échap).</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> elle apparaît maintenant → port/hub en cause.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Setup firmware : désactiver Fast Boot, vérifier que l'USB est autorisé au démarrage.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> la clé apparaît → réglage en cause (le remettre après installation si souhaité).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Vérifier la clé sur un autre PC</strong> : contient-elle <code>\efi\boot\bootx64.efi</code> (et <code>\sources\install.wim</code>/<code>.esd</code> pour Windows) ?
+<div class="fx-branch"><p class="fx-si"><b>SI</b> elle ne contient qu'un fichier <code>.iso</code> → recréer la clé avec un outil de création (pas une copie).</p><p class="fx-sinon"><b>SINON</b> → vérifier l'empreinte de l'ISO : <code>certutil -hashfile fichier.iso SHA256</code> (Windows) / <code>sha256sum fichier.iso</code> (Linux), à comparer à la valeur publiée.</p></div></li>
+<li><strong>Clé listée mais refusée (Security Violation)</strong> → ISO plus récente (shim signé) ; sinon désactivation temporaire de Secure Boot (attention BitLocker sur les autres disques).</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Une clé recréée depuis une ISO à l'empreinte conforme démarre sur le port arrière. Limite : un port qui marche pour une clé peut refuser une autre (clé USB 3 sur vieux firmware).</p>
+<h4>6. Correction</h4><p>Recréer la clé (outil de création de support Microsoft / Rufus en schéma GPT pour UEFI ; Ubuntu : Disques → Restaurer l'image, ou <code>sudo dd if=ubuntu.iso of=/dev/sdX bs=4M status=progress conv=fsync</code>).</p>
+<p class="fx-warn"><b>Attention</b> <code>dd</code> écrase sans confirmation le périphérique désigné : <code>of=/dev/sdX</code> doit être la clé (vérifiée par <code>lsblk</code> : taille, modèle, branchement/débranchement), jamais le disque du PC. Alternative prudente : outil graphique qui ne liste que les supports amovibles.</p>
+<h4>7. Validation</h4><ul><li>L'installateur s'affiche ; en UEFI, l'entrée choisie était « UEFI: nom de la clé » (sinon l'installation se fera en mode hérité, <a href="#f2-p24">P2.4</a>).</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>La clé n'est pas proposée au démarrage. Je vérifie d'abord ce qui est simple et réversible : port USB arrière, menu de démarrage ponctuel, désactivation du démarrage rapide du firmware. La clé reste absente ; contrôlée sur un autre PC, elle ne contient qu'un fichier ISO : elle n'a pas été rendue démarrable. Je vérifie l'empreinte SHA-256 de l'ISO officielle (<code>certutil -hashfile</code>), je recrée la clé avec l'outil de création de support, puis je démarre sur l'entrée « UEFI: » de la clé. Validation : l'installateur s'affiche en mode UEFI.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>« Un pilote de média requis est manquant » : très souvent média/clé défectueux ou port USB 3 non géré, rarement un vrai pilote à fournir → autre clé, autre port, recréer.</li><li>Deux entrées pour la même clé (« UEFI: Kingston » et « Kingston ») : le choix décide du mode d'installation.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p22">
+<h3>P2.2 — « Ce PC ne peut pas exécuter Windows 11 » (prérequis TPM, Secure Boot, UEFI, CPU)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : bloquante pour la mise à niveau</p>
+<h4>1. Symptômes observables</h4><ul><li>Application Contrôle d'intégrité du PC : « Ce PC ne répond pas actuellement à la configuration système requise pour Windows 11 », avec le critère (TPM 2.0, démarrage sécurisé, processeur, RAM, stockage).</li><li>Installateur : « Ce PC ne peut pas exécuter Windows 11 ».</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>TPM présent dans le CPU (Intel PTT / AMD fTPM) mais désactivé dans le firmware — configuration.</li><li>Secure Boot désactivé ou mode hérité (CSM) actif → disque MBR — configuration.</li><li>Processeur hors liste, RAM &lt; 4 Go, disque &lt; 64 Go, TPM 1.2 seulement — matériel (non corrigeable par réglage).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Édition et licence actuelles ; BitLocker actif (changer Secure Boot/mode déclenche la demande de clé) ; sauvegarde avant conversion MBR→GPT.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>msinfo32</code></strong> → « Mode BIOS » (UEFI/Hérité), « État du démarrage sécurisé » (Activé/Désactivé/Non pris en charge), processeur, mémoire installée.</li>
+<li><strong><code>tpm.msc</code></strong> → « Le module de plateforme sécurisée est prêt à être utilisé », « Version de la spécification : 2.0 ». « Impossible de trouver le module TPM compatible » → TPM désactivé ou absent.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> TPM introuvable → setup firmware : activer Intel PTT / AMD fTPM (Security).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Mode BIOS = Hérité ?</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> oui → disque MBR : le convertir en GPT sans perte avec <code>mbr2gpt</code> (ci-dessous), puis firmware en UEFI, puis activer Secure Boot.</p><p class="fx-sinon"><b>SINON</b> (UEFI, Secure Boot désactivé) → activer Secure Boot (clés par défaut / « Standard »).</p></div></li>
+<li><strong>Processeur non pris en charge / RAM insuffisante</strong> → pas de réglage : rester sous Windows 10 (fin du support grand public le 14/10/2025, mises à jour de sécurité étendues payantes/ESU), proposer Linux, ou un matériel compatible. Ne pas contourner les prérequis sur un poste professionnel.</li>
+</ol>
+<pre class="fx-cmd">C:\&gt; mbr2gpt /validate /allowFullOS
+C:\&gt; mbr2gpt /convert /allowFullOS</pre>
+<pre class="fx-out">MBR2GPT: Validation completed successfully
+...
+MBR2GPT: Conversion completed successfully
+MBR2GPT: Before the new system can boot properly you need to switch the firmware to boot to UEFI mode!</pre>
+<p class="fx-warn"><b>Attention</b> <code>mbr2gpt /convert</code> réécrit la table de partitions (sans effacer les données). Prérequis : sauvegarde vérifiée, <code>/validate</code> réussi (au plus 3 partitions principales sur le disque, pas de partition étendue), BitLocker suspendu, puis passage du firmware en UEFI immédiatement après. Alternative prudente : installation propre en UEFI après sauvegarde, ou rester en Windows 10.</p>
+<h4>5. Test de confirmation</h4><p>Contrôle d'intégrité du PC : « Ce PC répond à la configuration requise pour Windows 11 ». Limite : la vérification porte sur l'état actuel ; une remise à zéro du firmware peut tout redésactiver.</p>
+<h4>6. Correction</h4><p>Activer TPM et Secure Boot ; conversion GPT + UEFI si hérité ; sinon décision documentée avec le client (matériel non compatible).</p>
+<h4>7. Validation</h4><ul><li><code>msinfo32</code> : UEFI, démarrage sécurisé activé ; <code>tpm.msc</code> : prêt, 2.0 ; mise à niveau proposée ; démarrage normal après conversion.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Relevé <code>msinfo32</code> : Mode BIOS hérité, démarrage sécurisé non pris en charge, processeur de 10<sup>e</sup> génération (compatible), 16 Go. <code>tpm.msc</code> : aucun TPM. Conclusion : le matériel est compatible mais trois réglages bloquent. Plan : 1) sauvegarde vérifiée ; 2) activer Intel PTT dans le firmware ; 3) <code>mbr2gpt /validate /allowFullOS</code> puis <code>/convert</code> ; 4) passer le firmware en UEFI, activer Secure Boot ; 5) vérifier <code>msinfo32</code> et l'application Contrôle d'intégrité du PC, puis lancer la mise à niveau. Je ne contourne pas les prérequis.</p><p class="fx-lose"><b>Perd des points :</b> « acheter un nouveau PC » sans lire msinfo32 ; activer UEFI sans convertir le disque (le PC ne démarre plus : <a href="#f2-p11">P1.1</a>).</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>« Démarrage sécurisé : non pris en charge » dans msinfo32 = PC en mode hérité, pas forcément matériel incapable.</li><li>Machine virtuelle : ajouter un TPM virtuel et le firmware UEFI dans l'hyperviseur.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p23">
+<h3>P2.3 — « Nous n'avons trouvé aucun lecteur » : l'installateur ne voit pas le disque</h3>
+<p class="fx-sev">Fréquence : fréquent (portables Intel récents) · Gravité : bloquante</p>
+<h4>1. Symptômes observables</h4><ul><li>Écran « Où souhaitez-vous installer Windows ? » vide : « Nous n'avons trouvé aucun lecteur. Pour obtenir un pilote de stockage, cliquez sur Charger un pilote. »</li><li>Installateur Ubuntu : aucun disque proposé, ou message demandant de désactiver Intel RST.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Contrôleur en mode Intel RST/VMD ou RAID sans pilote dans l'installateur — configuration/pilote.</li><li>Disque non détecté par le firmware — matériel (Fiche 1).</li><li>Disque présent mais verrouillé/hors ligne (rare).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Le disque contient-il des données ? Un RAID réel est-il configuré (deux disques) ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Setup firmware : le disque est-il listé ?</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> non → <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-stockage">→ Fiche 1 · Stockage non détecté</a>.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Mode du contrôleur</strong> : « RAID/Intel RST Premium », « VMD Controller : Enabled » ?
+<div class="fx-branch"><p class="fx-si"><b>SI</b> oui → « Charger un pilote » : pilote Intel RST/« F6 » du fabricant (dossier décompressé sur une clé), puis Actualiser.</p><p class="fx-sinon"><b>SINON</b> → Maj+F10 dans l'installateur, <code>diskpart</code> → <code>list disk</code> (lecture) : disque « Hors connexion » ou absent ?</p></div></li>
+<li><strong>Linux</strong> : pas de pilote à charger → passer le contrôleur en AHCI / désactiver VMD, <b>seulement</b> si aucun Windows existant n'en dépend (sinon <a href="#f2-p14">P1.4</a>).</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Après chargement du pilote, le disque apparaît avec sa taille réelle. Limite : le pilote doit correspondre à la génération de la plate-forme.</p>
+<h4>6. Correction</h4><p>Charger le pilote du fabricant (préférable : ne change rien au firmware) ; ou désactiver VMD/RAID sur une machine vierge sans grappe.</p>
+<p class="fx-warn"><b>Attention</b> Passer de RAID à AHCI sur un PC qui a un Windows installé → INACCESSIBLE_BOOT_DEVICE (P1.4) ; sur une vraie grappe RAID → données illisibles. Prérequis : sauvegarde, savoir s'il existe un RAID. Alternative : charger le pilote.</p>
+<h4>7. Validation</h4><ul><li>Disque visible, installation menée, Gestionnaire de périphériques → Contrôleurs de stockage sans erreur.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le SSD est listé dans le firmware (pas de panne matérielle) mais l'installateur Windows ne le voit pas ; le contrôleur est en mode Intel VMD. L'installateur ne contient pas ce pilote. Je télécharge le pilote Intel RST du fabricant du portable sur une seconde clé, je clique sur « Charger un pilote », je sélectionne le dossier ; le disque apparaît. Je poursuis l'installation sur ce disque identifié par sa taille. Je ne modifie pas le mode du contrôleur, ce qui évite tout effet sur le démarrage.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Disque visible mais pas de bouton Suivant : « Windows ne peut pas être installé sur ce disque » → <a href="#f2-p24">P2.4</a>.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p24">
+<h3>P2.4 — « Windows ne peut pas être installé sur ce disque » (GPT / MBR)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : bloquante, risque de perte de données si mal corrigée</p>
+<h4>1. Symptômes observables</h4><ul><li>« Windows ne peut pas être installé sur ce disque. Le disque sélectionné est de style de partition GPT. » (clé démarrée en mode hérité).</li><li>« Windows ne peut pas être installé sur ce disque. Le disque sélectionné contient une table de partition MBR. Sur les systèmes EFI, Windows ne peut être installé que sur des disques GPT. » (clé démarrée en UEFI).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Clé démarrée dans le mauvais mode par rapport au disque — manipulation.</li><li>Disque réutilisé (ancien PC hérité) — préparation.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Le disque contient-il des données à conserver ? Accord pour effacer ? Le PC (et Windows 11) exige-t-il l'UEFI ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Quel mode voulu ?</strong> Windows 11 / PC récent → UEFI + GPT.</li>
+<li><strong>Redémarrer et choisir l'entrée « UEFI: clé »</strong> dans le menu ponctuel (ou désactiver CSM).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le disque est GPT → l'installation passe.</p><p class="fx-sinon"><b>SINON</b> (disque MBR) → étape 3.</p></div></li>
+<li><strong>Disque MBR en UEFI</strong> : s'il porte des données → les sauvegarder d'abord ; s'il porte un Windows à conserver → <code>mbr2gpt</code> depuis ce Windows (<a href="#f2-p22">P2.2</a>) ; s'il est à effacer (accord écrit) → supprimer les partitions dans l'installateur, l'installateur crée alors un GPT.</li>
+</ol>
+<p class="fx-warn"><b>Attention</b> La solution « Maj+F10, <code>diskpart</code>, <code>select disk 0</code>, <code>clean</code>, <code>convert gpt</code> » <b>efface tout le disque sélectionné</b>. Prérequis : sauvegarde vérifiée, accord écrit, disque identifié par <code>list disk</code> (taille, n°), clés USB de données débranchées. Alternative prudente : démarrer la clé dans le mode du disque, ou <code>mbr2gpt</code> (sans perte). Détail du partitionnement : <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-partition">→ Fiche 1 · Partitionnement</a>.</p>
+<h4>5. Test de confirmation</h4><p>Le bouton Suivant devient actif. Après installation : <code>msinfo32</code> → UEFI.</p>
+<h4>6. Correction</h4><p>Démarrer la clé dans le bon mode ; sinon conversion sans perte ; effacement en dernier, avec accord.</p>
+<h4>7. Validation</h4><ul><li>Partitions créées : ESP (FAT32 ~100 Mo), MSR (16 Mo), Windows (NTFS), récupération ; démarrage par « Windows Boot Manager ».</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le message indique un disque MBR alors que la clé a démarré en UEFI. Le disque provient de l'ancien PC et contient des photos du client. Je n'efface rien : je sauvegarde d'abord les photos (copie vérifiée), puis, avec l'accord écrit du client, je supprime les anciennes partitions dans l'installateur pour qu'il crée une table GPT en UEFI. Validation : installation terminée, <code>msinfo32</code> « Mode BIOS : UEFI », photos restaurées et ouvertes avec le client.</p><p class="fx-lose"><b>Perd des points :</b> <code>clean</code> sans sauvegarde ni accord ; repasser le firmware en hérité pour un Windows 11.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>« Windows ne peut pas être installé sur ce disque. Il se peut que le matériel de cet ordinateur ne prenne pas en charge le démarrage sur ce disque » → contrôleur en mode non démarrable, ordre de démarrage, ou disque USB externe choisi comme cible.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p25">
+<h3>P2.5 — L'installation échoue en cours de copie (0x8007025D, 0x80070570, redémarrage en boucle)</h3>
+<p class="fx-sev">Fréquence : moyen · Gravité : bloquante, révèle parfois un matériel instable</p>
+<h4>1. Symptômes observables</h4><ul><li>« Windows ne peut pas installer les fichiers requis. Assurez-vous que tous les fichiers requis pour l'installation sont disponibles, puis redémarrez l'installation. Code d'erreur : 0x8007025D » ; <code>0x80070570</code> (fichier endommagé/illisible) ; « Windows n'a pas pu terminer l'installation » ; écran bleu pendant l'installation.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Image/clé corrompue — média.</li><li>Port/clé USB instable — matériel périphérique.</li><li>RAM instable (XMP/EXPO trop agressif, barrette) — matériel.</li><li>Disque cible défaillant — matériel.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Échoue toujours au même pourcentage ? Profil mémoire XMP activé ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Recréer la clé à partir d'une ISO dont l'empreinte est vérifiée, sur une autre clé, port arrière.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'installation passe → média.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Désactiver XMP/EXPO, ne garder qu'une barrette, test mémoire</strong> (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-ram">→ Fiche 1 · RAM</a>).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> passe → mémoire.</p><p class="fx-sinon"><b>SINON</b> → SMART/autre disque (Fiche 1).</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>La modification d'un seul facteur fait réussir l'installation. Limite : une erreur mémoire intermittente peut passer une fois ; test mémoire complet.</p>
+<h4>6. Correction</h4><p>Nouveau média ; mémoire à sa fréquence standard / barrette remplacée ; disque remplacé.</p>
+<h4>7. Validation</h4><ul><li>Installation complète, <code>sfc /scannow</code> → « aucune violation d'intégrité », pas de BugCheck dans le journal.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le code 0x8007025D survient pendant la copie des fichiers : l'installateur lit des données incohérentes. Causes à tester, de la plus simple : média, port USB, mémoire, disque. Je recrée la clé depuis l'ISO officielle (empreinte vérifiée) sur une autre clé ; l'erreur persiste. Je désactive le profil XMP et teste avec une seule barrette : l'installation réussit. Le test mémoire de la seconde barrette signale des erreurs : elle est à remplacer (Fiche 1). Validation : installation complète, SFC sans violation.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Même code avec un disque presque plein de partitions anciennes : peu probable, l'erreur est de lecture.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p26">
+<h3>P2.6 — Installation de Linux : session live, double démarrage, partitions</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne à critique (double démarrage = risque pour Windows et ses données)</p>
+<h4>1. Symptômes observables</h4><ul><li>Session live en écran noir ; installateur qui refuse le double démarrage (« BitLocker est activé », « Intel RST ») ; aucune option « Installer à côté de Windows » ; après installation, Windows absent ou Linux absent (P1.5).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Carte graphique (pilote libre inadapté) → option « Safe graphics »/<code>nomodeset</code>.</li><li>BitLocker/Chiffrement de l'appareil actif : l'installateur ne peut pas réduire la partition.</li><li>Intel RST/VMD (P2.3).</li><li>Pas d'espace non alloué ; Windows en hérité et live en UEFI (ou l'inverse).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Sauvegarde de Windows et des données ; clé BitLocker récupérée ; Démarrage rapide de Windows désactivé ; mode de Windows relevé (<code>msinfo32</code>).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Depuis Windows : <code>msinfo32</code> (Mode BIOS) et <code>manage-bde -status</code></strong>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> chiffré → déchiffrer ou suspendre selon la distribution et l'accord du client ; garder la clé.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Réduire la partition Windows depuis Windows</strong> (Gestion des disques → clic droit sur C: → Réduire le volume) : l'outil de Windows connaît NTFS. → espace non alloué (détail : Fiche 1).</li>
+<li><strong>Démarrer la live dans le MÊME mode que Windows</strong> (« UEFI: clé »), tester Wi-Fi, son, écran, puis « Installer à côté de Windows » ou partitionnement manuel : ESP existante <b>réutilisée</b> (point de montage <code>/boot/efi</code>, <b>sans formater</b>), <code>/</code> ext4 (25–50 Go mini), <code>/home</code> séparé facultatif, swap selon RAM/hibernation (un fichier swap suffit sur Ubuntu).</li>
+</ol>
+<p class="fx-warn"><b>Attention</b> Dans le partitionnement manuel, cocher « formater » sur l'ESP efface le chargeur de Windows ; choisir la partition Windows comme <code>/</code> efface Windows. Prérequis : sauvegarde, schéma des partitions noté avant (<code>lsblk -f</code> dans la live). Alternative prudente : Linux dans une machine virtuelle ou sur un disque séparé.</p>
+<h4>5. Test de confirmation</h4><p>GRUB propose les deux systèmes ; chacun démarre ; Windows ne signale pas d'erreur de disque.</p>
+<h4>6. Correction</h4><p>Selon blocage : nomodeset, BitLocker, RST, mode de démarrage, puis P1.5 si GRUB manque.</p>
+<h4>7. Validation</h4><ul><li><code>lsblk -f</code> conforme au plan ; <code>sudo apt update &amp;&amp; sudo apt upgrade</code> ; pilotes (<code>ubuntu-drivers devices</code>) ; réseau, son, impression ; utilisateur dans le groupe <code>sudo</code> si administrateur.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Plan de double démarrage Windows 11 + Ubuntu : 1) accord écrit et sauvegarde complète ; 2) relevé <code>msinfo32</code> (UEFI) et état BitLocker (clé récupérée) ; désactivation du démarrage rapide ; 3) réduction de C: par la Gestion des disques pour libérer 80 Go ; 4) démarrage de la clé Ubuntu (empreinte vérifiée) sur l'entrée UEFI, test en session live ; 5) « Installer Ubuntu à côté de Windows » ; l'ESP existante est réutilisée sans formatage ; 6) contrôle : GRUB affiche les deux systèmes, chacun démarre, données Windows intactes ; mises à jour et pilotes ; rapport.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Créer une 2<sup>e</sup> ESP sur le même disque : inutile, source de confusion.</li><li>Heure décalée de 1–2 h entre Windows et Linux : Linux stocke l'horloge en UTC ; <code>timedatectl set-local-rtc 1</code> ou laisser l'heure se synchroniser (comportement normal, pas une panne).</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p27">
+<h3>P2.7 — Windows non activé après installation ou réparation</h3>
+<p class="fx-sev">Fréquence : moyen · Gravité : faible (fonctionnel, personnalisation limitée), mais conformité</p>
+<h4>1. Symptômes observables</h4><ul><li>Filigrane « Activer Windows » ; Paramètres → Système → Activation (Windows 11) ou Mise à jour et sécurité → Activation (Windows 10) : <code>0xC004F213</code> « Windows a signalé qu'aucune clé de produit n'a été trouvée sur votre appareil », <code>0x803F7001</code>, <code>0xC004F050</code> (clé non valide).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Édition installée ≠ édition de la licence (Pro installé, licence Famille OEM) — installation.</li><li>Carte mère remplacée (licence numérique liée au matériel) — matériel.</li><li>Pas encore de connexion Internet — réseau.</li><li>Clé de volume/entreprise hors domaine — licence.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Type de licence : OEM (clé dans le firmware), boîte (Retail), numérique liée au compte Microsoft, volume.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>slmgr /dli</code></strong> (édition, canal, 5 derniers caractères de la clé) et <code>slmgr /xpr</code>.</li>
+<li><strong>Clé OEM dans le firmware</strong> (PowerShell admin) : <code>(Get-CimInstance SoftwareLicensingService).OA3xOriginalProductKey</code>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> clé Famille et Windows Pro installé → réinstaller l'édition Famille (ou acheter la mise à niveau Pro).</p><p class="fx-sinon"><b>SINON</b> carte mère changée → Activation → Résolution des problèmes → « J'ai changé de matériel sur cet appareil récemment » (compte Microsoft lié).</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Après correction : « Windows est activé avec une licence numérique ». Limite : une licence OEM ne se transfère pas sur un autre PC.</p>
+<h4>6. Correction</h4><p>Bonne édition ; clé valide (Modifier la clé de produit) ; résolution des problèmes d'activation ; jamais d'outil de « crack ».</p>
+<h4>7. Validation</h4><ul><li><code>slmgr /xpr</code> : « La machine est activée de manière permanente. »</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>L'activation échoue (0xC004F213) après la réinstallation. <code>slmgr /dli</code> montre Windows 11 Professionnel ; la clé OEM du firmware est une clé Famille. L'édition installée ne correspond pas à la licence. Je réinstalle l'édition Famille (sauvegarde faite) ou, si le client a besoin de Pro, je lui propose une licence de mise à niveau. Validation : « Windows est activé ».</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>L'installateur choisit automatiquement l'édition de la clé OEM : installer « Pro » sans clé Pro mène à ce cas.</li></ul>
+</article>
+</section>

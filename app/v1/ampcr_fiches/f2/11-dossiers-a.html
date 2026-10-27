@@ -1,0 +1,102 @@
+<section class="fx-sec" id="f2-dossiers">
+<h2>5. Dossiers d'examen résolus</h2>
+<p>Format type de l'épreuve pratique écrite : un contexte, des documents (captures, relevés, sorties de commandes), des questions numérotées. La réponse attendue est rédigée, ordonnée, justifiée ; chaque action est accompagnée de sa précaution et de son contrôle.</p>
+
+<article class="fx-case" id="f2-dossier-1">
+<h3>Dossier 1 — Cabinet comptable Dumont : Windows 11 ne démarre plus après une coupure de courant</h3>
+<div class="fx-case-statement">
+<p><b>Contexte</b> : PC de bureau, Windows 11 Professionnel, SSD NVMe 512 Go, BitLocker non activé. Coupure de courant pendant l'installation des mises à jour hier soir. Ce matin, l'écran ci-dessous s'affiche. La comptable a besoin de ses dossiers (dossier <code>C:\Compta</code>, non sauvegardé depuis 15 jours).</p>
+<pre class="fx-out">Votre PC/appareil doit être réparé
+Le fichier de données de configuration de démarrage ne contient pas
+d'informations valides pour un système d'exploitation.
+Fichier : \EFI\Microsoft\Boot\BCD
+Code d'erreur : 0xc000000f</pre>
+<p><b>Document 2</b> (WinRE, invite de commandes) :</p>
+<pre class="fx-out">DISKPART&gt; list vol
+  Volume 0     E   CCCOMA_X64F  UDF    DVD-ROM     5 Go
+  Volume 1     D                NTFS   Partition   475 G    Sain
+  Volume 2                      NTFS   Partition   750 M    Sain   Masqué
+  Volume 3                      FAT32  Partition   100 M    Sain   Masqué</pre>
+<ol><li>À quel stade du démarrage se situe la panne ? Justifie.</li><li>Quelle est ta toute première préoccupation, et comment y réponds-tu ?</li><li>Décris la procédure de réparation, du moins invasif au plus invasif, avec les commandes exactes.</li><li>Pourquoi n'utilises-tu pas <code>bootrec /fixmbr</code> ?</li><li>Comment valides-tu l'intervention et que notes-tu dans le rapport ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Le message est affiché par <b>Windows Boot Manager</b> : le firmware a trouvé le disque et lancé le chargeur de l'ESP, mais le magasin BCD est invalide. La panne se situe donc au stade du <b>chargeur</b>, après le firmware et avant le noyau. Le disque est lu : ce n'est pas un problème de détection.</p>
+<p><b>2.</b> Les données de <code>C:\Compta</code>, sans sauvegarde récente. Avant toute commande qui modifie le démarrage, je copie ce dossier : soit depuis WinRE (<code>notepad</code> → Fichier → Ouvrir sert d'explorateur pour copier vers une clé USB), soit depuis une clé live Linux en lecture. Je vérifie la copie (ouverture de fichiers témoins).</p>
+<p><b>3.</b> a) Clé d'installation Windows 11 → Réparer l'ordinateur → Dépannage → Options avancées → <b>Outil de redémarrage système</b>. b) Si échec : invite de commandes, lecture <code>bcdedit /enum all</code>. c) Identification des volumes (document 2) : Windows sur <b>D:</b> (475 Go NTFS ; je confirme par <code>dir D:\Windows</code>), ESP = volume 3 (FAT32, 100 Mo, masqué). d) <code>diskpart</code> → <code>select vol 3</code> → <code>assign letter=S</code> → <code>exit</code>. e) <code>bcdboot D:\Windows /s S: /f UEFI</code> → « Boot files successfully created ». f) Redémarrage sans la clé. g) Si Windows démarre mais reste instable (coupure pendant MAJ) : <code>DISM /Online /Cleanup-Image /RestoreHealth</code> puis <code>sfc /scannow</code>, et <code>chkdsk C:</code> en lecture. Je n'utilise ni <code>clean</code> ni <code>format</code> dans diskpart, et je ne réinstalle pas.</p>
+<p><b>4.</b> Le PC démarre en <b>UEFI</b> (chemin <code>\EFI\Microsoft\Boot\BCD</code>, ESP FAT32) : le code d'amorçage du MBR n'intervient pas dans ce démarrage. <code>bootrec /fixmbr</code> est un outil du démarrage hérité ; il ne reconstruirait pas le BCD. L'outil adapté est <code>bcdboot</code>.</p>
+<p><b>5.</b> Validation : deux démarrages complets sans clé ; <code>bcdedit /enum</code> montre <code>device partition=C:</code> et <code>winload.efi</code> ; Windows Update terminé ; <code>sfc</code> sans violation ; la comptable ouvre ses dossiers. Rapport : symptôme et code exacts, cause (BCD endommagé par la coupure), copie de sauvegarde réalisée, commandes exécutées, résultats, contrôles ; recommandation d'un onduleur et d'une sauvegarde automatique quotidienne.</p>
+<p class="fx-lose"><b>Perd des points :</b> réinstaller Windows ; confondre avec « No bootable device » ; lancer <code>bcdboot C:\Windows</code> sans vérifier que C: est bien Windows dans WinRE ; oublier la sauvegarde des données.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f2-dossier-2">
+<h3>Dossier 2 — Bureau d'architectes : installation propre de Windows 11 sur un SSD neuf, puis pilotes manquants</h3>
+<div class="fx-case-statement">
+<p><b>Contexte</b> : un poste de 2020 (Intel Core i7 de 10<sup>e</sup> génération, 16 Go) reçoit un SSD neuf de 1 To. Licence Windows 11 Professionnel. Le client veut une installation propre ; les données sont sur le NAS. Relevé <code>msinfo32</code> sous l'ancien Windows 10 :</p>
+<pre class="fx-out">Mode BIOS                       Hérité
+État du démarrage sécurisé      Non pris en charge
+Processeur                      Intel(R) Core(TM) i7-10700
+Mémoire physique installée      16,0 Go</pre>
+<p><code>tpm.msc</code> : « Impossible de trouver le module de plateforme sécurisée compatible ». Après installation, Gestionnaire de périphériques :</p>
+<pre class="fx-out">Autres périphériques
+  ! Contrôleur Ethernet       ID : PCI\VEN_8086&amp;DEV_0D55
+  ! Périphérique PCI          ID : PCI\VEN_8086&amp;DEV_06A3
+  ! Contrôleur audio multimédia</pre>
+<ol><li>Le poste peut-il recevoir Windows 11 ? Que faut-il régler, et dans quel ordre ?</li><li>Rédige la procédure d'installation (préparation → validation).</li><li>Comment traites-tu les pilotes manquants, alors que le réseau ne fonctionne pas ?</li><li>Quels comptes crées-tu pour les trois architectes, et pourquoi ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Oui : un i7 de 10<sup>e</sup> génération et 16 Go répondent aux prérequis ; seuls des <b>réglages</b> bloquent : mode hérité (Secure Boot impossible sans UEFI) et TPM désactivé. Le SSD étant neuf et vide, pas de conversion à faire : 1) setup firmware : activer <b>Intel PTT</b> (TPM 2.0) ; 2) Boot Mode <b>UEFI</b>, CSM désactivé ; 3) <b>Secure Boot</b> activé (clés par défaut) ; 4) noter les réglages d'origine dans le rapport. Les données étant sur le NAS, l'ancien disque est conservé intact (débranché pendant l'installation pour éviter toute erreur de cible).</p>
+<p><b>2.</b> Préparation : accord écrit, inventaire, licence Pro vérifiée, ISO officielle (empreinte SHA-256 vérifiée), clé créée avec l'outil de Microsoft, pilotes du fabricant (réseau, chipset, audio) téléchargés sur une seconde clé. Installation : démarrage sur « UEFI: clé » (F12) ; langue ; édition <b>Professionnel</b> (celle de la licence) ; « Personnalisé » ; disque cible identifié par sa taille (931 Go, espace non alloué) ; Suivant (l'installateur crée ESP, MSR, Windows, récupération en GPT). Configuration : compte administrateur du poste, réseau, mises à jour. Validation : <code>msinfo32</code> → UEFI + démarrage sécurisé activé ; Gestionnaire de périphériques sans triangle ; activation ; Windows Update à jour ; tests (réseau, son, impression, NAS) ; point de restauration ; rapport.</p>
+<p><b>3.</b> <code>VEN_8086</code> = Intel. <code>DEV_0D55</code> est un contrôleur Ethernet Intel, <code>DEV_06A3</code> un contrôleur de bus SM (chipset). Sur un autre PC, je télécharge depuis la page support du modèle exact (ou Intel) le pilote réseau et le pack chipset ; je les installe depuis la clé (chipset d'abord, puis réseau). Le réseau fonctionnant, Windows Update → Options avancées → Mises à jour facultatives fournit le pilote audio, sinon celui du fabricant. Contrôle : plus aucun périphérique dans « Autres périphériques », son et réseau testés.</p>
+<p><b>4.</b> Un <b>compte standard</b> par architecte (traçabilité, profils séparés) et un compte <b>administrateur</b> distinct réservé à la maintenance, au mot de passe connu du seul responsable. Principe du moindre privilège : un logiciel malveillant lancé depuis une session standard ne peut pas modifier le système ; les installations se font par élévation UAC. Pas de compte partagé.</p>
+<p class="fx-lose"><b>Perd des points :</b> conclure « incompatible » sur la ligne « Non pris en charge » ; laisser l'ancien disque branché et choisir « le premier disque » ; installer l'édition Famille ; donner les droits administrateur aux trois utilisateurs.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f2-dossier-3">
+<h3>Dossier 3 — Association « Le Relais » : Ubuntu en mode d'urgence après remplacement du disque de données, puis impossible d'ajouter une imprimante</h3>
+<div class="fx-case-statement">
+<p><b>Contexte</b> : poste Ubuntu ; le disque de données (monté sur <code>/data</code>) a été remplacé hier par un bénévole qui a recopié les fichiers. Ce matin :</p>
+<pre class="fx-out">[ TIME ] Timed out waiting for device /dev/disk/by-uuid/0d4e5f61-aaaa-4b2c-9d8e-112233445566.
+[DEPEND] Dependency failed for /data.
+[DEPEND] Dependency failed for Local File Systems.
+You are in emergency mode. After logging in, type "journalctl -xb" to view
+system logs, "systemctl reboot" to reboot, ...
+Cannot open access to console, the root account is locked.</pre>
+<p><code>lsblk -f</code> (depuis une clé live) :</p>
+<pre class="fx-out">sda1      ext4   data  9b1c7e2d-5a40-4c1e-8f7e-2d0c6b1e44aa
+nvme0n1p1 vfat         4C2E-91AB
+nvme0n1p2 ext4         3f2a8d10-77c1-4f0b-9a55-6e3d2c1b0f12</pre>
+<p>Après réparation, la bénévole Sarah (compte standard) veut ajouter une imprimante dans Paramètres → Imprimantes ; le bouton Ajouter demande un mot de passe d'administrateur. <code>id sarah</code> : <code>groups=1001(sarah)</code>.</p>
+<ol><li>Explique le message et la cause la plus probable.</li><li>Comment accèdes-tu au système, alors que le compte root est verrouillé ?</li><li>Rédige la correction avec ses précautions et son test avant redémarrage.</li><li>Comment permets-tu à Sarah d'ajouter des imprimantes sans en faire une administratrice ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> systemd attend le périphérique d'UUID <code>0d4e…</code> listé dans <code>/etc/fstab</code> pour monter <code>/data</code> ; il n'existe pas, le montage échoue, et comme <code>/data</code> fait partie des « Local File Systems », le démarrage s'arrête en mode d'urgence. <code>lsblk -f</code> montre que le nouveau disque a l'UUID <code>9b1c…</code> : un UUID change à chaque création de système de fichiers. Cause : ligne fstab qui désigne l'ancien disque.</p>
+<p><b>2.</b> Ubuntu verrouille root : le mode d'urgence ne peut ouvrir de console. Je démarre par GRUB → Advanced options → <b>(recovery mode)</b> → <b>root</b>, ou sur la clé live (montage de la racine <code>nvme0n1p2</code>).</p>
+<p><b>3.</b> <code>mount -o remount,rw /</code> (la racine est en lecture seule en recovery) ; <code>cp /etc/fstab /etc/fstab.bak</code> ; dans <code>/etc/fstab</code>, je remplace l'UUID <code>0d4e…</code> par <code>9b1c7e2d-5a40-4c1e-8f7e-2d0c6b1e44aa</code> et j'ajoute <code>nofail</code> (disque de données non indispensable au démarrage) : <code>UUID=9b1c7e2d-… /data ext4 defaults,nofail 0 2</code>. Test avant redémarrage : <code>findmnt --verify</code> (aucune erreur), <code>systemctl daemon-reload</code>, <code>mount -a</code> (silencieux), <code>findmnt /data</code> (monté). Puis redémarrage : démarrage normal, <code>systemctl --failed</code> vide, fichiers de <code>/data</code> présents.</p>
+<p><b>4.</b> Sous Ubuntu, la gestion des imprimantes (CUPS) est autorisée aux membres du groupe <code>lpadmin</code>. Avec l'accord du responsable : <code>sudo usermod -aG lpadmin sarah</code> (le <code>-a</code> conserve ses autres groupes), puis déconnexion/reconnexion. Contrôle : <code>id sarah</code> montre <code>lpadmin</code>, elle ajoute l'imprimante et imprime une page de test ; elle n'est pas dans <code>sudo</code>.</p>
+<p class="fx-lose"><b>Perd des points :</b> reformater ou réinstaller ; utiliser <code>/dev/sda1</code> dans fstab ; redémarrer sans test ; ajouter Sarah au groupe <code>sudo</code>.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f2-dossier-4">
+<h3>Dossier 4 — Agence immobilière : écran bleu après mise à jour d'un pilote, choix de la restauration</h3>
+<div class="fx-case-statement">
+<p><b>Contexte</b> : portable Windows 11 ; depuis le 21/10, écran bleu au bout de quelques minutes de visioconférence. Journal Système :</p>
+<pre class="fx-out">21/10 10:14  Kernel-Power 41  (Critique)
+21/10 10:14  BugCheck 1001 : La vérification d'erreur était : 0x000000d1 ...
+             Un vidage a été enregistré dans : C:\Windows\Minidump\102126-...dmp
+21/10 09:02  Kernel-PnP 400 : Périphérique PCI\VEN_8086&amp;DEV_2725 configuré
+             Nom du pilote : oem42.inf  Version : 23.60.0.3  Date : 10/10/2026</pre>
+<p>Écran relevé : <code>DRIVER_IRQL_NOT_LESS_OR_EQUAL</code>, « Ce qui a échoué : Netwtw14.sys ». Points de restauration : 15/10 (Windows Update), 21/10 08:59 (« Installed Intel Wi-Fi driver »), 24/10 (Windows Update). Le client n'a aucune sauvegarde de ses documents.</p>
+<ol><li>Interprète les documents : observation, hypothèse, ce qui n'est pas une cause.</li><li>Quel est le premier test discriminant, et sa correction ?</li><li>Si le test échoue, quel point de restauration choisis-tu et que vas-tu perdre ?</li><li>Quelle précaution impose l'absence de sauvegarde ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Observation : écrans bleus <code>DRIVER_IRQL_NOT_LESS_OR_EQUAL</code> (0xD1) citant <code>Netwtw14.sys</code>, le pilote Wi-Fi Intel ; le journal montre l'installation d'une nouvelle version du pilote de la carte <code>VEN_8086&amp;DEV_2725</code> (Wi-Fi Intel AX210) le 21/10 à 09:02, une heure avant le premier écran bleu ; la visioconférence sollicite justement le Wi-Fi. Hypothèse principale : pilote Wi-Fi récent défectueux ; hypothèse secondaire : mémoire. Le Kernel-Power 41 n'est pas une cause : il constate seulement que le PC a redémarré sans arrêt propre.</p>
+<p><b>2.</b> Test : Gestionnaire de périphériques → Cartes réseau → Intel Wi-Fi 6 AX210 → Propriétés → Pilote → <b>Restaurer le pilote</b> (version précédente) ; redémarrer ; reproduire une visioconférence d'au moins une heure. Aucun écran bleu → cause confirmée. Puis suspendre la mise à jour de ce pilote et surveiller le journal (aucun nouvel événement 1001) pendant une semaine.</p>
+<p><b>3.</b> Le point du <b>21/10 à 08:59</b> : c'est le dernier point <b>antérieur</b> à l'installation du pilote (09:02) et donc à la panne ; le point du 15/10 ferait perdre inutilement six jours de changements, celui du 24/10 contient déjà le pilote fautif. Avant de lancer, « Rechercher les programmes concernés » liste ce qui sera retiré. La restauration retirera les pilotes, programmes et mises à jour installés après le point (dont le pilote Wi-Fi et la mise à jour du 24/10, qui se réinstallera) ; elle ne touche pas aux documents.</p>
+<p><b>4.</b> Une restauration n'est pas une sauvegarde : avant toute intervention, je copie les documents du client sur un support externe et je vérifie la copie. Je recommande ensuite une sauvegarde automatique (Historique des fichiers ou cloud).</p>
+<p class="fx-lose"><b>Perd des points :</b> « carte Wi-Fi HS » ; prendre Kernel-Power 41 pour la cause ; choisir le point le plus ancien sans raison ; présenter la restauration comme sans risque pour les données sans avoir sauvegardé.</p>
+</div>
+</article>
+</section>

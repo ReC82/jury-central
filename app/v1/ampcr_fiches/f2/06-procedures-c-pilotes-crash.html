@@ -1,0 +1,178 @@
+<section class="fx-sec" id="f2-pilotes-crash">
+<h2>3.C Procédures — Pilotes, écrans bleus, kernel panic, mises à jour, paquets</h2>
+
+<article class="fx-proc" id="f2-pilote">
+<h3>P3.1 — Périphérique inconnu, Code 28 : pas de son, pas de réseau, pas de Wi-Fi après installation</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : moyenne (fonction absente)</p>
+<h4>1. Symptômes observables</h4><ul><li><code>devmgmt.msc</code> : « Autres périphériques » → « Périphérique inconnu », « Contrôleur Ethernet », « Contrôleur de bus SM », « Périphérique PCI » avec triangle jaune ; Propriétés → Général → État : « Les pilotes de ce périphérique ne sont pas installés. (Code 28) ».</li><li>Linux : <code>lspci -nnk</code> montre le périphérique sans ligne « Kernel driver in use » ; <code>dmesg</code> : <code>firmware: failed to load iwlwifi-…</code>.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Pilote absent de l'installation générique (chipset, Wi-Fi, lecteur de cartes) — pilote.</li><li>Pas de réseau pour que Windows Update le télécharge (le pilote réseau lui-même manque) — dépendance.</li><li>Firmware non libre non installé (Debian) — paquet.</li><li>Périphérique très récent/ancien sans pilote pour cette version — compatibilité.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Modèle exact du PC (étiquette, <code>msinfo32</code> → Modèle du système) ; source fiable = site du fabricant du PC ou du composant, Windows Update. Jamais de site « driver updater ».</li><li>Point de restauration avant installation de pilotes.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Propriétés → Détails → Propriété « ID du matériel »</strong>. — attendu : <code>PCI\VEN_8086&amp;DEV_2725&amp;SUBSYS_00248086</code> (VEN = fabricant de la puce, 8086 = Intel, 10EC = Realtek, 14E4 = Broadcom, 10DE = NVIDIA, 1002 = AMD) ou <code>USB\VID_046D&amp;PID_C52B</code>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> VEN/DEV identifiés → chercher le pilote de ce composant sur le site du fabricant du PC (modèle exact), sinon du fabricant de la puce.</p><p class="fx-sinon"><b>SINON</b> (ID générique <code>ACPI\…</code>) → pack chipset/« Serial IO » du fabricant du PC.</p></div></li>
+<li><strong>Pas de réseau ?</strong> Télécharger le pilote réseau sur un autre PC → clé USB ; ou partage de connexion USB d'un smartphone (pilote générique RNDIS) puis Windows Update → Options avancées → <b>Mises à jour facultatives</b> → Mises à jour de pilotes.</li>
+<li><strong>Installer</strong> : exécutable du fabricant, ou Propriétés → Pilote → Mettre à jour le pilote → « Parcourir mon poste de travail » → dossier décompressé (fichier <code>.inf</code>).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> « Le meilleur pilote est déjà installé » alors que le triangle reste → mauvais dossier/architecture, voir Code affiché (P3.2).</p><p class="fx-sinon"><b>SINON</b> redémarrer, valider.</p></div></li>
+<li><strong>Linux</strong> : <code>lspci -nnk</code> / <code>lsusb</code> → IDs <code>[8086:2725]</code> ; <code>sudo dmesg | grep -i firmware</code> ; Ubuntu : <code>ubuntu-drivers devices</code> ; Debian : activer la section <code>non-free-firmware</code> et installer le paquet (ex. <code>firmware-iwlwifi</code>, <code>firmware-realtek</code>), puis redémarrer ou recharger le module (<code>sudo modprobe -r iwlwifi &amp;&amp; sudo modprobe iwlwifi</code>).</li>
+</ol>
+<pre class="fx-cmd">$ lspci -nnk | grep -A3 -i network</pre>
+<pre class="fx-out">02:00.0 Network controller [0280]: Intel Corporation Wi-Fi 6 AX210/AX211/AX411 160MHz [8086:2725] (rev 1a)
+        Subsystem: Intel Corporation Wi-Fi 6 AX210 160MHz [8086:0024]
+        Kernel modules: iwlwifi
+                       (absence de "Kernel driver in use" = module non actif)</pre>
+<h4>5. Test de confirmation</h4><p>Triangle disparu, catégorie correcte (Cartes réseau, Contrôleurs audio…), fonction testée (son joué, réseau connecté). Limite : un pilote générique Microsoft peut fonctionner partiellement (pas de touches de fonction, pas de micro) → préférer celui du fabricant.</p>
+<h4>6. Correction</h4><p>Pilote du fabricant / Windows Update facultatif ; Linux : firmware/pilote de la distribution. Ordre recommandé sur un poste neuf : chipset → stockage → réseau → graphique → audio → reste.</p>
+<h4>7. Validation</h4><ul><li>Gestionnaire de périphériques sans aucun triangle (Affichage → Afficher les périphériques cachés pour vérifier) ; test de chaque fonction ; Linux : « Kernel driver in use: iwlwifi ».</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Après l'installation, le Gestionnaire de périphériques affiche un « Contrôleur réseau » sous « Autres périphériques », Code 28 : pilote absent. J'ouvre Propriétés → Détails → ID du matériel : <code>PCI\VEN_8086&amp;DEV_2725</code> = carte Wi-Fi Intel AX210. Le poste n'a pas d'accès réseau : je télécharge sur un autre PC le pilote Wi-Fi depuis la page support du modèle exact du portable, je le copie sur clé et l'installe. Validation : la carte apparaît dans « Cartes réseau » sans triangle, le Wi-Fi se connecte, puis je passe Windows Update (mises à jour facultatives) pour le reste des pilotes.</p><p class="fx-lose"><b>Perd des points :</b> « installer un pilote trouvé sur Internet » sans source fiable ni identification ; confondre Code 28 (pilote absent) et Code 22 (désactivé).</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Code 22 « Ce périphérique est désactivé » / flèche vers le bas → simplement Activer (vérifier pourquoi il a été désactivé).</li><li>Le Wi-Fi « manque » mais la carte est saine : interrupteur/touche avion, mode avion — à vérifier avant tout pilote. Réseau ensuite : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-wifi">→ Fiche 4 · Wi-Fi</a>.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p32">
+<h3>P3.2 — Code 43, Code 10, Code 52, Code 31 : le périphérique ne fonctionne plus (souvent après une mise à jour de pilote)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne</p>
+<h4>1. Symptômes observables</h4>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Code</th><th>Message (Windows 10/11)</th><th>Lecture</th><th>Premier geste</th></tr></thead><tbody>
+<tr><td>10</td><td>« Ce périphérique ne peut pas démarrer. »</td><td>Pilote inadapté/abîmé ou matériel qui ne répond pas</td><td>Restaurer/mettre à jour le pilote (fabricant)</td></tr>
+<tr><td>22</td><td>« Ce périphérique est désactivé. »</td><td>Désactivé manuellement</td><td>Activer le périphérique</td></tr>
+<tr><td>28</td><td>« Les pilotes de ce périphérique ne sont pas installés. »</td><td>Pilote absent</td><td>P3.1</td></tr>
+<tr><td>31</td><td>« Ce périphérique ne fonctionne pas correctement car Windows ne parvient pas à charger les pilotes requis… »</td><td>Pilote abîmé/incompatible</td><td>Désinstaller (cocher supprimer le pilote) puis réinstaller</td></tr>
+<tr><td>39</td><td>« Windows ne peut pas charger le pilote de périphérique… Il est peut-être endommagé ou manquant. »</td><td>Fichier pilote manquant/abîmé</td><td>Réinstaller ; SFC si pilote système</td></tr>
+<tr><td>43</td><td>« Windows a arrêté ce périphérique car il a signalé des problèmes. »</td><td>Le périphérique OU son pilote signale une défaillance</td><td>Autre port/câble/PC, puis pilote</td></tr>
+<tr><td>45</td><td>« Actuellement, ce périphérique matériel n'est pas connecté à l'ordinateur. »</td><td>Périphérique débranché (fantôme)</td><td>Rebrancher, ou ignorer</td></tr>
+<tr><td>52</td><td>« Windows ne peut pas vérifier la signature numérique des pilotes requis pour ce périphérique. »</td><td>Pilote non signé/modifié, Secure Boot</td><td>Pilote signé du fabricant</td></tr>
+</tbody></table></div>
+<h4>2. Causes possibles (classées)</h4><ol><li>MAJ de pilote récente (Windows Update ou utilitaire) — pilote.</li><li>Port/câble/hub USB, alimentation insuffisante du port — matériel/branchement.</li><li>Périphérique défaillant — matériel.</li><li>Pilote non signé — sécurité.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Depuis quand ? Une MAJ ? Marche-t-il sur un autre PC ? Point de restauration ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Onglet Pilote : date et version ; Événements (onglet) : « Périphérique installé/configuré » récent ?</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> pilote changé juste avant la panne → <b>Restaurer le pilote</b> (bouton actif seulement si une version précédente existe).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Code 43 sur USB : autre port (direct, arrière), autre câble, autre PC.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le périphérique fonctionne ailleurs → logiciel/port de ce PC : désinstaller le périphérique + pilote, redémarrer ; pilote du contrôleur USB/chipset.</p><p class="fx-sinon"><b>SINON</b> (KO partout) → périphérique défaillant → Fiche 1.</p></div></li>
+<li><strong>Carte graphique Code 43</strong> : désinstaller le pilote proprement, installer la version du fabricant ; si persiste avec plusieurs versions → matériel (Fiche 1).</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le retour à l'ancienne version rétablit la fonction et la nouvelle la recasse → pilote confirmé. Le test croisé sur un autre PC sépare matériel et logiciel. Limite : un défaut intermittent du câble peut tromper un test court.</p>
+<h4>6. Correction</h4><p>Restaurer le pilote → bloquer temporairement la MAJ fautive (outil « Afficher ou masquer les mises à jour » de Microsoft, ou suspendre les MAJ) → signaler au fabricant. Sinon désinstaller (cocher « Tenter de supprimer le pilote de ce périphérique ») et réinstaller la version stable.</p>
+<h4>7. Validation</h4><ul><li>État « Ce périphérique fonctionne correctement » ; fonction testée après redémarrage ; journal Système sans erreur du pilote.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>L'imprimante USB affiche Code 43 depuis hier. Le Code 43 dit que le périphérique ou son pilote a signalé une défaillance : il ne désigne pas lequel. Test croisé : sur un autre PC, l'imprimante fonctionne ; sur ce PC, avec un autre câble et un port arrière, Code 43 persiste. L'onglet Pilote montre une version installée hier par Windows Update : je clique sur Restaurer le pilote. L'imprimante fonctionne. Conclusion : pilote récent incompatible. Je suspends les mises à jour de ce pilote et note la version fautive dans le rapport.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Code 43 + hub non alimenté avec un disque 2,5" → alimentation du port, pas pilote.</li><li>Désactiver la « Gestion de l'alimentation » USB (onglet Gestion de l'alimentation : « Autoriser l'ordinateur à éteindre ce périphérique ») pour un périphérique qui « disparaît » après veille.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-bsod">
+<h3>P3.3 — Écran bleu (écran d'arrêt / BSOD) : lire, relever, tester, corriger</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : élevée (perte de travail, risque pour les données si disque)</p>
+<h4>1. Symptômes observables</h4><ul><li>« Votre PC a rencontré un problème et doit redémarrer… », code d'arrêt en texte (<code>DRIVER_IRQL_NOT_LESS_OR_EQUAL</code>), parfois « Ce qui a échoué : nvlddmkm.sys » ; QR code. Sur les Windows 11 les plus récents, l'écran d'arrêt est noir et plus sobre : même lecture.</li><li>Redémarrage immédiat (redémarrage automatique) : l'utilisateur dit « le PC redémarre tout seul ».</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Pilote récent ou défectueux (graphique, réseau, antivirus, VPN) — pilote.</li><li>Mise à jour Windows — OS.</li><li>RAM instable (XMP, barrette) — matériel.</li><li>Disque/système de fichiers — stockage.</li><li>Surchauffe, alimentation, surcadençage — matériel.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Quand (démarrage, jeu, veille, copie), depuis quand, quel changement ? Fréquence ? Sauvegarde si le disque est suspect.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Récupérer le code</strong> : Observateur d'événements → Journaux Windows → Système → filtre ID <b>1001</b> (source BugCheck / Windows Error Reporting) : « L'ordinateur a redémarré après une vérification d'erreur. La vérification d'erreur était : 0x000000d1 (…) Un vidage a été enregistré dans : C:\Windows\Minidump\102726-12345-01.dmp ». Ou Moniteur de fiabilité (<code>perfmon /rel</code>) : « Arrêt Windows inattendu ». Pour lire l'écran : décocher « Redémarrer automatiquement » (<code>sysdm.cpl</code> → Paramètres système avancés → Démarrage et récupération → Paramètres).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> un fichier <code>.sys</code> est cité → identifier son pilote (nom du fichier, propriétés dans <code>C:\Windows\System32\drivers</code>) → étape 3.</p><p class="fx-sinon"><b>SINON</b> → étape 2 (classer le code).</p></div></li>
+<li><strong>Classer le code (tableau ci-dessous)</strong> et croiser avec le contexte.</li>
+<li><strong>Test logiciel : mode sans échec</strong> (<a href="#f2-p61">P6.1</a>) ou démarrage sélectif (<code>msconfig</code>).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> plus d'écran bleu en mode sans échec et sous la même charge → pilote/service tiers : restaurer/désinstaller le pilote récent (P3.2), désinstaller la MAJ (P3.5).</p><p class="fx-sinon"><b>SINON</b> → étape 4.</p></div></li>
+<li><strong>Test matériel</strong> : Diagnostic de mémoire Windows (<code>mdsched.exe</code>) / MemTest86, XMP désactivé (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-ram">→ Fiche 1 · RAM</a>) ; SMART et <code>chkdsk C:</code> ; températures (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-surchauffe">→ Fiche 1 · Surchauffe</a>).</li>
+<li><strong>Fichiers système</strong> : DISM puis <code>sfc /scannow</code> (<a href="#f2-p63">P6.3</a>).</li>
+</ol>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Code d'arrêt</th><th>Valeur</th><th>Piste n°1 à tester</th><th>Pistes suivantes</th></tr></thead><tbody>
+<tr><td>IRQL_NOT_LESS_OR_EQUAL</td><td>0x0000000A</td><td>Pilote (fichier cité)</td><td>RAM</td></tr>
+<tr><td>DRIVER_IRQL_NOT_LESS_OR_EQUAL</td><td>0x000000D1</td><td>Pilote cité (réseau, Wi-Fi, VPN, antivirus)</td><td>RAM</td></tr>
+<tr><td>SYSTEM_SERVICE_EXCEPTION</td><td>0x0000003B</td><td>Pilote graphique / logiciel système</td><td>Fichiers système, RAM</td></tr>
+<tr><td>SYSTEM_THREAD_EXCEPTION_NOT_HANDLED</td><td>0x0000007E</td><td>Pilote cité</td><td>MAJ</td></tr>
+<tr><td>PAGE_FAULT_IN_NONPAGED_AREA</td><td>0x00000050</td><td>RAM</td><td>Pilote, antivirus, disque</td></tr>
+<tr><td>MEMORY_MANAGEMENT</td><td>0x0000001A</td><td>RAM (test, une barrette)</td><td>Pilote, disque</td></tr>
+<tr><td>KERNEL_DATA_INPAGE_ERROR</td><td>0x0000007A</td><td>Disque / câble (lecture du fichier d'échange)</td><td>RAM</td></tr>
+<tr><td>NTFS_FILE_SYSTEM</td><td>0x00000024</td><td>Système de fichiers → <code>chkdsk</code></td><td>Disque</td></tr>
+<tr><td>INACCESSIBLE_BOOT_DEVICE</td><td>0x0000007B</td><td>Mode SATA/RST, pilote de stockage</td><td>Disque, MAJ (<a href="#f2-p14">P1.4</a>)</td></tr>
+<tr><td>UNMOUNTABLE_BOOT_VOLUME</td><td>0x000000ED</td><td>Système de fichiers du volume système</td><td>Disque</td></tr>
+<tr><td>CRITICAL_PROCESS_DIED</td><td>0x000000EF</td><td>Fichiers système (SFC/DISM), MAJ</td><td>Disque</td></tr>
+<tr><td>VIDEO_TDR_FAILURE</td><td>0x00000116</td><td>Pilote graphique (<code>nvlddmkm.sys</code>, <code>atikmpag.sys</code>, <code>igdkmd64.sys</code>)</td><td>Température/alimentation GPU</td></tr>
+<tr><td>DPC_WATCHDOG_VIOLATION</td><td>0x00000133</td><td>Pilote de stockage/SSD (firmware), pilote cité</td><td>Firmware SSD</td></tr>
+<tr><td>DRIVER_POWER_STATE_FAILURE</td><td>0x0000009F</td><td>Pilote lors de la veille/réveil</td><td>Gestion d'alimentation</td></tr>
+<tr><td>KERNEL_SECURITY_CHECK_FAILURE</td><td>0x00000139</td><td>Pilote incompatible, fichiers système</td><td>RAM</td></tr>
+<tr><td>CLOCK_WATCHDOG_TIMEOUT</td><td>0x00000101</td><td>Processeur : surcadençage, température, BIOS</td><td>Alimentation</td></tr>
+<tr><td>WHEA_UNCORRECTABLE_ERROR</td><td>0x00000124</td><td>Matériel : température, tension, surcadençage</td><td>CPU/RAM/carte mère</td></tr>
+</tbody></table></div>
+<h4>5. Test de confirmation</h4><p>Reproduire la condition (même jeu, même veille, même copie) après correction, sur une durée comparable à la fréquence initiale (un BSOD hebdomadaire ne se valide pas en 10 minutes). Limite : un code « pilote » peut être provoqué par une RAM défaillante qui corrompt le pilote ; codes variés à chaque plantage = plutôt matériel (RAM/alimentation).</p>
+<h4>6. Correction</h4><p>Selon cause confirmée : restaurer/mettre à jour le pilote cité (version fabricant), désinstaller la MAJ, désactiver XMP/remplacer la barrette, réparer le système de fichiers, DISM/SFC, nettoyer/refroidir. Désinstaller l'antivirus tiers si cité (Microsoft Defender reprend la protection).</p>
+<h4>7. Validation</h4><ul><li>Aucun nouvel événement 1001/41 sur la période ; Moniteur de fiabilité stable ; condition déclenchante reproduite sans plantage ; réactiver le redémarrage automatique.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p><b>Observation</b> : écran bleu <code>VIDEO_TDR_FAILURE</code>, « Ce qui a échoué : nvlddmkm.sys », uniquement en jeu, depuis la mise à jour du pilote NVIDIA du 20/10 (journal Système, BugCheck 1001 répétés). <b>Hypothèses</b> : 1) pilote graphique récent ; 2) surchauffe de la carte graphique ; 3) alimentation. <b>Test 1</b> : Gestionnaire de périphériques → Cartes graphiques → Pilote → Restaurer le pilote (version précédente) ; je rejoue 1 h au même jeu : aucun plantage. <b>Test 2</b> (contrôle) : températures relevées normales. <b>Conclusion</b> : pilote graphique récent. <b>Correction</b> : version précédente conservée, MAJ automatique de ce pilote suspendue. <b>Validation</b> : une semaine sans événement 1001, utilisateur informé.</p><p class="fx-lose"><b>Perd des points :</b> « la carte graphique est HS » sur un seul écran bleu ; réinstaller Windows ; ne pas relever le code ; ignorer le fichier .sys cité.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Kernel-Power 41 dans le journal = conséquence (arrêt non propre), jamais la cause.</li><li>Pas de minidump : fichier d'échange désactivé/trop petit, disque plein, ou coupure d'alimentation (pas un BSOD).</li><li>Écran bleu seulement à la sortie de veille → <code>DRIVER_POWER_STATE_FAILURE</code>, pilote réseau/graphique, mise à jour du BIOS.</li><li>Plusieurs causes concomitantes (pilote + RAM) : corriger, valider, puis corriger la suivante — un changement à la fois.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p34">
+<h3>P3.4 — Linux : kernel panic, gel, plantage après mise à jour du noyau</h3>
+<p class="fx-sev">Fréquence : rare à moyen · Gravité : élevée</p>
+<h4>1. Symptômes observables</h4><ul><li><code>Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)</code> (initramfs manquant) ; <code>Kernel panic - not syncing: Attempted to kill init!</code> ; gel complet (clavier inactif, Verr Num ne s'allume plus).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>MAJ du noyau interrompue → initramfs absent — OS/paquets.</li><li>Nouveau noyau incompatible avec un pilote (DKMS NVIDIA, VirtualBox) — pilote.</li><li>RAM, surchauffe — matériel.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Coupure pendant une mise à jour ? Depuis quand ? Ne jamais supprimer le noyau qui fonctionne.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>GRUB (Maj en BIOS, Échap en UEFI) → Advanced options for Ubuntu → noyau précédent.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> l'ancien noyau démarre → noyau récent en cause : étape 2.</p><p class="fx-sinon"><b>SINON</b> → aucun noyau : live + chroot (P1.5) ; si gel aussi en live → matériel (Fiche 1).</p></div></li>
+<li><strong>Sur l'ancien noyau : <code>ls /boot</code></strong> (initrd.img du nouveau noyau présent ?), <code>sudo dpkg --configure -a</code>, <code>journalctl -b -1 -p err</code> (si le journal est persistant).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> initrd manquant → <code>sudo update-initramfs -u -k all</code>, <code>sudo update-grub</code>.</p><p class="fx-sinon"><b>SINON</b> → module tiers (DKMS) : <code>dkms status</code>, réinstaller le pilote.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le nouveau noyau démarre après régénération (<code>uname -r</code> = version la plus récente).</p>
+<h4>6. Correction</h4><p>Régénérer initramfs ; terminer la configuration des paquets ; à défaut, garder le précédent par défaut et attendre le correctif.</p>
+<h4>7. Validation</h4><ul><li>Deux démarrages sur le nouveau noyau ; <code>journalctl -b -p err</code> sans erreur critique ; <code>sudo apt update &amp;&amp; sudo apt upgrade</code> sans erreur.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le message « Unable to mount root fs on unknown-block(0,0) » après une mise à jour coupée indique que le noyau démarre sans son image initramfs. Je démarre sur le noyau précédent par « Advanced options » : le système fonctionne, ce qui confirme que seul le nouveau noyau est incomplet. Je termine la configuration (<code>sudo dpkg --configure -a</code>), régénère l'initramfs (<code>sudo update-initramfs -u -k all</code>) et le menu (<code>sudo update-grub</code>). Validation : démarrage sur le nouveau noyau, <code>uname -r</code> le confirme.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li><code>/boot</code> plein (partition séparée) bloque l'installation des noyaux : <code>df -h /boot</code>, <code>sudo apt autoremove</code> (lire la liste, conserver le noyau en cours).</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p35">
+<h3>P3.5 — Windows Update échoue, ou « Annulation des modifications apportées à votre ordinateur »</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : moyenne (sécurité), élevée si boucle</p>
+<h4>1. Symptômes observables</h4><ul><li>Paramètres → Windows Update : « Échec de l'installation » + code ; Historique des mises à jour (Windows 11 : Windows Update → Historique des mises à jour ; Windows 10 : Mise à jour et sécurité → Windows Update → Afficher l'historique des mises à jour).</li><li>Au redémarrage : « Nous n'avons pas pu terminer les mises à jour. Annulation des modifications. Ne mettez pas votre ordinateur hors tension. » ; journal Système WindowsUpdateClient ID 20.</li></ul>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Code</th><th>Signification</th><th>Action</th></tr></thead><tbody>
+<tr><td>0x80070070</td><td>Espace disque insuffisant</td><td>Libérer de l'espace (<a href="#f2-p55">P5.5</a>)</td></tr>
+<tr><td>0x80073712</td><td>Fichier du magasin de composants manquant/abîmé</td><td>DISM /RestoreHealth puis SFC (<a href="#f2-p63">P6.3</a>)</td></tr>
+<tr><td>0x800f081f / 0x800f0831</td><td>Fichiers sources (composants) introuvables</td><td>DISM avec source, réessayer</td></tr>
+<tr><td>0x800f0922</td><td>Échec de connexion au service de MAJ (VPN/proxy) ou partition réservée/récupération trop petite</td><td>Déconnecter VPN, vérifier réseau ; espace de la partition</td></tr>
+<tr><td>0x8024402C, 0x80072EE2, 0x80072EFD</td><td>Problème de connexion/proxy/DNS/délai</td><td>Réseau → <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">Fiche 4</a></td></tr>
+<tr><td>0x80070005</td><td>Accès refusé (droits, antivirus)</td><td>Compte admin, antivirus tiers</td></tr>
+</tbody></table></div>
+<h4>2. Causes possibles (classées)</h4><ol><li>Espace disque — stockage.</li><li>Connexion/VPN/proxy/heure fausse — réseau/configuration.</li><li>Magasin de composants abîmé — OS.</li><li>Pilote/logiciel incompatible avec une mise à jour de fonctionnalité — compatibilité.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Une seule MAJ ou toutes ? Un seul PC ? Ne pas couper l'alimentation pendant « Annulation des modifications ».</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Lire le code et la KB dans l'historique.</strong> Appliquer la ligne du tableau.</li>
+<li><strong>Paramètres → Système → Résolution des problèmes → Autres utilitaires → Windows Update</strong> (Windows 10 : Mise à jour et sécurité → Résolution des problèmes → Utilitaires supplémentaires).</li>
+<li><strong>Admin : <code>DISM /Online /Cleanup-Image /RestoreHealth</code> puis <code>sfc /scannow</code>, redémarrer, réessayer.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> échec persistant sur une seule KB → la télécharger depuis le catalogue Microsoft Update et l'installer manuellement.</p><p class="fx-sinon"><b>SINON</b> (mise à jour de fonctionnalité) → Assistant d'installation de Windows 11 / réparation sur place avec l'ISO (setup.exe, « Conserver les fichiers et applications »).</p></div></li>
+<li><strong>Si une MAJ installée cause une panne</strong> : Windows Update → Historique → Désinstaller des mises à jour ; si Windows ne démarre pas : WinRE → Désinstaller des mises à jour.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>La MAJ apparaît « Installée avec succès » dans l'historique après la correction de la cause supposée.</p>
+<h4>6. Correction</h4><p>Selon code. Réinitialiser les composants (arrêt de <code>wuauserv</code> et <code>bits</code>, renommage de <code>C:\Windows\SoftwareDistribution</code> en <code>.old</code>, redémarrage des services) est une marche avancée : elle efface l'historique local des MAJ mais pas les MAJ installées.</p>
+<h4>7. Validation</h4><ul><li>« Vous êtes à jour » ; <code>winver</code> (build attendue) ; pas d'événement 20 ; programmes métier testés.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>L'historique indique l'échec de la KB mensuelle avec le code 0x80070070, soit un espace disque insuffisant ; Paramètres → Stockage confirme 1,2 Go libres sur C:. Je libère de l'espace sans toucher aux documents (fichiers temporaires, nettoyage des fichiers système, téléchargements avec accord), j'atteins 25 Go libres et relance Windows Update : installation réussie. Je n'ai pas désactivé les mises à jour, qui protègent le poste.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Désactiver Windows Update pour « régler » le problème : faute de sécurité.</li><li>MAJ en boucle sur plusieurs PC le même jour : MAJ défectueuse publiée → la masquer, attendre le correctif.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p36">
+<h3>P3.6 — Linux : apt/dpkg en erreur (verrou, installation interrompue, dépendances)</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne</p>
+<h4>1. Symptômes observables</h4>
+<pre class="fx-out">E: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 2154 (unattended-upgr)
+E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem.
+The following packages have unmet dependencies: ... E: Unmet dependencies. Try 'apt --fix-broken install'
+E: Unable to locate package libreofice
+W: Failed to fetch http://... Temporary failure resolving 'archive.ubuntu.com'</pre>
+<h4>2. Causes possibles (classées)</h4><ol><li>Une autre installation en cours (mises à jour automatiques, Logithèque) — normal.</li><li>Coupure pendant une MAJ — interruption.</li><li>Dépôt tiers ou paquet <code>.deb</code> incompatible — dépendances.</li><li>Faute de frappe / liste non mise à jour — utilisateur.</li><li>DNS/réseau — <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-dns">Fiche 4</a>.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Ne jamais supprimer les fichiers de verrou pendant qu'un processus apt/dpkg tourne (risque de base dpkg incohérente).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Verrou</strong> : <code>ps aux | grep -E 'apt|dpkg'</code>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> un processus tourne (unattended-upgr) → attendre la fin.</p><p class="fx-sinon"><b>SINON</b> (processus absent, coupure) → <code>sudo dpkg --configure -a</code>.</p></div></li>
+<li><strong>Dépendances</strong> : <code>sudo apt --fix-broken install</code> ; lire ce qui sera supprimé avant de répondre O.</li>
+<li><strong>Unable to locate</strong> : <code>sudo apt update</code> puis <code>apt search libreoffice</code> (nom exact).</li>
+<li><strong>Échec de téléchargement</strong> : <code>ping -c 3 archive.ubuntu.com</code> ; DNS → Fiche 4.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p><code>sudo apt update &amp;&amp; sudo apt upgrade</code> se termine sans « E: ».</p>
+<h4>6. Correction</h4><p>Voir étapes ; retirer le dépôt tiers fautif (<code>/etc/apt/sources.list.d/</code>, copie avant) ; historique : <code>/var/log/apt/history.log</code>.</p>
+<h4>7. Validation</h4><ul><li>Logiciel installé et lancé ; <code>dpkg -l | grep -v '^ii'</code> ne montre plus de paquet à moitié configuré (<code>iU</code>, <code>iF</code>).</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le message « dpkg was interrupted » fait suite à la coupure de courant pendant la mise à jour : des paquets sont restés non configurés. Je vérifie qu'aucun processus apt/dpkg ne tourne (<code>ps aux | grep -E 'apt|dpkg'</code>), puis je lance <code>sudo dpkg --configure -a</code>, puis <code>sudo apt --fix-broken install</code> en lisant la liste proposée. Validation : <code>sudo apt update &amp;&amp; sudo apt upgrade</code> sans erreur, aucun paquet en état anormal dans <code>dpkg -l</code>.</p><p class="fx-lose"><b>Perd des points :</b> <code>sudo rm /var/lib/dpkg/lock*</code> sans vérifier les processus ; forcer avec <code>dpkg --force-all</code>.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Fedora : <code>sudo dnf install</code>, <code>dnf history</code>, <code>dnf history undo N</code>.</li></ul>
+</article>
+</section>

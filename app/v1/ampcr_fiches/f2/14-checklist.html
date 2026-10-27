@@ -1,0 +1,66 @@
+<section class="fx-sec" id="f2-checklist">
+<h2>7. Checklist finale de maîtrise</h2>
+
+<h3>Je sais diagnostiquer</h3>
+<ul class="fx-check">
+<li>Je situe une panne de démarrage au bon stade (firmware, chargeur, noyau, système, session, application) à partir du seul message.</li>
+<li>Je distingue « No bootable device » (firmware), « 0xc000000f / BCD » (Windows Boot Manager), « grub rescue&gt; » (GRUB), « (initramfs) » (noyau), « emergency mode » (systemd/fstab).</li>
+<li>Je lis <code>msinfo32</code> (Mode BIOS, démarrage sécurisé) et <code>tpm.msc</code>, et j'en déduis la compatibilité Windows 11.</li>
+<li>Je repère l'ESP dans <code>diskpart list vol</code> et dans <code>lsblk -f</code>, et le style GPT/MBR d'un disque.</li>
+<li>Je lis un code du Gestionnaire de périphériques (10, 22, 28, 31, 43, 52) et l'ID du matériel (VEN/DEV, VID/PID).</li>
+<li>Je relève un code d'arrêt (écran, BugCheck 1001, Moniteur de fiabilité) et je classe les pistes (pilote / RAM / disque / MAJ / température).</li>
+<li>Je sais que des codes d'arrêt variés orientent vers le matériel et qu'un même .sys répété oriente vers un pilote.</li>
+<li>Je trouve dans l'Observateur d'événements les ID utiles (41, 6008, 1001, 7, 153, 55, 7000–7038, 20, 1000, 1511).</li>
+<li>Je lis <code>systemctl status</code> (enabled/disabled, active/inactive/failed) et trouve la ligne-cause dans <code>journalctl -u … -b</code>.</li>
+<li>J'utilise <code>journalctl -b -p err</code>, <code>dmesg</code>, <code>df -h</code>, <code>df -i</code>, <code>du</code>, <code>lsblk -f</code>, <code>blkid</code>, <code>findmnt</code>.</li>
+<li>Je compare <code>/etc/fstab</code> à <code>lsblk -f</code> et repère un UUID périmé.</li>
+<li>Je diagnostique une lenteur par mesures (Gestionnaire des tâches, démarrage, stockage) avant d'agir.</li>
+<li>Je sépare un problème de compte/profil (un utilisateur) d'un problème système (tous).</li>
+<li>Je lis <code>ls -l</code> et <code>id</code> et détermine quelle catégorie (propriétaire, groupe, autres) s'applique.</li>
+<li>J'interprète les messages de SFC, DISM, chkdsk, apt/dpkg.</li>
+</ul>
+
+<h3>Je sais agir</h3>
+<ul class="fx-check">
+<li>Je corrige l'ordre et le mode de démarrage dans le firmware en notant les réglages d'origine.</li>
+<li>J'accède à WinRE par tous les chemins, au mode sans échec (4/5) et je désactive le redémarrage automatique (9).</li>
+<li>Je recrée les fichiers de démarrage UEFI : lettre à l'ESP, <code>bcdboot D:\Windows /s S: /f UEFI</code> ; je connais les limites de <code>bootrec</code> en UEFI.</li>
+<li>Je répare GRUB : ordre UEFI, <code>efibootmgr -o</code>, os-prober + <code>update-grub</code>, <code>grub-install</code> en chroot depuis une live.</li>
+<li>Je corrige fstab (copie, UUID, <code>nofail</code>, <code>findmnt --verify</code>, <code>mount -a</code>) et lance <code>fsck</code> uniquement démonté.</li>
+<li>Je prépare une clé d'installation (ISO officielle, empreinte SHA-256) et une installation Windows en UEFI/GPT sur le bon disque.</li>
+<li>Je charge un pilote de stockage dans l'installateur ; je convertis MBR→GPT avec <code>mbr2gpt</code> après validation.</li>
+<li>J'installe un double démarrage sans toucher à l'ESP ni à la partition Windows.</li>
+<li>J'installe, mets à jour, restaure et désinstalle un pilote ; je trouve un pilote fiable par l'ID du matériel.</li>
+<li>Je désinstalle une mise à jour (Windows et WinRE) et je règle les codes Windows Update courants.</li>
+<li>Je répare apt/dpkg (<code>dpkg --configure -a</code>, <code>apt --fix-broken install</code>) sans supprimer de verrou au hasard.</li>
+<li>Je répare un service Windows (dépendances, compte, type de démarrage) et Linux (test de config, restart, enable).</li>
+<li>J'exécute DISM puis SFC, en ligne et hors ligne.</li>
+<li>Je restaure un point de restauration en choisissant le bon point et en lisant les programmes concernés.</li>
+<li>Je libère de l'espace sans risque (Windows : Stockage, cleanmgr ; Linux : vacuum, apt clean, autoremove) et je corrige la cause.</li>
+<li>Je gère comptes et droits locaux au minimum nécessaire (<code>net user</code>, <code>net localgroup</code>, <code>usermod -aG</code>, <code>chown</code>/<code>chmod</code> ciblés).</li>
+<li>Je traite un profil temporaire par un nouveau profil + copie des données.</li>
+<li>Je choisis entre Réinitialiser « Conserver mes fichiers »/« Supprimer tout », cloud/local, et je réinstalle Linux en gardant <code>/home</code>.</li>
+</ul>
+
+<h3>Je sais justifier</h3>
+<ul class="fx-check">
+<li>Je présente observation → hypothèses classées → test discriminant → conclusion → correction → validation.</li>
+<li>J'explique pourquoi je commence par le geste le moins invasif (échelle 0 à 5).</li>
+<li>J'explique pourquoi un point de restauration n'est pas une sauvegarde.</li>
+<li>J'explique pourquoi un compte standard + élévation vaut mieux qu'un utilisateur administrateur.</li>
+<li>J'explique pourquoi on n'utilise ni <code>chmod 777</code>, ni un « optimiseur », ni une DLL d'un site tiers.</li>
+<li>J'explique la limite de chaque test (un démarrage réussi ne prouve pas la santé du disque ; un succès en admin ne prouve pas la correction).</li>
+<li>Je justifie le choix d'un point de restauration, d'une option de réinitialisation, d'un réglage firmware.</li>
+</ul>
+
+<h3>Je sais contrôler</h3>
+<ul class="fx-check">
+<li>Je fais une sauvegarde vérifiée et je recueille l'accord avant tout geste qui modifie le disque ou le démarrage ; je pense à BitLocker.</li>
+<li>Je mets un avertissement, un prérequis et une alternative avant toute commande destructive.</li>
+<li>Je valide par reproduction du scénario, deux démarrages à froid, journaux propres, utilisateur.</li>
+<li>Je compare avant/après avec des mesures (temps, espace, fréquence des plantages).</li>
+<li>Je remets ce que j'ai changé pour tester (msconfig, safeboot, Secure Boot, nomodeset, hold apt).</li>
+<li>Je vérifie l'absence de régression (impression, réseau, son, logiciels métier).</li>
+<li>Je rédige le rapport : symptôme exact, cause prouvée, actions, résultats, recommandations (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-rapport">→ Fiche 5 · Rapport</a>).</li>
+</ul>
+</section>

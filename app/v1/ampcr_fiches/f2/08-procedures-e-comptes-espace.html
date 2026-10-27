@@ -1,0 +1,185 @@
+<section class="fx-sec" id="f2-comptes-espace">
+<h2>3.E Procédures — Comptes, droits, profils, espace disque, système de fichiers</h2>
+<p>Périmètre : comptes et droits <b>locaux</b>. Domaine, groupes réseau, droits de partage et calcul du droit effectif partage + NTFS : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-partage">→ Fiche 4 · Partage</a>.</p>
+
+<article class="fx-proc" id="f2-p51">
+<h3>P5.1 — « Vous devez disposer d'autorisations d'administrateur » : installer, modifier sans rendre l'utilisateur administrateur</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : faible (fonctionnement normal de la sécurité)</p>
+<h4>1. Symptômes observables</h4><ul><li>Invite du Contrôle de compte d'utilisateur (UAC) qui demande un nom et un mot de passe administrateur (compte standard) ; « Vous devez disposer d'autorisations d'administrateur pour… » ; « Accès refusé » dans <code>C:\Program Files</code>, <code>C:\Windows</code>.</li><li>Linux : <code>E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)</code> → commande lancée sans <code>sudo</code>.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Compte standard (comportement voulu, moindre privilège) — compte.</li><li>Action qui modifie le système pour tous — droits.</li><li>Commande Linux lancée sans <code>sudo</code> — utilisateur.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Le logiciel est-il autorisé/licencié par l'organisation ? Qui est administrateur du poste ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>whoami</code> et <code>net user nom</code></strong> (« Appartient aux groupes locaux : *Utilisateurs » ou « *Administrateurs ») ; Linux : <code>id</code> (groupe <code>sudo</code> ou <code>wheel</code> ?).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> compte standard et installation légitime → l'administrateur saisit ses identifiants dans l'invite UAC (élévation ponctuelle).</p><p class="fx-sinon"><b>SINON SI</b> compte admin et « Accès refusé » quand même → droits NTFS du dossier (onglet Sécurité) ou fichier utilisé/protégé.</p></div></li>
+<li><strong>Besoin récurrent</strong> (logiciel métier qui doit écrire dans son dossier) → droit Modifier ciblé sur ce dossier pour l'utilisateur/groupe concerné, pas l'appartenance au groupe Administrateurs.</li>
+</ol>
+<pre class="fx-cmd">C:\&gt; net user julie
+C:\&gt; net localgroup Administrateurs
+C:\&gt; whoami /groups</pre>
+<pre class="fx-out">Nom d'utilisateur                   julie
+Compte : actif                      Oui
+Le mot de passe expire              Jamais
+Dernier accès                       27/10/2026 08:41:13
+Appartient aux groupes locaux       *Utilisateurs
+La commande s'est terminée correctement.</pre>
+<h4>5. Test de confirmation</h4><p>L'action réussit avec élévation ponctuelle, le compte reste standard (<code>net user</code>).</p>
+<h4>6. Correction</h4><p>Élévation par un admin ; droits ciblés ; jamais de désactivation de l'UAC (Panneau de configuration → Comptes d'utilisateurs → Modifier les paramètres de contrôle de compte d'utilisateur : laisser le niveau par défaut).</p>
+<h4>7. Validation</h4><ul><li>Logiciel fonctionne avec le compte standard ; groupe Administrateurs inchangé.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le message UAC est normal : Julie utilise un compte standard (vérifié par <code>net user julie</code> : groupe Utilisateurs). C'est le principe du moindre privilège, qui limite l'effet d'un logiciel malveillant. Après vérification que le logiciel est autorisé, je saisis moi-même les identifiants administrateur dans l'invite pour l'installer ; Julie reste en compte standard. Je teste le logiciel avec sa session.</p><p class="fx-lose"><b>Perd des points :</b> ajouter l'utilisateur au groupe Administrateurs ; désactiver l'UAC ; communiquer le mot de passe administrateur.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Le groupe s'appelle « Administrateurs » sur un Windows français, « Administrators » en anglais : <code>net localgroup</code> sans argument liste les noms exacts.</li><li>Un administrateur doit aussi « Exécuter en tant qu'administrateur » une invite de commandes (jeton filtré par l'UAC) pour <code>sfc</code>, <code>DISM</code>, <code>chkdsk /f</code>.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p52">
+<h3>P5.2 — Mot de passe oublié, compte verrouillé ou désactivé (Windows local, compte Microsoft, Linux)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : moyenne (accès aux données)</p>
+<h4>1. Symptômes observables</h4><ul><li>« Le mot de passe est incorrect. Veuillez réessayer. » ; « Le compte référencé est actuellement verrouillé et ne peut pas être utilisé pour ouvrir une session » ; « Votre compte a été désactivé. Contactez votre administrateur système. »</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Verr Maj / disposition clavier (QWERTY/AZERTY) / PIN confondu avec le mot de passe — utilisateur.</li><li>Oubli — utilisateur.</li><li>Verrouillage après X tentatives (stratégie de verrouillage) — sécurité.</li><li>Compte désactivé par un admin — configuration.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li><b>Identité et autorisation</b> : la personne est-elle bien le titulaire / mandatée par le responsable ?</li><li>Compte local ou compte Microsoft (adresse e-mail à l'écran) ? Un autre compte admin existe-t-il ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Vérifier Verr Maj, la langue du clavier (icône FRA/ENG), afficher le mot de passe (œil)</strong>, essayer le mot de passe au lieu du PIN (« Options de connexion »).</li>
+<li><strong>Compte Microsoft</strong> → « J'ai oublié mon mot de passe » sur l'écran, ou réinitialisation en ligne depuis un autre appareil.</li>
+<li><strong>Compte local</strong> : questions de sécurité si définies ; sinon un administrateur réinitialise : <code>net user nom *</code> (saisie masquée), ou <code>lusrmgr.msc</code> (Pro), ou Paramètres → Comptes → Autres utilisateurs.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> « verrouillé » → attendre la durée de verrouillage ou, admin : <code>net user nom /active:yes</code> ne déverrouille pas, utiliser <code>lusrmgr.msc</code> → Propriétés → décocher « Le compte est verrouillé ».</p><p class="fx-sinon"><b>SINON SI</b> « désactivé » → <code>net user nom /active:yes</code> après accord du responsable.</p></div></li>
+<li><strong>Linux</strong> : un autre utilisateur sudo : <code>sudo passwd nom</code> ; sinon GRUB → recovery mode → root → <code>mount -o remount,rw /</code> → <code>passwd nom</code>. Verrouillage (faillock) : <code>sudo faillock --user nom --reset</code>.</li>
+</ol>
+<p class="fx-warn"><b>Attention</b> Réinitialiser le mot de passe d'un compte local Windows par un administrateur fait perdre l'accès aux fichiers chiffrés EFS de l'utilisateur et à ses identifiants enregistrés (Gestionnaire d'identification). Prérequis : accord du titulaire, information sur la perte. Alternative : le titulaire retrouve le mot de passe / disque de réinitialisation de mot de passe créé auparavant.</p>
+<h4>5. Test de confirmation</h4><p>Connexion réussie ; documents et messagerie accessibles.</p>
+<h4>6. Correction</h4><p>Réinitialisation par la voie officielle ; nouveau mot de passe choisi par l'utilisateur (« L'utilisateur doit changer de mot de passe à la prochaine ouverture de session » si l'admin l'a saisi).</p>
+<h4>7. Validation</h4><ul><li>Connexion, données présentes ; trace dans le rapport (qui a autorisé, quand).</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Je vérifie d'abord l'identité de la personne et l'accord du responsable. Je contrôle Verr Maj et la langue du clavier. Le compte est local ; je me connecte avec le compte administrateur du poste et réinitialise le mot de passe par <code>net user marc *</code>, en ayant informé Marc que ses fichiers chiffrés EFS et mots de passe enregistrés pourraient être perdus, et je coche le changement obligatoire à la prochaine connexion. Validation : Marc se connecte, choisit son mot de passe, ses documents sont présents.</p><p class="fx-lose"><b>Perd des points :</b> outils de « crack » ; réinitialiser sans vérifier l'identité ; confondre PIN et mot de passe.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>« Votre PIN n'est plus disponible » après changement de matériel : se connecter avec le mot de passe puis recréer le PIN.</li><li>Poste de domaine : réinitialisation par l'administrateur du domaine (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-partage">Fiche 4</a>).</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p53">
+<h3>P5.3 — « Vous êtes connecté avec un profil temporaire »</h3>
+<p class="fx-sev">Fréquence : moyen · Gravité : élevée (risque de perte du travail de la session)</p>
+<h4>1. Symptômes observables</h4><ul><li>Notification « Vous êtes connecté avec un profil temporaire. Vous ne pouvez pas accéder à vos fichiers et les fichiers créés dans ce profil seront supprimés lorsque vous vous déconnecterez. » ; bureau vierge ; journal Application, source User Profile Service, ID 1511 (profil introuvable), 1515 (profil sauvegardé utilisé), 1500 (ouverture impossible).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Fichier <code>NTUSER.DAT</code> abîmé (coupure pendant la déconnexion) — profil.</li><li>Clé du registre ProfileList en double (<code>SID</code> et <code>SID.bak</code>) — registre.</li><li>Disque plein / erreurs de système de fichiers — stockage.</li><li>Antivirus qui verrouille le profil au démarrage — logiciel.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Prévenir l'utilisateur : <b>ne rien enregistrer</b> dans cette session. Sauvegarder <code>C:\Users\nom</code> (depuis un autre compte admin) avant toute réparation. Point de restauration / sauvegarde du registre.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Redémarrer une fois</strong> (verrou temporaire par antivirus/indexation). <div class="fx-branch"><p class="fx-si"><b>SI</b> profil normal → surveiller (journal).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Espace de C: et état du disque</strong> (<code>chkdsk C:</code> lecture) ; <code>dir C:\Users</code> : le dossier du profil existe-t-il, avec ses documents ?</li>
+<li><strong><code>wmic useraccount get name,sid</code></strong> ou <code>whoami /user</code> (depuis la session temporaire) pour le SID ; <code>regedit</code> → <code>HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList</code> : deux clés <code>S-1-5-21-…-1001</code> et <code>S-1-5-21-…-1001.bak</code> ?
+<div class="fx-branch"><p class="fx-si"><b>SI</b> oui → réparation avancée de la clé (renommer, <code>ProfileImagePath</code> correct, <code>State</code>=0, <code>RefCount</code>=0) après export de la clé.</p><p class="fx-sinon"><b>SINON</b> → solution prudente : nouveau profil.</p></div></li>
+</ol>
+<p class="fx-warn"><b>Attention</b> Modifier le registre peut empêcher toute ouverture de session : exporter la clé ProfileList avant (Fichier → Exporter), n'agir que sur le SID de l'utilisateur. Alternative prudente (recommandée à l'examen) : créer un nouveau compte/profil et y copier les données (Documents, Bureau, Images, favoris, fichiers de messagerie) depuis l'ancien dossier, sans copier <code>NTUSER.DAT</code> ni <code>AppData</code> en bloc.</p>
+<h4>5. Test de confirmation</h4><p>Ouverture de session sans notification, bureau et documents de l'utilisateur présents ; plus d'événement 1511.</p>
+<h4>6. Correction</h4><p>Nouveau profil + migration des données (ou réparation de la clé) ; reconfiguration messagerie/imprimantes ; ancien dossier conservé (renommé) jusqu'à validation.</p>
+<h4>7. Validation</h4><ul><li>Deux connexions/déconnexions sans message, données et applications vérifiées avec l'utilisateur ; journal propre.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Après une coupure de courant, Mme Lambert ouvre un profil temporaire (User Profile Service 1511). Je lui demande de ne rien enregistrer. Je vérifie l'espace disque et <code>chkdsk C:</code> (aucune erreur), puis que <code>C:\Users\lambert</code> contient bien ses documents. Je sauvegarde ce dossier sur un disque externe. Solution prudente : je crée un nouveau compte local, j'y copie Documents, Bureau, Images et les favoris, je reconfigure sa messagerie. L'ancien dossier est conservé renommé jusqu'à ce qu'elle confirme que rien ne manque. Validation : deux ouvertures de session normales.</p><p class="fx-lose"><b>Perd des points :</b> supprimer l'ancien profil avant d'avoir copié les données ; modifier le registre sans export.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Plusieurs utilisateurs touchés en même temps → disque/système, pas un profil.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p54">
+<h3>P5.4 — Linux : « Permission denied », « nom is not in the sudoers file »</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : faible à moyenne</p>
+<h4>1. Symptômes observables</h4><ul><li><code>bash: ./sauvegarde.sh: Permission denied</code> ; <code>cp: cannot create regular file '/srv/partage/x': Permission denied</code> ; <code>julie is not in the sudoers file.</code> (selon la version de sudo, suivi de « This incident has been reported to the administrator. »).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Fichier copié avec <code>sudo</code> → appartient à root — propriétaire.</li><li>Utilisateur absent du groupe propriétaire / droits du groupe insuffisants — groupe.</li><li>Pas de droit <code>x</code> sur un script ou sur un dossier parent — droits.</li><li>Utilisateur hors du groupe <code>sudo</code> (Debian/Ubuntu) / <code>wheel</code> (Fedora) — administration.</li><li>Montage <code>ro</code>/<code>noexec</code> — montage.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>L'utilisateur doit-il vraiment avoir ce droit (besoin métier, accord du responsable) ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>id julie</code></strong> et <strong><code>ls -l</code></strong> (fichier) / <code>ls -ld</code> (dossier et parents : <code>namei -l /srv/partage/x</code>).</li>
+<li><strong>Appliquer la règle : propriétaire ? sinon groupe ? sinon autres.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> propriétaire = root dans le <code>/home</code> de l'utilisateur → <code>sudo chown -R julie:julie /home/julie/Documents</code> (ce dossier seulement).</p><p class="fx-sinon"><b>SINON SI</b> groupe <code>compta</code> avec <code>rwx</code> mais julie hors groupe → <code>sudo usermod -aG compta julie</code>, puis déconnexion/reconnexion. <b>SINON SI</b> script sans <code>x</code> → <code>chmod u+x script.sh</code>.</p></div></li>
+<li><strong>sudoers</strong> : depuis un compte administrateur, <code>sudo usermod -aG sudo julie</code> (Fedora : <code>wheel</code>) ; vérifier <code>groups julie</code> ; effet à la reconnexion. Édition directe de <code>/etc/sudoers</code> : uniquement via <code>sudo visudo</code> (contrôle de syntaxe).</li>
+</ol>
+<pre class="fx-out">$ id julie
+uid=1002(julie) gid=1002(julie) groups=1002(julie),100(users)
+$ ls -l /srv/compta/bilan.ods
+-rw-rw---- 1 marc compta 18432 oct. 26 17:02 /srv/compta/bilan.ods
+  -&gt; julie n'est ni marc ni membre de compta : catégorie "autres" = --- </pre>
+<p class="fx-warn"><b>Attention</b> <code>usermod -G</code> sans <code>-a</code> <b>remplace</b> tous les groupes secondaires (l'utilisateur peut perdre <code>sudo</code>). Jamais <code>chmod -R 777</code>, jamais <code>chown -R</code> sur <code>/</code>, <code>/etc</code>, <code>/usr</code> ou tout <code>/home</code>. Alternative : droit minimal ciblé.</p>
+<h4>5. Test de confirmation</h4><p>Après reconnexion : <code>id</code> montre le groupe ; l'action réussit en tant que julie (<code>sudo -u julie touch /srv/compta/test</code> pour tester) ; les autres utilisateurs n'ont pas gagné de droits.</p>
+<h4>6. Correction</h4><p>Ajout au groupe, <code>chown</code>/<code>chmod</code> ciblés (ex. dossier partagé : <code>chmod 2770</code> pour que les nouveaux fichiers héritent du groupe).</p>
+<h4>7. Validation</h4><ul><li>Test en tant que l'utilisateur ; <code>ls -l</code> final noté dans le rapport.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Julie reçoit « Permission denied » sur <code>bilan.ods</code>. <code>ls -l</code> : propriétaire marc, groupe compta, droits <code>rw-rw----</code> (660). <code>id julie</code> : elle n'est pas membre de compta, donc la catégorie « autres » s'applique : aucun droit. Le responsable confirme qu'elle travaille à la comptabilité. Correction : <code>sudo usermod -aG compta julie</code> (avec <code>-a</code> pour conserver ses autres groupes), puis reconnexion. Validation : <code>id julie</code> montre compta, elle ouvre et enregistre le fichier. Je n'ai pas modifié les droits du fichier, ce qui aurait ouvert l'accès à d'autres.</p><p class="fx-lose"><b>Perd des points :</b> <code>chmod 777</code> ; oublier la reconnexion ; <code>usermod -G</code> sans <code>-a</code>.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Droit <code>w</code> sur le fichier mais pas sur le dossier : on peut modifier le fichier mais pas le supprimer/renommer.</li><li>Dossier sans <code>x</code> pour l'utilisateur : impossible d'y entrer même avec <code>r</code>.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p55">
+<h3>P5.5 — Windows : disque C: plein (« Espace disque insuffisant »)</h3>
+<p class="fx-sev">Fréquence : très fréquent · Gravité : moyenne (MAJ bloquées, lenteur, profils)</p>
+<h4>1. Symptômes observables</h4><ul><li>Barre rouge dans l'Explorateur ; notification « Espace disque insuffisant » ; MAJ en <code>0x80070070</code> ; programmes qui ne peuvent plus enregistrer.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Fichiers temporaires, cache des MAJ, <code>Windows.old</code> (après mise à niveau, supprimé automatiquement après 10 jours) — système.</li><li>Téléchargements, vidéos, synchronisation cloud (OneDrive « toujours conserver sur cet appareil ») — utilisateur.</li><li><code>hiberfil.sys</code>, <code>pagefile.sys</code>, points de restauration — système.</li><li>Logiciel qui écrit en boucle (journaux, sauvegardes locales) — application.</li><li>Petit SSD (128 Go) — matériel.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Rien de personnel n'est supprimé sans accord explicite ; déplacer plutôt que supprimer.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Paramètres → Système → Stockage</strong> (Windows 10/11) : répartition par catégories.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> « Fichiers temporaires » important → Fichiers temporaires → cocher (en vérifiant « Téléchargements » avec l'utilisateur) → Supprimer.</p><p class="fx-sinon"><b>SINON SI</b> « Autres » ou « Applications » → étape 2.</p></div></li>
+<li><strong>Nettoyage de disque (<code>cleanmgr</code>) → « Nettoyer les fichiers système »</strong> : Nettoyage de Windows Update, Installations précédentes de Windows (si plus de retour arrière souhaité), Fichiers temporaires.</li>
+<li><strong>Analyse des dossiers</strong> : Explorateur, tri par taille ; dossiers usuels (<code>C:\Users\nom\Downloads</code>, <code>Videos</code>, <code>AppData\Local\Temp</code>) ; <code>dir C:\ /a</code> pour les fichiers cachés à la racine.</li>
+<li><strong>Composants</strong> (admin) : <code>DISM /Online /Cleanup-Image /StartComponentCleanup</code>.</li>
+<li><strong>Hibernation</strong> : <code>powercfg /h off</code> supprime <code>hiberfil.sys</code> (désactive aussi le démarrage rapide et la veille prolongée) — seulement si non utilisés.</li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Espace libre mesuré avant/après (Propriétés de C:) ; la MAJ ou l'enregistrement qui échouait réussit.</p>
+<h4>6. Correction</h4><p>Nettoyages ci-dessus ; déplacement des données personnelles vers D: / disque externe / cloud (accord) ; Assistant Stockage activé (Paramètres → Système → Stockage) ; corriger le logiciel qui remplit le disque ; disque plus grand si structurel (Fiche 1).</p>
+<p class="fx-warn"><b>Attention</b> Ne pas supprimer à la main dans <code>C:\Windows</code>, <code>C:\Windows\WinSxS</code>, <code>C:\Windows\Installer</code>, <code>C:\ProgramData</code> : Windows ou des logiciels deviennent irréparables. Utiliser les outils (Stockage, cleanmgr, DISM).</p>
+<h4>7. Validation</h4><ul><li>15–20 % libres au minimum ; MAJ installées ; utilisateur informé de ce qui a été supprimé/déplacé (liste dans le rapport).</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>C: (SSD 256 Go) a 3 Go libres. Paramètres → Stockage : fichiers temporaires 14 Go, installation précédente de Windows 22 Go (mise à niveau de plus d'un mois, validée par l'utilisateur), Téléchargements 40 Go. Actions : nettoyage des fichiers système (<code>cleanmgr</code>), suppression de Windows.old, déplacement des téléchargements utiles sur le disque externe après tri avec l'utilisateur. Résultat : 79 Go libres. Assistant Stockage activé pour l'avenir. Validation : mise à jour mensuelle installée, utilisateur informé par écrit.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Espace qui fond de nouveau en quelques jours → chercher le processus qui écrit (Moniteur de ressources → Disque).</li><li>Fichiers OneDrive : « Libérer de l'espace » (fichiers à la demande) plutôt que suppression (la suppression se synchronise).</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p56">
+<h3>P5.6 — Linux : « No space left on device », partition pleine</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : élevée (services, sessions, bases de données)</p>
+<h4>1. Symptômes observables</h4><ul><li><code>No space left on device</code> à l'écriture ; services en échec ; session graphique impossible ; MAJ qui échouent.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Journaux qui grossissent (<code>/var/log</code>, journal systemd) — service bavard.</li><li>Cache apt, anciens noyaux — paquets.</li><li>Sauvegardes/fichiers volumineux accumulés — usage.</li><li>Inodes épuisés (millions de petits fichiers : sessions PHP, cache) — système de fichiers.</li><li>Fichier supprimé encore ouvert par un processus — processus.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Ne pas supprimer au hasard dans <code>/var/lib</code>, <code>/usr</code>, <code>/etc</code> ; pas de suppression de données client sans accord.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong><code>df -h</code></strong> : quelle partition, <code>Use%</code>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> Use% &lt; 100 % mais message quand même → <strong><code>df -i</code></strong> (IUse% 100 % = inodes) → chercher le dossier aux millions de fichiers.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong><code>sudo du -xh -d1 / | sort -h</code></strong> puis descendre (<code>/var</code>, <code>/var/log</code>, <code>/home</code>).</li>
+<li><strong><code>journalctl --disk-usage</code></strong> ; <code>ls -lhS /var/log | head</code>.</li>
+<li><strong>Écart entre <code>df</code> et <code>du</code></strong> → <code>sudo lsof +L1</code> : fichier « (deleted) » encore ouvert → redémarrer le service qui le tient.</li>
+</ol>
+<pre class="fx-out">$ df -h /
+Sys. de fichiers Taille Utilisé Dispo Uti% Monté sur
+/dev/nvme0n1p2      49G     49G     0 100% /
+$ sudo du -xh -d1 /var | sort -h | tail -3
+1,2G    /var/cache
+31G     /var/log
+33G     /var
+$ ls -lhS /var/log | head -3
+-rw-r----- 1 syslog adm 27G oct. 27 09:40 syslog</pre>
+<h4>5. Test de confirmation</h4><p>Le fichier/dossier identifié explique l'essentiel de l'occupation ; sa croissance est observable (<code>ls -lh</code> à quelques minutes d'intervalle) ; le journal montre le message répété.</p>
+<h4>6. Correction</h4><p>Libérer sans risque : <code>sudo journalctl --vacuum-size=500M</code>, <code>sudo apt clean</code>, <code>sudo apt autoremove</code> (lire la liste). Gros journal texte ouvert : le vider sans le supprimer (<code>sudo truncate -s 0 /var/log/syslog</code>) après en avoir gardé un extrait pour le diagnostic. Puis <b>corriger la cause</b> (service qui écrit en boucle, rotation <code>logrotate</code>, rétention des sauvegardes).</p>
+<p class="fx-warn"><b>Attention</b> <code>rm</code> d'un journal ouvert ne libère pas l'espace (fichier « deleted » tenu par le processus) ; <code>rm -rf</code> avec une variable vide ou un chemin approximatif peut détruire le système. Prérequis : chemin lu deux fois, copie de ce qui peut servir. Alternative : outils de la distribution (vacuum, apt clean, logrotate).</p>
+<h4>7. Validation</h4><ul><li><code>df -h</code> &lt; 80–90 % ; services relancés (<code>systemctl --failed</code> vide) ; croissance arrêtée le lendemain.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p><code>df -h</code> : <code>/</code> à 100 %. <code>du</code> désigne <code>/var/log/syslog</code> (27 Go). Ce journal contient en boucle la même erreur d'un service d'impression. Je conserve les 1 000 dernières lignes pour le diagnostic, vide le fichier avec <code>truncate</code>, nettoie le journal systemd (<code>journalctl --vacuum-size=500M</code>) et le cache apt. Je corrige ensuite la cause : le service d'impression mal configuré, que je répare et redémarre. Validation : <code>/</code> à 42 %, services démarrés, plus de croissance anormale le lendemain.</p><p class="fx-lose"><b>Perd des points :</b> supprimer sans identifier ; libérer l'espace sans corriger la cause ; ignorer <code>df -i</code>.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li><code>/boot</code> plein bloque les MAJ du noyau (P3.4).</li><li>Les 5 % réservés à root sur ext4 : un utilisateur voit « plein » alors que root peut encore écrire.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p57">
+<h3>P5.7 — Système de fichiers abîmé : « Read-only file system », volume RAW « Vous devez formater le disque », erreurs NTFS</h3>
+<p class="fx-sev">Fréquence : moyen · Gravité : élevée à critique (données)</p>
+<h4>1. Symptômes observables</h4><ul><li>Linux : <code>Read-only file system</code> ; <code>dmesg</code> : <code>EXT4-fs error … remounting filesystem read-only</code>, <code>I/O error, dev sda, sector …</code>.</li><li>Windows : « Vous devez formater le disque dans le lecteur E: avant de pouvoir l'utiliser » ; Gestion des disques : volume <b>RAW</b> ; journal Système Ntfs 55 (« structure du système de fichiers endommagée »), disk 7 (bloc défectueux), disk 153 (E/S réessayée), disk 51 (erreur de pagination).</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Retrait sans éjection / coupure — logique.</li><li>Disque/clé qui faiblit (secteurs) — matériel.</li><li>Câble/port USB, alimentation — matériel.</li><li>Démarrage rapide Windows (NTFS « sale » vu depuis Linux) — configuration.</li><li>Volume BitLocker verrouillé vu comme RAW — chiffrement.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Les données ont-elles une copie ? Si non : <b>priorité à la récupération</b>, aucune réparation qui écrit avant copie/image du disque.</li><li>Bruit, lenteur extrême, SMART ? → <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-stockage">Fiche 1 · Stockage</a>.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Refuser le formatage proposé</strong> (« Annuler »).</li>
+<li><strong>Journaux</strong> : Windows → Système (disk 7/153, Ntfs 55) ; Linux → <code>sudo dmesg -T | grep -iE 'I/O error|ext4|ata|nvme'</code>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> erreurs d'E/S matérielles (disk 7, « I/O error ») → disque suspect : copie des données (ou image) d'abord, SMART (Fiche 1), pas de <code>chkdsk /r</code> ni <code>fsck</code> avant la copie.</p><p class="fx-sinon"><b>SINON</b> (erreurs logiques seulement) → étape 3.</p></div></li>
+<li><strong>Autre port/câble, autre PC</strong> (externe). Volume BitLocker ? (<code>manage-bde -status</code>).</li>
+<li><strong>Vérification en lecture</strong> : <code>chkdsk E:</code> ; Linux démonté : <code>sudo fsck -n /dev/sdb1</code> (<code>-n</code> = ne rien modifier).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> erreurs → données copiées ? oui → <code>chkdsk E: /f</code> / <code>sudo fsck -y /dev/sdb1</code> (démonté).</p><p class="fx-sinon"><b>SINON</b> (RAW, chkdsk : « Le type du système de fichiers est RAW. CHKDSK n'est pas disponible pour les lecteurs RAW. ») → récupération de données (outil spécialisé, ou prestataire si précieux).</p></div></li>
+</ol>
+<pre class="fx-cmd">C:\&gt; chkdsk E:
+C:\&gt; chkdsk E: /f</pre>
+<pre class="fx-out">Windows a trouvé des problèmes dans le système de fichiers.
+Exécutez CHKDSK avec l'option /F (fix) pour corriger ces problèmes.
+...
+Windows a corrigé le système de fichiers.
+Aucune autre action n'est requise.</pre>
+<p class="fx-warn"><b>Attention</b> <code>chkdsk /f</code>, <code>chkdsk /r</code> et <code>fsck -y</code> modifient le système de fichiers (fichiers orphelins déplacés dans <code>found.000</code> / <code>lost+found</code>) ; <code>/r</code> sollicite fortement un disque faible. Le formatage efface l'index des fichiers. Prérequis : copie des données. Alternative prudente : lecture seule (<code>chkdsk</code> sans option, <code>fsck -n</code>), récupération d'abord.</p>
+<h4>5. Test de confirmation</h4><p>Après réparation : volume monté en écriture, fichiers ouvrables, <code>chkdsk</code>/<code>fsck -n</code> sans erreur. Limite : une réparation logique réussie sur un disque qui a des secteurs défectueux n'est qu'un sursis.</p>
+<h4>6. Correction</h4><p>Linux « Read-only » : copier ce qui est lisible, redémarrer sur live, <code>fsck</code> de la partition démontée, SMART ; Windows : <code>chkdsk /f</code> après copie ; disque défaillant : remplacement (Fiche 1).</p>
+<h4>7. Validation</h4><ul><li>Montage normal, données contrôlées avec l'utilisateur, journal sans nouvelle erreur pendant plusieurs jours.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le disque externe affiche « Vous devez formater le disque » ; je refuse le formatage, qui rendrait la récupération plus difficile. Le journal Système ne montre pas d'erreur disk 7 (pas de secteurs défectueux signalés) mais une erreur Ntfs ; l'utilisateur a arraché le câble pendant une copie. Le disque n'a pas de copie ailleurs : je fais d'abord une image/copie avec un outil de récupération, puis je lance <code>chkdsk E: /f</code>. Validation : volume NTFS lisible, fichiers ouverts avec l'utilisateur ; conseil : éjection sécurisée et sauvegarde régulière.</p><p class="fx-lose"><b>Perd des points :</b> accepter le formatage ; lancer <code>chkdsk /r</code> sur un disque qui claque avant d'avoir copié les données.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Partition NTFS en lecture seule sous Linux en double démarrage = Démarrage rapide/hibernation Windows, pas une panne (P1.5, section 9).</li></ul>
+</article>
+</section>
