@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -49,6 +49,7 @@ from app.v1.ampcr_pratique_pr14_bank import ALL_ITEMS as PR14_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
 from app.v1.ampcr_pratique_pr17_bank import ALL_ITEMS as PR17_ITEMS
+from app.v1.ampcr_pratique_pr18_bank import ALL_ITEMS as PR18_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
 from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.models import (
@@ -1108,6 +1109,53 @@ _PR17_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR18_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr18",
+    course_title="AMPCR pratique écrite — PR18 Installation physique d'un mini-réseau",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : analyse du besoin et du plan, implantation en étoile, choix du support, "
+        "longueurs et repérage, séparation du courant fort, baie et panneau de brassage, PoE, "
+        "nomenclature et devis, tests et certification, validation et recette ; plans, prix et "
+        "relevés fictifs"
+    ),
+    allowed_notions=[
+        "besoin : postes, imprimantes, téléphones, caméras, Wi-Fi (personnel et invités), usages, évolution ; deux prises par poste (convention du cours) ; plan relevé : cotes, arrivée de l'opérateur, local pour la baie, chemins, câbles électriques, perturbations",
+        "topologie en étoile : un câble par prise jusqu'au switch ; box ou routeur à l'arrivée de l'opérateur, reliée au switch ; étoile étendue entre switchs ; baie dans un local fermé, ventilé, central (liens ≤ 90 m) ; point d'accès en hauteur au centre de la zone, alimenté en PoE",
+        "support : cuivre paire torsadée ≤ 100 m dans un bâtiment (U/UTP si perturbations faibles, F/UTP ou S/FTP si terre assurée) ; fibre au-delà de 100 m, entre bâtiments ou perturbations fortes sans terre ; coaxial 75 Ω pour vidéo analogique et TV ; toute la chaîne de la même catégorie",
+        "longueur (convention du cours) = parcours horizontal le long des murs (écart en x + écart en y) + 3 m + 2 m de réserve, arrondie au mètre supérieur ; lien permanent ≤ 90 m, cordons ≤ 10 m, canal ≤ 100 m ; boîtes de 305 m sans raboutage ; repère identique à la prise et au panneau (B1-P1-07)",
+        "séparation EN 50174-2 sans cloison, ≤ 3 circuits : classe a 300 mm, b 100 mm, c 50 mm, d 10 mm, inconnue 300 mm ; cloison métallique ; croisement à angle droit ; détecteur avant de percer, coupe-feu refermés",
+        "baie : panneau de brassage, passe-câbles, switch, étagère de la box, bandeau électrique ; 1 U = 44,45 mm ; 25 % d'unités libres (convention) ; keystones à la prise et au panneau (2 par lien avec panneau vide) ; une seule norme T568A ou T568B ; détorsadage ≤ 13 mm",
+        "switch : liens + 20 % de réserve (arrondi au-dessus) + 1 port pour la box ; tailles 8, 16, 24, 48 ; PoE : classe 1 4 W, 2 7 W, 3 15,4 W, 4 30 W réservés ; 802.3af 15,4 W, at 30 W, bt 60-90 W ; somme ≤ budget PoE total du switch",
+        "devis : quantité × prix unitaire HT, total HT, TVA belge 21 %, total TTC ; nomenclature : câble, keystones, panneaux, boîtiers, cordons de brassage et de poste, switch, baie, accessoires",
+        "tests : testeur de continuité (8 fils, paires, longueur), certificateur (catégorie visée, PASS/FAIL, rapport) ; lecture dans l'ordre : câblage, longueur ≤ 90 m, performances (paradiaphonie, perte d'insertion : poinçonnage, câble abîmé, composant inférieur)",
+        "validation dans l'ordre : lien (voyants), adresse (ipconfig, 169.254 = pas de DHCP), passerelle (ping box), autre poste, Internet par nom, partage ; le premier contrôle en échec désigne la piste ; recette : plans, plan de brassage, rapports, validation, PV signé",
+    ],
+    competencies=[
+        "Concevoir par écrit l'installation physique d'un mini-réseau à partir d'un besoin et d'un plan (étoile, implantation, support, longueurs, sécurité)",
+        "Établir le plan de brassage, la nomenclature et le devis d'une installation",
+        "Tester, valider et réceptionner un mini-réseau en lisant rapports et relevés",
+    ],
+    vocabulary=[
+        "topologie en étoile", "switch", "box", "routeur", "point d'accès", "baie", "panneau de brassage",
+        "keystone", "passe-câbles", "cordon de brassage", "lien permanent", "canal", "repère",
+        "chemin de câbles", "séparation", "PoE", "budget PoE", "nomenclature", "devis", "TVA",
+        "certificateur", "PASS", "FAIL", "DHCP", "passerelle", "procès-verbal de réception",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si l'idée est claire ; "
+        "accepter un arrondi raisonnable et une autre solution technique juste et justifiée (par "
+        "exemple un autre emplacement de baie qui garde tous les liens sous 90 m, Cat6A au lieu de "
+        "Cat6, un switch plus grand justifié) ; valoriser le choix justifié par un calcul, la "
+        "procédure et la sécurité ; suivre le barème de la question. Ne jamais valider : un lien "
+        "permanent de plus de 90 m, un câble cuivre entre deux bâtiments ou au-delà de 100 m, un "
+        "câble réseau couché contre les câbles électriques sans la distance requise, un seul "
+        "keystone par lien sur un panneau vide, un budget PoE qui dépasse celui du switch, une "
+        "TVA autre que 21 % pour ce devis, ni une validation qui saute un contrôle en échec."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1207,6 +1255,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Fibre optique — choix, raccordement et diagnostic",
         items=PR17_ITEMS,
         context=_PR17_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR18",
+        title="Installation physique d'un mini-réseau",
+        items=PR18_ITEMS,
+        context=_PR18_CONTEXT,
     ),
     PracticalCourse(
         code="PR20",

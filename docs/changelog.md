@@ -2,6 +2,18 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR18 « Installation physique d'un mini-réseau » (ticket #219)
+
+Cours PR18 du parcours pratique, dix-huitième dans l'ordre pédagogique (UAA PR18 du module
+`AMPCR-PRATIQUE`, position 18, après PR17 et EX03, 18 blocs) : besoin et plan des locaux ;
+étoile et implantation (baie, box, point d'accès, prises, chemins) ; choix du support ;
+longueurs, cheminement, repérage ; séparation du courant fort ; baie, panneau, keystones ; PoE ;
+plan de câblage, nomenclature, devis (TVA 21 %) ; tests et certification ; configuration de base
+et validation ; documentation et recette ; 3 procédures, 8 figures SVG + 5 schémas à compléter
+(fichiers statiques `app/static/img/ampcr-pratique/pr18-*.svg`) ; 5 cas résolus, 20 exercices,
+mini-examen 10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr18_*.py`,
+`tests/test_ticket219_ampcr_pratique_pr18.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : examen blanc EX03 « câblage RJ45, BNC et fibre » (ticket #232)
 
 Troisième examen blanc du parcours pratique (UAA EX03 du module `AMPCR-PRATIQUE`, après PR17, 7
