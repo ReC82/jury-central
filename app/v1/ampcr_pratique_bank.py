@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -37,6 +37,7 @@ from app.v1.ampcr_pratique_pr05_bank import ALL_ITEMS as PR05_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import ALL_ITEMS as PR06_ITEMS
 from app.v1.ampcr_pratique_pr06_bank import PR06Item
 from app.v1.ampcr_pratique_pr07_bank import ALL_ITEMS as PR07_ITEMS
+from app.v1.ampcr_pratique_pr08_bank import ALL_ITEMS as PR08_ITEMS
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
@@ -668,6 +669,53 @@ _PR07_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR08_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr08",
+    course_title="AMPCR pratique écrite — PR08 Installation complète de Windows — préparation et dépannage",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : procédures d'installation de Windows rédigées, lecture d'écrans fictifs de "
+        "l'installateur, du Gestionnaire de périphériques et de diskpart, dépannage écrit et "
+        "rapport d'intervention"
+    ),
+    allowed_notions=[
+        "préparation : demande, accord écrit du propriétaire (un accord oral ne suffit pas, données d'autres personnes), confidentialité, fiche d'inventaire (modèle, numéro de série, processeur, mémoire, disques et style MBR/GPT, firmware UEFI, démarrage sécurisé, TPM, mode du contrôleur AHCI/RAID/Intel VMD, édition et licence, logiciels et clés, réseau)",
+        "compatibilité : prérequis de la version visée (renvoi PR07), pilotes du fabricant pour la version (chipset, stockage, réseau, graphique), périphériques sans pilote signalés au client",
+        "licences : OEM (clé dans le firmware, liée au PC), commerciale (transférable si retirée de l'ancien PC), licence numérique (même matériel, même édition) ; l'édition installée doit être celle de la licence ; « Je n'ai pas de clé de produit » ; slmgr /xpr, Paramètres → Système → Activation ; jamais d'activateur ni de clé trouvée sur Internet",
+        "sauvegarde vérifiée de tous les profils, dossiers hors profil, courrier .pst, favoris ; clé de récupération BitLocker relevée ; installation propre, mise à niveau sur place (depuis Windows, système sain et compatible) ou migration (transfert des données, licences logicielles désactivées sur l'ancien PC)",
+        "média : outil de création de Microsoft ou ISO officielle à somme contrôlée, clé ≥ 8 Go effacée, Rufus en schéma GPT / cible UEFI ; pilote de stockage F6 (Intel RST/VMD, RAID) et pilote réseau sur la clé ; jamais de pack de pilotes d'un site inconnu",
+        "firmware et démarrage : UEFI, démarrage sécurisé, TPM 2.0 ; mode du contrôleur noté et plus modifié (sinon INACCESSIBLE_BOOT_DEVICE : remettre le mode d'origine) ; autres disques débranchés (sinon ESP sur l'autre disque) ; menu de démarrage F12/F11/F8/Échap, entrée « UEFI: » ; clé en premier → l'installation recommence : retirer la clé ou Windows Boot Manager en premier",
+        "installateur : langue, format, clavier belge AZERTY, clé ou pas de clé, édition de la licence, installation personnalisée, disque cible identifié par sa taille ; supprimer seulement sur le disque cible après sauvegarde vérifiée et accord écrit, sinon arrêter ; autre disque : ne pas toucher ; espace non alloué → GPT avec ESP (FAT32 ≈ 100 Mo), MSR (16 Mo), Windows (NTFS), Récupération (WinRE)",
+        "message « Windows ne peut être installé que sur des disques GPT » : disque MBR → supprimer ses partitions si autorisé, ou mbr2gpt /validate puis /convert /allowFullOS depuis le Windows à garder (partition de données conservée) ; jamais le mode hérité ni la désactivation du démarrage sécurisé ; diskpart list disk (astérisque GPT) via Maj+F10, jamais clean à l'aveugle",
+        "« Nous n'avons trouvé aucun lecteur » : si le firmware voit le disque, pilote de stockage (Intel VMD/RST, RAID) par « Charger un pilote » ; si le firmware ne le voit pas, diagnostic matériel ; ne pas conclure à une panne du SSD",
+        "configuration initiale : région, clavier, réseau (Internet demandé, pilote prévu), nom du PC, compte saisi par le client (compte Microsoft pour Famille, compte de l'organisation ou domaine pour Professionnel), confidentialité expliquée ; un compte par personne, administrateur protégé, compte standard",
+        "finalisation : pilotes chipset → stockage/réseau → graphique, Gestionnaire de périphériques sans (!), ID du matériel VEN (8086 Intel, 10EC Realtek, 10DE NVIDIA, 1022 AMD, 14E4 Broadcom) et DEV, Carte graphique de base Microsoft ; Windows Update jusqu'à « Vous êtes à jour » ; activation ; Defender et pare-feu ; chiffrement et clé de récupération hors du PC ; données restaurées et vérifiées avec le client ; point de restauration (protection du système) ou lecteur de récupération, qui ne remplacent pas une sauvegarde",
+        "liste de contrôle (version et édition, activation, msinfo32 UEFI et démarrage sécurisé, Gestion des disques GPT, pilotes, mises à jour, sécurité, réseau, comptes, données et logiciels avec le client) et rapport d'intervention en rubriques (demande et accord, poste, sauvegarde, actions, contrôles, remise, recommandations, signatures), sans mot de passe",
+    ],
+    competencies=[
+        "Rédiger la préparation et le déroulement complet d'une installation de Windows sur un poste, de l'inventaire à la validation",
+        "Lire les écrans et relevés d'une installation (installateur, diskpart, Gestionnaire de périphériques, msinfo32) et dépanner par écrit stockage, démarrage, partitions, pilotes et activation",
+        "Protéger les données du client et rédiger une liste de contrôle et un rapport d'intervention",
+    ],
+    vocabulary=[
+        "OEM", "licence numérique", "édition", "activation", "UEFI", "Secure Boot", "TPM", "GPT", "MBR", "ESP",
+        "MSR", "WinRE", "mbr2gpt", "diskpart", "Intel VMD", "RST", "AHCI", "F6", "OOBE", "VEN", "DEV",
+        "Windows Update", "BitLocker", "point de restauration",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si le geste est clair ; "
+        "accepter un autre outil équivalent bien justifié ; suivre le barème de la question. Ne "
+        "jamais valider un effacement sans sauvegarde vérifiée ni accord écrit, la suppression ou "
+        "le formatage d'un autre disque que le disque cible, une édition différente de celle de la "
+        "licence, un activateur ou une clé trouvée sur Internet, une image non officielle, la "
+        "désactivation du démarrage sécurisé ou le passage en mode hérité pour contourner un "
+        "message, la conclusion « SSD en panne » quand le firmware voit le disque, le changement "
+        "du mode du contrôleur après l'installation, un pack de pilotes d'un site inconnu, ni un "
+        "compte administrateur sans mot de passe."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -707,6 +755,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Systèmes d'exploitation, GUI/CLI et prérequis d'installation",
         items=PR07_ITEMS,
         context=_PR07_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR08",
+        title="Installation complète de Windows — préparation et dépannage",
+        items=PR08_ITEMS,
+        context=_PR08_CONTEXT,
     ),
     PracticalCourse(
         code="PR11",
