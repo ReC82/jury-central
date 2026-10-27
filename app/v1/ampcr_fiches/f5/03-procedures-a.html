@@ -1,0 +1,146 @@
+<section class="fx-sec" id="f5-proc-a">
+<h2>3A. Procédures — Accueillir, qualifier, prioriser</h2>
+
+<article class="fx-proc" id="f5-demande">
+<h3>P5.1 — Demande floue ou déjà interprétée (« ça ne marche plus », « c'est la carte mère »)</h3>
+<p class="fx-sev">Fréquence : très fréquent (début de presque tous les dossiers) · Gravité : variable, le risque est de partir dans la mauvaise direction</p>
+<h4>1. Symptômes observables</h4>
+<ul>
+<li>Formulations générales : « mon PC bug », « Internet ne marche pas », « l'imprimante est cassée », « tout est lent ».</li>
+<li>Cause donnée à la place du fait : « virus », « disque mort », « le Wi-Fi est HS », « Windows a planté ».</li>
+<li>Absence de message exact, de date, d'identifiant de l'appareil ; urgence exprimée sans échéance.</li>
+</ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol>
+<li>L'utilisateur décrit ce qu'il ressent, pas ce qu'il voit (le plus fréquent).</li>
+<li>Il ne connaît pas le vocabulaire (« l'ordinateur » = l'écran, « Internet » = un logiciel métier).</li>
+<li>Il a déjà tenté des manipulations qu'il ne mentionne pas (redémarrage, débranchement, réinstallation).</li>
+<li>Plusieurs problèmes sont mélangés dans une seule demande.</li>
+<li>Rare : la demande cache un incident de sécurité (fichiers renommés, message de rançon) → <a href="#f5-incident-secu">P5.12</a>.</li>
+</ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul>
+<li>Ouvertes d'abord : « Que voyez-vous exactement à l'écran ? », « Que faisiez-vous juste avant ? »</li>
+<li>Fermées ensuite (discriminantes) : « Depuis quand ? », « À chaque fois ou parfois ? », « Un message s'affiche-t-il ? Lisez-le moi mot pour mot », « Vos collègues ont-ils le même problème ? », « Qu'est-ce qui a changé (mise à jour, déplacement, nouveau matériel) ? », « Qu'avez-vous déjà essayé ? »</li>
+<li>Sécurité : « Y a-t-il une odeur, de la fumée, un bruit inhabituel ? » (si oui : faire débrancher, <a href="#f5-danger">P5.8</a>). « Avez-vous des fichiers importants non sauvegardés ? »</li>
+<li>Identification : n° d'inventaire (étiquette), emplacement, contact de rappel.</li>
+</ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Noter la demande mot pour mot</strong> — attendu : une phrase datée, attribuée au demandeur. <div class="fx-branch"><p class="fx-si"><b>SI</b> la phrase contient une cause → la marquer H (hypothèse).</p><p class="fx-sinon"><b>SINON</b> → la marquer O si c'est un fait vérifiable.</p></div></li>
+<li><strong>Poser les questions ouvertes</strong> — attendu : un symptôme concret (voyant, message, comportement). <div class="fx-branch"><p class="fx-si"><b>SI</b> un symptôme concret apparaît → passer aux questions fermées.</p><p class="fx-sinon"><b>SINON</b> → demander une capture d'écran / photo, ou proposer une prise en main à distance avec accord explicite, ou une visite.</p></div></li>
+<li><strong>Questions fermées discriminantes</strong> — attendu : périmètre (un poste / plusieurs), fréquence, changement récent. <div class="fx-branch"><p class="fx-si"><b>SI</b> plusieurs postes touchés → <a href="#f5-multi">P5.3</a> (élément commun).</p><p class="fx-sinon"><b>SINON</b> → problème local au poste, au compte ou au périphérique.</p></div></li>
+<li><strong>Orienter vers une famille</strong> — matériel, système, câblage, réseau, droits. <div class="fx-branch"><p class="fx-si"><b>SI</b> la famille est claire → renvoi vers la fiche technique (F1 à F4).</p><p class="fx-sinon"><b>SINON</b> → lister deux ou trois hypothèses concurrentes et le test qui les sépare (<a href="#f5-procedure">P5.13</a>).</p></div></li>
+<li><strong>Reformuler et faire valider</strong> — attendu : « Oui, c'est bien ça ». <div class="fx-branch"><p class="fx-si"><b>SI</b> le demandeur corrige → reprendre l'étape 2.</p><p class="fx-sinon"><b>SINON</b> → fiche d'incident, priorité, plan d'action.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>La reformulation validée par le demandeur est le test : « Si je résume : depuis ce matin 9 h, sur le PC LT-COMPTA-01, le logiciel de comptabilité affiche « Base de données introuvable » à chaque ouverture ; vos collègues n'ont pas le problème ; rien n'a été installé. C'est bien ça ? ». <strong>Limite</strong> : elle confirme la description, pas la cause.</p>
+<h4>6. Correction</h4>
+<ol>
+<li>Remplacer dans la fiche chaque terme vague par l'observation précise.</li>
+<li>Déplacer l'avis du client dans « Hypothèses », à tester comme les autres.</li>
+<li>Séparer les problèmes mélangés en plusieurs tickets (un symptôme = un ticket), liés si nécessaire.</li>
+<li>Fixer avec le demandeur un <strong>critère de réussite</strong> vérifiable (« le logiciel ouvre la base sans message, 3 essais »).</li>
+</ol>
+<h4>7. Validation</h4>
+<ul><li>Fiche d'incident complète (rubriques obligatoires remplies : <a href="#f5-modele-ticket">modèle</a>).</li><li>Symptômes = faits ; hypothèses classées ; critère de réussite accepté par le demandeur.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>Énoncé : « Mme Dumont appelle : son ordinateur "bug" depuis la mise à jour et elle pense avoir un virus. » Question : « Comment prends-tu en charge cette demande ? »</p>
+<ol>
+<li>J'identifie la demandeuse (nom, service, téléphone), la date et l'heure, et le poste (n° d'inventaire sur l'étiquette, recoupé avec l'inventaire).</li>
+<li>Je note sa phrase telle quelle. « Virus » est son <strong>hypothèse</strong>, pas un symptôme ; « depuis la mise à jour » est un <strong>changement récent</strong> à préciser (date, laquelle).</li>
+<li>Je pose les questions : que voyez-vous exactement ? quel message ? à chaque démarrage ou parfois ? d'autres collègues ? qu'avez-vous déjà fait ? données importantes non sauvegardées ?</li>
+<li>Je reformule et je fais valider : « Depuis la mise à jour de mardi, à chaque ouverture de session, l'écran reste noir 3 minutes avant l'apparition du bureau ; vous seule êtes concernée. »</li>
+<li>Je classe les hypothèses : 1) mise à jour / pilote (changement récent, le plus probable), 2) programme au démarrage, 3) logiciel malveillant (à vérifier par analyse antivirus). Je qualifie : impact faible (une personne), urgence moyenne → P3, prise en charge dans la journée.</li>
+<li>Je fixe le critère de réussite : bureau disponible en moins de 1 minute après l'ouverture de session, sur 3 redémarrages.</li>
+</ol></div>
+<p class="fx-lose"><b>Perd des points :</b> écrire « Symptôme : virus » ; lancer une réinstallation dès l'appel ; oublier l'identification du poste ou la date ; ne pas faire valider la reformulation.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> « Internet ne marche pas » peut vouloir dire : un seul site, la messagerie, le logiciel métier en ligne, ou tout le réseau. Demande toujours « quel programme, quelle adresse, quel message ? » avant d'ouvrir la fiche 4.</div>
+<div class="fx-trap"><b>Piège</b> La demande arrive par un collègue (« Paul me dit que son PC… ») : le demandeur n'est pas l'utilisateur. Note les deux et contacte l'utilisateur pour les faits.</div>
+<ul><li>Variante : demande écrite (courriel) → souligner les faits, entourer les avis, lister les questions manquantes à renvoyer.</li><li>Variante : deux problèmes (imprimante + lenteur) → deux tickets, priorités distinctes.</li></ul>
+</article>
+
+<article class="fx-proc" id="f5-presse">
+<h3>P5.2 — Utilisateur pressé, insistant ou hiérarchiquement « prioritaire »</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne (risque d'erreur par précipitation, de conflit, d'injustice entre demandes)</p>
+<h4>1. Symptômes observables</h4>
+<ul><li>« C'est urgent ! », « Il me le faut tout de suite », « Je suis le directeur ».</li><li>Pression pour sauter les étapes : « pas le temps de sauvegarder », « faites vite, réinstallez ».</li><li>L'utilisateur manipule le poste pendant l'intervention ou interrompt les tests.</li></ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Échéance réelle (paie, déclaration TVA, réunion client dans l'heure) → urgence réellement élevée.</li><li>Gêne forte mais sans échéance → urgence ressentie, pas réelle.</li><li>Rang hiérarchique confondu avec impact.</li><li>Méconnaissance du délai de prise en charge (aucun délai annoncé).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>« Qu'est-ce qui sera bloqué, et à quelle heure ? » (échéance réelle).</li><li>« Pouvez-vous travailler ailleurs en attendant (autre poste, portable, autre imprimante) ? » (contournement).</li><li>« Combien de personnes sont bloquées ? » (impact).</li><li>Rappel : la précipitation ne supprime ni la sauvegarde ni l'accord.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Coter l'impact</strong> (1 = entreprise / service / clients externes ; 2 = plusieurs personnes ou poste indispensable ; 3 = une personne avec contournement). <div class="fx-branch"><p class="fx-si"><b>SI</b> un contournement existe → impact abaissé.</p><p class="fx-sinon"><b>SINON</b> → garder la cote.</p></div></li>
+<li><strong>Coter l'urgence</strong> (1 = activité arrêtée ou échéance dans l'heure ; 2 = travail dégradé, échéance dans la journée ; 3 = simple gêne). <div class="fx-branch"><p class="fx-si"><b>SI</b> l'échéance est vérifiable (date de dépôt, réunion) → urgence retenue.</p><p class="fx-sinon"><b>SINON</b> → urgence selon les faits, pas selon le ton.</p></div></li>
+<li><strong>Lire la priorité</strong> — 2 → P1 (30 min) ; 3 → P2 (2 h) ; 4 → P3 (journée) ; 5 ou 6 → P4 (planifié, 5 jours ouvrables). <div class="fx-branch"><p class="fx-si"><b>SI</b> l'entreprise a une règle écrite « VIP » → l'appliquer et la citer.</p><p class="fx-sinon"><b>SINON</b> → la matrice seule décide.</p></div></li>
+<li><strong>Comparer avec la file</strong> — attendu : la place de la demande parmi les autres. <div class="fx-branch"><p class="fx-si"><b>SI</b> elle passe devant → informer les demandeurs retardés.</p><p class="fx-sinon"><b>SINON</b> → annoncer le délai et le contournement.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4>
+<p>La priorité est « confirmée » si chaque cote est justifiée par un fait écrit (nombre de personnes, échéance datée, contournement oui/non). Limite : l'échéance est déclarative ; si elle est douteuse, demander la date au responsable.</p>
+<h4>6. Correction</h4>
+<ol><li>Mettre en place le contournement immédiatement (autre poste, impression sur une autre imprimante, accès webmail).</li><li>Annoncer clairement le délai : « Votre demande est en priorité P3, je passe avant 16 h ».</li><li>Si priorité élevée : intervenir, mais en gardant sauvegarde, accord et tests ; préférer une solution rapide <strong>réversible</strong> (poste de prêt) à une réparation lourde précipitée.</li><li>Fixer la règle d'intervention : l'utilisateur observe, ne manipule pas ; il valide à la fin.</li></ol>
+<h4>7. Validation</h4><ul><li>Délai tenu, contournement opérationnel vérifié (une impression test, une connexion réussie).</li><li>Ticket mis à jour à chaque changement de statut.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p>« À 10 h, le directeur demande de régler immédiatement son fond d'écran qui a changé ; à 10 h 05, la comptable signale que l'imprimante du service compta (5 personnes) n'imprime plus, envoi des fiches de paie à 14 h. »</p>
+<ul><li>Directeur : impact 3 (une personne, pas de blocage), urgence 3 (simple gêne) → somme 6 → <strong>P4</strong>, intervention planifiée.</li><li>Comptabilité : impact 2 (plusieurs personnes, service indispensable), urgence 2 (échéance dans la journée) → somme 4 → <strong>P3</strong> ; contournement immédiat : imprimer sur l'imprimante de l'accueil.</li><li>Ordre : comptabilité d'abord. Je préviens le directeur avec un délai précis. Si l'entreprise a une règle écrite favorisant la direction, je l'applique en la citant ; sans règle, la matrice impact × urgence s'applique à tous.</li></ul></div>
+<p class="fx-lose"><b>Perd des points :</b> traiter d'abord le directeur « parce que c'est le directeur » sans règle écrite ; ne pas annoncer de délai ; supprimer la sauvegarde sous la pression.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Une seule personne peut être P1 : la caissière seule à la caisse un samedi (poste indispensable, activité arrêtée). Impact ≠ nombre de personnes uniquement.</div>
+<ul><li>Variante : utilisateur agressif → rester factuel, reformuler, annoncer le délai, escalade hiérarchique si menace.</li><li>Variante : priorité qui change en cours de journée (échéance avancée) → recalcul et mise à jour du ticket.</li></ul>
+</article>
+
+<article class="fx-proc" id="f5-multi">
+<h3>P5.3 — Plusieurs demandes simultanées ou incident commun</h3>
+<p class="fx-sev">Fréquence : fréquent (exercice type « ordonne ces tickets ») · Gravité : élevée si l'incident commun n'est pas vu</p>
+<h4>1. Symptômes observables</h4><ul><li>Plusieurs tickets similaires sur une courte période (« pas d'Internet », « partage inaccessible », « impression impossible »).</li><li>Postes de services différents, mais même étage, même switch, même serveur ou même mise à jour.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Élément commun en panne : box/routeur, switch d'étage, serveur de fichiers, serveur d'impression, DHCP, licence réseau.</li><li>Changement global : mise à jour déployée, changement de mot de passe Wi-Fi, modification de droits sur un dossier partagé.</li><li>Événement extérieur : coupure de courant, panne du fournisseur.</li><li>Coïncidence : pannes réellement indépendantes (plus rare).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>« Depuis quelle heure exactement ? » pour chaque demande (aligner les heures).</li><li>« Où êtes-vous (étage, bureau) ? Quel réseau, quelle imprimante, quel dossier ? »</li><li>« Y a-t-il eu une coupure de courant, des travaux, une mise à jour ? »</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Tableau des demandes</strong> (heure, lieu, service, symptôme, ressource utilisée). <div class="fx-branch"><p class="fx-si"><b>SI</b> une ressource commune ressort → hypothèse « élément commun ».</p><p class="fx-sinon"><b>SINON</b> → traiter chaque demande séparément avec sa priorité.</p></div></li>
+<li><strong>Tester depuis un poste non concerné</strong> la même ressource. <div class="fx-branch"><p class="fx-si"><b>SI</b> ce poste échoue aussi → panne de la ressource commune (renvoi fiche 4 : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">→ Fiche 4 · Ordre des tests</a>).</p><p class="fx-sinon"><b>SINON</b> → chercher ce qui distingue les postes touchés (switch, VLAN, groupe d'utilisateurs).</p></div></li>
+<li><strong>Créer un ticket parent</strong> et lier les autres. <div class="fx-branch"><p class="fx-si"><b>SI</b> l'élément commun est hors de mon rôle (serveur, routeur de l'opérateur) → escalade <a href="#f5-escalade">P5.9</a>.</p><p class="fx-sinon"><b>SINON</b> → diagnostic de l'élément commun.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Réparer l'élément commun doit rétablir <strong>tous</strong> les postes liés. Si un poste reste en panne, il avait une seconde cause : le séparer du ticket parent.</p>
+<h4>6. Correction</h4><ol><li>Message d'information collectif (« incident en cours sur l'imprimante du 2ᵉ étage, contournement : imprimante du 1ᵉʳ ; prochaine information à 11 h »).</li><li>Correction de l'élément commun, puis vérification sur chaque poste lié.</li><li>Pour un exercice d'ordonnancement : tableau impact / urgence / priorité / délai, ordre justifié.</li></ol>
+<h4>7. Validation</h4><ul><li>Chaque demandeur confirme le retour à la normale ; tickets enfants clôturés avec le parent.</li><li>Cause commune notée pour éviter la récidive (recommandation).</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Ticket</th><th>Impact</th><th>Urgence</th><th>Somme</th><th>Priorité · délai</th></tr></thead><tbody>
+<tr><td>A — Serveur de fichiers inaccessible pour tout le bureau</td><td>1</td><td>1</td><td>2</td><td>P1 · 30 min</td></tr>
+<tr><td>B — Caisse du magasin bloquée, clients en file</td><td>2</td><td>1</td><td>3</td><td>P2 · 2 h (en pratique juste après A)</td></tr>
+<tr><td>C — Une secrétaire : souris qui saute, autre souris disponible</td><td>3</td><td>2</td><td>5</td><td>P4 · planifié</td></tr>
+<tr><td>D — Comptable seule, rapport à rendre ce soir, PC très lent</td><td>2</td><td>2</td><td>4</td><td>P3 · journée</td></tr>
+</tbody></table></div>
+<p>Ordre : A, B, D, C. Justification : impact et urgence cotés selon les règles ; C a un contournement immédiat (souris de rechange).</p></div>
+<p class="fx-lose"><b>Perd des points :</b> traiter dans l'ordre d'arrivée ; ne pas voir que trois tickets « Internet » viennent du même switch ; donner une priorité sans la justifier.</p>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Deux pannes concomitantes : un incident commun (switch) et, sur un des postes, un câble abîmé. Après réparation du switch, vérifie chaque poste : celui qui reste en panne relève d'une autre cause.</div>
+<ul><li>Variante : égalité de priorité → règle annoncée (plus ancienne d'abord, ou plus rapide d'abord pour débloquer le plus de monde).</li></ul>
+</article>
+
+<article class="fx-proc" id="f5-absent">
+<h3>P5.4 — Client absent, injoignable, poste verrouillé ou mot de passe proposé</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne (confidentialité, responsabilité, perte de temps)</p>
+<h4>1. Symptômes observables</h4><ul><li>Personne au rendez-vous ; session verrouillée ; collègue qui propose « je connais son mot de passe ».</li><li>Post-it avec le mot de passe collé à l'écran ; utilisateur qui dicte son mot de passe au téléphone.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Rendez-vous non confirmé ou mal communiqué.</li><li>Utilisateur réquisitionné ailleurs (réunion, congé).</li><li>Habitudes de sécurité faibles (mots de passe partagés).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>L'intervention nécessite-t-elle la session de l'utilisateur, ou seulement le matériel / un compte technicien ?</li><li>Ai-je une autorisation écrite (ticket validé, délégation du responsable) ?</li><li>Les données de l'utilisateur sont-elles touchées par l'intervention ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Contacter l'utilisateur</strong> (téléphone, courriel, collègue de service), attendre le délai convenu (ex. 15 min). <div class="fx-branch"><p class="fx-si"><b>SI</b> joignable → convenir : présence, ou accord écrit pour intervenir sans lui.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Évaluer si l'intervention peut se faire sans session ni données</strong> (remplacement d'une souris, test de câble, nettoyage externe). <div class="fx-branch"><p class="fx-si"><b>SI</b> oui et autorisé par le ticket → intervenir, laisser un avis de passage.</p><p class="fx-sinon"><b>SINON</b> → ne rien faire sur le poste, reprogrammer.</p></div></li>
+<li><strong>Si un mot de passe est proposé</strong> — refuser de le noter ou de l'utiliser. <div class="fx-branch"><p class="fx-si"><b>SI</b> l'accès à la session est indispensable → l'utilisateur la déverrouille lui-même en présence, ou l'administrateur utilise un compte technique selon la procédure.</p><p class="fx-sinon"><b>SINON</b> → compte local d'administration du service informatique.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Avant de toucher au poste : autorisation tracée (qui, quand, pour quoi). Sans trace, l'intervention n'est pas couverte.</p>
+<h4>6. Correction</h4><ol><li>Laisser un <strong>avis de passage</strong> (date, heure, motif, contact, prochain créneau proposé).</li><li>Passer le ticket en « en attente client » (le délai de traitement est suspendu, avec motif).</li><li>Si un mot de passe a été divulgué : conseiller par écrit son changement immédiat.</li></ol>
+<h4>7. Validation</h4><ul><li>Nouveau rendez-vous confirmé par écrit ; ticket à jour.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Je me présente à 14 h au bureau de M. Leroy : absent, poste verrouillé. Un collègue me propose son mot de passe. Je refuse : un mot de passe est personnel, l'utiliser engagerait ma responsabilité et celle de M. Leroy, et j'accéderais à ses données sans accord. Je téléphone à M. Leroy, sans réponse ; j'attends 15 minutes. Je laisse un avis de passage avec mon numéro et deux créneaux, je passe le ticket en « en attente client » et je note l'heure du passage. Je recommande que le collègue ne connaisse plus ce mot de passe (changement conseillé). »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> utiliser le mot de passe du post-it ; noter un mot de passe dans le rapport ; intervenir sur les données sans accord.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> « Le responsable a dit que c'était bon » à l'oral : demande la confirmation écrite (courriel, ticket) avant toute action sur les données.</div><ul><li>Variante : prise en main à distance → l'utilisateur doit accepter la session lui-même, et peut la couper.</li></ul>
+</article>
+</section>

@@ -1,0 +1,102 @@
+<section class="fx-sec" id="f5-proc-c">
+<h2>3C. Procédures — Limites d'intervention : escalade, contournement, pièce, incident de sécurité</h2>
+
+<article class="fx-proc" id="f5-escalade">
+<h3>P5.9 — Intervention hors périmètre : escalader au bon niveau</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : élevée si on dépasse son rôle (garantie perdue, serveur modifié, faute)</p>
+<h4>1. Symptômes observables</h4><ul><li>L'intervention touche un serveur, le routeur ou le pare-feu de l'entreprise, les droits du domaine, le compte d'une autre personne.</li><li>Appareil sous garantie (scellé), copieur en location, ligne Internet de l'opérateur, logiciel métier sous contrat de maintenance.</li><li>Tous les tests de ton niveau sont faits et ne concluent pas ; pièce ou outil indisponible.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Manque d'autorisation (rôle, droits d'administration).</li><li>Contrat d'un tiers (garantie, location, maintenance, opérateur).</li><li>Manque de compétence ou d'outillage (récupération de données, soudure, analyse de sécurité).</li><li>Dépassement de budget ou de durée.</li><li>Incident de sécurité (toujours escaladé : <a href="#f5-incident-secu">P5.12</a>).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><p>Les 5 contrôles, dans cet ordre : 1) sécurité, 2) autorisation, 3) données, 4) compétence, 5) budget. Le <strong>premier</strong> qui échoue décide de l'action.</p>
+<div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Contrôle</th><th>Question</th><th>Si non → action</th></tr></thead><tbody>
+<tr><td>1. Sécurité</td><td>Aucun signe de virus, intrusion, fuite ?</td><td>Isoler le poste du réseau, ne rien effacer, responsable sécurité / informatique</td></tr>
+<tr><td>2. Autorisation</td><td>L'action reste dans mon rôle et mes droits ?</td><td>Responsable : serveur, droits d'administration, compte d'autrui, achat</td></tr>
+<tr><td>3. Données</td><td>Données sauvegardées ou non menacées ?</td><td>Arrêter, sauvegarder d'abord ; disque mourant sans copie → spécialiste</td></tr>
+<tr><td>4. Compétence</td><td>Compétence, pièces, outillage disponibles ?</td><td>Niveau 2, fabricant (garantie), prestataire (copieur, Internet)</td></tr>
+<tr><td>5. Budget</td><td>Durée et coût dans l'estimation acceptée ?</td><td>Suspendre, nouvelle estimation au client</td></tr>
+</tbody></table></div>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Passer les 5 contrôles</strong> et noter le premier en échec. <div class="fx-branch"><p class="fx-si"><b>SI</b> tous passent → intervenir selon le plan accepté.</p><p class="fx-sinon"><b>SINON</b> → choisir le type d'escalade.</p></div></li>
+<li><strong>Choisir le type</strong> : <em>fonctionnelle</em> (vers plus compétent : N2, administrateur, fabricant, prestataire) ou <em>hiérarchique</em> (vers le responsable : décision, budget, conflit, autorisation). <div class="fx-branch"><p class="fx-si"><b>SI</b> garantie valide → dossier fabricant, n° de série, preuve d'achat.</p><p class="fx-sinon"><b>SINON</b> → escalade interne.</p></div></li>
+<li><strong>Rédiger le message d'escalade</strong> (voir modèle ci-dessous) et prévenir l'utilisateur (délai, contournement). <div class="fx-branch"><p class="fx-si"><b>SI</b> l'arrêt va durer → poste de prêt ou contournement.</p><p class="fx-sinon"><b>SINON</b> → suivi du ticket.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>L'escalade est correcte si le destinataire peut agir <strong>sans rappeler</strong> : il a les faits, les tests déjà faits avec leurs résultats, la demande précise et l'urgence.</p>
+<h4>6. Correction</h4>
+<div class="fx-answer"><p class="fx-answer-title">Modèle de message d'escalade</p><p><b>Objet :</b> [INC-2026-1027-021] P2 — Partage \\SRV-FICHIERS\Compta inaccessible pour tout le service compta (5 pers.)</p><p><b>Constat :</b> depuis 9 h 10, « Accès refusé » à l'ouverture du partage pour les 5 comptes du groupe G-Compta. Les autres partages fonctionnent.</p><p><b>Tests réalisés :</b> ping SRV-FICHIERS OK depuis 2 postes ; accès au partage \\SRV-FICHIERS\Commun OK ; même erreur avec le compte d'une seconde comptable sur un autre poste ; aucun changement sur les postes.</p><p><b>Hypothèse :</b> modification des permissions du dossier Compta côté serveur (hors de mes droits).</p><p><b>Demande :</b> vérifier les permissions de partage et NTFS du dossier Compta pour G-Compta.</p><p><b>Impact / urgence :</b> service entier bloqué, clôture mensuelle ce jour. Contournement : aucun.</p><p><b>Contact :</b> technicien, poste 214. Utilisateurs informés à 9 h 35.</p></div>
+<h4>7. Validation</h4><ul><li>Accusé de réception du N2 / fabricant noté (n° de dossier) ; l'utilisateur est informé ; après retour, le technicien contrôle et fait valider sur le poste.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le portable de M. Petit est sous garantie jusqu'au 15/03/2027 (inventaire) et l'écran présente des lignes verticales même dans le BIOS, ce qui écarte le système d'exploitation (renvoi fiche 1). Contrôle 4 (compétence / contrat) en échec : je n'ouvre pas l'appareil, cela ferait perdre la garantie. Escalade fonctionnelle au fabricant : n° de série, preuve d'achat, description et tests (lignes présentes au BIOS, écran externe correct). Avant l'envoi, je sauvegarde les données et je propose un portable de prêt. Je note le n° de dossier fabricant dans le ticket, qui passe en « en attente fournisseur ». »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> ouvrir un appareil sous garantie ; escalader sans les tests faits (« ça marche pas, voyez ») ; modifier un serveur sans autorisation ; oublier d'informer l'utilisateur.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Escalader trop tôt (sans les tests simples de ton niveau) est aussi une faute de méthode : le N2 renverra le ticket.</div><div class="fx-trap"><b>Piège</b> L'escalade ne clôt pas ton ticket : tu restes responsable du suivi et de la validation finale avec l'utilisateur.</div>
+</article>
+
+<article class="fx-proc" id="f5-contournement">
+<h3>P5.10 — Demande de contournement de sécurité ou d'action non conforme</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : élevée (sécurité, légalité, responsabilité personnelle)</p>
+<h4>1. Symptômes observables</h4><ul><li>« Donne-moi le mot de passe de ma collègue, elle est malade », « Désactive l'antivirus, il bloque mon programme », « Installe-moi cette version gratuite trouvée sur Internet », « Mets-moi administrateur », « Débloque ce site interdit », « Copie-moi les fichiers RH ».</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Besoin métier légitime mal exprimé (accéder à un dossier partagé du service, logiciel nécessaire).</li><li>Méconnaissance des règles (charte informatique, licences).</li><li>Rarement : tentative délibérée d'accès non autorisé ou ingénierie sociale (faux « responsable » au téléphone).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>« De quoi avez-vous besoin pour travailler exactement ? » (besoin réel derrière la demande).</li><li>Qui est le propriétaire de la ressource / des données ? Qui peut autoriser ?</li><li>Identité du demandeur vérifiée (rappel sur le numéro interne connu, pas sur celui donné au téléphone) ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Identifier le besoin réel</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> il existe une voie conforme (droits sur un dossier commun, délégation de boîte mail, licence) → étape 2.</p><p class="fx-sinon"><b>SINON</b> → refus motivé, étape 3.</p></div></li>
+<li><strong>Demander l'autorisation au propriétaire / responsable</strong> par écrit. <div class="fx-branch"><p class="fx-si"><b>SI</b> autorisation obtenue → appliquer la solution conforme (droits ajoutés par l'administrateur, délégation tracée).</p><p class="fx-sinon"><b>SINON</b> → refus tracé.</p></div></li>
+<li><strong>Refuser poliment et tracer</strong> : demande, motif du refus, alternative proposée. <div class="fx-branch"><p class="fx-si"><b>SI</b> insistance ou suspicion d'usurpation → escalade hiérarchique / sécurité.</p><p class="fx-sinon"><b>SINON</b> → ticket clôturé avec motif.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>La solution est conforme si elle a un propriétaire qui l'a autorisée, une trace écrite et qu'elle n'abaisse pas la sécurité des autres (pas de mot de passe partagé, pas d'antivirus coupé).</p>
+<h4>6. Correction</h4><div class="fx-table-wrap"><table class="fx-table"><thead><tr><th>Demande</th><th>Réponse conforme</th></tr></thead><tbody>
+<tr><td>Mot de passe d'une collègue absente</td><td>Jamais. Accès aux fichiers utiles via le responsable : droits temporaires sur le dossier ou délégation de la boîte, tracés.</td></tr>
+<tr><td>Désactiver l'antivirus</td><td>Non. Analyser le fichier bloqué ; si faux positif confirmé par le responsable sécurité, exception ciblée (fichier précis), pas de désactivation globale.</td></tr>
+<tr><td>Logiciel piraté / « gratuit » d'un site douteux</td><td>Non (licence, risque de logiciel malveillant). Version officielle, licence achetée ou alternative libre validée.</td></tr>
+<tr><td>Droits administrateur permanents</td><td>Non par défaut. Installation faite par le service informatique, ou élévation ponctuelle selon la procédure.</td></tr>
+<tr><td>Copie de données d'un autre service</td><td>Seulement sur autorisation écrite du propriétaire des données.</td></tr>
+</tbody></table></div>
+<h4>7. Validation</h4><ul><li>Le besoin métier est satisfait par la voie conforme, ou le refus est notifié avec son motif.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Je refuse de communiquer le mot de passe de Mme Henry : il est personnel, l'utiliser rendrait impossible de savoir qui a fait quoi et viole la charte informatique. Le besoin réel est d'accéder au dossier « Commandes en cours ». Je demande au responsable du service une autorisation écrite ; l'administrateur donne à M. Collin un accès en lecture/écriture temporaire à ce dossier jusqu'au retour de Mme Henry. Je note la demande, le refus, l'alternative et l'autorisation dans le ticket. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> accepter « pour rendre service » ; refuser sans proposer d'alternative ; ne pas tracer.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Appel d'un « directeur » inconnu exigeant une réinitialisation de mot de passe immédiate : vérifie l'identité par un rappel sur le numéro de l'annuaire interne (ingénierie sociale).</div>
+</article>
+
+<article class="fx-proc" id="f5-piece">
+<h3>P5.11 — Pièce à commander, durée ou coût qui dépasse l'estimation</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : moyenne (litige client, arrêt prolongé)</p>
+<h4>1. Symptômes observables</h4><ul><li>Diagnostic confirmé nécessitant une pièce absente du stock (alimentation, SSD, écran, barrette).</li><li>Temps passé qui dépasse l'estimation annoncée ; découverte d'une seconde panne.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Estimation initiale sans marge.</li><li>Seconde panne découverte (pannes concomitantes).</li><li>Pièce spécifique (format, connecteur, compatibilité) introuvable rapidement.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Diagnostic confirmé par un test discriminant (pas une supposition) ? Sinon, pas de commande.</li><li>Compatibilité vérifiée (format, connecteur, puissance, génération de RAM, interface du disque) : <a class="fx-ref" href="/ampcr-pratique/fiches/1">→ Fiche 1 · Compatibilité</a>.</li><li>Le client accepte-t-il le coût et le délai ? Garantie ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Vérifier l'estimation</strong> : durée annoncée = somme des tâches + 25 % de marge, arrondie au quart d'heure supérieur (convention PR26). <div class="fx-branch"><p class="fx-si"><b>SI</b> le dépassement reste dans la marge → continuer.</p><p class="fx-sinon"><b>SINON</b> → suspendre (contrôle « budget »).</p></div></li>
+<li><strong>Établir le devis</strong> : pièce (référence, prix, délai), main-d'œuvre, alternative (remplacement de l'appareil). <div class="fx-branch"><p class="fx-si"><b>SI</b> réparation &gt; valeur d'usage de l'appareil → proposer le remplacement (<a href="#f5-fin-vie">P5.17</a>).</p><p class="fx-sinon"><b>SINON</b> → devis réparation.</p></div></li>
+<li><strong>Accord écrit du client</strong>. <div class="fx-branch"><p class="fx-si"><b>SI</b> accord → commande, ticket « en attente pièce », contournement.</p><p class="fx-sinon"><b>SINON</b> → remise en l'état initial, restitution, motif noté.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>La pièce est justifiée si un test discriminant l'a mise en cause (ex. : panne qui suit la barrette quand on l'échange de slot). Limite : un test par substitution n'est probant qu'avec une pièce de rechange connue bonne.</p>
+<h4>6. Correction</h4><ol><li>Exemple d'estimation : diagnostic 30 min + remplacement 20 min + tests 25 min = 75 min ; × 1,25 = 93,75 min → <strong>1 h 45</strong> annoncée.</li><li>Pendant l'attente : poste de prêt ou contournement ; données accessibles.</li><li>À réception : contrôle de la référence, montage (<a href="#f5-securite">P5.7</a>), tests, ancienne pièce rendue ou recyclée selon le choix du client.</li></ol>
+<h4>7. Validation</h4><ul><li>Facture conforme au devis signé ; tests avant/après ; retour du poste de prêt.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Le test par substitution confirme le bloc d'alimentation (le PC démarre avec un bloc de test connu bon, pas avec l'original). Ce bloc n'est pas en stock. J'arrête l'intervention, je remonte l'ancien bloc pour rendre le poste dans son état initial, j'établis un devis : bloc ATX 550 W de même format, 65 €, délai 2 jours, montage et tests 45 min. J'explique au client la cause et l'alternative. Après son accord écrit, je commande, je passe le ticket en « en attente pièce » et je lui prête un poste avec accès à ses fichiers réseau. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> commander une pièce sur une simple supposition ; dépasser le budget sans accord ; ne pas proposer de contournement.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Seconde panne découverte en cours de route (ex. : RAM défectueuse + disque en alerte SMART) : c'est un nouvel élément du devis, à présenter avant d'agir, pas à « régler en passant ».</div>
+</article>
+
+<article class="fx-proc" id="f5-incident-secu">
+<h3>P5.12 — Incident de sécurité suspecté (rançongiciel, hameçonnage, comportement anormal)</h3>
+<p class="fx-sev">Fréquence : occasionnel · Gravité : critique (propagation au réseau, fuite de données)</p>
+<h4>1. Symptômes observables</h4><ul><li>Fichiers renommés avec une extension inconnue, impossibles à ouvrir ; fichier texte « comment récupérer vos fichiers » ; message de rançon.</li><li>Utilisateur ayant cliqué sur un lien et saisi son mot de passe ; courriels envoyés à son insu.</li><li>Antivirus désactivé tout seul, fenêtres publicitaires, programme inconnu au démarrage.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Hameçonnage (identifiants volés).</li><li>Logiciel malveillant installé (pièce jointe, logiciel piraté).</li><li>Rançongiciel en cours de chiffrement.</li><li>Faux positif / extension de navigateur gênante (moins grave, à confirmer).</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>« Qu'avez-vous ouvert ou cliqué, quand ? Avez-vous saisi un mot de passe ? »</li><li>« D'autres postes ou partages sont-ils touchés ? »</li><li>Aucune suppression de fichier, aucune réinstallation avant l'avis du responsable sécurité (preuves).</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Isoler le poste du réseau</strong> : débrancher le câble réseau, couper le Wi-Fi. <div class="fx-branch"><p class="fx-si"><b>SI</b> chiffrement en cours visible → isoler immédiatement ; extinction selon la procédure de l'entreprise (certaines demandent de laisser allumé pour l'analyse).</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Noter les constats</strong> : heure, messages exacts (photo de l'écran), fichiers touchés, actions de l'utilisateur. <div class="fx-branch"><p class="fx-si"><b>SI</b> partages réseau touchés → alerte immédiate de l'administrateur (déconnexion des sauvegardes en ligne).</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Escalader au responsable sécurité / informatique</strong> (contrôle n° 1). <div class="fx-branch"><p class="fx-si"><b>SI</b> identifiants saisis sur un faux site → changement du mot de passe depuis un poste sain, vérification des règles de messagerie.</p><p class="fx-sinon"><b>SINON</b> → analyse antivirus complète selon les consignes.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Confirmation par le responsable sécurité (analyse, journaux). Limite : une analyse antivirus « propre » n'exclut pas une compromission récente.</p>
+<h4>6. Correction</h4>
+<p class="fx-warn"><b>Attention</b> Ne pas payer de rançon, ne pas effacer les fichiers chiffrés ni réinstaller de sa propre initiative : décision du responsable. Restauration uniquement depuis une sauvegarde antérieure à l'infection, après nettoyage ou réinstallation validée.</p>
+<h4>7. Validation</h4><ul><li>Poste remis en réseau seulement après accord ; mots de passe changés ; utilisateur sensibilisé ; incident documenté (chronologie).</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>« Les fichiers du bureau portent l'extension .lockd et un fichier LISEZMOI demande une rançon : suspicion de rançongiciel. Priorité P1 (risque de propagation au serveur). Je débranche immédiatement le câble réseau et coupe le Wi-Fi, je photographie l'écran, je note l'heure et ce que l'utilisateur a ouvert (pièce jointe « facture.zip » à 10 h 12). Je n'efface rien. J'alerte le responsable informatique, qui vérifie les partages et les sauvegardes. La suite (nettoyage, réinstallation, restauration depuis la sauvegarde de la veille) se fait sur sa décision. »</p></div>
+<p class="fx-lose"><b>Perd des points :</b> laisser le poste sur le réseau ; supprimer les fichiers « pour nettoyer » ; réinstaller sans prévenir ; ne pas changer le mot de passe après hameçonnage.</p>
+<h4>9. Pièges et variantes</h4><div class="fx-trap"><b>Piège</b> Lenteur générale ≠ virus par défaut : la plupart des lenteurs ont une cause système ou matérielle (<a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-lenteur">→ Fiche 2 · Lenteur</a>). « Virus » reste une hypothèse à tester.</div>
+</article>
+</section>
