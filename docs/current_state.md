@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR20, PR24, EX01 et EX02),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR20, PR24, EX01 et EX02),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -380,6 +380,21 @@ exercices, mini-examen, mémo, sources). 3 procédures illustrées et 9 figures 
 calculs (durées, verdicts cuivre, dB, Γ, bilans optiques, négociation) **définis par code**
 (`app/v1/ampcr_pratique_pr14_figures.py`) et contrôlés par les tests. 19 exercices, mini-examen
 10 questions /20 ; aucune image générée.
+
+**Dix-neuvième cours publié (ticket #218) : PR17 « Fibre optique — choix, raccordement et
+diagnostic »** (`/uaa/ampcr-pratique-pr17`), même intégration, dix-septième cours de l'ordre
+pédagogique (position 17, après PR16 et avant PR20 ; PR18 et PR19 non publiés). 18 blocs
+(11 chapitres : lumière guidée dans le cœur et la gaine ; monomode ou multimode, types OM/OS,
+code couleur et marquage, portée selon le module ; connecteurs LC/SC, polissage UPC/APC,
+jarretières ; modules SFP/SFP+, TX/RX, duplex et polarité ; pertes, puissance reçue, plage de la
+fiche, saturation ; épissure, pigtail, tiroir, brassage ; pose et rayon de courbure ; fibre,
+cuivre ou coaxial ; contrôle : propreté, photométrie, OTDR ; sécurité laser et éclats ;
+diagnostic ; 5 cas résolus : lien inversé, connecteur sale, mauvais module, distance, casse ;
+pièges, exercices, mini-examen, mémo, sources). 3 procédures illustrées et 9 figures SVG ;
+compatibilités, polarités, pertes, zones de réception, événements OTDR et rayons **définis par
+code** (`app/v1/ampcr_pratique_pr17_figures.py`, valeurs d'affaiblissement et portées reprises
+de PR14) et contrôlés par les tests. 18 exercices, mini-examen 10 questions /20 ; aucune image
+générée.
 
 ## Administration
 

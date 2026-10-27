@@ -28,6 +28,7 @@ from app.v1.ampcr_pratique_pr13_course import PR13_TITLE, pr13_course_sections
 from app.v1.ampcr_pratique_pr14_course import PR14_TITLE, pr14_course_sections
 from app.v1.ampcr_pratique_pr15_course import PR15_TITLE, pr15_course_sections
 from app.v1.ampcr_pratique_pr16_course import PR16_OBSOLETE_TITLES, PR16_TITLE, pr16_course_sections
+from app.v1.ampcr_pratique_pr17_course import PR17_TITLE, pr17_course_sections
 from app.v1.ampcr_pratique_pr20_course import PR20_TITLE, pr20_course_sections
 from app.v1.ampcr_pratique_pr24_course import PR24_TITLE, pr24_course_sections
 from app.v1.document_references import repair_dossier_references
@@ -5024,6 +5025,7 @@ PR10_BLOCKS = _fse_course_blocks(pr10_course_sections())  # ticket #214
 PR12_BLOCKS = _fse_course_blocks(pr12_course_sections())  # ticket #215
 PR13_BLOCKS = _fse_course_blocks(pr13_course_sections())  # ticket #216
 PR14_BLOCKS = _fse_course_blocks(pr14_course_sections())  # ticket #217
+PR17_BLOCKS = _fse_course_blocks(pr17_course_sections())  # ticket #218
 EX01_BLOCKS = _fse_course_blocks(ex01_course_sections())  # ticket #230 (sujet de l'examen blanc)
 EX02_BLOCKS = _fse_course_blocks(ex02_course_sections())  # ticket #231 (sujet de l'examen blanc)
 
@@ -5862,6 +5864,7 @@ def seed() -> None:
         _seed_uaa(db, practical_module, "EX02", EX02_TITLE, 12, EX02_BLOCKS, created, kept)
         _seed_uaa(db, practical_module, "PR13", PR13_TITLE, 13, PR13_BLOCKS, created, kept)  # ticket #216
         _seed_uaa(db, practical_module, "PR14", PR14_TITLE, 14, PR14_BLOCKS, created, kept)  # ticket #217
+        _seed_uaa(db, practical_module, "PR17", PR17_TITLE, 17, PR17_BLOCKS, created, kept)  # ticket #218
 
         # Ticket #151 : questions de dossier déjà importées dont un renvoi documentaire
         # n'était pas résolvable → nouvelle version (idempotent, sessions existantes

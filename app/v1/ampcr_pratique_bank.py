@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -47,6 +47,7 @@ from app.v1.ampcr_pratique_pr13_bank import ALL_ITEMS as PR13_ITEMS
 from app.v1.ampcr_pratique_pr14_bank import ALL_ITEMS as PR14_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
+from app.v1.ampcr_pratique_pr17_bank import ALL_ITEMS as PR17_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
 from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.models import (
@@ -1014,6 +1015,53 @@ _PR14_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR17_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr17",
+    course_title="AMPCR pratique écrite — PR17 Fibre optique — choix, raccordement et diagnostic",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : choix d'une fibre et d'un module optique, connecteurs et jarretières, "
+        "raccordement (épissure, pigtail, tiroir), pose, comparaison avec le cuivre, contrôle "
+        "(propreté, photométrie, réflectométrie), sécurité laser et éclats, diagnostic d'une "
+        "liaison optique ; relevés et fiches de modules fictifs"
+    ),
+    allowed_notions=[
+        "fibre de verre : cœur d'indice plus élevé que la gaine optique (125 µm), réflexion totale ; revêtement 250 µm, protection 900 µm, aramide ; lumière infrarouge invisible (850, 1300, 1310, 1550 nm) ; aucun courant : insensible aux parasites, isolation électrique entre bâtiments",
+        "multimode : cœur 50 ou 62,5 µm, 850 nm, dispersion modale, centaines de m ; OM1 62,5 µm et OM2 50 µm (gaine orange), OM3 et OM4 50 µm optimisées laser (aqua, OM4 parfois violet) ; monomode : cœur ≈ 9 µm, 1310/1550 nm, km, OS1/OS2 (jaune) ; le marquage imprimé fait foi ; un seul type de fibre de bout en bout",
+        "portée = module + fibre (IEEE 802.3) : 1000BASE-SX 275 m OM1, 550 m OM2 ; 1000BASE-LX 5 km OS2 ; 10GBASE-SR 33 m OM1, 82 m OM2, 300 m OM3, 400 m OM4 ; 10GBASE-LR 10 km OS2 ; vérifier la portée ET le budget",
+        "connecteurs : LC férule 1,25 mm à clip (SFP/SFP+), SC 2,5 mm carré pousser-tirer, ST baïonnette ; polissage UPC (bleu en monomode) ou APC 8° (vert) : jamais APC sur UPC ; jarretière choisie selon connecteurs, polissage, type de fibre, duplex",
+        "modules : SFP 1 Gb/s, SFP+ 10 Gb/s ; même module aux deux extrémités, de la famille de la fibre (SR/SX multimode, LR/LX monomode), reconnu par le switch ; TX d'un côté vers RX de l'autre ; polarité inversée (TX sur TX) : LOS des deux côtés avec des fibres bonnes, corriger en croisant les deux fibres à une seule extrémité",
+        "pertes : km × dB/km (3,5 multimode à 850 nm, 0,4 OS2) + 0,75 dB par paire de connecteurs + 0,3 dB par épissure ; puissance reçue = émise − perte (dBm − dB) ; perte d'un sens = émise d'un côté − reçue de l'autre ; plage de réception de la fiche (sensibilité, maximum) ; saturation d'un module longue portée sur liaison courte : atténuateur ou module adapté ; LOS ≈ −30 à −40 dBm",
+        "raccordement : épissure par fusion (clivage, arc, manchon, cassette, ≤ 0,3 dB, pas de réflexion), épissure mécanique, pigtail (connecteur posé en usine), tiroir optique, traversées, brassage par jarretières ; pose : rayon ≥ 10 × diamètre au repos et 20 × au tirage (convention du cours, fiche du câble), tirer par l'aramide, attaches non serrées, love de réserve, étiquettes",
+        "contrôle : inspecter, nettoyer (à sec, alcool isopropylique si besoin), réinspecter avant de brancher ; photométrie : référence source + cordon, perte = référence − lecture, comparée à la perte admissible ; OTDR : bobine amorce, pente en dB/km, pic = connecteur, marche sans pic = épissure, perte plus forte à 1550 nm = courbure, pic puis bruit = fin ou cassure ; position d'un défaut = position lue − amorce",
+        "sécurité : ne jamais regarder une fibre ou un connecteur, même supposé éteint ; vérifier au photomètre ; capuchons ; sonde d'inspection fibre déconnectée ; éclats : tapis sombre, lunettes, récipient fermé, ruban adhésif, ni manger ni boire, mains lavées",
+        "comparaison : cuivre 100 m, PoE, bon marché, sensible aux parasites, relie électriquement ; coaxial historique ou vidéo ; fibre : distance, débit, parasites, isolation, mais modules, outillage et raccordement plus chers, fragile",
+    ],
+    competencies=[
+        "Choisir et justifier une fibre, un module et des jarretières pour une liaison, en la comparant au cuivre",
+        "Décrire par écrit le raccordement, la pose et le contrôle d'une liaison optique, en sécurité",
+        "Diagnostiquer une liaison optique (polarité, connecteur sale, module, distance, casse) à partir de mesures",
+    ],
+    vocabulary=[
+        "cœur", "gaine", "réflexion totale", "multimode", "monomode", "OM3", "OS2", "LC", "SC",
+        "APC", "UPC", "SFP", "SFP+", "TX", "RX", "duplex", "polarité", "longueur d'onde",
+        "atténuation", "dBm", "épissure", "pigtail", "jarretière", "tiroir optique",
+        "rayon de courbure", "photomètre", "réflectomètre", "OTDR", "bobine amorce", "LOS",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si l'idée est claire ; "
+        "accepter un arrondi raisonnable et une autre solution technique juste et justifiée (par "
+        "exemple OM4 ou monomode au lieu d'OM3) ; valoriser le diagnostic justifié par les valeurs, "
+        "le choix argumenté, la procédure et la sécurité ; suivre le barème de la question. Ne "
+        "jamais valider : regarder une fibre pour voir la lumière, un module multimode sur fibre "
+        "monomode ou l'inverse, deux modules différents aux deux bouts, un bilan qui oublie la "
+        "portée du module, un APC raccordé sur un UPC, des fibres croisées aux deux extrémités, un "
+        "câble cuivre au-delà de 100 m ou entre deux bâtiments présenté comme équivalent, ni des "
+        "chutes de fibre balayées à la main."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1107,6 +1155,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Câble coaxial et BNC — impédance, fabrication et diagnostic écrit",
         items=PR16_ITEMS,
         context=_PR16_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR17",
+        title="Fibre optique — choix, raccordement et diagnostic",
+        items=PR17_ITEMS,
+        context=_PR17_CONTEXT,
     ),
     PracticalCourse(
         code="PR20",
