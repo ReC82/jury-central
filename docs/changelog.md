@@ -2,6 +2,19 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR26 « Analyser une demande d'intervention technique » (ticket #225)
+
+Cours PR26 du parcours pratique (UAA PR26 du module `AMPCR-PRATIQUE`, position 26, après EX04,
+16 blocs) : recueil de la demande, symptômes et interprétation ; contexte matériel / logiciel /
+réseau, inventaire et références, date, changements récents, utilisateurs touchés ; observation
+ou hypothèse, panne reproductible ou intermittente ; impact, urgence et priorisation (matrice du
+cours) ; sauvegarde, consentement, confidentialité, risques et autorisation ; questions utiles et
+reformulation ; fiche d'incident, vocabulaire technique et grille d'évaluation sur 20 ; critères
+de réussite, plan d'action et estimation ; escalade ; 5 dossiers entièrement corrigés ;
+3 procédures, 7 figures SVG + 2 schémas à compléter (`app/static/img/ampcr-pratique/pr26-*.svg`) ;
+20 exercices, mini-examen 10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr26_*.py`,
+`tests/test_ticket225_ampcr_pratique_pr26.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : examen blanc EX04 « réseau, configuration et dépannage » (ticket #233)
 
 Quatrième examen blanc du parcours pratique (UAA EX04 du module `AMPCR-PRATIQUE`, après PR25, 7
