@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27 ; #227 : PR28) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -60,6 +60,7 @@ from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.ampcr_pratique_pr25_bank import ALL_ITEMS as PR25_ITEMS
 from app.v1.ampcr_pratique_pr26_bank import ALL_ITEMS as PR26_ITEMS
 from app.v1.ampcr_pratique_pr27_bank import ALL_ITEMS as PR27_ITEMS
+from app.v1.ampcr_pratique_pr28_bank import ALL_ITEMS as PR28_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -1543,6 +1544,56 @@ _PR27_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR28_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr28",
+    course_title="AMPCR pratique écrite — PR28 Outillage, sécurité et protection des données",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : choix des outils PC et réseau, sécurité de l'intervention (ESD, électricité, "
+        "bloc, batteries, ventilation, risques mécaniques, laser et fibre, poste de travail), "
+        "protection des données du client, sauvegarde, autorisation, fin de vie et incidents ; "
+        "situations, relevés et fichiers fictifs"
+    ),
+    allowed_notions=[
+        "outils PC : tournevis PH0-PH2 et Torx (embout adapté, vis triées) ; pinces hors tension, jamais levier ; bracelet et tapis ESD selon la procédure de l'atelier (tapis au point de masse, bracelet au tapis, ou à une partie métallique nue du châssis ; PC débranché) ; testeur d'alimentation autorisé (connecteurs avant mise sous tension, ne prouve pas la tenue en charge) ; multimètre (mode et calibre avant de toucher, COM et V, basse tension continue, continuité hors tension, jamais le 230 V) ; pâte thermique (ancienne retirée à l'alcool isopropylique, petite quantité) ; air sec, pales bloquées, bombe droite, pas d'aspirateur domestique",
+        "outils réseau : dénudeur réglé sur une chute ; sertisseuse 8P8C (fiche adaptée, T568A ou T568B identique aux deux bouts) ; outil d'insertion 110 ou LSA (côté coupant vers la chute, torsades jusqu'au contact) ; testeur wiremap jamais sur un port actif (PoE, téléphone), ne remplace pas une certification ; pince BNC et matrice adaptée (RG58, RG59) ; kit de nettoyage fibre, localisateur visuel (laser rouge)",
+        "tolérances ATX (PR02) : ±5 % sur +12 V, +5 V, +3,3 V, +5 VSB ; ±10 % sur −12 V ; hors tolérance → remplacer le bloc, jamais l'ouvrir ; pile CMOS CR2032 nominale 3 V, nettement en dessous = usée",
+        "débrancher : prévenir (travail enregistré, sauvegarde) → arrêt du système → interrupteur du bloc sur 0 → câble secteur et périphériques débranchés → appui sur le bouton pour vider les charges → bracelet → ouvrir ; le bracelet protège la pièce, le débranchement la personne",
+        "risques : ESD ; secteur 230 V et condensateurs ; bloc jamais ouvert ; batterie lithium-ion gonflée, percée, chaude ou tombée (ne plus charger, ne pas presser ni percer, isoler dans un bac ininflammable, appareil sous garantie non ouvert, filière des batteries) ; ventilation (poussière, vapeurs d'alcool, aérosols) ; mécaniques (tôles, ventilateur, charges lourdes à deux) ; laser souvent infrarouge invisible (ne jamais regarder une fibre, capuchons) et éclats (lunettes, récipient fermé, pas de repas) ; poste de travail dégagé, éclairé, sans liquide",
+        "données du client : ne consulter que le nécessaire, jamais le mot de passe d'autrui (le client ouvre sa session ou compte technique temporaire), copie temporaire chiffrée sur support de l'atelier, effacée après restitution ; RGPD : le client reste responsable de ses données",
+        "intégrité : nombre de fichiers, tailles et surtout empreintes SHA-256 (Get-FileHash, sha256sum) identiques ; une taille identique ne prouve pas un contenu identique ; fichier absent ou empreinte différente = copie non valide, à refaire",
+        "chiffrement : BitLocker ou LUKS ; après mise à jour du firmware ou changement de carte mère, BitLocker peut demander la clé de récupération (48 chiffres) : l'obtenir avant (administrateur, compte de l'organisation), suspendre BitLocker avant la mise à jour du firmware ; clé jamais écrite sur le PC ni conservée ; droits : compte prévu pour l'intervention, droits nécessaires seulement",
+        "règle 3-2-1 (complément) : 3 copies original compris, 2 types de supports (convention du cours : disque interne, disque externe et NAS = un seul type « disque » ; en ligne et mémoire flash = autres types), 1 copie hors site ; plus test de restauration",
+        "avant effacement, formatage, réinitialisation ou réinstallation : sauvegarde vérifiée si données à garder, accord écrit et daté nommant opération et support, signé par une personne habilitée, clé de récupération si disque chiffré et poste remis en service, licences et réglages notés ; accord oral ou rapporté par un tiers insuffisant ; formatage rapide n'efface rien (PR04)",
+        "fin de vie : DEEE (en Belgique Recupel, parc à conteneurs, collecteur agréé) ; piles et batteries (Bebat), pôles isolés ; supports de données effacés de façon certifiée ou détruits par filière agréée, certificat par support ; cartouches reprises par le fabricant ou le fournisseur ; rien à la poubelle ordinaire",
+        "fiche sécurité : intervention, risques, protections et outils, avant, pendant, après, en cas d'incident ; incident : sécuriser (couper sans risque, s'éloigner), alerter (112, responsable), secourir dans la limite de sa formation, protéger les données (arrêter toute écriture, signaler), noter, analyser ; arbre : zone sûre ? indemne ? données intactes ? matériel intact ? ; violation de données : prévenir aussitôt, le client décide de notifier l'Autorité de protection des données (72 h au plus si risque)",
+    ],
+    competencies=[
+        "Choisir l'outil et le kit adaptés à une intervention et donner leurs précautions",
+        "Identifier les risques d'une intervention et appliquer la prévention et la réaction adaptées",
+        "Protéger les données du client : copie vérifiée, confidentialité, chiffrement, autorisation, fin de vie et incident",
+    ],
+    vocabulary=[
+        "ESD", "bracelet antistatique", "tapis antistatique", "testeur d'alimentation", "multimètre", "calibre",
+        "pâte thermique", "sertisseuse", "dénudeur", "outil d'insertion", "testeur wiremap", "PoE", "férule",
+        "laser", "batterie lithium-ion", "DEEE", "sauvegarde 3-2-1", "empreinte", "intégrité", "confidentialité",
+        "chiffrement", "clé de récupération", "personne habilitée", "fiche sécurité", "incident",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "justes, tout outil équivalent et sûr, toute précaution juste, sans exiger de mot-clé ni la "
+        "reprise exacte du corrigé ; la procédure de l'atelier ou du fabricant citée par le candidat "
+        "est recevable ; valoriser la sécurité de la personne avant celle du matériel, le "
+        "débranchement, la vérification de la copie et l'accord écrit ; suivre le barème de la "
+        "question. Ne jamais valider : ouvrir un bloc d'alimentation, travailler dans un PC branché, "
+        "mesurer le 230 V au multimètre, charger ou presser une batterie gonflée, regarder une fibre, "
+        "brancher un testeur sur un port actif, un aspirateur domestique, un effacement ou une "
+        "réinstallation sans copie vérifiée ni accord écrit d'une personne habilitée, consulter les "
+        "fichiers personnels ou demander le mot de passe du client, un formatage rapide présenté "
+        "comme effacement, un déchet à la poubelle ordinaire, un incident caché."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1702,6 +1753,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Construire et justifier une procédure de diagnostic",
         items=PR27_ITEMS,
         context=_PR27_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR28",
+        title="Outillage, sécurité et protection des données",
+        items=PR28_ITEMS,
+        context=_PR28_CONTEXT,
     ),
     PracticalCourse(
         code="EX01",
