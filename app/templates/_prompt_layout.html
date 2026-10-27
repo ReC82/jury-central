@@ -1,0 +1,48 @@
+{# Consignes structurées d'un exercice pratique (ticket #299) : contexte, documents à
+consulter, données et règles, questions numérotées, sous-questions. `layout` vient de
+`prompt_layout(prompt)` (app/v1/prompt_layout.py) : extraits exacts de la consigne
+enregistrée, rien d'ajouté ni de retiré. `docs` : liste de {label, title, anchor} — `anchor`
+vide quand le document n'est pas affiché sur la page (lien omis). #}
+
+{% macro situation(layout, docs=[]) -%}
+<section class="jc-pl jc-pl-situation" aria-label="Situation">
+    <p class="jc-pl-head"><i class="bi bi-briefcase" aria-hidden="true"></i> Contexte{% if layout.label %} <span class="jc-pl-part">{{ layout.label }}</span>{% endif %}</p>
+    <p class="jc-pl-context">{{ layout.context }}</p>
+    {% if docs %}
+    <p class="jc-pl-head"><i class="bi bi-files" aria-hidden="true"></i> Documents à consulter</p>
+    <ul class="jc-pl-docs">
+        {% for doc in docs %}
+        <li>{% if doc.anchor %}<a href="#{{ doc.anchor }}">{% endif %}<strong>{{ doc.label }}</strong>{% if doc.title %} — {{ doc.title }}{% endif %}{% if doc.anchor %}</a>{% endif %}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</section>
+{%- endmacro %}
+
+{% macro questions(layout) -%}
+{% if layout.data_rules %}
+<aside class="jc-pl jc-pl-rules" aria-label="Données et règles">
+    <p class="jc-pl-head"><i class="bi bi-rulers" aria-hidden="true"></i> Données et règles</p>
+    <ul>
+        {% for rule in layout.data_rules %}<li>{{ rule }}</li>{% endfor %}
+    </ul>
+</aside>
+{% endif %}
+<section class="jc-pl jc-pl-questions" aria-label="Questions">
+    {% if layout.steps|length > 1 %}
+    <p class="jc-pl-head"><i class="bi bi-pencil-square" aria-hidden="true"></i> Questions</p>
+    <ol class="jc-pl-steps">
+        {% for step in layout.steps %}<li>{{ step_body(step) }}</li>{% endfor %}
+    </ol>
+    {% else %}
+    <p class="jc-pl-head"><i class="bi bi-pencil-square" aria-hidden="true"></i> À faire</p>
+    {% for step in layout.steps %}<div class="jc-pl-single">{{ step_body(step) }}</div>{% endfor %}
+    {% endif %}
+</section>
+{%- endmacro %}
+
+{% macro step_body(step) -%}
+{% if step.items %}{{ step.lead }}
+<ul class="jc-pl-sub">{% for sub in step.items %}<li>{{ sub }}</li>{% endfor %}</ul>
+{%- else %}{{ step.text }}{% endif %}
+{%- endmacro %}
