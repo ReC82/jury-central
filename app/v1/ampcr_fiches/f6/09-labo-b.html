@@ -1,0 +1,93 @@
+<section class="fx-sec" id="f6-labo-b">
+<h2>5 (suite). Grand laboratoire PR30 — comptes, systèmes, Wi-Fi, sécurité, incidents, recette, rapport</h2>
+
+<div class="fx-answer" id="f6-labo-q6">
+<p class="fx-answer-title">Réponse rédigée attendue — questions 6 à 9</p>
+<p><strong>6. Groupe de travail ou domaine, comptes, partages, droits (12 pts).</strong></p>
+<ul>
+<li><strong>Choix : groupe de travail</strong> « ARCHIMEDE » sur les 6 postes, avec les comptes d'accès aux fichiers centralisés <strong>sur le NAS</strong>. Justification : 6 postes, pas de serveur Windows, pas de besoin de stratégies centralisées ; un domaine (serveur Windows avec Active Directory, postes en édition Pro) se justifierait au-delà d'une dizaine de postes ou pour gérer les comptes et les règles de façon centrale : je le note comme évolution possible.</li>
+<li><strong>Comptes NAS</strong> nominatifs (un par personne, mot de passe personnel) : mcollin, mhaddad, speeters, pdumont, alambert, knowak. Le compte administrateur du NAS est renommé ou désactivé et remplacé par un compte d'administration au mot de passe fort, réservé au technicien.</li>
+<li><strong>Groupes</strong> : G_Admin = mcollin, mhaddad, speeters ; G_Etudes = pdumont, alambert, knowak, mcollin ; G_Compta = speeters ; tous sont membres du groupe « users » du NAS.</li>
+<li><strong>Règle</strong> : on donne les droits aux <strong>groupes</strong>, pas aux personnes (sauf exception justifiée) ; on n'utilise pas de « Aucun accès » explicite sur un groupe, car un refus explicite l'emporte sur une autorisation : par exemple, « Aucun accès » à G_Etudes sur Compta retirerait aussi la lecture de la directrice, membre de G_Etudes.</li>
+</ul>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Partage</th><th>Lecture/écriture</th><th>Lecture seule</th><th>Pas d'accès (non autorisé)</th></tr></thead>
+<tbody>
+<tr><td>Commun</td><td>users (tous)</td><td>—</td><td>—</td></tr>
+<tr><td>Administration</td><td>G_Admin</td><td>—</td><td>pdumont, alambert, knowak</td></tr>
+<tr><td>Projets</td><td>G_Etudes</td><td>—</td><td>mhaddad, speeters</td></tr>
+<tr><td>Compta</td><td>G_Compta</td><td>mcollin</td><td>tous les autres</td></tr>
+</tbody></table></div>
+<p>Si les partages étaient hébergés sur un Windows (au lieu du NAS), même logique avec deux couches : permissions de partage + NTFS, droit effectif = le plus restrictif des deux (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-partage">→ Fiche 4 · Partage SMB et NTFS</a>). Sur les postes : un compte local <strong>standard</strong> par utilisateur pour le travail quotidien et un compte administrateur local distinct, au mot de passe fort, réservé au technicien ; sous Ubuntu, knowak est membre du groupe sudo (développeur, justifié et noté), mot de passe fort.</p>
+
+<p><strong>7. Installation des systèmes et connexion aux ressources (10 pts).</strong></p>
+<p class="fx-warn"><b>Attention</b> Les installations effacent le disque choisi. Postes neufs : pas de données à sauvegarder, mais je vérifie qu'aucun disque contenant des données n'est branché ; si un poste est réutilisé, sauvegarde vérifiée d'abord (voir <a href="#f6-dossier-5">dossier 5</a>).</p>
+<ol>
+<li><strong>Windows 11 Pro</strong> (DIRECTION, SECRETARIAT, COMPTA, CAO1, CAO2) : vérifier dans l'UEFI le mode UEFI (CSM désactivé), le TPM 2.0 et le Secure Boot ; démarrage sur la clé d'installation ; installation sur le SSD (partitions GPT créées automatiquement) ; nom d'ordinateur (DIRECTION…) ; comptes locaux (standard + admin) ; Windows Update jusqu'à « à jour » ; pilotes du constructeur, dont le pilote de la carte graphique sur CAO1/CAO2 ; Gestionnaire de périphériques sans point d'exclamation ; groupe de travail ARCHIMEDE ; profil réseau Privé ; Microsoft Defender actif. Détails et pannes d'installation : <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-boot">→ Fiche 2 · Boot, UEFI</a> · <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-pilote">→ Fiche 2 · Pilotes</a>.</li>
+<li><strong>Ubuntu 24.04 LTS</strong> (LINUX1) : démarrage UEFI sur la clé, « Installer Ubuntu », installation sur le disque entier (disque neuf vérifié), utilisateur knowak, puis <code>sudo apt update &amp;&amp; sudo apt upgrade</code> ; contrôle réseau : <code>ip -br addr</code> (adresse 192.168.20.1xx/24), <code>ip route</code> (default via 192.168.20.1), <code>resolvectl status</code> (DNS 192.168.20.1).</li>
+<li><strong>Lecteurs réseau Windows</strong> : Explorateur → Ce PC → Connecter un lecteur réseau → lettre (C: exclu) → <code>\\192.168.20.5\Projets</code> → « Se reconnecter à l'ouverture de session » + « Se connecter à l'aide d'autres informations d'identification » → compte NAS de l'utilisateur, mémorisé. Équivalent : <code>net use P: \\192.168.20.5\Projets /persistent:yes</code>.</li>
+<li><strong>Partages sous Ubuntu</strong> : Fichiers → Autres emplacements → Connexion à un serveur : <code>smb://192.168.20.5/Projets</code> → utilisateur knowak, domaine ARCHIMEDE (ou WORKGROUP), mot de passe mémorisé ; signet ajouté.</li>
+<li><strong>Multifonction</strong> : sur chaque Windows, Paramètres → Bluetooth et appareils → Imprimantes et scanners → Ajouter un appareil → « L'imprimante que je veux n'est pas répertoriée » → par adresse TCP/IP 192.168.20.10, pilote du fabricant ; sous Ubuntu : Paramètres → Imprimantes → Ajouter (détection IPP) ou adresse 192.168.20.10. Page de test depuis chaque poste.</li>
+</ol>
+
+<p><strong>8. Wi-Fi (8 pts).</strong></p>
+<ul>
+<li>Point d'accès B04 au plafond de la salle B, alimenté en PoE, en mode <strong>point d'accès (pont)</strong>, DHCP désactivé, IP fixe 192.168.20.2/24, passerelle .1.</li>
+<li>Réseau du personnel : SSID « Archimede », WPA3-Personnel, ou mode de transition WPA2/WPA3 si certains portables ne gèrent pas WPA3 ; chiffrement AES (CCMP), jamais WEP ni TKIP ; phrase de passe longue (au moins 12 à 16 caractères, non devinable) ; WPS désactivé ; mot de passe d'administration du point d'accès changé ; micrologiciel à jour.</li>
+<li>Radio : 5 GHz prioritaire (canal 36 à 48 par ex.) pour le débit, 2,4 GHz sur 1, 6 ou 11 selon le relevé des réseaux voisins (canaux sans recouvrement) ; puissance adaptée.</li>
+<li>Visiteurs : SSID « Archimede-Visiteurs » diffusé par la <strong>box</strong> (fonction réseau invités : réseau 192.168.30.0/24 isolé du LAN), WPA2 avec une clé différente, changée régulièrement ; le Wi-Fi principal de la box est désactivé pour qu'il n'existe qu'un seul Wi-Fi interne.</li>
+<li>Mesure : relevé du signal dans chaque salle (portable : <code>netsh wlan show interfaces</code>). Si la salle A est mal couverte → second point d'accès câblé sur la prise de réserve A05, même SSID et même sécurité, autre canal ; pas de répéteur sans fil (débit divisé, et il doit être placé où le signal est encore bon) (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-wifi">→ Fiche 4 · Wi-Fi</a>).</li>
+<li>Masquer le SSID ou filtrer par adresses MAC n'apporte pas de vraie sécurité : je ne m'en sers pas comme protection.</li>
+</ul>
+
+<p><strong>9. Sécurité (6 pts).</strong></p>
+<ul>
+<li>Personnes et matériel : travaux électriques hors tension, protection ESD lors des montages, baie fermée à clé, onduleur pour box/switch/NAS avec arrêt automatique du NAS (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ Fiche 5 · Sécurité</a>).</li>
+<li>Accès : mots de passe d'administration par défaut changés (box, point d'accès, NAS), comptes nominatifs, utilisateurs en comptes standards, droits minimaux nécessaires.</li>
+<li>Systèmes : mises à jour automatiques, antivirus et pare-feu actifs, profil réseau Privé seulement sur le LAN de confiance.</li>
+<li>Données : NAS en RAID 1 <strong>plus</strong> sauvegarde quotidienne sur disque externe en rotation, dont un exemplaire hors des locaux (ou sauvegarde distante) ; test de restauration réel à la mise en service puis périodiquement.</li>
+<li>Wi-Fi : WPA3/WPA2-AES, visiteurs isolés, WPS désactivé.</li>
+<li>Documentation remise : plan d'adressage, plan de brassage, mots de passe dans une enveloppe scellée ou un gestionnaire de mots de passe de l'entreprise, pas sur un papier collé à la baie.</li>
+</ul>
+</div>
+
+<div class="fx-answer" id="f6-labo-q10">
+<p class="fx-answer-title">Réponse rédigée attendue — question 10 : incidents de mise en service</p>
+<p><strong>D1 — CAO2 s'arrête aussitôt après la pose de la carte graphique (4 pts).</strong> Observation : ventilateurs 1 seconde puis arrêt, aucune image, juste après l'ajout de la carte ; le manuel exige un connecteur PCIe 8 broches. Hypothèses : 1) connecteur d'alimentation PCIe de la carte non branché ; 2) carte mal insérée dans son port PCIe x16 ; 3) alimentation insuffisante pour la carte ; 4) court-circuit (vis, entretoise mal placée). Test : secteur coupé, ESD, contrôle visuel du connecteur 8 broches → s'il n'est pas branché, le brancher avec le câble PCIe <em>de l'alimentation</em> (pas d'adaptateur douteux), vérifier l'insertion et le verrou de la carte. Si le PC démarre → cause 1 confirmée. Sinon : retirer la carte et démarrer sur la sortie vidéo intégrée (retour arrière) → si OK, comparer la puissance de l'alimentation à celle recommandée par le fabricant de la carte. Validation : POST, image, pilote graphique installé, logiciel de CAO et test de charge graphique de 15 min sans arrêt. Gestes : <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-alim">→ Fiche 1 · Alimentation</a>.</p>
+<p><strong>D2 — LINUX1 sans réseau (4 pts).</strong> Observation : <code>enp3s0 DOWN … NO-CARRIER</code> = la carte est reconnue mais ne détecte aucun lien électrique ; le problème n'est donc ni l'adresse IP ni le DNS. Le testeur montre le <strong>conducteur 6 ouvert</strong> entre la prise B03 et le port 15 du panneau (conducteur vert en T568B, paire 3-6 utilisée en 100 Mb/s comme en 1 Gb/s). Cause : poinçonnage défectueux d'un côté (fil non enfoncé ou isolant non percé dans le contact). Correction : inspecter les deux extrémités ; reprendre le poinçonnage du côté défectueux (ou des deux si rien n'est visible), en respectant l'ordre T568B et un détorsadage minimal ; retester : 1-1 à 8-8 OK. Validation : <code>ip -br link</code> → <code>enp3s0 UP</code> ; <code>ip -br addr</code> → 192.168.20.1xx/24 ; <code>ip route</code> → default via 192.168.20.1 ; <code>ping -c 4 192.168.20.1</code>, ping d'un nom Internet, accès à smb://192.168.20.5/Projets. Procès-verbal de test mis à jour (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-testeur">→ Fiche 3 · Testeur</a>).</p>
+<p><strong>D3 — SECRETARIAT : « Accès refusé » sur Administration (3 pts).</strong> Le réseau fonctionne (le serveur répond par un refus, pas par « chemin introuvable »). Le compte a été renommé sur le NAS : le poste présente toujours les anciens identifiants « secretariat », qui n'existent plus. Correction : fermer les connexions ouvertes vers le NAS (<code>net use \\192.168.20.5\Administration /delete</code>, ou <code>net use * /delete</code> après avoir prévenu l'utilisateur), puis Panneau de configuration → Gestionnaire d'identification → Informations d'identification Windows → supprimer l'entrée 192.168.20.5 ; reconnecter le lecteur avec « mhaddad ». Vérifier aussi sur le NAS que mhaddad est toujours membre de G_Admin après le renommage. Validation : ouverture, création et suppression d'un fichier test dans Administration avec le compte de M. Haddad ; Projets reste refusé (attendu).</p>
+<p><strong>D4 — Portable de M. Dumont : Internet OK, NAS introuvable (3 pts).</strong> L'adresse 192.168.30.57 avec passerelle 192.168.30.1 appartient au réseau <strong>visiteurs</strong> 192.168.30.0/24, isolé du LAN 192.168.20.0/24 par conception : le comportement est normal, ce n'est pas une panne. Correction : connecter le portable au SSID « Archimede » (personnel), « Oublier » le réseau visiteurs sur ce portable ; rappeler que la clé visiteurs n'est pas destinée au personnel. Validation : adresse 192.168.20.1xx/24, accès à \\192.168.20.5\Projets, impression.</p>
+</div>
+
+<div class="fx-answer" id="f6-labo-q11">
+<p class="fx-answer-title">Réponse rédigée attendue — questions 11 et 12</p>
+<p><strong>11. Procédure de recette (8 pts).</strong> Réalisée avec la directrice, chaque ligne cochée et datée.</p>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>N°</th><th>Test</th><th>Résultat attendu</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Testeur sur les 10 liaisons permanentes</td><td>8 conducteurs dans l'ordre, procès-verbal signé</td></tr>
+<tr><td>2</td><td>Voyants et vitesse de lien de chaque poste</td><td>Lien à 1 Gbit/s</td></tr>
+<tr><td>3</td><td><code>ipconfig /all</code> ou <code>ip -br addr</code> sur chaque poste</td><td>192.168.20.1xx/24, passerelle .1, DNS .1</td></tr>
+<tr><td>4</td><td>Ping .1 (box), .5 (NAS), .10 (multifonction), puis IP Internet, puis <code>nslookup</code> d'un nom</td><td>Réponses / adresse résolue</td></tr>
+<tr><td>5</td><td>Navigation sur 3 sites depuis chaque poste</td><td>Pages chargées</td></tr>
+<tr><td>6</td><td>Matrice des droits testée avec <strong>chaque compte utilisateur</strong> (pas avec l'admin)</td><td>Conforme au tableau de la question 6, y compris les refus attendus</td></tr>
+<tr><td>7</td><td>Impression et numérisation depuis chaque poste, poste DIRECTION éteint</td><td>Impression OK sans dépendre d'un poste</td></tr>
+<tr><td>8</td><td>Wi-Fi personnel dans les deux salles (signal, accès NAS) ; Wi-Fi visiteurs (Internet OK, NAS inaccessible)</td><td>Couverture suffisante ; isolement vérifié</td></tr>
+<tr><td>9</td><td>Débranchement secteur de l'onduleur pendant 1 minute</td><td>Box, switch, NAS restent alimentés ; arrêt propre du NAS si la coupure se prolonge</td></tr>
+<tr><td>10</td><td>Sauvegarde du NAS puis <strong>restauration</strong> d'un fichier test</td><td>Fichier restauré identique</td></tr>
+<tr><td>11</td><td>Redémarrage de tout le réseau (box, switch, postes)</td><td>Tout revient sans intervention : lecteurs reconnectés, IP correctes</td></tr>
+</tbody></table></div>
+
+<p><strong>12. Rapport d'intervention — résumé (6 pts).</strong> (Modèle complet : <a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-rapport">→ Fiche 5 · Rapport d'intervention</a>.)</p>
+<ul>
+<li><strong>Client, date, intervenant, demande</strong> : bureau d'études Archimède, installation complète du réseau des nouveaux locaux.</li>
+<li><strong>Réalisé</strong> : baie, panneau 24 ports, switch 16 ports PoE, 10 liaisons cat. 6 U/UTP T568B (291 m posés), point d'accès bi-bande, onduleur ; plan d'adressage 192.168.20.0/24 (fixes .1/.2/.5/.10, DHCP .100-.199) ; Wi-Fi visiteurs isolé 192.168.30.0/24 ; 5 postes Windows 11 Pro et 1 Ubuntu 24.04 installés et mis à jour ; comptes, groupes, 4 partages, matrice des droits ; sauvegarde du NAS.</li>
+<li><strong>Incidents de mise en service</strong> : D1 alimentation PCIe non branchée (corrigé) ; D2 conducteur 6 mal poinçonné sur B03 (refait, retesté) ; D3 identifiants obsolètes après renommage du compte (corrigé) ; D4 portable sur le réseau visiteurs (comportement normal, reconnecté au bon réseau).</li>
+<li><strong>Résultats de recette</strong> : tests 1 à 11 conformes (procès-verbal joint).</li>
+<li><strong>Documents remis</strong> : plan d'adressage, plan de brassage et repérage, matrice des droits, procès-verbal des tests de câblage, mots de passe (remis sous enveloppe).</li>
+<li><strong>Recommandations</strong> : contrôle mensuel de la sauvegarde et test de restauration trimestriel ; changement périodique de la clé visiteurs ; domaine à envisager au-delà d'une dizaine de postes ; 6 ports de switch, 14 ports de panneau et 2 prises murales de réserve disponibles.</li>
+<li><strong>Validation</strong> : signature de la directrice après recette.</li>
+</ul>
+<p class="fx-lose"><b>Perd des points (laboratoire) :</b> plan sans calcul ; IP fixes dans l'étendue ; deux serveurs DHCP (box + point d'accès en mode routeur) ; droits donnés à « Tout le monde » ; tests de droits faits avec l'administrateur ; RAID présenté comme une sauvegarde ; pas de mesure Wi-Fi ; câble branché directement au switch sans panneau ; recette absente ou sans résultats attendus.</p>
+</div>
+</section>

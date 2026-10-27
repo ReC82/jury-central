@@ -1,0 +1,138 @@
+<section class="fx-sec" id="f6-dossiers-c">
+<h2>4. Dossiers intégrés résolus — C. Intermittences, stockage, liaison directe (dossiers 7 à 9)</h2>
+
+<article class="fx-case" id="f6-dossier-7">
+<h3>Dossier 7 — Coupures réseau intermittentes dans un atelier (le testeur dit « OK »)</h3>
+<p class="fx-sev">Domaines : câblage + système (journaux) + méthode · Type : panne intermittente + fausse piste (pilote) · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Garage Lambert. Le poste PC-ATELIER (Windows 11) perd le réseau plusieurs fois par jour pendant quelques secondes à quelques minutes ; le logiciel de gestion des réparations, sur le serveur du bureau, affiche alors « Connexion au serveur perdue ». Les postes du bureau ne sont pas touchés. Le problème a commencé il y a 3 semaines, quand un nouveau compresseur a été installé ; son câble d'alimentation 400 V a été tiré dans la même goulotte que le câble réseau sur une quinzaine de mètres. Le câble réseau (cat. 5e U/UTP, 42 m) traverse ensuite l'allée des véhicules sous un passe-câble en caoutchouc légèrement écrasé. La semaine passée, le patron a mis à jour le pilote de la carte réseau : aucun changement.</p>
+<p><strong>Document 1 — Observateur d'événements → Journaux Windows → Système, filtré sur la carte réseau (extrait d'une journée).</strong></p>
+<pre class="fx-out">08:12:04  ID 27  Liaison réseau déconnectée.
+08:12:09  ID 32  Liaison établie à 1Gbit/s, duplex intégral.
+10:47:31  ID 27  Liaison réseau déconnectée.
+10:47:36  ID 32  Liaison établie à 1Gbit/s, duplex intégral.
+14:05:12  ID 27  Liaison réseau déconnectée.
+14:05:20  ID 32  Liaison établie à 100Mbit/s, duplex intégral.
+16:31:44  ID 27  Liaison réseau déconnectée.
+16:31:49  ID 32  Liaison établie à 1Gbit/s, duplex intégral.</pre>
+<p><strong>Document 2 — Carnet du mécanicien.</strong> Démarrages du compresseur notés ce jour-là : 08:12, 10:47, 13:20, 16:31. Une camionnette a stationné sur le passe-câble vers 14:05.</p>
+<p><strong>Document 3 — Testeur de câble (moteur du compresseur à l'arrêt, aucun véhicule).</strong> 1-1, 2-2, 3-3, 4-4, 5-5, 6-6, 7-7, 8-8 : OK.</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Le document 3 innocente-t-il le câble ? Explique les limites du test. (3 pts)</li>
+<li>Exploite les documents 1 et 2 : quelles hypothèses retiens-tu, lesquelles écartes-tu ? (6 pts)</li>
+<li>Propose un test discriminant supplémentaire et ses deux issues. (3 pts)</li>
+<li>Propose la correction. (5 pts)</li>
+<li>Comment valides-tu une panne intermittente ? (3 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Limites du testeur (3 pts).</strong> Non. Le test a été fait <em>hors des conditions de la panne</em> (compresseur à l'arrêt, pas de véhicule). Un testeur de continuité vérifie que chaque conducteur relie la bonne broche ; il ne mesure ni les parasites induits, ni un contact qui ne s'ouvre que sous pression, ni la qualité de transmission à 1 Gb/s. Un câble « OK au testeur » peut donc provoquer des coupures intermittentes (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-testeur">→ Fiche 3 · Testeur</a>).</p>
+<p><strong>2. Exploitation des journaux (6 pts).</strong></p>
+<ul>
+<li>Les événements ID 27 (lien perdu) puis ID 32 (lien rétabli) prouvent une <strong>perte du lien physique</strong>, pas un problème d'adresse, de DNS ou de serveur (ceux-ci ne coupent pas le lien Ethernet).</li>
+<li>Trois coupures sur quatre (08:12, 10:47, 16:31) coïncident à la minute près avec un démarrage du compresseur : forte présomption de <strong>parasites électromagnétiques</strong> induits par le câble 400 V dans le câble U/UTP non blindé, posé parallèlement sur 15 m. La date d'apparition (installation du compresseur) le confirme. Le démarrage de 13:20 sans coupure montre que ce n'est pas systématique : normal pour une perturbation (intensité variable).</li>
+<li>La coupure de 14:05 coïncide avec la camionnette sur le passe-câble, et le lien revient à <strong>100 Mbit/s</strong> au lieu de 1 Gbit/s : une paire au moins est abîmée (le gigabit utilise les 4 paires, le 100 Mb/s seulement 2). Deuxième cause : <strong>écrasement mécanique</strong> du câble.</li>
+<li>Écartées : le pilote (la panne existait avant la mise à jour, et la mise à jour n'a rien changé ; un pilote fautif ne suivrait pas l'horaire du compresseur) ; le serveur (les autres postes ne sont pas touchés) ; la configuration IP (le lien lui-même tombe).</li>
+</ul>
+<p><strong>3. Test discriminant (3 pts).</strong> Relier temporairement PC-ATELIER au switch par un câble provisoire <strong>éloigné de la goulotte</strong> et ne passant pas dans l'allée (au sol le long du mur, protégé, ou en hauteur), pendant une ou deux journées de travail normal. Issue A : plus aucun événement ID 27 aux démarrages du compresseur → le tracé du câble (parasites + écrasement) est confirmé. Issue B : les coupures persistent → je teste le port du switch (changer de port) puis la carte réseau (carte USB-Ethernet de test) ; je vérifie aussi la gestion d'alimentation de la carte. Je peux aussi lancer un <code>ping -t</code> vers le serveur pendant le démarrage du compresseur pour observer la perte en direct.</p>
+<p><strong>4. Correction (5 pts).</strong></p>
+<ol>
+<li>Séparer les courants forts et faibles : nouveau tracé du câble réseau dans une goulotte ou un compartiment séparé, à distance du câble 400 V ; s'ils doivent se croiser, à angle droit.</li>
+<li>Vu l'environnement d'atelier (moteurs, compresseur), poser un câble <strong>blindé</strong> (F/UTP ou S/FTP cat. 6) avec connecteurs blindés, et un blindage relié à la masse côté baie, pour que le blindage soit efficace (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-installation">→ Fiche 3 · Installation physique</a>).</li>
+<li>Remplacer le câble abîmé : ne plus traverser l'allée au sol, ou utiliser un passe-câble renforcé pour véhicules ; jamais de raccord au milieu d'un câble écrasé.</li>
+<li>Longueur restant inférieure à 90 m de câble fixe. Sertissage T568B des deux côtés, test au testeur puis test de lien à 1 Gbit/s.</li>
+</ol>
+<p><strong>5. Validation (3 pts).</strong> Une panne intermittente ne se valide pas par un seul test : lien à 1 Gbit/s ; <code>ping -t</code> vers le serveur pendant plusieurs démarrages volontaires du compresseur (0 % de perte) ; puis surveillance du journal Système pendant au moins une semaine de travail normal (aucun ID 27) ; retour de l'utilisateur. Rapport : corrélation horaire, deux causes, tracé modifié, matériel posé.</p>
+<p class="fx-lose"><b>Perd des points :</b> « le testeur est OK donc le câble est bon » ; remplacer la carte réseau ou réinstaller le pilote ; « ça vient du serveur » ; valider par un seul ping de 4 paquets ; poser du blindé sans mise à la masse.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f6-dossier-8">
+<h3>Dossier 8 — Ajout d'un second disque : plus de démarrage, puis disque invisible</h3>
+<p class="fx-sev">Domaines : matériel + système + méthode · Type : deux pannes enchaînées + fausse croyance (« le disque a effacé Windows ») · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Un photographe indépendant a fait monter un disque dur SATA de 2 To dans sa tour (Windows 11 installé sur un SSD SATA de 500 Go) pour ses archives. Depuis, au démarrage, l'écran affiche un message et rien ne se passe. Il est persuadé que « le nouveau disque a effacé Windows ».</p>
+<p><strong>Document 1 — Message au démarrage.</strong></p>
+<pre class="fx-out">Reboot and Select proper Boot Device
+or Insert Boot Media in selected Boot device and press a key</pre>
+<p><strong>Document 2 — Écran Boot de l'UEFI.</strong></p>
+<pre class="fx-out">Boot Option #1 : ST2000DM008 (1863.0GB)
+Boot Option #2 : Windows Boot Manager (Samsung SSD 870 EVO 500GB)
+Boot Option #3 : UEFI: USB Device</pre>
+<p><strong>Document 3 — Après ta première correction, Windows démarre. Gestion des disques :</strong></p>
+<pre class="fx-out">Disque 0  De base  465,76 Go  En ligne   (C:) NTFS  Partition EFI  Récupération
+Disque 1  Inconnu  1863,01 Go Non initialisé   [1863,01 Go Non alloué]</pre>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Interprète le message et le document 2. La croyance du client est-elle fondée ? (4 pts)</li>
+<li>Décris la correction du démarrage et sa vérification. (4 pts)</li>
+<li>Explique pourquoi le disque 1 n'apparaît pas dans l'Explorateur. (3 pts)</li>
+<li>Décris la procédure pour rendre le disque utilisable, avec les précautions. (6 pts)</li>
+<li>Validation et conseils. (3 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Interprétation (4 pts).</strong> Le message signifie que le micrologiciel n'a pas trouvé de programme d'amorçage sur le périphérique qu'il a essayé en premier. Le document 2 montre que le nouveau disque ST2000DM008, vierge, a été placé en première position ; « Windows Boot Manager » sur le SSD est toujours présent en position 2. Le SSD est donc détecté et son gestionnaire de démarrage existe : Windows n'est pas effacé. Un disque vierge ajouté n'écrit rien sur un autre disque ; la croyance n'est pas fondée. Cause : <strong>ordre de démarrage</strong> modifié par l'ajout du disque (certains UEFI placent le nouveau disque en tête), et le micrologiciel ne passe pas à l'option suivante.</p>
+<p><strong>2. Correction du démarrage (4 pts).</strong> Dans l'UEFI (touche affichée au démarrage, souvent Suppr ou F2), menu Boot : placer « Windows Boot Manager (Samsung SSD 870 EVO) » en Boot Option #1, enregistrer et quitter (F10). Alternative ponctuelle pour tester sans rien modifier : menu de démarrage (souvent F8, F11 ou F12) et choisir Windows Boot Manager. Vérification : démarrage de Windows, puis deux démarrages à froid. Si Windows Boot Manager n'apparaissait pas du tout : SSD non détecté (câble SATA ou alimentation déplacés pendant le montage) → <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-stockage">→ Fiche 1 · Stockage</a> ; s'il apparaît mais ne démarre pas → réparation du démarrage <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-boot">→ Fiche 2 · Boot</a>.</p>
+<p><strong>3. Disque invisible (3 pts).</strong> Le disque 1 est détecté (taille correcte : 2 To = 2 000 milliards d'octets ≈ 1863 Go en unités binaires, pas de capacité manquante) mais « Non initialisé » et « Non alloué » : il n'a ni table de partitions, ni volume formaté, ni lettre. L'Explorateur n'affiche que les volumes. Ce n'est pas une panne matérielle.</p>
+<p><strong>4. Rendre le disque utilisable (6 pts).</strong></p>
+<p class="fx-warn"><b>Attention</b> Initialiser, partitionner et formater détruisent le contenu du disque visé. Prérequis : être certain de la cible (Disque 1, 1863,01 Go, « Non initialisé », sans aucune partition) ; jamais Disque 0 qui porte C:, EFI et Récupération. Si le client avait déjà des données sur ce disque (disque récupéré d'un autre PC), ne pas initialiser : le connecter d'abord en lecture pour vérifier et sauvegarder.</p>
+<ol>
+<li>Gestion des disques (clic droit sur Démarrer → Gestion du disque) : la fenêtre « Initialiser le disque » s'ouvre ; cocher uniquement Disque 1, style <strong>GPT</strong> (recommandé avec UEFI, et obligatoire au-delà de 2 Tio, limite de MBR).</li>
+<li>Clic droit sur l'espace non alloué → Nouveau volume simple → toute la taille → lettre (par ex. D:) → système de fichiers <strong>NTFS</strong>, nom de volume « ARCHIVES », formatage rapide.</li>
+<li>Équivalent en ligne de commande si demandé : <code>diskpart</code> → <code>list disk</code> → <code>select disk 1</code> (vérifier la taille) → <code>convert gpt</code> → <code>create partition primary</code> → <code>format fs=ntfs quick label=ARCHIVES</code> → <code>assign letter=D</code>. Détails : <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-partition">→ Fiche 1 · Partitionnement</a>.</li>
+</ol>
+<p><strong>5. Validation et conseils (3 pts).</strong> D: visible dans l'Explorateur avec ≈ 1,81 To libres ; création, lecture et suppression d'un fichier test ; copie d'un dossier de photos et ouverture ; redémarrage : D: toujours présent et démarrage sur le SSD. Conseils : un disque d'archives n'est pas une sauvegarde (une seule copie) : prévoir un disque externe ou un stockage distant ; surveiller SMART. Rapport : cause (ordre de démarrage), disque initialisé GPT/NTFS avec accord.</p>
+<p class="fx-lose"><b>Perd des points :</b> réinstaller Windows ; réparer le démarrage avant d'avoir regardé l'ordre de boot ; initialiser sans identifier le disque ; choisir MBR sans justification ; conclure « disque défectueux » parce qu'il affiche 1863 Go.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f6-dossier-9">
+<h3>Dossier 9 — Connexion directe de deux PC : ça ne « ping » pas, puis « accès refusé »</h3>
+<p class="fx-sev">Domaines : câblage + réseau + système (pare-feu, comptes) · Type : pannes en cascade, chaque correction révèle la suivante · /20</p>
+<div class="fx-case-statement">
+<p><strong>Contexte.</strong> Une association doit copier 60 Go de vidéos d'un ancien portable PC-A (Windows 10) vers un nouveau PC-B (Windows 11), sans switch ni Internet sur place, avec un cordon RJ45 cat. 5e droit. Les deux cartes sont gigabit. Les deux voyants de lien s'allument. Le bénévole a configuré les adresses à la main et partagé le dossier D:\Videos de PC-A.</p>
+<p><strong>Document 1.</strong></p>
+<pre class="fx-out">PC-A : IPv4 192.168.100.1  masque 255.255.255.0  passerelle (vide)
+PC-B : IPv4 192.168.10.2   masque 255.255.255.0  passerelle (vide)
+PC-B&gt; ping 192.168.100.1
+PING : échec de la transmission. Défaillance générale.</pre>
+<p><strong>Document 2 — Après ta première correction, depuis PC-B.</strong></p>
+<pre class="fx-out">C:\&gt; ping 192.168.100.1
+Délai d'attente de la demande dépassé.  (x4)
+C:\&gt; arp -a
+Interface : 192.168.100.2 --- 0x7
+  Adresse Internet      Adresse physique      Type
+  192.168.100.1         a4-bb-6d-12-90-3e     dynamique</pre>
+<p><strong>Document 3.</strong> Centre Réseau et partage des deux PC : « Réseau non identifié — Réseau public ». Sur PC-B, l'Explorateur, <code>\\192.168.100.1\Videos</code> → « Windows ne peut pas accéder à \\192.168.100.1\Videos » (code 0x80070035, chemin réseau introuvable). Le compte de PC-A est « asso », sans mot de passe.</p>
+<p><strong>Questions</strong></p>
+<ol>
+<li>Le cordon droit convient-il ? Justifie. (2 pts)</li>
+<li>Interprète le document 1 et corrige. (4 pts)</li>
+<li>Interprète le document 2 : que prouve l'ARP ? Pourquoi le ping échoue-t-il ? (4 pts)</li>
+<li>Rends le partage accessible (réglages et compte). (6 pts)</li>
+<li>Estime la durée de la copie et décris la validation et la remise en état. (4 pts)</li>
+</ol>
+</div>
+<div class="fx-answer">
+<p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><strong>1. Cordon (2 pts).</strong> Oui : les cartes gigabit gèrent l'Auto MDI-X et inversent elles-mêmes émission/réception ; la preuve est que les deux voyants de lien sont allumés. Un câble croisé ne serait nécessaire qu'avec d'anciennes cartes 10/100 sans Auto MDI-X (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-deux-pc">→ Fiche 4 · Deux PC en direct</a>).</p>
+<p><strong>2. Document 1 (4 pts).</strong> Avec le masque /24, PC-A est dans le réseau 192.168.100.0 et PC-B dans 192.168.10.0 : deux réseaux différents. PC-B n'a pas de passerelle, il ne sait donc pas où envoyer un paquet vers un autre réseau : « Défaillance générale » (pas de route), avant même d'émettre sur le câble. Correction : PC-B en 192.168.100.2, masque 255.255.255.0, passerelle et DNS vides (aucun routeur sur ce lien). Les deux adresses sont alors dans le réseau 192.168.100.0/24 (hôtes .1 à .254).</p>
+<p><strong>3. Document 2 (4 pts).</strong> La table ARP de PC-B contient l'adresse MAC de 192.168.100.1 en entrée dynamique : PC-A a répondu à la requête ARP. Cela prouve que le câble, les cartes et l'adressage sont bons (communication de couche 2 et même réseau IP). Le ping, lui, n'obtient pas de réponse : PC-A <strong>bloque les requêtes ICMP Echo</strong> — comportement par défaut du pare-feu Windows, en particulier sur un réseau de profil Public (document 3). Ce n'est pas une panne de câble : un ping échoué ne suffit pas à conclure à une coupure quand l'ARP répond.</p>
+<p><strong>4. Partage (6 pts).</strong></p>
+<ol>
+<li>Sur les deux PC : profil réseau <strong>Privé</strong> (Windows 11 : Paramètres → Réseau et Internet → Ethernet → Type de profil réseau : Privé ; Windows 10 : Paramètres → Réseau et Internet → Ethernet → cliquer la connexion → Privé). Le profil Public bloque la découverte et le partage de fichiers.</li>
+<li>Sur PC-A : Panneau de configuration → Centre Réseau et partage → Modifier les paramètres de partage avancés → profil Privé : activer la découverte du réseau et le partage de fichiers et d'imprimantes.</li>
+<li>Compte : Windows refuse par défaut l'accès réseau à un compte sans mot de passe. Créer un mot de passe pour « asso » (avec l'accord de l'association) ou un compte local dédié « transfert » avec mot de passe.</li>
+<li>Partage de D:\Videos : Propriétés → Partage → Partage avancé → Partager ce dossier → Autorisations : le compte utilisé = Lecture (copie seulement) ; NTFS (onglet Sécurité) : ce compte au moins en Lecture et exécution. Droit effectif = Lecture.</li>
+<li>Sur PC-B : <code>\\192.168.100.1\Videos</code>, identifiants <code>PC-A\asso</code> (ou <code>192.168.100.1\transfert</code>) et le mot de passe.</li>
+<li>Facultatif pour diagnostiquer avec ping : autoriser la règle « Partage de fichiers et d'imprimantes (Demande d'écho - Trafic entrant ICMPv4) » sur PC-A. Ne jamais désactiver complètement le pare-feu.</li>
+</ol>
+<p><strong>5. Durée, validation, remise en état (4 pts).</strong> 60 Go = 480 Gbit ; à 1 Gbit/s théorique : 480 s = 8 min ; en pratique (disque de l'ancien portable, surcoût protocolaire) compter 10 à 20 min. Si le lien était négocié à 100 Mbit/s (câble abîmé, carte 10/100) : 4 800 s = 80 min au minimum — d'où l'intérêt de vérifier la vitesse affichée. Validation : nombre de fichiers et taille totale identiques des deux côtés (Propriétés du dossier), lecture de quelques vidéos sur PC-B. Remise en état : remettre PC-A et PC-B en DHCP (sinon ils n'auront pas Internet chez eux), retirer le partage temporaire, supprimer le compte « transfert » ou conserver le mot de passe convenu ; noter l'intervention.</p>
+<p class="fx-lose"><b>Perd des points :</b> « il faut un câble croisé » malgré les voyants allumés ; mettre une passerelle bidon ; désactiver le pare-feu ; donner « Tout le monde : Contrôle total » ; laisser les deux PC en IP fixe à la fin.</p>
+</div>
+</article>
+</section>

@@ -1,0 +1,54 @@
+<section class="fx-sec" id="f6-checklist">
+<h2>7. Checklist finale « le jour J »</h2>
+
+<h3 id="f6-c-veille">7.1 Ce soir et demain matin</h3>
+<ul class="fx-check">
+<li>J'ai vérifié l'heure et le lieu de l'épreuve dans l'horaire publié sur le site des jurys, et la durée annoncée.</li>
+<li>Ma trousse est transparente : 2 stylos bleus, 1 stylo de couleur, crayon gris, gomme, latte, crayons de couleur (orange, vert, bleu, brun au minimum), calculatrice non programmable, montre non connectée.</li>
+<li>Pas de correcteur liquide, pas de feuilles de brouillon, GSM éteint dans le sac.</li>
+<li>Je sais réciter T568B (et T568A) dans l'ordre et je sais dessiner un câble droit et un câble croisé.</li>
+<li>Je sais faire à la main : masque depuis un préfixe (/24 à /30), taille de bloc, réseau, diffusion, plage, nombre d'hôtes.</li>
+<li>J'ai relu les dossiers 1 à 11 et la phrase-squelette de la <a href="#f6-methode-examen">méthode en 60 secondes</a>.</li>
+</ul>
+
+<h3 id="f6-c-diagnostiquer">7.2 Je sais diagnostiquer</h3>
+<ul class="fx-check">
+<li>Je sépare observation, hypothèses classées, test discriminant, résultat, conclusion.</li>
+<li>Je repère le dernier changement et je le teste par retour arrière ou substitution avant de l'accuser.</li>
+<li>Je sais dire si plusieurs symptômes ont une cause commune ou des causes indépendantes (lieu, date, couche).</li>
+<li>Je lis une sortie <code>ipconfig /all</code>, <code>ip -br addr</code>, <code>ping</code>, <code>nslookup</code>, <code>arp -a</code>, <code>netsh wlan show interfaces</code> et j'en tire ce qui est prouvé et ce qui est exclu.</li>
+<li>Je teste le réseau dans l'ordre : lien → IP → passerelle → IP Internet → DNS → service/droits (<a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">→ F4</a>).</li>
+<li>Je diagnostique un non-démarrage du POST au système : Q-LED/bips, retour arrière, détection du disque dans l'UEFI, ordre de boot (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-post">→ F1</a> · <a class="fx-ref" href="/ampcr-pratique/fiches/2#f2-boot">→ F2</a>).</li>
+<li>Je traite une panne intermittente par corrélation (journaux, horaires, conditions) et test sur la durée.</li>
+<li>Je lis un relevé de testeur, une mesure ohmique coaxiale, une atténuation fibre (<a class="fx-ref" href="/ampcr-pratique/fiches/3#f3-testeur">→ F3</a>).</li>
+</ul>
+
+<h3 id="f6-c-agir">7.3 Je sais agir</h3>
+<ul class="fx-check">
+<li>Je décris une procédure en étapes numérotées avec les valeurs exactes (IP, masque, passerelle, DNS, chemins de menus, commandes).</li>
+<li>Je place la sécurité au bon moment : secteur coupé, ESD, sauvegarde vérifiée, accord écrit (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-securite">→ F5</a>).</li>
+<li>Je mets un avertissement, un prérequis et une alternative prudente avant tout geste destructif.</li>
+<li>Je planifie un mini-réseau : matériel, câblage T568B, plan d'adressage avec IP fixes hors étendue DHCP, groupe de travail, partages, imprimante en IP fixe.</li>
+<li>Je configure des partages avec des groupes et je calcule le droit effectif partage + NTFS.</li>
+<li>Je migre un poste : inventaire, sauvegarde, compatibilité, installation, pilotes, restauration, sort de l'ancien disque.</li>
+<li>Je sécurise un Wi-Fi : WPA2/WPA3-AES, phrase de passe longue, WPS désactivé, réseau visiteurs isolé, AP câblé plutôt que répéteur.</li>
+</ul>
+
+<h3 id="f6-c-justifier">7.4 Je sais justifier</h3>
+<ul class="fx-check">
+<li>Je cite le document : « la sortie montre…, donc… ».</li>
+<li>J'écarte une fausse piste avec une preuve (lien à 1 Gbit/s, antivirus négatif, ARP qui répond).</li>
+<li>Je justifie un choix technique par un critère (débit, distance, coût, sécurité, simplicité, évolutivité).</li>
+<li>J'explique les limites de mes tests (testeur, ping bloqué, test mémoire d'une passe, mesure hors conditions de panne).</li>
+<li>J'utilise le vocabulaire exact (passerelle par défaut, étendue DHCP, bail, permission NTFS Modification, Auto MDI-X, bouchon 50 Ω, monomode/multimode).</li>
+</ul>
+
+<h3 id="f6-c-controler">7.5 Je sais contrôler</h3>
+<ul class="fx-check">
+<li>Chaque réponse de diagnostic se termine par une validation fonctionnelle et une comparaison avant/après.</li>
+<li>Je vérifie l'absence de régression (autres postes, autres services).</li>
+<li>Je valide avec le compte de l'utilisateur et je fais confirmer l'utilisateur.</li>
+<li>Je documente : rapport, plan d'adressage, plan de brassage, procès-verbal de tests (<a class="fx-ref" href="/ampcr-pratique/fiches/5#f5-rapport">→ F5</a>).</li>
+<li>Pendant l'épreuve : budget de temps tenu, 10 % gardés pour la relecture, aucune question blanche, numéros de questions recopiés, unités présentes.</li>
+</ul>
+</section>
