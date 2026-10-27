@@ -1,0 +1,84 @@
+<section class="fx-sec" id="f2-dossiers-suite">
+<h2>5. (suite) Dossiers d'examen résolus — pannes concomitantes et intermittentes</h2>
+
+<article class="fx-case" id="f2-dossier-5">
+<h3>Dossier 5 — Notaire Lemaire : PC très lent ET mises à jour en échec (deux pannes liées)</h3>
+<div class="fx-case-statement">
+<p><b>Contexte</b> : PC Windows 10, disque dur mécanique 500 Go. « Le PC met 5 minutes à démarrer et les mises à jour échouent depuis un mois. » Relevés :</p>
+<pre class="fx-out">Historique des mises à jour : 2026-10 Mise à jour cumulative ... Échec de l'installation le 14/10/2026 - 0x80070070
+Paramètres → Stockage : C: 465 Go, 4,1 Go disponibles
+Gestionnaire des tâches → Démarrage : 23 éléments, dont 8 « Impact : élevé »
+Gestionnaire des tâches → Performance : Disque 0 (C:) HDD, temps d'activité 100 %
+Journal Système : aucune erreur disk ni Ntfs sur 30 jours</pre>
+<ol><li>Identifie les pannes et leur lien éventuel.</li><li>Propose une intervention ordonnée, avec mesures avant/après.</li><li>Que réponds-tu au client qui demande « réinstallez tout, ça ira plus vite » ?</li><li>Quelle recommandation matérielle fais-tu, et comment la justifies-tu ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Panne A : échec des mises à jour, code <code>0x80070070</code> = espace disque insuffisant ; confirmé par 4,1 Go libres sur C: (moins de 1 %). Panne B : lenteur, avec plusieurs causes plausibles qui se cumulent : disque presque plein, 23 programmes au démarrage, disque mécanique saturé (100 %). Le journal ne signale aucune erreur de disque : rien n'indique une panne matérielle, je ne conclus pas « disque HS ». Lien : l'espace insuffisant aggrave la lenteur (fichier d'échange, fragmentation) et bloque les mises à jour.</p>
+<p><b>2.</b> Mesure initiale : temps jusqu'au bureau utilisable (chronométré), espace libre. a) Avec l'accord du client : nettoyage des fichiers système (<code>cleanmgr</code> → Nettoyer les fichiers système), fichiers temporaires, tri des téléchargements avec lui, déplacement des archives volumineuses vers un disque externe ; objectif ≥ 15 % libres. b) Désactivation des programmes de démarrage non nécessaires (dans le Gestionnaire des tâches, en gardant antivirus, pilotes, logiciel métier). c) Windows Update : installation de la mise à jour cumulative ; si nouvel échec, utilitaire de résolution des problèmes puis DISM/SFC. d) Lecture SMART (Fiche 1) pour confirmer l'état du disque. Mesure finale : temps de démarrage et espace libre, comparés et notés. Validation : « Vous êtes à jour », logiciel notarial testé.</p>
+<p><b>3.</b> Une réinstallation détruirait la configuration et les logiciels, imposerait de tout réinstaller et ne corrigerait pas la cause (disque plein, disque lent) : elle n'est justifiée qu'après échec des marches moins invasives, avec sauvegarde vérifiée et accord écrit. Je propose d'abord le nettoyage et l'optimisation mesurés.</p>
+<p><b>4.</b> Remplacer le disque mécanique par un SSD (clonage ou installation propre, Fiche 1) : le temps d'activité du disque à 100 % au démarrage montre que le stockage est le goulet d'étranglement ; le gain se mesurera avec la même méthode de chronométrage. Je fournis un devis ; c'est une recommandation, pas une obligation.</p>
+<p class="fx-lose"><b>Perd des points :</b> traiter une seule panne ; désactiver Windows Update ; supprimer des fichiers sans accord ; aucune mesure.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f2-dossier-6">
+<h3>Dossier 6 — Boutique en ligne : le site ne répond plus, serveur Ubuntu (disque plein + service en échec)</h3>
+<div class="fx-case-statement">
+<p><b>Contexte</b> : serveur Ubuntu hébergeant le site (nginx). Le site renvoie une erreur depuis 6 h. Relevés :</p>
+<pre class="fx-out">$ systemctl --failed
+  UNIT          LOAD   ACTIVE SUB    DESCRIPTION
+● nginx.service loaded failed failed A high performance web server ...
+$ journalctl -u nginx -b | tail -2
+nginx[2231]: nginx: [emerg] open() "/var/log/nginx/access.log" failed (28: No space left on device)
+$ df -h /
+/dev/sda2   49G   49G     0 100% /
+$ sudo du -xh -d1 /var/backups/boutique | tail -1
+38G     /var/backups/boutique</pre>
+<ol><li>Quelle est la chaîne de causes ?</li><li>Rédige la remise en service, avec précautions.</li><li>Comment empêches-tu la récidive ?</li><li>Quels contrôles finaux effectues-tu ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> La partition racine est pleine (100 %) ; nginx ne peut plus ouvrir son journal d'accès (« No space left on device ») et s'arrête en échec ; le site ne répond plus. Le dossier des sauvegardes locales occupe 38 Go : une tâche de sauvegarde accumule les archives sans rotation. Le service n'est pas la cause, c'est une conséquence.</p>
+<p><b>2.</b> a) Avec le responsable : vérifier que les sauvegardes les plus récentes sont valides et existent aussi hors du serveur ; copier ailleurs celles à conserver. b) Libérer sans risque : <code>sudo journalctl --vacuum-size=200M</code>, <code>sudo apt clean</code>, puis suppression des archives anciennes validées par le responsable (chemin vérifié, liste lue avant <code>rm</code>). c) <code>df -h /</code> : espace revenu (ex. 55 %). d) <code>sudo nginx -t</code> (configuration correcte), <code>sudo systemctl restart nginx</code>, <code>systemctl status nginx</code> → <code>active (running)</code>.</p>
+<p><b>3.</b> Corriger la tâche de sauvegarde : conserver N archives (rotation), écrire sur un stockage externe, surveiller l'espace (alerte à 80 %) ; vérifier que <code>logrotate</code> gère <code>/var/log/nginx</code>.</p>
+<p><b>4.</b> <code>systemctl --failed</code> vide ; <code>curl -I http://localhost</code> → 200 ; site testé depuis l'extérieur (commande de test) ; <code>df -h</code> noté ; le lendemain, espace stable. Rapport avec la chronologie.</p>
+<p class="fx-lose"><b>Perd des points :</b> redémarrer nginx en boucle ; supprimer des sauvegardes sans accord ni vérification d'une copie ; libérer l'espace sans corriger la tâche.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f2-dossier-7">
+<h3>Dossier 7 — Écrans bleus intermittents aux codes variés (panne intermittente)</h3>
+<div class="fx-case-statement">
+<p><b>Contexte</b> : PC de joueur monté il y a un mois, Windows 11. Écrans bleus « de temps en temps », jamais le même code. Journal Système (BugCheck 1001) sur 10 jours :</p>
+<pre class="fx-out">18/10  0x0000001A  MEMORY_MANAGEMENT
+20/10  0x00000050  PAGE_FAULT_IN_NONPAGED_AREA
+23/10  0x0000000A  IRQL_NOT_LESS_OR_EQUAL
+26/10  0x0000003B  SYSTEM_SERVICE_EXCEPTION
+Profil mémoire XMP activé (DDR4-3600) — 2 barrettes de 16 Go</pre>
+<p>Un ami a conseillé de réinstaller Windows ; un autre a mis à jour tous les pilotes, sans effet.</p>
+<ol><li>Que t'apprend la variété des codes ?</li><li>Propose un plan de tests discriminants, du plus simple au plus long.</li><li>Comment prouves-tu la correction pour une panne intermittente ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> Un pilote défectueux produit en général le même code et cite le même fichier. Des codes différents, dont deux typiques de la mémoire (0x1A, 0x50), sur une machine récemment montée avec un profil XMP, orientent vers une <b>instabilité matérielle</b> (RAM/profil mémoire), pas vers Windows. C'est une hypothèse, pas une conclusion. La mise à jour de tous les pilotes sans effet va dans le même sens.</p>
+<p><b>2.</b> a) Mise à jour du BIOS/UEFI (compatibilité mémoire) en suivant la procédure du fabricant. b) <b>Désactiver XMP</b> (fréquence standard) : test le plus simple et réversible ; utilisation normale plusieurs jours. c) Test mémoire complet (MemTest86, plusieurs passes), puis une barrette à la fois pour isoler (<a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-ram">→ Fiche 1 · RAM</a>). d) Si la mémoire est saine : températures et alimentation (Fiche 1), puis DISM/SFC. Je change <b>un seul</b> facteur à la fois et note la date de chaque changement.</p>
+<p><b>3.</b> On ne valide pas en quelques minutes : je compare la fréquence des écrans bleus avant (4 en 10 jours) et après le changement sur une durée au moins équivalente (10–14 jours), sous le même usage (jeux), journal BugCheck vide. Si MemTest a trouvé des erreurs sur une barrette, la preuve est directe (barrette remplacée sous garantie, retest sans erreur).</p>
+<p class="fx-lose"><b>Perd des points :</b> réinstaller Windows ; conclure sur un seul écran bleu ; changer plusieurs éléments en même temps ; déclarer réparé après une heure sans plantage.</p>
+</div>
+</article>
+
+<article class="fx-case" id="f2-dossier-8">
+<h3>Dossier 8 — Après l'installation d'Ubuntu en double démarrage, le PC démarre directement Windows, et Windows ne voit plus que 30 Go de libre</h3>
+<div class="fx-case-statement">
+<p><b>Contexte</b> : portable Windows 11 (UEFI) ; un stagiaire a installé Ubuntu « à côté de Windows ». Au redémarrage : Windows démarre directement. Dans Windows, la Gestion des disques montre une partition de 120 Go sans lettre ; le stagiaire veut la supprimer « pour récupérer la place puisque Ubuntu ne marche pas ».</p>
+<pre class="fx-out">Menu de démarrage (F12) :  Windows Boot Manager
+                           ubuntu
+                           UEFI: USB SanDisk</pre>
+<ol><li>Pourquoi ne faut-il PAS supprimer la partition ?</li><li>Diagnostique et corrige l'absence de GRUB.</li><li>Comment éviter que le problème revienne et que Linux voie le disque Windows en lecture seule ?</li></ol>
+</div>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p>
+<p><b>1.</b> La partition de 120 Go sans lettre est vraisemblablement la partition ext4 d'Ubuntu, illisible par Windows ; la supprimer détruirait Linux et, si Ubuntu fonctionne, ne réglerait rien. Une partition sans lettre n'est jamais supprimée sans inventaire. Le menu F12 montre d'ailleurs l'entrée « ubuntu » : Ubuntu est bien installé.</p>
+<p><b>2.</b> Hypothèse : ordre de démarrage UEFI, « Windows Boot Manager » en premier. Test : je choisis « ubuntu » dans le menu F12 → GRUB s'affiche, Ubuntu démarre : hypothèse confirmée, rien n'est cassé. Correction : dans le setup firmware, je place « ubuntu » en tête (ou sous Ubuntu : <code>sudo efibootmgr</code> pour lire les numéros puis <code>sudo efibootmgr -o 0001,0000</code>). Si Windows n'apparaît pas dans GRUB : <code>GRUB_DISABLE_OS_PROBER=false</code> dans <code>/etc/default/grub</code>, puis <code>sudo update-grub</code> (« Found Windows Boot Manager… »). Validation : deux démarrages à froid, chaque système démarre depuis GRUB.</p>
+<p><b>3.</b> Prévenir l'utilisateur qu'une mise à jour de Windows peut remettre Windows Boot Manager en tête (même correction). Désactiver le démarrage rapide de Windows (Options d'alimentation → Choisir l'action des boutons d'alimentation → décocher « Activer le démarrage rapide ») pour que la partition NTFS soit fermée proprement et montable en écriture sous Linux. Noter la configuration dans le rapport.</p>
+<p class="fx-lose"><b>Perd des points :</b> supprimer la partition ; réinstaller Ubuntu ; <code>bootrec /fixmbr</code>.</p>
+</div>
+</article>
+</section>

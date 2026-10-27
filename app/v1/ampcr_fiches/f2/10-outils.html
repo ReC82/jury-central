@@ -1,0 +1,141 @@
+<section class="fx-sec" id="f2-commandes">
+<h2>4. Outils et commandes : syntaxe exacte, sortie, interprétation, suite</h2>
+<p>Règle d'examen : pour chaque commande, écris <b>pourquoi</b> tu la lances, <b>ce que tu attends</b>, <b>ce que signifie un résultat anormal</b> et <b>ce que tu fais ensuite</b>. Classe-la : <b>lecture</b> (sans risque) ou <b>modification</b> (précaution). Commandes réseau (<code>ipconfig</code>, <code>ping</code>, <code>tracert</code>, <code>nslookup</code>, <code>ip</code>) : <a class="fx-ref" href="/ampcr-pratique/fiches/4#f4-ordre-tests">→ Fiche 4 · Ordre des tests</a>. SMART, test mémoire : <a class="fx-ref" href="/ampcr-pratique/fiches/1#f1-stockage">→ Fiche 1</a>.</p>
+
+<h3>4.1 Consoles graphiques Windows (Win+R)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Commande</th><th>Ce que j'y lis / fais</th><th>Anormal → suite</th></tr></thead>
+<tbody>
+<tr><td><code>msinfo32</code></td><td>Mode BIOS (UEFI/Hérité), État du démarrage sécurisé, modèle, version BIOS, RAM installée/utilisable, version de Windows</td><td>Hérité sur Windows 11 → P2.2 ; RAM utilisable &lt;&lt; installée → barrette/réservation (Fiche 1)</td></tr>
+<tr><td><code>devmgmt.msc</code></td><td>Périphériques, codes d'erreur (Propriétés → Général), pilote (version, date, Restaurer), ID du matériel (Détails)</td><td>Triangle → lire le code → P3.1/P3.2</td></tr>
+<tr><td><code>eventvwr.msc</code></td><td>Journaux Windows → Système / Application / Sécurité / Installation ; filtrer par niveau (Critique, Erreur), source, ID ; trier par date autour de l'heure de la panne</td><td>Voir tableau 4.2</td></tr>
+<tr><td><code>perfmon /rel</code></td><td>Moniteur de fiabilité : chronologie jour par jour (échecs d'applications, arrêts inattendus, MAJ installées) — idéal pour « depuis quand / après quoi »</td><td>Échec qui suit une installation → retour arrière</td></tr>
+<tr><td><code>services.msc</code></td><td>État, type de démarrage, compte (Connexion), dépendances, récupération</td><td>P4.3</td></tr>
+<tr><td><code>diskmgmt.msc</code></td><td>Disques (en ligne, non initialisé), partitions, style GPT/MBR (Propriétés du disque → Volumes), volumes RAW, espace non alloué</td><td>« Non initialisé »/RAW avec données : NE PAS initialiser/formater → P5.7 / Fiche 1</td></tr>
+<tr><td><code>taskmgr</code> (Ctrl+Maj+Échap)</td><td>Processus (CPU, mémoire, disque, réseau), Performance, Applications de démarrage, Utilisateurs, Services</td><td>P4.1</td></tr>
+<tr><td><code>resmon</code></td><td>Détail disque/réseau par processus et par fichier</td><td>Identifier le processus qui écrit</td></tr>
+<tr><td><code>msconfig</code></td><td>Démarrage sélectif, Démarrage sécurisé (mode sans échec au prochain démarrage), services non-Microsoft</td><td>Toujours revenir à « Démarrage normal »</td></tr>
+<tr><td><code>sysdm.cpl</code></td><td>Nom du PC/groupe de travail, Paramètres système avancés → Démarrage et récupération (redémarrage automatique, vidage), Protection du système</td><td>—</td></tr>
+<tr><td><code>rstrui</code></td><td>Restauration du système</td><td>P6.2</td></tr>
+<tr><td><code>lusrmgr.msc</code> (Pro/Entreprise)</td><td>Utilisateurs et groupes locaux, verrouillé/désactivé</td><td>P5.2</td></tr>
+<tr><td><code>tpm.msc</code></td><td>État et version du TPM</td><td>P2.2</td></tr>
+<tr><td><code>cleanmgr</code></td><td>Nettoyage de disque (« Nettoyer les fichiers système »)</td><td>P5.5</td></tr>
+<tr><td><code>appwiz.cpl</code></td><td>Programmes et fonctionnalités (désinstaller, réparer), « Afficher les mises à jour installées »</td><td>—</td></tr>
+<tr><td><code>winver</code></td><td>Version et build exactes (ex. 24H2, build 26100.x)</td><td>Pour chercher une MAJ/compatibilité</td></tr>
+</tbody></table></div>
+
+<h3>4.2 Événements à reconnaître (Observateur d'événements)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Journal · source · ID</th><th>Sens</th><th>Suite</th></tr></thead>
+<tbody>
+<tr><td>Système · Kernel-Power · 41</td><td>Redémarrage sans arrêt propre (conséquence : coupure, plantage, bouton)</td><td>Chercher juste avant : 1001 ? coupure ? (alimentation : Fiche 1)</td></tr>
+<tr><td>Système · EventLog · 6008</td><td>L'arrêt précédent était inattendu</td><td>Idem</td></tr>
+<tr><td>Système · BugCheck / WER · 1001</td><td>Écran bleu : code d'arrêt + chemin du minidump</td><td>P3.3</td></tr>
+<tr><td>Système · disk · 7 / 153 / 51</td><td>Bloc défectueux / E/S réessayée / erreur de pagination</td><td>Sauvegarde puis SMART (Fiche 1)</td></tr>
+<tr><td>Système · Ntfs · 55 / 98</td><td>Structure NTFS endommagée / volume à vérifier</td><td><code>chkdsk</code> (P5.7)</td></tr>
+<tr><td>Système · Service Control Manager · 7000 / 7001 / 7009 / 7031 / 7034 / 7038</td><td>Service non démarré / dépendance / délai / arrêt inattendu / ouverture de session</td><td>P4.3</td></tr>
+<tr><td>Système · WindowsUpdateClient · 20</td><td>Échec d'installation d'une MAJ (code)</td><td>P3.5</td></tr>
+<tr><td>Application · Application Error · 1000 ; Application Hang · 1002 ; .NET Runtime · 1026</td><td>Plantage / blocage d'un programme, module en cause</td><td>P4.2</td></tr>
+<tr><td>Application · User Profile Service · 1511 / 1515 / 1500</td><td>Profil temporaire / profil de secours / ouverture impossible</td><td>P5.3</td></tr>
+<tr><td>Sécurité · 4625 / 4740</td><td>Échec d'ouverture de session / compte verrouillé</td><td>P5.2</td></tr>
+</tbody></table></div>
+<div class="fx-trap"><b>Piège</b> Un journal Windows contient toujours des erreurs « normales ». Une erreur n'est pertinente que si elle <b>coïncide</b> avec la panne et <b>se répète</b> à chaque occurrence ; ensuite on la <b>teste</b>.</div>
+
+<h3>4.3 Commandes Windows (invite de commandes en administrateur sauf mention)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Syntaxe exacte</th><th>Type</th><th>Sortie attendue / anormale</th><th>Suite</th></tr></thead>
+<tbody>
+<tr><td><code>sfc /scannow</code></td><td>Modification (fichiers système)</td><td>« aucune violation d'intégrité » / « … n'a pas pu en réparer certains »</td><td>DISM puis SFC (P6.3)</td></tr>
+<tr><td><code>sfc /scannow /offbootdir=D:\ /offwindir=D:\Windows</code></td><td>Modification hors ligne (WinRE)</td><td>Idem</td><td>Lettre vérifiée par <code>dir</code></td></tr>
+<tr><td><code>DISM /Online /Cleanup-Image /CheckHealth</code> · <code>/ScanHealth</code></td><td>Lecture</td><td>« Aucun endommagement… » / « Le magasin de composants peut être réparé. »</td><td><code>/RestoreHealth</code></td></tr>
+<tr><td><code>DISM /Online /Cleanup-Image /RestoreHealth</code></td><td>Modification</td><td>« L'opération de restauration s'est terminée correctement. » / 0x800f081f</td><td>SFC ; sinon <code>/Source:WIM:E:\sources\install.wim:1 /LimitAccess</code></td></tr>
+<tr><td><code>chkdsk C:</code></td><td>Lecture</td><td>« Windows a analysé le système de fichiers sans trouver de problème. » / « … a trouvé des problèmes … Exécutez CHKDSK avec l'option /F »</td><td><code>/f</code> après sauvegarde</td></tr>
+<tr><td><code>chkdsk C: /f</code></td><td>Modification</td><td>Sur C: : « Impossible de verrouiller le lecteur actif… vérifié au prochain redémarrage ? (O/N) »</td><td>O puis redémarrer</td></tr>
+<tr><td><code>chkdsk D: /r</code></td><td>Modification lourde (secteurs)</td><td>Très long ; « … secteurs défectueux »</td><td>Uniquement après copie des données ; secteurs défectueux → Fiche 1</td></tr>
+<tr><td><code>bcdedit /enum</code> · <code>bcdedit /enum all</code></td><td>Lecture</td><td>Entrées « Gestionnaire de démarrage Windows » et « Chargeur de démarrage Windows », <code>device partition=C:</code> / « … n'a pas pu être ouvert », <code>unknown</code></td><td>P1.2</td></tr>
+<tr><td><code>bcdboot D:\Windows /s S: /f UEFI</code></td><td>Modification (fichiers de démarrage)</td><td>« Boot files successfully created. » (libellé selon la langue)</td><td>Redémarrer</td></tr>
+<tr><td><code>bootrec /fixmbr</code> · <code>/fixboot</code> · <code>/scanos</code> · <code>/rebuildbcd</code></td><td>Modification (démarrage hérité/MBR)</td><td>« L'opération a réussi. » ; en UEFI <code>/fixboot</code> : « Accès refusé » fréquent</td><td>En UEFI : <code>bcdboot</code></td></tr>
+<tr><td><code>bcdedit /set {current} safeboot minimal</code> · <code>bcdedit /deletevalue {current} safeboot</code></td><td>Modification réversible</td><td>« L'opération a réussi. »</td><td>Ne pas oublier le retour</td></tr>
+<tr><td><code>diskpart</code> → <code>list disk</code>, <code>list vol</code>, <code>select vol N</code>, <code>detail vol</code>, <code>assign letter=S</code></td><td>Lecture + attribution de lettre</td><td>Colonne GPT (*), FS FAT32 100 Mo = ESP</td><td><code>clean</code>/<code>format</code>/<code>delete</code> : jamais pour réparer (Fiche 1)</td></tr>
+<tr><td><code>mbr2gpt /validate /allowFullOS</code> · <code>/convert /allowFullOS</code></td><td>Lecture · Modification (table)</td><td>« Validation completed successfully » / « Conversion completed successfully »</td><td>Firmware en UEFI ensuite (P2.2)</td></tr>
+<tr><td><code>manage-bde -status</code></td><td>Lecture</td><td>« Conversion : Chiffrement intégral », « Protection : Protection activée »</td><td>Récupérer la clé avant intervention firmware (P1.7)</td></tr>
+<tr><td><code>systeminfo</code></td><td>Lecture</td><td>Version, date d'installation, dernier démarrage, correctifs (KB), mémoire</td><td>—</td></tr>
+<tr><td><code>tasklist</code> · <code>tasklist /svc</code> · <code>taskkill /PID 4321</code> (<code>/F</code> pour forcer)</td><td>Lecture · Modification</td><td>Processus, PID, mémoire ; services hébergés</td><td>Forcer = perte des données non enregistrées</td></tr>
+<tr><td><code>sc query nom</code> · <code>sc qc nom</code> · <code>net start nom</code> · <code>net stop nom</code></td><td>Lecture · Modification</td><td><code>STATE : 4 RUNNING</code> / <code>1 STOPPED</code> ; <code>START_TYPE</code>, <code>DEPENDENCIES</code></td><td>P4.3</td></tr>
+<tr><td><code>net user</code> · <code>net user nom</code> · <code>net user nom *</code> · <code>net user nom /active:yes</code></td><td>Lecture · Modification</td><td>Comptes, groupes locaux, compte actif, dernier accès</td><td>P5.1/P5.2</td></tr>
+<tr><td><code>net localgroup Administrateurs</code> · <code>net localgroup Administrateurs nom /add</code></td><td>Lecture · Modification</td><td>Membres du groupe</td><td>Ajout seulement si justifié</td></tr>
+<tr><td><code>whoami</code> · <code>whoami /groups</code> · <code>whoami /user</code></td><td>Lecture</td><td>Compte courant, groupes, SID</td><td>—</td></tr>
+<tr><td><code>powercfg /h off</code></td><td>Modification</td><td>Supprime <code>hiberfil.sys</code>, désactive démarrage rapide/veille prolongée</td><td>P5.5, double démarrage</td></tr>
+<tr><td><code>shutdown /r /o /t 0</code></td><td>Redémarrage vers WinRE</td><td>—</td><td>P6.1</td></tr>
+<tr><td><code>certutil -hashfile fichier.iso SHA256</code></td><td>Lecture</td><td>Empreinte à comparer à celle publiée</td><td>Différente → retélécharger</td></tr>
+<tr><td><code>slmgr /dli</code> · <code>slmgr /xpr</code></td><td>Lecture</td><td>Édition, canal, état d'activation</td><td>P2.7</td></tr>
+</tbody></table></div>
+
+<h3>4.4 Commandes Linux (Debian/Ubuntu ; <code>sudo</code> quand indiqué)</h3>
+<div class="fx-table-wrap"><table class="fx-table">
+<thead><tr><th>Syntaxe exacte</th><th>Type</th><th>Sortie attendue / anormale</th><th>Suite</th></tr></thead>
+<tbody>
+<tr><td><code>cat /etc/os-release</code> · <code>uname -r</code> · <code>hostnamectl</code></td><td>Lecture</td><td>Distribution/version ; noyau en cours</td><td>Contexte du rapport</td></tr>
+<tr><td><code>systemctl status nom</code></td><td>Lecture</td><td><code>Loaded: … enabled</code> ; <code>Active: active (running)</code> / <code>inactive (dead)</code> / <code>failed</code></td><td>Journal du service</td></tr>
+<tr><td><code>systemctl --failed</code></td><td>Lecture</td><td>« 0 loaded units listed. » / liste des unités en échec</td><td>P4.4 / P1.6</td></tr>
+<tr><td><code>sudo systemctl start|stop|restart nom</code> · <code>sudo systemctl enable|disable nom</code> · <code>enable --now</code></td><td>Modification</td><td>Pas de sortie si succès</td><td>Revérifier <code>status</code></td></tr>
+<tr><td><code>journalctl -b -p err</code></td><td>Lecture</td><td>Erreurs (priorité err et plus grave) du démarrage en cours</td><td>Point de départ de tout diagnostic</td></tr>
+<tr><td><code>journalctl -b -1 -p err</code></td><td>Lecture</td><td>Démarrage précédent (si journal persistant) / « Specifying boot ID … has no effect, no persistent journal was found »</td><td>Après un plantage</td></tr>
+<tr><td><code>journalctl -u nom -b</code> · <code>journalctl -xb</code> · <code>journalctl -f</code></td><td>Lecture</td><td>Journal d'un service ; démarrage avec explications ; suivi en direct</td><td>—</td></tr>
+<tr><td><code>sudo dmesg -T</code> (<code>| grep -iE 'error|fail|usb|firmware'</code>)</td><td>Lecture</td><td>Messages du noyau horodatés : USB branché, <code>I/O error</code>, <code>firmware: failed to load</code>, <code>Out of memory</code></td><td>Matériel/pilote</td></tr>
+<tr><td><code>df -h</code> · <code>df -i</code></td><td>Lecture</td><td><code>Uti%</code>/<code>Use%</code> ; <code>IUse%</code></td><td>≥ 90 % → P5.6</td></tr>
+<tr><td><code>sudo du -xh -d1 /var | sort -h</code></td><td>Lecture</td><td>Taille des sous-dossiers, plus gros en dernier</td><td>Descendre dans le plus gros</td></tr>
+<tr><td><code>lsblk</code> · <code>lsblk -f</code></td><td>Lecture</td><td>Disques/partitions, FSTYPE, UUID, points de montage</td><td>Comparer à <code>/etc/fstab</code></td></tr>
+<tr><td><code>sudo blkid</code></td><td>Lecture</td><td><code>/dev/sda1: UUID="…" TYPE="ext4" PARTUUID="…"</code></td><td>P1.6</td></tr>
+<tr><td><code>findmnt</code> · <code>findmnt --verify</code> · <code>sudo mount -a</code></td><td>Lecture · test</td><td>Options de montage (<code>ro</code> ?) ; vérification de fstab ; montage de tout fstab</td><td>Avant de redémarrer</td></tr>
+<tr><td><code>sudo fsck -n /dev/sdb1</code> · <code>sudo fsck -y /dev/sdb1</code></td><td>Lecture · Modification</td><td>« clean » / erreurs ; uniquement démonté</td><td>P5.7</td></tr>
+<tr><td><code>free -h</code> · <code>top</code> · <code>ps aux --sort=-%mem | head</code> · <code>kill PID</code></td><td>Lecture · Modification</td><td>Mémoire disponible, swap, charge, processus</td><td>P4.5</td></tr>
+<tr><td><code>lspci -nnk</code> · <code>lsusb</code></td><td>Lecture</td><td>IDs <code>[8086:2725]</code>, « Kernel driver in use: … »</td><td>P3.1</td></tr>
+<tr><td><code>ubuntu-drivers devices</code> · <code>sudo ubuntu-drivers install</code></td><td>Lecture · Modification</td><td>Pilotes propriétaires recommandés</td><td>P1.8/P3.1</td></tr>
+<tr><td><code>sudo apt update</code> · <code>sudo apt upgrade</code> · <code>sudo apt full-upgrade</code></td><td>Modification</td><td>« All packages are up to date. » / erreurs <code>E:</code></td><td>P3.6</td></tr>
+<tr><td><code>sudo apt install paquet</code> · <code>sudo apt remove paquet</code> · <code>sudo apt purge paquet</code> · <code>sudo apt autoremove</code> · <code>sudo apt clean</code></td><td>Modification</td><td>Liste de ce qui sera installé/supprimé : la lire avant « O »</td><td>—</td></tr>
+<tr><td><code>sudo dpkg --configure -a</code> · <code>sudo apt --fix-broken install</code> · <code>dpkg -l | grep paquet</code></td><td>Modification · lecture</td><td>État <code>ii</code> = installé correct</td><td>P3.6</td></tr>
+<tr><td><code>sudo update-grub</code> · <code>sudo grub-install</code> (UEFI) · <code>sudo grub-install /dev/sda</code> (BIOS)</td><td>Modification</td><td>« Found linux image… », « Found Windows Boot Manager… », « Installation finished. No error reported. »</td><td>P1.5</td></tr>
+<tr><td><code>sudo update-initramfs -u</code> (<code>-k all</code>)</td><td>Modification</td><td>« update-initramfs: Generating /boot/initrd.img-… »</td><td>P1.6/P3.4</td></tr>
+<tr><td><code>sudo efibootmgr</code> · <code>sudo efibootmgr -o 0001,0000</code></td><td>Lecture · Modification</td><td><code>BootOrder</code>, entrées <code>Boot0000* Windows Boot Manager</code>, <code>Boot0001* ubuntu</code></td><td>P1.5</td></tr>
+<tr><td><code>mokutil --sb-state</code></td><td>Lecture</td><td>« SecureBoot enabled/disabled »</td><td>Pilotes non signés</td></tr>
+<tr><td><code>id nom</code> · <code>groups nom</code> · <code>sudo -l</code></td><td>Lecture</td><td>UID, groupes (sudo ?) ; droits sudo</td><td>P5.4</td></tr>
+<tr><td><code>ls -l</code> · <code>ls -ld dossier</code> · <code>namei -l chemin</code></td><td>Lecture</td><td><code>-rw-r----- 1 marc compta</code> : type, droits u/g/o, propriétaire, groupe</td><td>P5.4</td></tr>
+<tr><td><code>sudo chown -R user:groupe dossier</code> · <code>chmod 640 fichier</code> · <code>chmod u+x script.sh</code> · <code>sudo usermod -aG groupe user</code> · <code>sudo passwd user</code></td><td>Modification</td><td>Pas de sortie si succès</td><td>Cibler au minimum</td></tr>
+<tr><td><code>sudo ss -tulpn</code></td><td>Lecture</td><td>Ports en écoute et programme</td><td>Conflit de port (P4.4)</td></tr>
+<tr><td><code>sudo lsof +L1</code></td><td>Lecture</td><td>Fichiers supprimés encore ouverts</td><td>Redémarrer le service qui les tient</td></tr>
+<tr><td><code>systemd-analyze</code> · <code>systemd-analyze blame</code></td><td>Lecture</td><td>Durée du démarrage ; services les plus lents</td><td>P4.5</td></tr>
+<tr><td><code>sha256sum fichier.iso</code></td><td>Lecture</td><td>Empreinte à comparer à <code>SHA256SUMS</code></td><td>P2.1</td></tr>
+</tbody></table></div>
+
+<h3>4.5 Lire une sortie : trois exemples commentés</h3>
+<pre class="fx-cmd">C:\&gt; bcdedit /enum</pre>
+<pre class="fx-out">Gestionnaire de démarrage Windows
+---------------------------------
+identificateur          {bootmgr}
+device                  partition=\Device\HarddiskVolume1
+path                    \EFI\Microsoft\Boot\bootmgfw.efi
+default                 {current}
+timeout                 30
+
+Chargeur de démarrage Windows
+-----------------------------
+identificateur          {current}
+device                  partition=C:
+path                    \Windows\system32\winload.efi
+osdevice                partition=C:
+systemroot              \Windows
+bootmenupolicy          Standard</pre>
+<p>Lecture : <code>path … .efi</code> = démarrage UEFI (<code>winload.exe</code> = hérité) ; <code>device partition=C:</code> cohérent. Si <code>device unknown</code> → BCD à recréer (P1.2). <code>safeboot Minimal</code> présent → PC bloqué en mode sans échec (retirer la valeur).</p>
+<pre class="fx-cmd">$ systemctl status cups</pre>
+<pre class="fx-out">○ cups.service - CUPS Scheduler
+     Loaded: loaded (/lib/systemd/system/cups.service; disabled; preset: enabled)
+     Active: inactive (dead)</pre>
+<p>Lecture : <code>disabled</code> = ne démarre pas au boot ; <code>inactive (dead)</code> = arrêté, <b>sans erreur</b>. Ce n'est pas une panne du service mais une configuration : <code>sudo systemctl enable --now cups</code>, puis revérifier <code>active (running)</code> et imprimer une page de test.</p>
+<pre class="fx-cmd">$ df -h ; df -i /</pre>
+<pre class="fx-out">Sys. de fichiers Taille Utilisé Dispo Uti% Monté sur
+/dev/sda2           98G     61G   32G  66% /
+Sys. de fichiers  Inœuds   IUtil.  ILibre IUti% Monté sur
+/dev/sda2       6553600  6553600       0  100% /</pre>
+<p>Lecture : il reste 32 Go mais 0 inode : « No space left on device » vient d'un excès de petits fichiers. <code>sudo du --inodes -xd1 / | sort -n | tail</code> pour trouver le dossier, puis purge ciblée après accord.</p>
+</section>

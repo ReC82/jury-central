@@ -1,0 +1,156 @@
+<section class="fx-sec" id="f2-boot-suite">
+<h2>3.A (suite) Démarrage : GRUB, Linux, BitLocker</h2>
+
+<article class="fx-proc" id="f2-grub">
+<h3>P1.5 — GRUB : « grub rescue&gt; », menu absent, PC qui démarre toujours Windows, Windows absent du menu</h3>
+<p class="fx-sev">Fréquence : fréquent en double démarrage · Gravité : bloquante pour Linux, données intactes</p>
+<h4>1. Symptômes observables</h4>
+<ul>
+<li><code>error: no such partition.</code> / <code>error: unknown filesystem.</code> puis invite <code>grub rescue&gt;</code>.</li>
+<li><code>Minimal BASH-like line editing is supported…</code> puis <code>grub&gt;</code> : GRUB n'a pas trouvé son <code>grub.cfg</code> (moins grave que <code>grub rescue&gt;</code>).</li>
+<li>Après installation de Linux, le PC démarre directement Windows ; ou, après une MAJ de Windows, GRUB n'apparaît plus.</li>
+<li>Menu GRUB présent mais sans « Windows Boot Manager ».</li>
+</ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Ordre UEFI : Windows Boot Manager remis en tête (MAJ Windows, <code>bcdboot</code>, reset firmware) — configuration.</li><li><code>os-prober</code> désactivé (GRUB 2.06 et suivants) → Windows non détecté par <code>update-grub</code> — configuration.</li><li>Linux installé dans un mode différent de Windows (Linux en hérité, Windows en UEFI) — installation.</li><li>Partition Linux supprimée/redimensionnée/déplacée depuis Windows (Gestion des disques) → <code>grub rescue&gt;</code> — partitions.</li><li>ESP abîmée, disque changé — partitions/matériel.</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Quelqu'un a-t-il « fait de la place » ou supprimé une partition « sans lettre » depuis Windows ?</li><li>Clé live de la même distribution disponible ? Sauvegarde de <code>/home</code> si la partition est endommagée.</li><li>Ne jamais formater l'ESP : elle porte aussi le chargeur de Windows.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Menu de démarrage ponctuel (F12/F11/F8/Échap) : une entrée « ubuntu » (ou « debian ») existe-t-elle ?</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> oui et elle démarre GRUB → seul l'ordre est en cause : la mettre en tête dans le setup, ou sous Linux <code>sudo efibootmgr -o 0001,0000</code>.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Si GRUB démarre mais Windows manque</strong> : <code>grep OS_PROBER /etc/default/grub</code>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> absent ou <code>true</code> → ajouter <code>GRUB_DISABLE_OS_PROBER=false</code>, <code>sudo update-grub</code> ; la sortie doit contenir « Found Windows Boot Manager on /dev/nvme0n1p1@/EFI/Microsoft/Boot/bootmgfw.efi ».</p><p class="fx-sinon"><b>SINON</b> (os-prober actif, Windows toujours absent) → modes différents : <code>[ -d /sys/firmware/efi ] &amp;&amp; echo UEFI || echo BIOS</code> sous Linux, <code>msinfo32</code> sous Windows ; les deux doivent être en UEFI.</p></div></li>
+<li><strong>À l'invite <code>grub rescue&gt;</code> : localiser la partition Linux</strong> : <code>ls</code> puis <code>ls (hd0,gpt3)/</code> sur chaque partition.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> une partition affiche <code>boot/ etc/ home/</code> → démarrage manuel (commandes ci-dessous), puis réinstallation propre de GRUB depuis Linux démarré.</p><p class="fx-sinon"><b>SINON</b> (« Filesystem is unknown » partout) → partition supprimée/écrasée : clé live, <code>lsblk -f</code> ; récupération de données (testdisk) avant toute réinstallation.</p></div></li>
+<li><strong>Si Linux ne démarre pas du tout : réparer depuis une session live</strong> (chroot, commandes ci-dessous).</li>
+</ol>
+<pre class="fx-cmd">grub rescue&gt; ls
+(hd0) (hd0,gpt1) (hd0,gpt2) (hd0,gpt3)
+grub rescue&gt; ls (hd0,gpt3)/
+grub rescue&gt; set root=(hd0,gpt3)
+grub rescue&gt; set prefix=(hd0,gpt3)/boot/grub
+grub rescue&gt; insmod normal
+grub rescue&gt; normal</pre>
+<p>Puis, une fois Linux démarré : <code>sudo grub-install</code> (UEFI : sans argument de disque sur Ubuntu) et <code>sudo update-grub</code>.</p>
+<pre class="fx-cmd">ubuntu@live:~$ lsblk -f                         # repérer ESP (vfat) et racine (ext4)
+ubuntu@live:~$ sudo mount /dev/nvme0n1p3 /mnt
+ubuntu@live:~$ sudo mount /dev/nvme0n1p1 /mnt/boot/efi
+ubuntu@live:~$ for d in dev proc sys run; do sudo mount --rbind /$d /mnt/$d; done
+ubuntu@live:~$ sudo chroot /mnt
+root@live:/# grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ubuntu
+root@live:/# update-grub
+root@live:/# exit</pre>
+<pre class="fx-out">Installing for x86_64-efi platform.
+Installation finished. No error reported.
+...
+Found linux image: /boot/vmlinuz-6.8.0-45-generic
+Found Windows Boot Manager on /dev/nvme0n1p1@/EFI/Microsoft/Boot/bootmgfw.efi
+done</pre>
+<p>Démarrage hérité (BIOS/MBR) : <code>grub-install /dev/sda</code> — le <b>disque</b>, jamais une partition (<code>/dev/sda1</code>). Fedora : <code>grub2-mkconfig -o /boot/grub2/grub.cfg</code> au lieu de <code>update-grub</code>.</p>
+<p class="fx-warn"><b>Attention</b> Monter la bonne partition en <code>/mnt/boot/efi</code> : l'ESP (vfat, 100–550 Mo), jamais la partition Windows. Prérequis : <code>lsblk -f</code> lu, sauvegarde de <code>/home</code> si doute. Alternative prudente : démarrer Linux via l'entrée « ubuntu » du menu ponctuel ou via <code>grub rescue&gt;</code> manuel, puis réparer depuis le système démarré.</p>
+<h4>5. Test de confirmation</h4><p>Le menu GRUB s'affiche au démarrage à froid et liste Linux et Windows ; chaque entrée démarre. Limite : une MAJ de Windows peut de nouveau changer l'ordre (prévenir l'utilisateur).</p>
+<h4>6. Correction</h4><ol><li>Ordre UEFI (setup ou <code>efibootmgr -o</code>) ;</li><li>os-prober + <code>update-grub</code> ;</li><li><code>grub-install</code> + <code>update-grub</code> (live + chroot) ;</li><li>réinstallation de Linux dans le même mode que Windows si les modes diffèrent (sauvegarde de <code>/home</code>).</li></ol>
+<h4>7. Validation</h4><ul><li>Deux démarrages à froid ; chaque système démarre depuis GRUB ; <code>sudo efibootmgr</code> : BootOrder commence par l'entrée ubuntu.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Après l'installation d'Ubuntu à côté de Windows 11, le PC démarre directement Windows. Hypothèses : 1) Windows Boot Manager est resté prioritaire dans l'ordre UEFI ; 2) Ubuntu a été installé en mode hérité ; 3) GRUB n'a pas été installé. Test 1 : menu de démarrage ponctuel → l'entrée « ubuntu » existe et affiche GRUB : hypothèse 1 confirmée. Correction : je place « ubuntu » en tête de l'ordre de démarrage (réglage firmware réversible). Si Windows manquait dans GRUB, j'activerais <code>GRUB_DISABLE_OS_PROBER=false</code> puis <code>sudo update-grub</code>. Validation : deux démarrages à froid, les deux systèmes démarrent ; je préviens l'utilisateur qu'une mise à jour de Windows peut modifier l'ordre.</p><p class="fx-lose"><b>Perd des points :</b> réinstaller Ubuntu ; <code>bootrec /fixmbr</code> (efface GRUB en hérité, inutile en UEFI) ; <code>grub-install /dev/sda1</code>.</p></div>
+<h4>9. Pièges et variantes</h4>
+<div class="fx-trap"><b>Piège</b> Supprimer depuis la Gestion des disques de Windows une partition « inconnue » ou « sans lettre » : c'était Linux ou l'ESP. Aucune partition sans lettre ne se supprime sans <code>lsblk -f</code>/inventaire.</div>
+<ul><li>Linux voit la partition Windows en lecture seule (« The disk contains an unclean file system (0, 0). Metadata kept in Windows cache, refused to mount. ») → Démarrage rapide de Windows actif : le désactiver (Panneau de configuration → Options d'alimentation → Choisir l'action des boutons d'alimentation → Modifier des paramètres actuellement non disponibles → décocher « Activer le démarrage rapide »).</li><li>« Verification failed: (0x1A) Security Violation » au lancement de GRUB : Secure Boot et chargeur non signé/révoqué (SBAT) → mettre à jour shim/GRUB ou désactiver temporairement Secure Boot (attention BitLocker).</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-fstab">
+<h3>P1.6 — Linux : « (initramfs) », « You are in emergency mode », « UNEXPECTED INCONSISTENCY; RUN fsck MANUALLY »</h3>
+<p class="fx-sev">Fréquence : fréquent · Gravité : bloquante, réparable sans perte dans la majorité des cas</p>
+<h4>1. Symptômes observables</h4>
+<ul>
+<li><code>Gave up waiting for root file system device.</code> … <code>ALERT! UUID=3f2a… does not exist. Dropping to a shell!</code> puis <code>(initramfs)</code>.</li>
+<li><code>/dev/sda2: UNEXPECTED INCONSISTENCY; RUN fsck MANUALLY. (i.e., without -a or -p options)</code> puis <code>(initramfs)</code>.</li>
+<li><code>[ TIME ] Timed out waiting for device /dev/disk/by-uuid/…</code>, <code>[DEPEND] Dependency failed for Local File Systems.</code>, puis <code>You are in emergency mode. After logging in, type "journalctl -xb" to view system logs…</code> ; parfois « Cannot open access to console, the root account is locked. »</li>
+</ul>
+<h4>2. Causes possibles (classées)</h4>
+<ol><li>Ligne de <code>/etc/fstab</code> : disque de données retiré, UUID changé après remplacement/formatage, faute de frappe — configuration.</li><li>Système de fichiers incohérent après arrêt brutal — stockage logique.</li><li>Disque/contrôleur non vu (mode RAID/VMD changé, câble) — firmware/matériel.</li><li>initramfs incomplet après MAJ interrompue — OS (<a href="#f2-p34">P3.4</a>).</li></ol>
+<h4>3. Questions initiales et sécurité</h4>
+<ul><li>Disque ajouté, remplacé, retiré récemment ? Coupure de courant ?</li><li>Avant toute modification de fstab : copie <code>/etc/fstab.bak</code>. <code>fsck</code> uniquement sur un système de fichiers <b>non monté</b>.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Lire le message : <code>(initramfs)</code> avec ALERT UUID, avec INCONSISTENCY, ou mode d'urgence ?</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> INCONSISTENCY → étape 2.</p><p class="fx-sinon"><b>SINON SI</b> ALERT UUID → étape 3 ; <b>SINON</b> (emergency mode) → étape 4.</p></div></li>
+<li><strong>Dans <code>(initramfs)</code> : <code>fsck /dev/sda2</code></strong> (le périphérique cité ; il n'est pas monté à ce stade), répondre aux questions ou <code>fsck -y</code>, puis <code>exit</code>. — attendu : « FILE SYSTEM WAS MODIFIED », démarrage reprend.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> fsck répète des erreurs ou signale des erreurs de lecture → disque qui faiblit : sauvegarde depuis une clé live, SMART (Fiche 1).</p><p class="fx-sinon"><b>SINON</b> valider.</p></div></li>
+<li><strong>Dans <code>(initramfs)</code> : <code>blkid</code></strong> et <code>ls /dev/sd* /dev/nvme*</code>. — comparer l'UUID affiché par l'ALERT à ceux listés.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> le disque n'apparaît pas → mode du contrôleur dans le firmware (VMD/RAID) ou matériel (Fiche 1).</p><p class="fx-sinon"><b>SINON</b> (disque présent, UUID différent) → racine reformatée/clonée : démarrer une live, corriger <code>/etc/fstab</code> et lancer <code>update-grub</code> + <code>update-initramfs -u</code> en chroot (cf. P1.5).</p></div></li>
+<li><strong>Mode d'urgence : se connecter (mot de passe root) puis <code>journalctl -xb | grep -iE 'fail|mount'</code></strong>, ou <code>systemctl --failed</code>. — repérer l'unité <code>.mount</code> en échec (ex. <code>data.mount</code>).
+<div class="fx-branch"><p class="fx-si"><b>SI</b> root verrouillé (Ubuntu) → démarrer via GRUB → Advanced options → (recovery mode) → root, ou clé live.</p><p class="fx-sinon"><b>SINON</b> → étape 5.</p></div></li>
+<li><strong>Comparer fstab et la réalité</strong> : <code>cat /etc/fstab</code> et <code>lsblk -f</code>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> UUID de fstab absent de <code>lsblk -f</code> → disque retiré ou remplacé : corriger l'UUID ou commenter la ligne, ajouter <code>nofail</code> pour un disque non indispensable.</p><p class="fx-sinon"><b>SINON</b> → type/option erronés (<code>ext4</code> vs <code>ntfs</code>, faute dans les options) : corriger.</p></div></li>
+</ol>
+<pre class="fx-cmd">root@pc:~# mount -o remount,rw /
+root@pc:~# cp /etc/fstab /etc/fstab.bak
+root@pc:~# lsblk -f
+root@pc:~# nano /etc/fstab
+root@pc:~# findmnt --verify
+root@pc:~# systemctl daemon-reload
+root@pc:~# mount -a</pre>
+<pre class="fx-out">NAME        FSTYPE LABEL UUID                                 MOUNTPOINTS
+sda
+└─sda1      ext4   data  9b1c7e2d-5a40-4c1e-8f7e-2d0c6b1e44aa
+nvme0n1
+├─nvme0n1p1 vfat         4C2E-91AB                            /boot/efi
+└─nvme0n1p2 ext4         3f2a8d10-77c1-4f0b-9a55-6e3d2c1b0f12 /
+
+# /etc/fstab (ligne fautive puis corrigée)
+UUID=0d4e5f61-aaaa-4b2c-9d8e-112233445566 /data ext4 defaults 0 2
+UUID=9b1c7e2d-5a40-4c1e-8f7e-2d0c6b1e44aa /data ext4 defaults,nofail 0 2</pre>
+<p class="fx-warn"><b>Attention</b> <code>fsck</code> sur un système de fichiers <b>monté en écriture</b> peut le détruire : uniquement depuis <code>(initramfs)</code>, le mode recovery (racine en lecture seule) ou une clé live. <code>fsck</code> peut déplacer des fichiers abîmés dans <code>lost+found</code>. Prérequis : sauvegarde si le disque est suspect. Alternative prudente : monter en lecture seule depuis une live et copier les données d'abord.</p>
+<h4>5. Test de confirmation</h4><p><code>findmnt --verify</code> sans erreur et <code>mount -a</code> silencieux <b>avant</b> de redémarrer ; puis démarrage normal. Limite : <code>mount -a</code> ne teste pas la racine.</p>
+<h4>6. Correction</h4><p>UUID corrigé / ligne commentée / <code>nofail</code> ; fsck sur partition démontée ; régénération de l'initramfs si pilote ou UUID de racine changé (<code>sudo update-initramfs -u</code>).</p>
+<h4>7. Validation</h4><ul><li>Redémarrage complet sans mode d'urgence ; <code>findmnt /data</code> montre le montage ; <code>systemctl --failed</code> : 0 unité ; <code>journalctl -b -p err</code> sans erreur de montage.</li></ul>
+<h4>8. Réponse d'examen modèle</h4>
+<div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>Le message « Dependency failed for Local File Systems » suivi du mode d'urgence indique qu'un montage déclaré dans <code>/etc/fstab</code> a échoué ; le noyau et la racine fonctionnent. Comme le disque de données a été remplacé hier, je suppose que l'UUID de fstab est celui de l'ancien disque. Test : <code>journalctl -xb</code> montre l'échec de <code>data.mount</code> sur <code>/dev/disk/by-uuid/0d4e…</code> ; <code>lsblk -f</code> montre que le nouveau disque a l'UUID <code>9b1c…</code>. Correction : <code>mount -o remount,rw /</code>, copie de sauvegarde de fstab, remplacement de l'UUID, ajout de <code>nofail</code> (disque non indispensable), test <code>findmnt --verify</code> puis <code>mount -a</code>. Validation : redémarrage normal, <code>/data</code> monté, aucune unité en échec.</p><p class="fx-lose"><b>Perd des points :</b> formater ou réinstaller ; <code>fsck</code> sur une partition montée ; modifier fstab sans copie ni test avant redémarrage ; utiliser <code>/dev/sdb1</code> au lieu de l'UUID (le nom peut changer).</p></div>
+<h4>9. Pièges et variantes</h4>
+<ul><li>« Read-only file system » en mode d'urgence : normal, d'où <code>mount -o remount,rw /</code>.</li><li>Clé USB/disque externe dans fstab sans <code>nofail</code> : mode d'urgence dès qu'elle est absente.</li><li>Faute de frappe dans une ligne de partage réseau (cifs/nfs) : ajouter <code>_netdev,nofail</code>.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-bitlocker">
+<h3>P1.7 — Écran « Récupération BitLocker » / « Entrez la clé de récupération pour ce lecteur »</h3>
+<p class="fx-sev">Fréquence : assez fréquent sur portables récents · Gravité : critique (perte de données si la clé est introuvable)</p>
+<h4>1. Symptômes observables</h4><ul><li>Écran bleu de saisie : « Entrez la clé de récupération pour ce lecteur », avec un <b>ID de clé</b> (8 premiers caractères) et l'adresse d'aide <code>aka.ms/myrecoverykey</code>.</li><li>Contexte : MAJ du BIOS, Secure Boot désactivé, TPM effacé, ordre de démarrage changé, carte mère remplacée, disque déplacé, clé USB laissée branchée sur certains modèles.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Changement de la configuration mesurée par le TPM (firmware, Secure Boot, ordre) — configuration.</li><li>TPM effacé/remplacé (carte mère) — matériel/configuration.</li><li>Tentatives de code PIN erronées — utilisateur.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Compte Microsoft de l'utilisateur ? PC d'entreprise (clé dans Active Directory/Entra ID, chez l'administrateur) ? Clé imprimée/enregistrée sur clé USB ?</li><li>Ne jamais réinitialiser/réinstaller « pour passer l'écran » : sans clé, les données sont perdues.</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Annuler le dernier changement firmware</strong> (réactiver Secure Boot, remettre l'ordre, retirer la clé USB). — attendu : démarrage sans demande de clé.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> OK → valider ; suspendre BitLocker avant de refaire le changement voulu.</p><p class="fx-sinon"><b>SINON</b> → étape 2.</p></div></li>
+<li><strong>Récupérer la clé de 48 chiffres</strong> correspondant à l'ID affiché : compte Microsoft (sur un autre appareil, page des clés de récupération), administrateur du domaine, impression.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> trouvée → la saisir.</p><p class="fx-sinon"><b>SINON</b> → escalade, informer le client : données inaccessibles ; pas d'autre recours technique légitime.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le démarrage suivant ne redemande pas la clé ; <code>manage-bde -status C:</code> → « Protection activée ».</p>
+<h4>6. Correction</h4><p>Après saisie : depuis Windows, <code>manage-bde -protectors -enable C:</code> si la protection est suspendue. <b>Avant</b> toute future MAJ BIOS/changement Secure Boot : Panneau de configuration → Chiffrement de lecteur BitLocker → <b>Suspendre la protection</b> (ou <code>manage-bde -protectors -disable C: -RebootCount 1</code>). Dans WinRE, déverrouiller avant toute commande : <code>manage-bde -unlock C: -RecoveryPassword 123456-…</code>.</p>
+<h4>7. Validation</h4><ul><li>Deux redémarrages sans demande ; clé de récupération sauvegardée en lieu sûr et notée dans le rapport (son emplacement, pas la clé elle-même).</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>L'écran de récupération BitLocker est apparu après la mise à jour du BIOS : le TPM ne reconnaît plus la configuration de démarrage et protège le disque chiffré. Ce n'est pas une panne du disque. Je récupère la clé de récupération (48 chiffres) correspondant à l'ID affiché dans le compte Microsoft du client, je la saisis, puis je vérifie <code>manage-bde -status</code>. Pour les prochaines mises à jour du firmware, je suspends la protection BitLocker avant l'opération. Sans clé, j'informe le client que les données ne sont pas récupérables et je n'efface rien sans son accord écrit.</p><p class="fx-lose"><b>Perd des points :</b> proposer de réinstaller ; ignorer l'existence du chiffrement avant de changer Secure Boot/mode de démarrage.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Windows 11 Famille : « Chiffrement de l'appareil » (même mécanisme, même clé dans le compte Microsoft).</li><li>Dans WinRE, le volume chiffré apparaît sans système de fichiers lisible : ce n'est pas un volume RAW abîmé.</li></ul>
+</article>
+
+<article class="fx-proc" id="f2-p18">
+<h3>P1.8 — Linux : écran noir après GRUB, ou retour à l'écran de connexion en boucle</h3>
+<p class="fx-sev">Fréquence : assez fréquent · Gravité : moyenne (système fonctionnel en console)</p>
+<h4>1. Symptômes observables</h4><ul><li>Écran noir ou curseur clignotant après le logo ; ou mot de passe accepté puis retour à l'écran de connexion (boucle de connexion).</li><li>Contexte : installation du pilote NVIDIA propriétaire, MAJ du noyau, Secure Boot actif, disque plein, commande graphique lancée avec <code>sudo</code>.</li></ul>
+<h4>2. Causes possibles (classées)</h4><ol><li>Pilote graphique : module non chargé (Secure Boot sans inscription de clé MOK), pilote incompatible avec le nouveau noyau.</li><li><code>/home</code> ou <code>/</code> plein (la session ne peut écrire).</li><li>Fichiers de session appartenant à root (<code>~/.Xauthority</code>, <code>~/.config</code>) après un <code>sudo</code> graphique.</li></ol>
+<h4>3. Questions initiales et sécurité</h4><ul><li>Tous les comptes ou un seul ? Après quelle installation ?</li></ul>
+<h4>4. Diagnostic pas à pas</h4>
+<ol class="fx-steps">
+<li><strong>Ctrl+Alt+F3 → console texte, connexion.</strong>
+<div class="fx-branch"><p class="fx-si"><b>SI</b> la console fonctionne → le système tourne ; étape 2.</p><p class="fx-sinon"><b>SINON</b> → GRUB, touche <b>e</b> sur l'entrée, ajouter <code>nomodeset</code> à la ligne <code>linux</code>, Ctrl+X (test temporaire).</p></div></li>
+<li><strong><code>df -h</code></strong>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> <code>/</code> ou <code>/home</code> à 100 % → <a href="#f2-p56">P5.6</a>.</p><p class="fx-sinon"><b>SINON</b> → étape 3.</p></div></li>
+<li><strong>Un seul compte en boucle ? <code>ls -la ~ | grep root</code></strong>.
+<div class="fx-branch"><p class="fx-si"><b>SI</b> <code>.Xauthority</code> ou <code>.config</code> à root → <code>sudo chown -R nom:nom /home/nom/.Xauthority /home/nom/.config</code>.</p><p class="fx-sinon"><b>SINON</b> → pilote : <code>journalctl -b -p err</code>, <code>lsmod | grep -E 'nvidia|nouveau'</code>, <code>mokutil --sb-state</code>.</p></div></li>
+</ol>
+<h4>5. Test de confirmation</h4><p>Le démarrage avec <code>nomodeset</code> ou sur l'ancien noyau donne une session → pilote/noyau confirmé. Limite : <code>nomodeset</code> désactive l'accélération, c'est un contournement.</p>
+<h4>6. Correction</h4><p>Ubuntu : <code>ubuntu-drivers devices</code> puis <code>sudo ubuntu-drivers install</code> (pilote recommandé) ; avec Secure Boot, accepter l'inscription de la clé MOK au redémarrage (écran bleu « Perform MOK management » → Enroll MOK) ; sinon revenir au pilote libre (<code>sudo apt purge 'nvidia-*'</code> après avoir noté les paquets).</p>
+<h4>7. Validation</h4><ul><li>Deux connexions graphiques, <code>nomodeset</code> retiré, <code>nvidia-smi</code> ou paramètres d'affichage corrects.</li></ul>
+<h4>8. Réponse d'examen modèle</h4><div class="fx-answer"><p class="fx-answer-title">Réponse rédigée attendue</p><p>La console (Ctrl+Alt+F3) fonctionne : le système démarre, seule la session graphique échoue. Je vérifie l'espace (<code>df -h</code>) puis le journal du démarrage (<code>journalctl -b -p err</code>), qui montre que le module nvidia n'est pas chargé ; <code>mokutil --sb-state</code> indique Secure Boot activé. Cause : pilote propriétaire non signé. Correction : réinstallation du pilote recommandé avec inscription de la clé MOK. Validation : session graphique ouverte deux fois.</p></div>
+<h4>9. Pièges et variantes</h4><ul><li>Écran noir seulement sur l'écran externe : câble/entrée de l'écran, pas l'OS.</li></ul>
+</article>
+</section>
