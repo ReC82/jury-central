@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_document_layouts.html" as sd %}
+{% import "_prompt_layout.html" as pl %}
 
 {% block title %}Résultats — Jury Central{% endblock %}
 
@@ -210,7 +211,12 @@
                 <div id="result-{{ item.position }}" class="accordion-collapse collapse {% if loop.first or is_signaled %}show{% endif %}">
                     <div class="accordion-body">
                         {% if item.assets %}{% set assets = item.assets %}{% include "_question_assets.html" %}{% endif %}
+                        {% set pl_layout = prompt_layout(item.prompt) %}
+                        {% if pl_layout %}
+                        <div class="jc-pl-result">{{ pl.situation(pl_layout) }}{{ pl.questions(pl_layout) }}</div>
+                        {% else %}
                         <p class="fw-semibold">{{ item.prompt }}</p>
+                        {% endif %}
 
                         {% if item.source_documents %}
                         <div class="mb-3">

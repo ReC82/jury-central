@@ -2337,6 +2337,39 @@ details.jc-glossary > .jc-definitions {
 .jc-q-prompt-label { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--jc-blue); margin-bottom: 0.2rem; }
 .jc-q-prompt p { font-size: 1.06rem; font-weight: 600; margin: 0; line-height: 1.5; }
 .jc-q-counter { font-size: 0.8rem; color: var(--jc-sd-muted); }
+
+/* Consignes structurées des exercices pratiques (ticket #299) */
+.jc-pl { margin-bottom: 1rem; }
+.jc-pl-head { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--jc-blue); margin: 0 0 0.3rem; }
+.jc-pl-head + .jc-pl-head, .jc-pl-context + .jc-pl-head { margin-top: 0.8rem; }
+.jc-pl-part { display: inline-block; margin-left: 0.35rem; padding: 0.05rem 0.45rem; border-radius: 0.3rem; background: var(--jc-blue); color: #fff; letter-spacing: 0.02em; }
+.jc-pl-situation { background: #fff; border: 1px solid #dfe3e8; border-left: 5px solid #6c7a89; border-radius: 0.6rem; padding: 0.8rem 1rem; }
+.jc-pl-situation .jc-pl-head { color: #4a5663; }
+.jc-pl-context { margin: 0; line-height: 1.6; max-width: 46rem; }
+.jc-pl-docs { margin: 0; padding-left: 1.2rem; }
+.jc-pl-docs li { margin-bottom: 0.15rem; }
+.jc-pl-rules { background: #fff8e6; border: 1px solid #f0d58a; border-left: 5px solid #e0a800; border-radius: 0.6rem; padding: 0.7rem 0.95rem; }
+.jc-pl-rules .jc-pl-head { color: #7a5b00; }
+.jc-pl-rules ul { margin: 0; padding-left: 1.2rem; }
+.jc-pl-rules li { margin-bottom: 0.2rem; line-height: 1.5; }
+.jc-q-prompt--structured { padding-bottom: 0.5rem; }
+.jc-q-prompt--structured .jc-pl-rules { margin-top: 0.2rem; }
+.jc-pl-questions { margin-bottom: 0.4rem; }
+.jc-pl-steps { margin: 0; padding-left: 1.6rem; }
+.jc-pl-steps > li, .jc-pl-single { font-size: 1.04rem; font-weight: 600; line-height: 1.5; margin-bottom: 0.55rem; }
+.jc-pl-steps > li::marker { font-weight: 800; color: var(--jc-blue); }
+.jc-pl-sub { margin: 0.3rem 0 0; padding-left: 1.2rem; font-weight: 500; }
+.jc-pl-sub li { margin-bottom: 0.2rem; }
+.jc-pl-result .jc-pl-situation { padding: 0.6rem 0.8rem; }
+@media (max-width: 575.98px) {
+    .jc-pl-situation, .jc-pl-rules { padding: 0.65rem 0.75rem; }
+    .jc-pl-steps { padding-left: 1.3rem; }
+}
+@media print {
+    .jc-pl-situation, .jc-pl-rules, .jc-q-prompt--structured { break-inside: avoid; box-shadow: none; }
+    .jc-pl-steps > li { break-inside: avoid; }
+    .jc-pl-docs a { color: inherit; text-decoration: none; }
+}
 .jc-q-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.6rem; }
 
 @media (max-width: 575.98px) {

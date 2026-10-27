@@ -85,29 +85,29 @@ ANNOTATIONS: dict[tuple[str, str], Annotation] = {
     ("EX01", "X06"): Annotation(
         data_rules=(
             "Le document B3 donne les puissances maximales des fiches, nouvelle carte graphique comprise.",
-            "Règle de l'atelier : bloc = total des fiches + 30 % de marge, arrondi au palier de 50 W supérieur, "
-            "jamais sous la recommandation du fabricant de la carte graphique.",
+            ("Règle de l'atelier : bloc = total des fiches + 30 % de marge, arrondi au palier de 50 W supérieur, "
+            "jamais sous la recommandation du fabricant de la carte graphique."),
         ),
     ),
     ("EX01", "X08"): Annotation(
         data_rules=(
-            "La fiche du processeur indique 100 °C au maximum ; convention de l'atelier : « à surveiller » à "
-            "moins de 10 °C de ce maximum.",
+            ("La fiche du processeur indique 100 °C au maximum ; convention de l'atelier : « à surveiller » à "
+            "moins de 10 °C de ce maximum."),
         ),
     ),
     ("EX01", "X10"): Annotation(
         data_rules=(
             "La dernière sauvegarde date de trois semaines.",
-            "Règle de l'atelier : secteurs en attente ou illisibles supérieurs à 0 → disque à remplacer ; "
-            "secteurs réalloués seuls → à surveiller.",
+            ("Règle de l'atelier : secteurs en attente ou illisibles supérieurs à 0 → disque à remplacer ; "
+            "secteurs réalloués seuls → à surveiller."),
         ),
     ),
     ("EX02", "X01"): Annotation(
         data_rules=(
-            "Elle préfère Windows 11 quand c'est possible et utile, et accepte un autre système si un poste ne "
-            "le permet pas.",
-            "Le relevé a été fait avec Informations système (msinfo32), la console TPM (tpm.msc) et Gestion des "
-            "disques ; la liste de compatibilité citée est celle des processeurs publiée par Microsoft.",
+            ("Elle préfère Windows 11 quand c'est possible et utile, et accepte un autre système si un poste ne "
+            "le permet pas."),
+            ("Le relevé a été fait avec Informations système (msinfo32), la console TPM (tpm.msc) et Gestion des "
+            "disques ; la liste de compatibilité citée est celle des processeurs publiée par Microsoft."),
         ),
     ),
     ("EX02", "X06"): Annotation(
