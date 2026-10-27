@@ -79,7 +79,7 @@ annotations-réponses listés dans `omitted` ne sont plus affichés (ils restent
 transmis à la correction). Voir `docs/claude-reports/2026-10-21_ticket-149-supports-visuels.md`.
 
 Consignes structurées des exercices pratiques AMPCR (ticket #299) : en entraînement, examen
-blanc et résultats, la consigne d'un exercice PR01–PR26 / EX01–EX04 s'affiche en blocs
+blanc et résultats, la consigne d'un exercice PR01–PR27 / EX01–EX04 s'affiche en blocs
 « Contexte » (avec repère « Partie n »), « Documents à consulter » (liens vers les documents
 de la page), « Données et règles » (encadré) et « Questions » (liste numérotée, sous-questions)
 via `app/templates/_prompt_layout.html` + `app/v1/prompt_layout.py`. La structure vient des
@@ -136,7 +136,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, PR26, EX01, EX02, EX03 et EX04),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR21, PR22, PR23, PR24, PR25, PR26, PR27, EX01, EX02, EX03 et EX04),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -477,6 +477,21 @@ compléter servis aussi en fichiers statiques ; droits effectifs (cumul, refus, 
 le plus restrictif, local = NTFS seul), matrice des droits, droits Unix/ACL/Samba et ordre des
 diagnostics d'accès et d'impression **calculés par code** (`app/v1/ampcr_pratique_pr23_figures.py`)
 et contrôlés par les tests. 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
+
+**Vingt-septième cours publié (ticket #226) : PR27 « Construire et justifier une procédure de
+diagnostic »** (`/uaa/ampcr-pratique-pr27`), même intégration, position 27 (après PR26). Cours de
+méthode de dépannage (AP-15, complément AP-C01) : 15 blocs (8 chapitres : cycle de diagnostic ;
+invasivité, mesure d'impact et sécurité ; couches et isolation de variables ; test croisé, test
+négatif, faux positifs / négatifs ; contrôle de configuration, journaux, conditions de
+reproduction ; 4 arbres de décision matériel / démarrage / système / réseau ; preuves et retour
+arrière ; alternatives, escalade et rédaction ; 6 dossiers résolus — démarrage, périphérique,
+DHCP, DNS, partage, panne intermittente ; pièges, exercices, mini-examen, mémo, sources).
+4 procédures, 12 figures SVG et 2 arbres à compléter servis aussi en fichiers statiques. Échelle
+d'invasivité et précautions, tri des tests, test croisé, écarts de configuration, facteur commun,
+hypothèses restantes et parcours des arbres **calculés par code**
+(`app/v1/ampcr_pratique_pr27_figures.py`) ; dans chaque dossier, tests ordonnés et
+discriminants, cause unique et chemin dans l'arbre contrôlés par les tests. 23 exercices (dont
+8 procédures à ordonner et justifier), mini-examen 10 questions /20 ; aucune image générée.
 
 **Vingt-cinquième cours publié (ticket #224) : PR25 « Wi-Fi : configuration, couverture, sécurité
 et diagnostic »** (`/uaa/ampcr-pratique-pr25`), même intégration, position 25 (après PR24).

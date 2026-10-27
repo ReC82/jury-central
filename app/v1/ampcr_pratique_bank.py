@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14 ; #218 : PR17 ; #219 : PR18 ; #220 : PR19 ; #221 : PR21 ; #222 : PR22 ; #223 : PR23 ; #224 : PR25 ; #225 : PR26 ; #226 : PR27) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; #232 : EX03 ; #233 : EX04 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -59,6 +59,7 @@ from app.v1.ampcr_pratique_pr23_bank import ALL_ITEMS as PR23_ITEMS
 from app.v1.ampcr_pratique_pr24_bank import ALL_ITEMS as PR24_ITEMS
 from app.v1.ampcr_pratique_pr25_bank import ALL_ITEMS as PR25_ITEMS
 from app.v1.ampcr_pratique_pr26_bank import ALL_ITEMS as PR26_ITEMS
+from app.v1.ampcr_pratique_pr27_bank import ALL_ITEMS as PR27_ITEMS
 from app.v1.models import (
     GenerationSource,
     Question,
@@ -1492,6 +1493,56 @@ _PR26_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR27_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr27",
+    course_title="AMPCR pratique écrite — PR27 Construire et justifier une procédure de diagnostic",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : procédure de diagnostic écrite et justifiée (matériel, démarrage, système, "
+        "réseau) ; hypothèses, tests discriminants, ordre du moins au plus invasif, précautions, "
+        "preuves, retour arrière, escalade ; situations, journaux et relevés fictifs"
+    ),
+    allowed_notions=[
+        "cycle : hypothèse (explique tous les symptômes) → test discriminant (résultat différent selon l'hypothèse vraie) → résultat attendu écrit AVANT le test, pour chaque hypothèse → interprétation (écarter les hypothèses contredites) → action sur la cause confirmée → validation par le test du symptôme de départ ; un test qui prévoit le même résultat pour toutes les hypothèses ne départage rien",
+        "échelle d'invasivité du cours : 0 observer et questionner ; 1 lire sans modifier (messages, journaux, ipconfig /all, gestionnaire de périphériques) ; 2 manipulation réversible (rebrancher, autre câble ou port, redémarrer, test croisé) ; 3 modifier la configuration (paramètre, démarrage minimal, mode sans échec, pilote) ; 4 intervenir dans le matériel ; 5 opération destructive ou irréversible (formatage, réinstallation, réglages d'usine, micrologiciel) ; du moins au plus invasif, à niveau égal le plus rapide ; convention, la procédure de l'entreprise fait foi",
+        "précautions : niveau 2 prévenir, faire enregistrer, mesurer l'impact (qui est coupé, combien de temps, quand) ; niveau 3 + état initial noté ou exporté, plan de retour arrière ; niveau 4 + hors tension, débranché, bracelet antistatique, garantie vérifiée, accord ; niveau 5 + sauvegarde vérifiée et accord écrit",
+        "approche par couches : réseau physique → liaison → IP → transport → application ; poste alimentation → matériel → firmware et démarrage → système → pilotes → application et compte ; ascendante, descendante ou par division (ping de la passerelle) ; une couche validée avant la suivante",
+        "isolation de variables : une seule variable changée entre deux essais, substitution par un élément connu bon ; par moitiés quand les candidats sont nombreux (8 → 4 → 2 → 1, au plus 3 essais)",
+        "test croisé : A = élément suspect sur poste sain, B = élément sain sur poste suspect ; A échoue et B fonctionne → l'élément ; A fonctionne et B échoue → le poste ; les deux échouent → deux causes ou élément « sain » à revérifier ; les deux fonctionnent → panne non reproduite (contact, intermittente)",
+        "test positif = signale une panne ; faux positif = panne signalée qui n'existe pas (ping bloqué par un pare-feu, piles du testeur, mauvaise entrée, cordon de test coupé) ; faux négatif = panne non vue (testeur de continuité et paires mélangées, test mémoire trop court, test hors conditions, antivirus) ; un test négatif ne prouve que ce qu'il mesure ; contrôler l'outil sur un témoin",
+        "contrôle de configuration : comparer paramètre par paramètre à une référence écrite (fiche, plan d'adressage, poste identique) ; journaux Windows (Système, Application ; Kernel-Power 41 et EventLog 6008 = arrêt non prévu, conséquence et non cause ; disk 7 = bloc défectueux) et Linux (journalctl -b -1 -p err, dmesg, /var/log/syslog) : ordre chronologique, premier événement anormal avant l'heure du problème",
+        "conditions de reproduction : qui, quel poste, quand, quelle action, quel appareil ; journal des pannes et des moments sans panne ; facteur présent à chaque panne et jamais sans ; panne intermittente validée sur une durée, jamais sur un seul essai",
+        "quatre arbres (oui on descend, premier non → piste) : matériel (alimenté, autotest, détecté, pilote, test du système) ; démarrage (signe de vie, image, disque détecté, ordre de démarrage, chargeur) ; système (journaux, autre compte, démarrage minimal, mode sans échec, sfc /scannow puis DISM /Online /Cleanup-Image /RestoreHealth) ; réseau (lien, adresse pas 169.254, passerelle, IP publique, nslookup)",
+        "conservation de preuves : horodater, capturer le message, exporter journaux et configuration, photographier le câblage avant de modifier ; incident de sécurité : isoler sans éteindre ni effacer, escalader ; plan de retour arrière : état initial, sauvegarde, critère d'échec écrit avant, une modification, tester, revenir ou valider ; « Restaurer le pilote »",
+        "limite atteinte (droits, garantie, données sans copie, compétence, durée) : escalade avec preuves et tests faits (arbre d'escalade de PR26) ; alternative ou contournement (prêt, autre prise, écran externe)",
+    ],
+    competencies=[
+        "Construire une procédure de diagnostic ordonnée et justifiée, test par test",
+        "Interpréter des tests (discriminant, croisé, faux positif ou négatif, configuration, journaux, reproduction)",
+        "Prendre les précautions : impact, sécurité, preuves, retour arrière, escalade et alternative",
+    ],
+    vocabulary=[
+        "hypothèse", "test discriminant", "résultat attendu", "interprétation", "validation", "invasif",
+        "approche par couches", "isolation de variables", "test croisé", "élément connu bon", "test négatif",
+        "faux positif", "faux négatif", "contrôle de configuration", "journal", "conditions de reproduction",
+        "arbre de décision", "conservation de preuves", "plan de retour arrière", "mesure d'impact",
+        "escalade", "contournement",
+    ],
+    constraints=(
+        "Correction d'une procédure écrite de technicien : accepter toute procédure juste et "
+        "justifiée, tout test discriminant équivalent et tout ordre défendable par l'invasivité, "
+        "sans exiger de mot-clé ni la reprise exacte du corrigé ; valoriser les résultats attendus "
+        "annoncés, une variable à la fois, les précautions (impact, sauvegarde, état initial, "
+        "retour arrière) et une conclusion justifiée par les tests ; suivre le barème de la "
+        "question. Ne jamais valider : une action destructive (formatage, réinstallation, "
+        "réinitialisation d'usine, réparation de disque) avant les tests moins invasifs ou sans "
+        "sauvegarde ni accord, plusieurs variables changées à la fois présentées comme une preuve, "
+        "une conséquence (événements 41, 6008) prise pour la cause, l'ouverture d'un appareil sous "
+        "garantie, l'effacement des traces d'un incident de sécurité, une panne intermittente "
+        "déclarée réparée sur un seul essai."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1645,6 +1696,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Analyser une demande d'intervention technique",
         items=PR26_ITEMS,
         context=_PR26_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR27",
+        title="Construire et justifier une procédure de diagnostic",
+        items=PR27_ITEMS,
+        context=_PR27_CONTEXT,
     ),
     PracticalCourse(
         code="EX01",
