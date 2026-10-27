@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12) et premier examen blanc de module (#230 : EX01, réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -41,6 +41,7 @@ from app.v1.ampcr_pratique_pr08_bank import ALL_ITEMS as PR08_ITEMS
 from app.v1.ampcr_pratique_pr09_bank import ALL_ITEMS as PR09_ITEMS
 from app.v1.ampcr_pratique_pr10_bank import ALL_ITEMS as PR10_ITEMS
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
+from app.v1.ampcr_pratique_pr12_bank import ALL_ITEMS as PR12_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
@@ -821,6 +822,57 @@ _PR10_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR12_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr12",
+    course_title="AMPCR pratique écrite — PR12 Dépannage logiciel et restauration du système",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : dépannage logiciel de Windows et de Linux, restauration du système, "
+        "protection des données du client, lecture de relevés fictifs (Moniteur de fiabilité, "
+        "profil temporaire, volumes de WinRE, systemctl, journalctl, nginx -t, dpkg, GRUB, df, "
+        "du, empreintes SHA-256, ipconfig) et rapport d'intervention"
+    ),
+    allowed_notions=[
+        "familles de causes : système d'exploitation, application, pilote/service/programme au démarrage, service, compte ou profil, logiciel malveillant, stockage (disque plein ou défaillant) ; isoler par élimination : stockage d'abord, autre programme, compte de test, mode sans échec, démarrage minimal (msconfig), analyse antivirus hors ligne ; pannes matérielles en PR06",
+        "recueil : symptôme exact et message, depuis quand, reproductibilité (permanente, intermittente, durée d'observation), portée, changements récents, données et sauvegarde ; journaux : Observateur d'événements, Moniteur de fiabilité (perfmon /rel), Historique des mises à jour, journalctl -b -p err, journalctl -b -1 (journal conservé), systemctl --failed, /var/log/apt/history.log, dnf history",
+        "protection des données : sauvegarde avant la première modification (d'abord si le disque faiblit), copier sans déplacer, robocopy, Historique des fichiers, rsync -a, cp -a ; vérification : nombre, taille, ouverture d'essai, empreinte SHA-256 (Get-FileHash, certutil -hashfile … SHA256, sha256sum, sha256sum -c) ; accord écrit avant réinitialisation ou réinstallation (ce qui est effacé, sauvegardé, à réinstaller, date, signature) ; confidentialité",
+        "WinRE : Maj + Redémarrer, Paramètres → Récupération → Démarrage avancé, shutdown /r /o, après deux échecs de démarrage, clé → Réparer l'ordinateur ; Dépannage → Options avancées : outil de redémarrage système (réparation du démarrage), Paramètres (mode sans échec touche 4, 5 avec réseau), Désinstaller des mises à jour, Restauration du système, Invite de commandes (X: = WinRE, lettres différentes, dir avant d'agir, pas de diskpart clean), Réinitialiser ce PC, Paramètres du microprogramme UEFI",
+        "point de restauration : système, registre, pilotes, programmes, pas les documents (ce n'est pas une sauvegarde) ; Protection du système à activer, Créer ; rstrui.exe ; dernier point antérieur à la panne ; Rechercher les programmes concernés ; programmes, pilotes et mises à jour installés après le point retirés ; annulable depuis Windows",
+        "SFC et DISM : DISM /Online /Cleanup-Image /RestoreHealth puis sfc /scannow en administrateur ; hors ligne sfc /scannow /offbootdir=D:\\ /offwindir=D:\\Windows ; Restaurer le pilote ; mises à jour : Historique, Désinstaller des mises à jour, Revenir en arrière (dix jours), Suspendre puis reprendre, Résoudre les problèmes à l'aide de Windows Update (réinstalle en gardant fichiers et applications)",
+        "profil corrompu : profil temporaire (événement 1511 User Profile Service), fichiers toujours dans C:\\Users\\nom, rien à enregistrer dans le profil temporaire ; sauvegarde depuis un compte administrateur, disque et DISM/SFC, nouveau profil, recopier Documents, Bureau, Images, favoris (pas tout AppData), clé ProfileList réservée à un technicien ; winword /safe et compléments pour un problème d'application propre à un profil",
+        "logiciels malveillants : publicitaires (page d'accueil, extension), rançongiciel (.locked, note), isoler du réseau, ne pas brancher la sauvegarde, prévenir, ne pas payer, analyse hors ligne de Microsoft Defender, restauration depuis une sauvegarde saine antérieure, mots de passe changés depuis un appareil sain",
+        "Linux : systemctl --failed, status, journalctl -u service -b, test de configuration (nginx -t, sshd -t, apache2ctl configtest) avant restart, copie du fichier avant modification ; GRUB : Maj (BIOS) ou Échap (UEFI), Advanced options, noyau précédent, recovery mode, update-grub, ne pas supprimer le noyau qui fonctionne ; dpkg --configure -a, apt --fix-broken install ; fsck seulement sur une partition démontée (clé live, mode de récupération), SMART ; df -h, df -i, du -xh -d1 /var | sort -h, journalctl --vacuum-size, apt clean, apt autoremove, corriger la cause ; chown -R utilisateur:groupe sur le seul dossier restauré, cp -a ou rsync -a",
+        "échelle des interventions : annuler le dernier changement, réparer les fichiers système, restauration du système, réinstaller via Windows Update, réinitialiser en conservant les fichiers (applications retirées), réinstallation complète (tout effacé) ; un changement à la fois ; précautions : noter l'état, sauvegarde à jour et accord, sauvegarde vérifiée et accord écrit ; réinstallation justifiée en dernier recours ou système compromis",
+        "réseau logiciel ou physique : Média déconnecté, NO-CARRIER, Wi-Fi coupé = physique ; 169.254 = DHCP ; passerelle, Internet, DNS, application/proxy/pare-feu ; comparer avec un autre poste ou navigateur ; dépannage complet PR24",
+        "contrôles finaux (symptôme, deux redémarrages, journaux, intégrité, données, espace libre) et rapport (demande, constat, sauvegarde, actions, contrôles, recommandations), sans mot de passe",
+    ],
+    competencies=[
+        "Situer la cause d'une panne logicielle (système, application, pilote, compte, service, logiciel malveillant, stockage) à partir des symptômes, des journaux, de la reproductibilité et des changements récents",
+        "Réparer ou restaurer Windows et Linux par le geste le moins invasif (WinRE, mode sans échec, point de restauration, SFC/DISM, pilotes, mises à jour, profil ; systemd, journalctl, GRUB, permissions, paquets, système de fichiers, espace disque)",
+        "Protéger les données du client : sauvegarde préalable vérifiée (empreintes), accord avant réinstallation, restauration et contrôle ; distinguer panne réseau logicielle et physique ; rédiger l'intervention",
+    ],
+    vocabulary=[
+        "WinRE", "démarrage avancé", "mode sans échec", "démarrage minimal", "point de restauration",
+        "restauration du système", "SFC", "DISM", "profil temporaire", "Moniteur de fiabilité",
+        "Observateur d'événements", "Réinitialiser ce PC", "rançongiciel", "systemd", "journalctl", "GRUB",
+        "dpkg", "fsck", "df", "du", "SHA-256", "empreinte", "sauvegarde", "accord écrit",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si le geste est clair ; "
+        "accepter un autre outil équivalent bien justifié (interface graphique ou ligne de "
+        "commande, Get-FileHash ou certutil, rsync ou cp -a) ; suivre le barème de la question. "
+        "Valoriser le diagnostic justifié, l'ordre du moins invasif au plus invasif et la "
+        "protection des données. Ne jamais valider une réinstallation ou une réinitialisation "
+        "d'emblée, sans sauvegarde vérifiée ou sans accord du client, la confusion entre point de "
+        "restauration et sauvegarde, le travail dans un profil temporaire, la suppression manuelle "
+        "dans C:\\Windows, WinSxS, /var/lib ou /usr, un fsck sur une partition montée, le "
+        "branchement de la sauvegarde sur un poste infecté, la désactivation de l'antivirus, "
+        "plusieurs changements à la fois, des mises à jour suspendues sans date de reprise, ni "
+        "chmod 777 ou chown -R sur un dossier système."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -884,6 +936,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Messages d'erreur Windows/Linux — diagnostic et interventions écrites",
         items=PR11_ITEMS,
         context=_PR11_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR12",
+        title="Dépannage logiciel et restauration du système",
+        items=PR12_ITEMS,
+        context=_PR12_CONTEXT,
     ),
     PracticalCourse(
         code="PR15",

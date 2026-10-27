@@ -2,6 +2,20 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR12 « Dépannage logiciel et restauration du système » (ticket #215)
+
+Seizième cours du parcours pratique et douzième dans l'ordre pédagogique (UAA PR12 du module
+`AMPCR-PRATIQUE`, position 12, après PR11, 20 blocs) : familles de causes (système, application,
+pilote, compte, service, logiciel malveillant, stockage) et isolement par élimination ; recueil
+des faits, reproductibilité, changements et journaux ; sauvegarde préalable, vérification par
+empreinte SHA-256 et accord écrit ; WinRE, mode sans échec, points de restauration, SFC/DISM (y
+compris hors ligne), pilotes, mises à jour, profil temporaire ; logiciels malveillants ; systemd,
+`journalctl`, GRUB, permissions, paquets (`dpkg --configure -a`), `fsck` démonté, espace disque ;
+échelle des interventions et précautions ; panne réseau logicielle ou physique ; 5 procédures
+illustrées, 11 figures SVG ; 5 cas résolus (démarrage, service, profil, mise à jour, espace
+disque), 17 exercices, mini-examen 10 questions /20 sans génération IA
+(`app/v1/ampcr_pratique_pr12_*.py`, `tests/test_ticket215_ampcr_pratique_pr12.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR10 « Comptes, pilotes, paramètres et commandes » (ticket #214)
 
 Quinzième cours du parcours pratique et dixième dans l'ordre pédagogique (UAA PR10 du module
