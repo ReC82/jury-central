@@ -2,6 +2,18 @@
 
 Historique des tranches livrées. Format : date, résumé, détail technique bref.
 
+## 2026-10-27 — AMPCR pratique écrite : cours PR19 « Topologies, OSI, TCP/IP, NetBEUI et équipements » (ticket #220)
+
+Cours PR19 du parcours pratique, dix-neuvième dans l'ordre pédagogique (UAA PR19 du module
+`AMPCR-PRATIQUE`, position 19, après PR18, 16 blocs) : topologies et pannes ; OSI et TCP/IP ;
+encapsulation et trame Ethernet ; MAC, ARP, IP, ports TCP/UDP ; protocole, service, équipement ;
+NetBEUI non routable ; hub, répéteur, pont, switch, point d'accès, routeur, passerelle, modem ;
+domaines de collision et de diffusion, VLAN ; chemin d'un paquet ; diagnostic par couche ;
+3 procédures, 10 figures SVG + 6 schémas à compléter (fichiers statiques
+`app/static/img/ampcr-pratique/pr19-*.svg`) ; 5 cas résolus, 20 exercices, mini-examen
+10 questions /20 sans génération IA (`app/v1/ampcr_pratique_pr19_*.py`,
+`tests/test_ticket220_ampcr_pratique_pr19.py`).
+
 ## 2026-10-27 — AMPCR pratique écrite : cours PR18 « Installation physique d'un mini-réseau » (ticket #219)
 
 Cours PR18 du parcours pratique, dix-huitième dans l'ordre pédagogique (UAA PR18 du module

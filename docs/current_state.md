@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR20, PR24, EX01, EX02 et EX03),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR17, PR18, PR19, PR20, PR24, EX01, EX02 et EX03),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -419,6 +419,17 @@ exercices, mini-examen, mémo, sources). 3 procédures, 8 figures SVG et 5 sché
 servis aussi en fichiers statiques ; longueurs, dimensionnement (switch, panneaux, baie, boîtes
 de câble), budget PoE, devis, verdicts de recette et ordre de validation **définis par code**
 (`app/v1/ampcr_pratique_pr18_figures.py`, règles de PR13/PR15 réutilisées) et contrôlés par les
+tests. 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
+
+**Vingt et unième cours publié (ticket #220) : PR19 « Topologies, OSI, TCP/IP, NetBEUI et
+équipements »** (`/uaa/ampcr-pratique-pr19`), même intégration, position 19 (après PR18, avant
+PR20). 16 blocs (9 chapitres : topologies bus, étoile, anneau, maillage ; modèles OSI et TCP/IP ;
+encapsulation et trame Ethernet ; adresses MAC et IP, ARP, ports ; NetBEUI non routable ;
+équipements ; domaines de collision et de diffusion, VLAN ; chemin d'un paquet du PC à Internet ;
+diagnostic couche par couche ; 5 cas résolus ; pièges, exercices, mini-examen, mémo, sources).
+3 procédures, 10 figures SVG et 6 schémas à compléter servis aussi en fichiers statiques ; effet
+des pannes par topologie, tailles d'encapsulation, domaines, adresses des trames et couche en
+défaut **calculés par code** (`app/v1/ampcr_pratique_pr19_figures.py`) et contrôlés par les
 tests. 20 exercices, mini-examen 10 questions /20 ; aucune image générée.
 
 ## Administration
