@@ -1,6 +1,6 @@
 """Banque des cours du parcours « AMPCR — Pratique écrite » (ticket #193 : PR06 ; #194 : PR11 ;
 #197 : PR15 ; #198 : PR16 ; #199 : PR20 ; #200 : PR24 ; #202 : PR01 ; #203 : PR02 ; #204 : PR03 ;
-#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; réserve `exam` seule).
+#205 : PR04 ; #206 : PR05 ; #207 : PR07 ; #208 : PR08 ; #209 : PR09 ; #214 : PR10 ; #215 : PR12 ; #216 : PR13 ; #217 : PR14) et examens blancs de module (#230 : EX01 ; #231 : EX02 ; réserve `exam` seule).
 
 Branchement sur le moteur de sessions existant, sans nouveau système :
 - un cours pratique est une UAA du module `AMPCR-PRATIQUE` (slug `ampcr-pratique-pr06`) ;
@@ -44,6 +44,7 @@ from app.v1.ampcr_pratique_pr10_bank import ALL_ITEMS as PR10_ITEMS
 from app.v1.ampcr_pratique_pr11_bank import ALL_ITEMS as PR11_ITEMS
 from app.v1.ampcr_pratique_pr12_bank import ALL_ITEMS as PR12_ITEMS
 from app.v1.ampcr_pratique_pr13_bank import ALL_ITEMS as PR13_ITEMS
+from app.v1.ampcr_pratique_pr14_bank import ALL_ITEMS as PR14_ITEMS
 from app.v1.ampcr_pratique_pr15_bank import ALL_ITEMS as PR15_ITEMS
 from app.v1.ampcr_pratique_pr16_bank import ALL_ITEMS as PR16_ITEMS
 from app.v1.ampcr_pratique_pr20_bank import ALL_ITEMS as PR20_ITEMS
@@ -967,6 +968,52 @@ _PR13_CONTEXT = PedagogicalContext(
     ),
 )
 
+_PR14_CONTEXT = PedagogicalContext(
+    course_key="ampcr-pratique-pr14",
+    course_title="AMPCR pratique écrite — PR14 Débits, distances, atténuation et impédance",
+    level=(
+        "CESS Professionnel, option AMPCR, épreuve pratique écrite (Laboratoire + T.P. et "
+        "méthodes) : calculs de débits et de durées avec unités, longueurs maximales selon la "
+        "norme et le câble, décibels, lecture de rapports de testeur (affaiblissement, NEXT), "
+        "impédance et réflexions, bilan d'une liaison optique, duplex et auto-négociation, "
+        "diagnostic d'une liaison à 100 Mb/s au lieu de 1 Gb/s ; relevés fictifs"
+    ),
+    allowed_notions=[
+        "bit (b) et octet (o, B) = 8 bits ; débits en b/s, kb/s, Mb/s, Gb/s avec préfixes décimaux (k = 10³, M = 10⁶, G = 10⁹) ; tailles en octets, préfixes binaires Ki, Mi, Gi = 2¹⁰, 2²⁰, 2³⁰ (Windows écrit Go pour Gio, 1 To ≈ 931 « Go ») ; 1 Gb/s ÷ 8 = 125 Mo/s ; 100 Mb/s ÷ 8 = 12,5 Mo/s",
+        "durée = taille en bits / débit utile en b/s ; débit utile = débit nominal × rendement ; rendement TCP maximal sur Ethernet 1460/1538 ≈ 94,9 % (préambule 8, en-tête 14, FCS 4, intervalle 12 octets, IPv4 20, TCP 20) ; disques, processeur, petits fichiers, Wi-Fi, half duplex réduisent le débit utile ; accepter un arrondi raisonnable",
+        "Ethernet cuivre : 10BASE-T 10 Mb/s Cat3 2 paires ; 100BASE-TX 100 Mb/s Cat5 2 paires (1-2, 3-6) ; 1000BASE-T 1 Gb/s Cat5e 4 paires ; 10GBASE-T 10 Gb/s Cat6A 100 m, Cat6 55 m au plus (37 m dans le pire cas de diaphonie exogène), à certifier ; canal ≤ 100 m = lien permanent ≤ 90 m + cordons ≤ 10 m, quelle que soit la catégorie ; 2,5G/5GBASE-T en complément",
+        "coaxial historique : 10BASE2 RG-58 50 Ω segment 185 m, 10BASE5 coaxial épais 50 Ω segment 500 m, bus half-duplex, terminateurs 50 Ω ; affaiblissement d'un segment ≤ 8,5 dB à 10 MHz ; répéteur pour relier deux segments",
+        "décibels : affaiblissement = 10 log10(Pentrée/Psortie) (20 log10 pour des tensions) ; 3 dB ≈ ÷ 2, 6 dB ≈ ÷ 4, 10 dB = ÷ 10, 20 dB = ÷ 100 ; les dB s'additionnent ; 0 dBm = 1 mW ; affaiblissement proportionnel à la longueur, croît avec fréquence et température ; câble seul à 100 MHz sur 100 m : Cat5e 22,0, Cat6 19,8, Cat6A 19,1 dB",
+        "bruit, rapport signal sur bruit ; diaphonie : NEXT mesuré du côté de l'émetteur, FEXT à l'autre bout ; valeur en dB = affaiblissement du parasite : plus grand = meilleur ; ACR = NEXT − affaiblissement ; détorsadage > 13 mm, mauvais poinçonnage, écrasement dégradent le NEXT ; blindage continu et relié à la terre",
+        "impédance caractéristique fixée par la géométrie : paire torsadée 100 Ω ± 15 Ω, coaxial réseau 50 Ω, vidéo et TV 75 Ω, IBM type 1 150 Ω ; non mesurable à l'ohmmètre ; Γ = (Zcharge − Zligne)/(Zcharge + Zligne) ; ouvert +1, court-circuit −1, adapté 0 ; puissance réfléchie Γ² ; affaiblissement de réflexion −20 log10 |Γ| ; 50 Ω sur 75 Ω : Γ = 0,2, 4 %, ≈ 14 dB",
+        "fibre : multimode OM1 62,5 µm, OM2-OM4 50 µm, 850/1300 nm, 3,5 et 1,5 dB/km ; monomode OS1 1,0 dB/km, OS2 0,4 dB/km, ≈ 9 µm, 1310/1550 nm ; connecteur 0,75 dB, épissure 0,3 dB au plus ; perte = km × dB/km + connecteurs + épissures ; marge = budget du module − perte ; portée selon module et fibre : 1000BASE-SX 275 m OM1, 550 m OM2 ; 1000BASE-LX 5 km ; 10GBASE-SR 33 m OM1, 82 m OM2, 300 m OM3, 400 m OM4 ; 10GBASE-LR 10 km ; vérifier portée ET budget ; mesure au photomètre",
+        "duplex : half (hub, coaxial, CSMA/CD, collisions) ou full (switch, sans collision) ; auto-négociation des deux côtés, obligatoire en 1000BASE-T ; auto face à forcé : vitesse détectée, half duplex → désaccord (collisions tardives côté half, erreurs CRC côté full) ; forcer les deux côtés à l'identique si nécessaire ; 100 Mb/s au lieu de 1 Gb/s : équipement limité, réglage forcé, ou paire 4-5 / 7-8 en défaut (rétrogradation) ; ethtool (Speed, Duplex, Link partner advertised), Get-NetAdapter (LinkSpeed)",
+    ],
+    competencies=[
+        "Convertir bits et octets, débits et tailles, et calculer une durée de copie à partir du débit utile, unités écrites",
+        "Vérifier un projet ou une installation : norme, catégorie, longueur, affaiblissement, NEXT, impédance, bilan optique, et conclure par écrit",
+        "Diagnostiquer et corriger un problème de duplex, de négociation ou une liaison établie à 100 Mb/s au lieu de 1 Gb/s",
+    ],
+    vocabulary=[
+        "bit", "octet", "débit nominal", "débit utile", "rendement", "canal", "lien permanent",
+        "10BASE2", "10BASE5", "1000BASE-T", "10GBASE-T", "décibel", "dBm", "affaiblissement",
+        "NEXT", "FEXT", "ACR", "impédance", "réflexion", "monomode", "multimode", "budget optique",
+        "marge", "half duplex", "full duplex", "auto-négociation", "collision", "CSMA/CD",
+    ],
+    constraints=(
+        "Correction d'une réponse écrite de technicien : accepter toute formulation et tout ordre "
+        "techniquement justes, sans exiger de mot-clé ni de sigle développé si l'idée est claire ; "
+        "accepter un arrondi raisonnable et une autre méthode de calcul juste (puissances de 10, "
+        "dBm) ; valoriser le calcul posé avec ses unités, la règle appliquée et le diagnostic "
+        "justifié ; un résultat juste sans unité ou sans justification ne reçoit qu'une partie des "
+        "points ; suivre le barème de la question. Ne jamais valider la confusion bits/octets, un "
+        "débit nominal présenté comme garanti, un canal cuivre de plus de 100 m, 10 Gb/s sur Cat6 "
+        "au-delà de 55 m ou sans certification, une addition de pourcentages au lieu de dB, un NEXT "
+        "faible présenté comme bon, le mélange de 50 et 75 Ω, un bilan optique qui oublie la portée "
+        "du module ou les connecteurs, ni un seul côté forcé présenté comme une correction."
+    ),
+)
+
 PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
     PracticalCourse(
         code="PR01",
@@ -1042,6 +1089,12 @@ PRACTICAL_COURSES: tuple[PracticalCourse, ...] = (
         title="Câbles UTP, FTP, STP et coaxial — choix et pose",
         items=PR13_ITEMS,
         context=_PR13_CONTEXT,
+    ),
+    PracticalCourse(
+        code="PR14",
+        title="Débits, distances, atténuation et impédance",
+        items=PR14_ITEMS,
+        context=_PR14_CONTEXT,
     ),
     PracticalCourse(
         code="PR15",

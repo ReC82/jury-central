@@ -127,7 +127,7 @@ du disque n'est jamais servie (`unusable_document_question_ids`). Voir
 ## AMPCR — Pratique écrite (ticket #192)
 
 Socle du parcours de l'épreuve pratique écrite AMPCR (cycle 2026-2027/1) : `/ampcr-pratique`
-(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR15, PR16, PR20, PR24, EX01 et EX02),
+(consignes du jour, 5 modules, emplacements PR01–PR30 / EX01–EX06 « à venir » sauf PR01, PR02, PR03, PR04, PR05, PR06, PR07, PR08, PR09, PR10, PR11, PR12, PR13, PR14, PR15, PR16, PR20, PR24, EX01 et EX02),
 `/ampcr-pratique/matrice` (38 exigences officielles des pp. 5-6 + 3 compléments) et `/ampcr-pratique/format-exercice`. Voir `ampcr_pratique_v1.md`.
 
 **Numérotation (audit #236, 2026-10-26)** : codes, titres et matières des 30 cours et 6 examens
@@ -366,6 +366,19 @@ désignation, continuité de l'écran, coupe coaxiale, arbre de choix, chaîne b
 distances aux câbles d'énergie, rayons de courbure à l'échelle) ; désignation, règle de choix,
 rayons, distances, longueurs et repères **définis par code**
 (`app/v1/ampcr_pratique_pr13_figures.py`) et contrôlés par les tests. 17 exercices, mini-examen
+10 questions /20 ; aucune image générée.
+
+**Dix-huitième cours publié (ticket #217) : PR14 « Débits, distances, atténuation et
+impédance »** (`/uaa/ampcr-pratique-pr14`), même intégration, quatorzième cours de l'ordre
+pédagogique (position 14, après PR13 et avant PR15). 16 blocs (9 chapitres : bits, octets,
+préfixes décimaux et binaires ; durée d'une copie, débit nominal et utile (rendement TCP calculé
+depuis les en-têtes) ; Ethernet 10/100/1000/10G et coaxial 10BASE2/10BASE5, longueurs ; dB ;
+bruit, NEXT/FEXT, ACR, blindage ; impédance 100/50/75 Ω et réflexions (Γ) ; fibre monomode ou
+multimode, pertes, portée selon le module, bilan ; duplex, auto-négociation, collisions ;
+diagnostic d'une liaison à 100 Mb/s au lieu de 1 Gb/s ; 5 cas chiffrés résolus, pièges,
+exercices, mini-examen, mémo, sources). 3 procédures illustrées et 9 figures SVG ; tous les
+calculs (durées, verdicts cuivre, dB, Γ, bilans optiques, négociation) **définis par code**
+(`app/v1/ampcr_pratique_pr14_figures.py`) et contrôlés par les tests. 19 exercices, mini-examen
 10 questions /20 ; aucune image générée.
 
 ## Administration
