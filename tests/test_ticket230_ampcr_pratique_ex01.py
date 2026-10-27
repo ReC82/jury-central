@@ -330,7 +330,7 @@ def test_subject_page_navigation_and_home(client, db_session):
     assert html.count('class="jc-ex-question"') == 10
     assert "examen blanc EX01" in html
     home = client.get("/ampcr-pratique").text
-    assert f'href="/uaa/{SLUG}"' in home and re.search(r"11 cours publiés sur 30 prévus\s+· 1 examens blancs sur 6", home)
+    assert f'href="/uaa/{SLUG}"' in home and re.search(r"\d+ cours publiés sur 30 prévus\s+· 1 examens blancs sur 6", home)  # PR07 (#207) publié ensuite
     assert client.get("/ampcr-pratique/matrice").status_code == 200
     # Les cours PR gardent leurs trois onglets.
     pr06 = client.get("/uaa/ampcr-pratique-pr06").text
